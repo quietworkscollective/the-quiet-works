@@ -8,7 +8,7 @@ function bakeMaterial(mesh: Mesh): BakeMaterial | null {
   return mesh.material instanceof MeshStandardMaterial || mesh.material instanceof MeshLambertMaterial ? mesh.material : null;
 }
 
-export async function exportSpace(scene: Scene, space: BakeManifest['space']) {
+export async function exportSpace(scene: Scene, space: BakeManifest['space'], sourceInputsHash?: string) {
   scene.updateMatrixWorld(true);
   const exported = new Scene();
   const meshes: Mesh[] = [];
@@ -43,7 +43,7 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space']) {
       if (!occluder && ids.includes(id)) throw new Error(`Duplicate static mesh ${id}`);
       if (!occluder) ids.push(id);
       const material = copy.material as BakeMaterial;
-      (occluder ? baseline : reflectance).push(id+':'+await materialSignature(material));
+      (occluder ? baseline : reflectance).push(id+':'+await materialSignature(material, sourceInputsHash));
       material.lightMap = null; material.aoMap = null; material.envMap = null;
       if ('normalMap' in material) material.normalMap = null;
       if ('bumpMap' in material) material.bumpMap = null;

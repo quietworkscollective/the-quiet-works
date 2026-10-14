@@ -84,6 +84,10 @@ const LICENCE_EXPECTATIONS = {
  */
 const URL_ALLOWLIST = [
   {
+    url: 'https://github.com/quietworkscollective/the-quiet-works/blob/main/docs/commons/AGENT_DOSSIER.md',
+    reason: 'Contribution guidance link in Details; navigation only, never fetched.',
+  },
+  {
     url: 'https://dalugoda.com/',
     reason: 'author link; navigation only, never fetched',
   },

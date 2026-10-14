@@ -9,15 +9,17 @@
  *
  * The page is one long column of sections: the hero, a smoke run, the game window, the archive, the
  * details and the footer. The game window is a sticky layer pinned behind the hero and the run (so
- * the one world shows through both) and is the element Fullscreen takes. Sections are a minimum of
- * one viewport tall and grow with their content.
+ * the one world shows through both) and is the element Fullscreen takes. The archive, details and
+ * footer follow their content height.
  *
- * Contrast (WCAG 2.x), asserted by spine.test.ts against these tokens:
+ * The room retains its original interface palette, asserted by spine.test.ts against these tokens:
  *   --bone  on --coal 12.02 : 1       --muted on --coal  8.21 : 1       --amber on --coal 7.18 : 1
  *   ink on the stocks (bone / buff / grey-green)       10.28 / 8.25 / 7.61 : 1
  *   dateline --ink-soft on the stocks                   6.93 / 5.56 / 5.13 : 1
  *   sealed stamp --teal-ink on the stocks               6.48 / 5.20 / 4.80 : 1
  *   --coal on the door plaque 12.60 : 1                 --ink-soft on the plaque 6.93 : 1
+ * The public page maps --coal, --bone, --muted, --divider and --stock-bone to the --page-* exhibition
+ * palette below. Every text/control pair on ground, surface and paper is asserted at WCAG AA.
  * Text over the live 3D scene (the hero, the game window's strip) sits on gentle coal scrims and is
  * measured on real frames by the browser spec, not assumed from a worst-case colour.
  */
@@ -34,6 +36,15 @@
   --dawn: #b8c6a4;
   --muted: #b7b1a6;
   --divider: #454a4c;
+
+  /* The exhibition page palette; the rendered room keeps its own tokens inside .tqw-app. */
+  --page-ground: #171918;
+  --page-surface: #202421;
+  --page-text: #eee9df;
+  --page-muted: #bdbdb4;
+  --page-rule: #414741;
+  --page-action: #d59b4a;
+  --page-paper: #e2dacb;
 
   /* The notice board: olive felt in an oak frame, brass pins, and three paper stocks. */
   --felt: #505247;
@@ -52,28 +63,46 @@
   /* One viewport: the small viewport where the browser has one, so a collapsing toolbar never moves a section. */
   --tqw-vh: 100vh;
 
-  /* The hero's lockup, in CSS px: UNHELD 76 / 60 px, .space 18 / 16, tagline 20 / 18, clearance 24 / 20 below 412 px wide. */
-  --hero-name: clamp(60px, calc(60px + (100vw - 320px) * 0.173913), 76px);
-  --hero-space: clamp(16px, calc(16px + (100vw - 320px) * 0.021739), 18px);
+  /* The hero's lockup follows the same type scale as the exhibition page. */
+  --hero-name: clamp(64px, calc(64px + (100vw - 320px) * 0.114286), 72px);
+  --hero-space: clamp(16px, calc(16px + (100vw - 320px) * 0.01087), 20px);
   --hero-space-gap: 4px;
-  --hero-tagline: clamp(18px, calc(18px + (100vw - 320px) * 0.021739), 20px);
-  --hero-tagline-gap: 18px;
+  --hero-tagline: 22px;
+  --hero-tagline-gap: 20px;
   --hero-clear: clamp(20px, calc(20px + (100vw - 320px) * 0.043478), 24px);
 
+  /* Public surfaces use normal width Plex; the world keeps its condensed and mono families. */
+  --font-public: 'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --page-body-size: 1.125rem;
+  --page-body-leading: 1.5556;
+  --page-control-size: 0.9375rem;
+  --page-control-leading: 1.3333;
+  --page-meta-size: 0.875rem;
+  --page-meta-leading: 1.4286;
+
   --page-gutter: clamp(20px, 5vw, 48px);
-  /* The width of the archive, the details and the footer. */
-  --section-width: 1040px;
+  /* The page grid keeps the lower exhibition sections aligned. */
+  --section-width: 1200px;
 }
 
-/* From 412 px up the lockup grows to 144 px UNHELD, 30 px .space, 26 px tagline and 64 px clearance at 1440. */
-@media (min-width: 412px) {
+/* From the phone scale up, the wordmark and lockup follow the exhibition type system. */
+@media (min-width: 390px) {
   :root {
-    --hero-name: clamp(76px, calc(76px + (100vw - 412px) * 0.066148), 144px);
-    --hero-space: clamp(18px, calc(18px + (100vw - 412px) * 0.011673), 30px);
-    --hero-space-gap: clamp(4px, calc(4px + (100vw - 412px) * 0.001946), 6px);
-    --hero-tagline: clamp(20px, calc(20px + (100vw - 412px) * 0.005837), 26px);
-    --hero-tagline-gap: clamp(18px, calc(18px + (100vw - 412px) * 0.005837), 24px);
+    --hero-name: clamp(72px, calc(72px + (100vw - 390px) * 0.060952), 136px);
+    --hero-space: clamp(16px, calc(16px + (100vw - 390px) * 0.00381), 20px);
+    --hero-space-gap: clamp(4px, calc(4px + (100vw - 390px) * 0.001905), 6px);
+    --hero-tagline: clamp(22px, calc(22px + (100vw - 390px) * 0.005714), 28px);
+    --hero-tagline-gap: clamp(20px, calc(20px + (100vw - 390px) * 0.00381), 24px);
     --hero-clear: clamp(24px, calc(24px + (100vw - 412px) * 0.038911), 64px);
+  }
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --page-body-size: 1.0625rem;
+    --page-body-leading: 1.5294;
+    --page-control-size: 1rem;
+    --page-control-leading: 1.375;
   }
 }
 
@@ -111,8 +140,9 @@ html {
   padding: 0.75rem 1rem;
   background: var(--coal);
   color: var(--bone);
-  font-family: var(--font-ui);
-  font-size: 1rem;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
   text-decoration: none;
   border: 1px solid var(--divider);
 }
@@ -132,6 +162,35 @@ html {
 .tqw-journey {
   position: relative;
   display: grid;
+}
+
+.tqw-site {
+  --coal: var(--page-ground);
+  --coal-2: var(--page-surface);
+  --bone: var(--page-text);
+  --muted: var(--page-muted);
+  --divider: var(--page-rule);
+  --amber: var(--page-action);
+  --stock-bone: var(--page-paper);
+  background: var(--page-ground);
+  color: var(--page-text);
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
+}
+
+/* The rendered room stays on the condensed interface face from the world layer. */
+.tqw-app {
+  --coal: #151a20;
+  --coal-2: #1c222a;
+  --bone: #ddd5c8;
+  --bone-dim: #a39e94;
+  --muted: #b7b1a6;
+  --divider: #454a4c;
+  --stock-bone: #e2dacb;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .tqw-journey > * {
@@ -182,8 +241,8 @@ html {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(21, 26, 32, 0.55), rgba(21, 26, 32, 0) 9rem),
-    rgba(21, 26, 32, var(--hero-wash, 0.15));
+    linear-gradient(to bottom, rgba(23, 25, 24, 0.55), rgba(23, 25, 24, 0) 9rem),
+    rgba(23, 25, 24, var(--hero-wash, 0.15));
 }
 
 .tqw-hero__menu {
@@ -218,8 +277,8 @@ html {
   pointer-events: none;
   background: radial-gradient(
     ellipse closest-side at 50% 50%,
-    rgba(21, 26, 32, var(--hero-plate, 0.7)) var(--plate-solid, 62%),
-    rgba(21, 26, 32, 0) 100%
+    rgba(23, 25, 24, var(--hero-plate, 0.7)) var(--plate-solid, 62%),
+    rgba(23, 25, 24, 0) 100%
   );
 }
 
@@ -228,9 +287,9 @@ html {
   flex-direction: column;
   align-items: flex-end;
   margin: 0;
-  font-family: var(--font-ui);
+  font-family: var(--font-public);
   font-weight: 700;
-  line-height: 0.9;
+  line-height: 0.9444;
   color: var(--bone);
 }
 
@@ -431,7 +490,7 @@ html {
   margin-top: var(--hero-space-gap);
   font-size: var(--hero-space);
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.2;
   letter-spacing: 0;
   color: var(--muted);
 }
@@ -442,7 +501,7 @@ html {
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: var(--hero-tagline);
-  line-height: 1.3;
+  line-height: 1.2857;
   text-wrap: balance;
   color: var(--bone);
 }
@@ -453,10 +512,10 @@ html {
   justify-content: center;
   gap: 0.25rem 2rem;
   margin: 1.25rem 0 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0;
   color: var(--muted);
 }
 
@@ -480,9 +539,10 @@ html {
   padding: 0 1rem;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   color: var(--bone);
   cursor: pointer;
   touch-action: manipulation;
@@ -498,14 +558,27 @@ html {
   align-items: center;
   min-height: 44px;
   padding: 0 1rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.4em;
-  text-decoration-color: rgba(221, 213, 200, 0.35);
+  text-decoration-color: rgba(238, 233, 223, 0.35);
   color: var(--muted);
+}
+
+@media (min-width: 40.0625rem) {
+  .tqw-hero__name {
+    line-height: 0.9265;
+  }
+}
+
+@media (max-width: 40rem) {
+  .tqw-hero__space {
+    line-height: 1.25;
+  }
 }
 
 @media (hover: hover) {
@@ -535,11 +608,11 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
   font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   text-decoration: none;
   color: var(--bone);
   cursor: pointer;
@@ -648,9 +721,10 @@ html {
   z-index: 2;
   margin: 0;
   transform: translate(-50%, -50%);
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0;
   color: var(--muted);
 }
 
@@ -802,8 +876,8 @@ html {
   z-index: 3;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(21, 26, 32, 0.88), rgba(21, 26, 32, 0) 96px),
-    linear-gradient(to top, rgba(21, 26, 32, 0.8), rgba(21, 26, 32, 0) 14rem);
+    linear-gradient(to bottom, rgba(23, 25, 24, 0.88), rgba(23, 25, 24, 0) 96px),
+    linear-gradient(to top, rgba(23, 25, 24, 0.8), rgba(23, 25, 24, 0) 14rem);
   opacity: 1;
   transition: opacity 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -842,9 +916,10 @@ html {
 .tqw-game__title {
   align-self: center;
   margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.16em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--bone);
 }
@@ -869,8 +944,10 @@ html {
 .tqw-game__tool,
 .tqw-game__enter-button {
   margin: 0;
-  font-family: var(--font-ui);
+  font-family: var(--font-public);
   font-weight: 400;
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   color: var(--bone);
   cursor: pointer;
   pointer-events: auto;
@@ -885,10 +962,9 @@ html {
   gap: 0.5ch;
   min-height: 44px;
   padding: 0 1rem;
-  border: 1px solid rgba(221, 213, 200, 0.4);
-  background: rgba(21, 26, 32, 0.6);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  border: 1px solid rgba(238, 233, 223, 0.4);
+  background: rgba(23, 25, 24, 0.6);
+  font-size: var(--page-control-size);
 }
 
 .tqw-game__key {
@@ -897,11 +973,12 @@ html {
 
 .tqw-game__location {
   margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0;
   color: var(--bone);
-  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+  text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
 }
 
 .tqw-game__tool {
@@ -914,9 +991,8 @@ html {
   padding: 0 0.5rem;
   border: 0;
   background: none;
-  font-size: 1rem;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+  font-size: var(--page-control-size);
+  text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
 }
 
 .tqw-game__tool--icon .tqw-toggle__icon {
@@ -938,11 +1014,10 @@ html {
 .tqw-game__enter-button {
   min-height: 48px;
   padding: 0 2rem;
-  border: 1px solid rgba(221, 213, 200, 0.55);
-  background: rgba(21, 26, 32, 0.72);
-  font-size: 1rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  border: 1px solid rgba(238, 233, 223, 0.55);
+  background: rgba(23, 25, 24, 0.72);
+  font-size: var(--page-control-size);
+  text-transform: none;
 }
 
 .tqw-game__enter-line {
@@ -951,7 +1026,7 @@ html {
   font-size: 1.0625rem;
   line-height: 1.4;
   color: var(--bone);
-  text-shadow: 0 1px 10px rgba(21, 26, 32, 0.95);
+  text-shadow: 0 1px 10px rgba(23, 25, 24, 0.95);
 }
 
 @media (hover: hover) {
@@ -973,12 +1048,12 @@ html {
   left: max(1rem, env(safe-area-inset-left, 0px));
   display: none;
   margin: 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  line-height: 1.3;
-  letter-spacing: 0.04em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0;
   color: var(--bone);
-  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+  text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
 }
 
 @media (pointer: coarse), (max-width: 40rem) {
@@ -1309,10 +1384,11 @@ html {
   padding: 0 1rem;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 0.8125rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--muted);
   cursor: pointer;
   touch-action: manipulation;
@@ -1401,9 +1477,9 @@ html {
 
 .tqw-clipping__dek {
   margin: 0;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  line-height: 1.4;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   text-wrap: pretty;
 }
 
@@ -1428,11 +1504,12 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  font-weight: 500;
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--paper-ink);
   cursor: pointer;
   touch-action: manipulation;
@@ -1520,9 +1597,10 @@ html {
   align-items: center;
   gap: 0.625rem;
   margin: 0 0 clamp(2.5rem, 7vh, 4.5rem);
-  font-family: var(--font-ui);
-  font-size: 0.8125rem;
-  letter-spacing: 0.2em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0.04em;
   color: var(--muted);
 }
 
@@ -1534,9 +1612,9 @@ html {
   margin: 0 0 clamp(1.5rem, 4vh, 2.25rem);
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.012em;
+  font-size: 3rem;
+  line-height: 1.0833;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   color: var(--bone);
 }
@@ -1547,9 +1625,9 @@ html {
 
 .tqw-page__article p {
   margin: 0 0 1.1em;
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  line-height: 1.55;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   text-wrap: pretty;
   color: var(--bone);
 }
@@ -1581,10 +1659,11 @@ html {
 
 .tqw-page__assets-provider {
   margin: 1.75rem 0 0.5rem;
-  font-family: var(--font-ui);
+  font-family: var(--font-public);
   font-weight: 400;
-  font-size: 0.8125rem;
-  letter-spacing: 0.2em;
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0.04em;
   color: var(--muted);
 }
 
@@ -1602,9 +1681,9 @@ html {
 .tqw-page__assets-list li {
   padding: 0.5rem 0;
   border-top: 1px solid var(--divider);
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  line-height: 1.45;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   color: var(--muted);
   overflow-wrap: anywhere;
 }
@@ -1634,10 +1713,10 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  line-height: 1;
-  letter-spacing: 0.06em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-decoration: none;
   color: var(--muted);
   cursor: pointer;
@@ -1719,13 +1798,13 @@ html {
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--divider);
-  background: #1c222a;
+  background: var(--coal-2);
   color: var(--bone);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
 }
 
 .tqw-menu-panel::backdrop {
-  background: rgba(21, 26, 32, 0.6);
+  background: rgba(23, 25, 24, 0.6);
 }
 
 .tqw-menu-panel[open] {
@@ -1764,9 +1843,10 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-align: left;
   text-decoration: none;
   color: var(--muted);
@@ -1799,11 +1879,11 @@ html {
 
 .tqw-menu-panel__heading {
   margin: 0 0 0.5rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--muted);
 }
 
@@ -1848,13 +1928,11 @@ html {
 
 /*
  * The archive is a cabinet made of spacing, grouping and paper proportions: no pins, no felt, no
- * tilt. Each room is a group; found papers are paper, unfound ones are one closed silhouette that
- * says "Sealed" and nothing else.
+ * tilt. Each room is a group; found papers are paper and unfound papers are compact, neutral rows.
  */
 .tqw-archive {
   position: relative;
   z-index: 2;
-  min-height: var(--tqw-vh);
   padding: 4rem var(--page-gutter);
   background: var(--coal);
 }
@@ -1879,9 +1957,9 @@ html {
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.012em;
+  font-size: 3rem;
+  line-height: 1.0833;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   color: var(--bone);
 }
@@ -1890,15 +1968,16 @@ html {
   max-width: 40rem;
   margin: 1rem 0 0;
   font-family: var(--font-serif);
-  font-size: 1.25rem;
-  line-height: 1.55;
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   color: var(--muted);
 }
 
 .tqw-archive__none {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 1.125rem;
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   color: var(--muted);
 }
 
@@ -1911,15 +1990,16 @@ html {
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 1.75rem;
-  line-height: 1.15;
+  line-height: 1.2143;
   color: var(--bone);
 }
 
 .tqw-archive__room-count {
   margin: 0.375rem 0 1.5rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.03em;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0;
   color: var(--muted);
 }
 
@@ -1932,7 +2012,30 @@ html {
   list-style: none;
 }
 
-/* Found or sealed, every paper is the same size, so the cabinet reads as a set. */
+.tqw-archive__sealed {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tqw-archive__sealed-row {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  margin: 0;
+  padding-inline: 1rem;
+  border: 1px solid var(--divider);
+  background: var(--coal-2);
+  color: var(--muted);
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+}
+
+/* Found documents have room for their title, excerpt and optional reread action. */
 .tqw-paper {
   position: relative;
   display: flex;
@@ -1974,9 +2077,9 @@ html {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-family: var(--font-ui);
-  font-size: 0.9375rem;
-  line-height: 1.4;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
 }
 
 .tqw-paper__reread {
@@ -1986,40 +2089,24 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  font-weight: 500;
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-decoration: underline;
   text-underline-offset: 0.3em;
   color: var(--paper-ink);
   cursor: pointer;
 }
 
-/* Sealed: one closed-paper silhouette for every unfound paper, and a single word. */
-.tqw-paper[data-state='sealed'] {
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--divider);
-  background: #1c222a;
-  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 0 100%);
-}
-
-.tqw-paper__sealed {
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .tqw-archive__recognitions {
   margin: 0 0 3.5rem;
   padding: 0;
   list-style: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  line-height: 1.6;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   color: var(--muted);
 }
 
@@ -2031,9 +2118,9 @@ html {
 .tqw-archive__device {
   max-width: 38rem;
   margin: 0 0 0.75rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
   color: var(--muted);
 }
 
@@ -2043,20 +2130,45 @@ html {
   gap: 0 1.75rem;
 }
 
+.tqw-archive__forget {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-archive__forget-button {
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bone);
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  text-decoration-color: rgba(238, 233, 223, 0.4);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .tqw-archive__action {
   min-height: 44px;
   margin: 0;
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   color: var(--bone);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.35em;
-  text-decoration-color: rgba(221, 213, 200, 0.4);
+  text-decoration-color: rgba(238, 233, 223, 0.4);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -2064,8 +2176,9 @@ html {
 .tqw-archive__message {
   min-height: 1.5rem;
   margin: 0.5rem 0 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
   color: var(--bone);
 }
 
@@ -2075,13 +2188,13 @@ html {
   max-width: none;
   padding: 0;
   border: 1px solid var(--divider);
-  background: #1c222a;
+  background: var(--coal-2);
   color: var(--bone);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
 }
 
 .tqw-forget::backdrop {
-  background: rgba(21, 26, 32, 0.7);
+  background: rgba(23, 25, 24, 0.7);
 }
 
 .tqw-forget__sheet {
@@ -2093,14 +2206,14 @@ html {
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 1.75rem;
-  line-height: 1.15;
+  line-height: 1.2143;
 }
 
 .tqw-forget__body {
   margin: 0 0 1.5rem;
-  font-family: var(--font-serif);
-  font-size: 1.125rem;
-  line-height: 1.5;
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
   color: var(--bone);
 }
 
@@ -2116,9 +2229,10 @@ html {
   padding: 0;
   border: 0;
   background: none;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   color: var(--muted);
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -2132,9 +2246,20 @@ html {
 }
 
 @media (max-width: 40rem) {
+  .tqw-archive__title,
+  .tqw-details__title,
+  .tqw-page__title {
+    font-size: 2.125rem;
+    line-height: 1.1176;
+  }
+
   .tqw-archive__items {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
+  }
+  .tqw-archive__sealed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
   }
   .tqw-archive__room-title {
     font-size: 1.5rem;
@@ -2143,6 +2268,9 @@ html {
 
 @media (max-width: 22.5rem) {
   .tqw-archive__items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tqw-archive__sealed {
     grid-template-columns: minmax(0, 1fr);
   }
   .tqw-paper {
@@ -2157,7 +2285,6 @@ html {
   z-index: 2;
   display: flex;
   align-items: center;
-  min-height: var(--tqw-vh);
   padding: 4rem var(--page-gutter);
   background: var(--coal);
   border-top: 1px solid var(--divider);
@@ -2165,25 +2292,39 @@ html {
 
 .tqw-details__inner {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 4rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.5rem;
   width: min(var(--section-width), 100%);
   margin: 0 auto;
+}
+
+.tqw-details__intro {
+  grid-column: span 5;
+}
+
+.tqw-details__topics {
+  grid-column: span 7;
 }
 
 .tqw-details__lead,
 .tqw-details__topic-body {
   margin: 0;
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  line-height: 1.55;
   text-wrap: pretty;
   color: var(--bone);
 }
 
 .tqw-details__lead {
   margin-top: 1.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  line-height: 1.4167;
   color: var(--muted);
+}
+
+.tqw-details__topic-body {
+  font-family: var(--font-public);
+  font-size: var(--page-body-size);
+  line-height: var(--page-body-leading);
 }
 
 .tqw-details__topic + .tqw-details__topic {
@@ -2192,11 +2333,11 @@ html {
 
 .tqw-details__topic-title {
   margin: 0 0 0.5rem;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  font-weight: 400;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--muted);
 }
 
@@ -2211,13 +2352,14 @@ html {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.35em;
-  text-decoration-color: rgba(221, 213, 200, 0.4);
+  text-decoration-color: rgba(238, 233, 223, 0.4);
   color: var(--bone);
 }
 
@@ -2226,12 +2368,17 @@ html {
     grid-template-columns: minmax(0, 1fr);
     gap: 3rem;
   }
+
+  .tqw-details__intro,
+  .tqw-details__topics {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 40rem) {
-  .tqw-details__lead,
-  .tqw-details__topic-body {
-    font-size: 1.125rem;
+  .tqw-details__lead {
+    font-size: 1.3125rem;
+    line-height: 1.4286;
   }
 }
 
@@ -2240,54 +2387,83 @@ html {
 .tqw-footer {
   position: relative;
   z-index: 2;
-  min-height: var(--tqw-vh);
-  padding: 2rem var(--page-gutter) max(2rem, env(safe-area-inset-bottom, 0px));
+  padding: 4rem var(--page-gutter) max(2rem, env(safe-area-inset-bottom, 0px));
   background: var(--coal);
 }
 
 .tqw-footer__inner {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  gap: 3rem 4rem;
   width: min(var(--section-width), 100%);
-  min-height: calc(var(--tqw-vh) - 4rem);
   margin: 0 auto;
 }
 
-.tqw-footer__menu {
-  display: flex;
-  justify-content: flex-end;
+.tqw-footer__identity {
+  min-width: 0;
 }
 
-.tqw-footer__trivia {
-  max-width: 48ch;
-  margin: 0;
-  font-family: var(--font-serif);
+.tqw-footer__lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-public);
   font-size: 1.25rem;
-  line-height: 1.5;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   color: var(--bone);
 }
 
-/* One rule separates the utility links from what is above them. */
+.tqw-footer__lockup-mark {
+  color: var(--bone);
+}
+
+.tqw-footer__tagline {
+  max-width: 28ch;
+  margin: 1.5rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--bone);
+}
+
+.tqw-footer__creator {
+  margin: 1rem 0 0;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
+  color: var(--muted);
+}
+
 .tqw-footer__base {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--divider);
 }
 
 .tqw-footer__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 1.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 0 2rem;
+  justify-self: end;
 }
 
 .tqw-footer__link {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  letter-spacing: 0.02em;
+  min-height: 48px;
+  font-family: var(--font-public);
+  font-size: var(--page-control-size);
+  font-weight: 500;
+  line-height: var(--page-control-leading);
+  letter-spacing: 0;
   text-decoration: none;
   color: var(--bone);
 }
@@ -2302,11 +2478,15 @@ html {
 
 .tqw-footer__note,
 .tqw-footer__copyright {
-  margin: 0.5rem 0 0;
-  font-family: var(--font-ui);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  margin: 0;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  line-height: var(--page-meta-leading);
   color: var(--muted);
+}
+
+.tqw-footer__licence-line {
+  display: block;
 }
 
 .tqw-footer__copyright {
@@ -2317,6 +2497,40 @@ html {
 
 .tqw-footer__mark {
   color: var(--muted);
+}
+
+@media (max-width: 40rem) {
+  .tqw-footer {
+    padding-top: 3rem;
+  }
+
+  .tqw-footer__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+
+  .tqw-footer__tagline {
+    max-width: 26ch;
+    margin-top: 1.25rem;
+    font-size: 1.375rem;
+    line-height: 1.2727;
+  }
+
+  .tqw-footer__links {
+    justify-self: start;
+    gap: 0 1rem;
+  }
+
+  .tqw-footer__link {
+    font-size: var(--page-control-size);
+    line-height: var(--page-control-leading);
+  }
+
+  .tqw-footer__base {
+    display: grid;
+    gap: 1rem;
+    padding-top: 1.25rem;
+  }
 }
 
 /* ---------------------------------------------------------------- text mode */

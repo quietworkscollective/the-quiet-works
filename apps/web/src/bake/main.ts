@@ -11,7 +11,7 @@ const dev = window as unknown as {
   __tqwFreeze?: () => void;
   __tqwGl?: WebGLRenderer;
   __tqwScene?: Scene;
-  __bake?: { export(): ReturnType<typeof exportSpace>; calibrate(kind?: 'point' | 'spot'): ReturnType<typeof measurePhysicalLight> };
+  __bake?: { export(sourceInputsHash: string): ReturnType<typeof exportSpace>; calibrate(kind?: 'point' | 'spot'): ReturnType<typeof measurePhysicalLight> };
 };
 let lastCount = 0;
 let stableSince = performance.now();
@@ -36,5 +36,5 @@ const wait = window.setInterval(() => {
   if (count !== lastCount) { lastCount = count; stableSince = performance.now(); return; }
   if (performance.now() - stableSince < 500) return;
   clearInterval(wait);
-  dev.__bake = { export: () => exportSpace(scene, space), calibrate: measurePhysicalLight };
+  dev.__bake = { export: sourceInputsHash => exportSpace(scene, space, sourceInputsHash), calibrate: measurePhysicalLight };
 }, 100);

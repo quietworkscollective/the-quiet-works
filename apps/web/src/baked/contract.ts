@@ -132,7 +132,7 @@ export function transformGeometry(geometry: BufferGeometry, matrix: Matrix4): vo
   }
 }
 
-async function textureSignature(material: BakeMaterial): Promise<string> {
+async function textureSignature(material: BakeMaterial, sourceInputsHash?: string): Promise<string> {
   const results: string[] = [];
   for (const texture of [material.map, material.emissiveMap]) {
     if (!texture) { results.push('none'); continue; }
@@ -140,23 +140,19 @@ async function textureSignature(material: BakeMaterial): Promise<string> {
     results.push(JSON.stringify({ matrix: numbers(texture.matrix.elements), channel: texture.channel,
       colourSpace: texture.colorSpace, wrapS: texture.wrapS, wrapT: texture.wrapT,
       flipY: texture.flipY, minFilter: texture.minFilter, magFilter: texture.magFilter }));
-    const image = texture.image as CanvasImageSource | undefined;
-    if (!image || typeof document === 'undefined') { results.push(texture.name); continue; }
-    const canvas = document.createElement('canvas');
-    canvas.width = 32; canvas.height = 32;
-    // CPU sampling avoids ANGLE-dependent rounding in accelerated Canvas downsampling.
-    const context = canvas.getContext('2d', { willReadFrequently: true });
-    if (!context) throw new Error('Cannot fingerprint bake reflectance');
-    context.drawImage(image, 0, 0, 32, 32);
-    results.push(await digest(numbers(context.getImageData(0, 0, 32, 32).data)));
+    const image = texture.image as { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number } | undefined;
+    if (!image) { results.push(texture.name); continue; }
+    if (!sourceInputsHash) throw new Error('Missing source inputs for textured bake material');
+    results.push(JSON.stringify({ sourceInputsHash, width: image.width ?? image.naturalWidth ?? 0,
+      height: image.height ?? image.naturalHeight ?? 0 }));
   }
   return results.join(':');
 }
 
-export async function materialSignature(m: BakeMaterial): Promise<string> {
+export async function materialSignature(m: BakeMaterial, sourceInputsHash?: string): Promise<string> {
   const metalness = m instanceof MeshStandardMaterial ? m.metalness : 0;
   const roughness = m instanceof MeshStandardMaterial ? m.roughness : 1;
-  return digest(`${await textureSignature(m)}\n${numbers([m.color.r,m.color.g,m.color.b,metalness,roughness,m.emissive.r,m.emissive.g,m.emissive.b,m.emissiveIntensity])}`);
+  return digest(`${await textureSignature(m, sourceInputsHash)}\n${numbers([m.color.r,m.color.g,m.color.b,metalness,roughness,m.emissive.r,m.emissive.g,m.emissive.b,m.emissiveIntensity])}`);
 }
 
 export async function meshId(mesh: Mesh, geometry: BufferGeometry): Promise<string> {

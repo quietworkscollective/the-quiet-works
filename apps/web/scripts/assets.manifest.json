@@ -7,7 +7,7 @@
     "licence: SPDX id; must be one of the ids reviewed in the script's LICENCE_EXPECTATIONS table.",
     "licenceFile: path relative to apps/web. npm sources must point into node_modules/<source>/; in-repo sources must point outside node_modules.",
     "attribution: the credit the project publishes for the asset; keep it consistent with README.md 'Credits and licences'.",
-    "Derived from a real build: the files below are exactly the Fontsource subsets imported in src/main.tsx (latin 400 and 600 for IBM Plex Mono, latin 400, 600 and 700 for IBM Plex Sans Condensed (700 is the hero's UNHELD), latin 400 normal and italic for Newsreader), each emitted as .woff and .woff2.",
+    "Derived from a real build: the files below are exactly the Fontsource subsets imported in src/main.tsx (latin 400 and 600 for IBM Plex Mono, latin 400, 500 and 700 for IBM Plex Sans, latin 400, 600 and 700 for IBM Plex Sans Condensed, and latin 400 normal and italic for Newsreader), each emitted as .woff and .woff2.",
     "In-repo brand files: public/ files are copied unhashed, so their patterns are exact file names. scripts/brand-assets.mjs draws them. They are original art under CC BY 4.0 (LICENSING.md); the licence text is LICENSES/CC-BY-4.0.txt. The UNHELD name and mark as the project's identity are reserved by LICENSING.md."
   ],
   "entries": [
@@ -18,6 +18,14 @@
       "licence": "OFL-1.1",
       "licenceFile": "node_modules/@fontsource/ibm-plex-mono/LICENSE",
       "attribution": "IBM Plex Mono, copyright 2017 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource."
+    },
+    {
+      "name": "IBM Plex Sans",
+      "pattern": "^ibm-plex-sans-latin-(?:400|500|700)-normal-[\\w-]+\\.woff2?$",
+      "source": "@fontsource/ibm-plex-sans",
+      "licence": "OFL-1.1",
+      "licenceFile": "node_modules/@fontsource/ibm-plex-sans/LICENSE",
+      "attribution": "IBM Plex Sans, copyright 2019 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource."
     },
     {
       "name": "IBM Plex Sans Condensed",

@@ -1,6 +1,9 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { FOOTER_COPY } from '@tqw/engine';
+import { Details } from './Details.tsx';
 import { Footer } from './Footer.tsx';
+import { BRAND } from './brand.ts';
+import { SiteMenu } from './SiteMenu.tsx';
 
 function setup(trivia?: string) {
   const onOpenPage = vi.fn();
@@ -16,12 +19,36 @@ describe('Footer', () => {
     expect(screen.getByRole('contentinfo', { name: FOOTER_COPY.label })).toBeTruthy();
   });
 
-  it('repeats the menu it is given, above the links', () => {
+  it('opens as a colophon with the lockup, tagline and approved creator credit', () => {
     const { view } = setup();
     const footer = view.container.querySelector('footer') as HTMLElement;
-    const menu = within(footer).getByRole('navigation', { name: 'Test menu' });
-    const links = within(footer).getByRole('navigation', { name: 'Footer links' });
-    expect(menu.compareDocumentPosition(links) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(footer).getByText(BRAND.name)).toBeTruthy();
+    expect(within(footer).getByText(BRAND.tagline)).toBeTruthy();
+    expect(within(footer).getByText('Created by Siri (Asiri) Dalugoda')).toBeTruthy();
+  });
+
+  it('does not add a detached menu or trivia block to the colophon', () => {
+    const { view } = setup('The old trivia slot is ignored.');
+    const footer = view.container.querySelector('footer') as HTMLElement;
+    expect(within(footer).queryByRole('navigation', { name: 'Test menu' })).toBeNull();
+    expect(footer.querySelector('.tqw-footer__menu, .tqw-footer__trivia')).toBeNull();
+  });
+
+  it('renders About, Credits, Privacy and Licences exactly once, at the footer', () => {
+    const onOpenPage = vi.fn();
+    render(
+      <>
+        <SiteMenu variant="hero" onOpenBoard={vi.fn()} onOpenPage={onOpenPage} onOpenMenu={vi.fn()} />
+        <Details onOpenPage={onOpenPage} />
+        <Footer menu={<nav aria-label="Test menu">menu</nav>} onOpenPage={onOpenPage} />
+      </>,
+    );
+    const footer = screen.getByRole('contentinfo', { name: FOOTER_COPY.label });
+    for (const name of ['About', 'Credits', 'Privacy', 'Licences']) {
+      const links = screen.getAllByRole('link', { name });
+      expect(links).toHaveLength(1);
+      expect(links[0]?.closest('footer')).toBe(footer);
+    }
   });
 
   it('links About, Credits and Privacy as pages, and the licences as the notices file', () => {
@@ -38,19 +65,16 @@ describe('Footer', () => {
 
   it('states the licences and the copyright, with the mark as decoration', () => {
     const { view } = setup();
-    expect(screen.getByText(FOOTER_COPY.licencesNote)).toBeTruthy();
+    expect(view.container.querySelector('.tqw-footer__note')?.textContent).toBe(FOOTER_COPY.licencesNote);
     expect(screen.getByText(FOOTER_COPY.copyright)).toBeTruthy();
     // The maker's name in full, written out here so the constant cannot change it unseen.
     expect(FOOTER_COPY.copyright).toBe('© 2026 Siri (Asiri) Dalugoda');
     expect(view.container.querySelector('.tqw-footer__copyright svg')?.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('leaves trivia out until there is some, then sets exactly that line', () => {
-    const { view } = setup();
+  it('does not render the removed trivia slot', () => {
+    const { view } = setup('The corridor is exactly as long as it needs to be.');
     expect(view.container.querySelector('.tqw-footer__trivia')).toBeNull();
-    cleanup();
-    setup('The corridor is exactly as long as it needs to be.');
-    expect(screen.getByText('The corridor is exactly as long as it needs to be.').className).toContain('tqw-footer__trivia');
   });
 
   it('ships no trivia in the draft pool until the editor approves some', () => {

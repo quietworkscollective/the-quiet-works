@@ -34,10 +34,12 @@ function fakeRenderer(width = 1440, height = 900, ratio = 1): Spy {
     autoClear: true,
     outputColorSpace: SRGBColorSpace,
     info,
+    shadowMap: { autoUpdate: true },
     capabilities: { maxSamples: 8, isWebGL2: true },
     getSize: (target: Vector2) => target.set(size.width, size.height),
     getDrawingBufferSize: (target: Vector2) => target.set(size.width * size.ratio, size.height * size.ratio),
     getPixelRatio: () => size.ratio,
+    getClearAlpha: () => 0,
     getContext: () => ({
       getContextAttributes: () => ({ alpha: true }),
       // A WebGL2 context that supports 8 samples: pmndrs clamps the multisampling to what it reports.
@@ -51,6 +53,7 @@ function fakeRenderer(width = 1440, height = 900, ratio = 1): Spy {
     getRenderTarget: () => null,
     setSize: vi.fn(),
     setRenderTarget: vi.fn(),
+    clear: vi.fn(),
     render: direct,
     dispose: vi.fn(),
   } as unknown as WebGLRenderer;
@@ -74,8 +77,28 @@ function setup(overrides: Partial<LookDriverOptions> & { profile?: LookProfile }
 }
 
 describe('frames on their way to the screen', () => {
+  it('does not stand down when a RenderPass reads the renderer shadow map', () => {
+    const { driver, spy, scene, camera } = setup();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const renderPass = driver.passes[0];
+    driver.composer.render = vi.fn(() => {
+      if (!renderPass) throw new Error('missing scene render pass');
+      renderPass.render(spy.renderer, driver.composer.inputBuffer, driver.composer.outputBuffer, 0, false);
+    });
+    try {
+      driver.frame(scene, camera, 0);
+      expect(error).not.toHaveBeenCalled();
+      expect(driver.failed).toBe(false);
+      expect(spy.direct).toHaveBeenCalledWith(scene, camera);
+    } finally {
+      error.mockRestore();
+      driver.dispose();
+    }
+  });
+
   it('marks the buffer it draws the scene into, and nothing else', () => {
     const { driver, scene, camera } = setup();
+    driver.composer.render = vi.fn();
     driver.frame(scene, camera, 0);
     expect(isOnScreenSceneTarget(driver.composer.inputBuffer), 'the scene pass renders into the input buffer').toBe(true);
     expect(isOnScreenSceneTarget({}), 'an unrelated offscreen target').toBe(false);

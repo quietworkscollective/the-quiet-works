@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, Matrix4, Mesh, MeshLambertMaterial, MeshStandardMaterial, PointLight, Scene, Texture, RepeatWrapping, SRGBColorSpace } from 'three';
 import { analyticIntensity, assertFresh, digest, geometrySignature, isStatic, materialSignature, meshId, pointPower, spotPower, transformGeometry } from './contract.ts';
 import { sceneLights } from './lights.ts';
@@ -63,6 +63,30 @@ describe('baked lighting contract', () => {
     }
     expect(await materialSignature(material)).not.toBe(baseline);
     texture.dispose(); material.dispose();
+  });
+  it('fingerprints canvas textures from their source inputs, not rasterized pixels', async () => {
+    const texture = new Texture();
+    texture.image = { width: 32, height: 16 };
+    const material = new MeshStandardMaterial({ map: texture });
+    const createElement = vi.fn(() => ({
+      width: 0,
+      height: 0,
+      getContext: () => ({
+        drawImage: vi.fn(),
+        getImageData: () => ({ data: new Uint8ClampedArray([10, 20, 30, 255]) }),
+      }),
+    }));
+    vi.stubGlobal('document', { createElement });
+    try {
+      const first = await materialSignature(material, 'source-input-a');
+      const second = await materialSignature(material, 'source-input-b');
+      expect(first).not.toBe(second);
+      expect(createElement).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+      texture.dispose();
+      material.dispose();
+    }
   });
   it('converts physical intensity to full sphere radiant power', () => {
     expect(pointPower(10)).toBeCloseTo(125.663706,5);
