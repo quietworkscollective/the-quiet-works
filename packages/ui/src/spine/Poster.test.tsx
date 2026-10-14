@@ -1,0 +1,90 @@
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { Poster } from './Poster.tsx';
+
+const LANDSCAPE = '/poster-hero-1440x900.webp';
+const PORTRAIT = '/poster-hero-412x915.webp';
+
+function setup(ready = false) {
+  const onGone = vi.fn();
+  const props = { landscape: LANDSCAPE, portrait: PORTRAIT, onGone };
+  const view = render(<Poster {...props} ready={ready} />);
+  return { onGone, props, view, picture: view.container.querySelector('picture') as HTMLElement };
+}
+
+beforeEach(() => {
+  vi.useFakeTimers();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
+
+describe('Poster', () => {
+  it('is an image of the hero view, fetched at once and at high priority', () => {
+    const { picture } = setup();
+    const img = picture.querySelector('img') as HTMLImageElement;
+    expect(img.getAttribute('src')).toBe(LANDSCAPE);
+    expect(img.getAttribute('loading')).toBe('eager');
+    expect(img.getAttribute('decoding')).toBe('async');
+    expect(img.getAttribute('fetchpriority')).toBe('high');
+  });
+
+  it('is decoration: no alt text, hidden from assistive technology, not draggable', () => {
+    const { picture } = setup();
+    expect(picture.getAttribute('aria-hidden')).toBe('true');
+    const img = picture.querySelector('img') as HTMLImageElement;
+    expect(img.getAttribute('alt')).toBe('');
+    expect(img.getAttribute('draggable')).toBe('false');
+  });
+
+  it('offers the portrait still to a portrait screen and the landscape one otherwise', () => {
+    const { picture } = setup();
+    const source = picture.querySelector('source') as HTMLSourceElement;
+    expect(source.getAttribute('media')).toBe('(orientation: portrait)');
+    expect(source.getAttribute('srcset')).toBe(PORTRAIT);
+    expect(source.getAttribute('type')).toBe('image/webp');
+  });
+
+  it('stays opaque while the scene has not drawn, and starts dissolving when it has', () => {
+    const { picture, view, props } = setup(false);
+    expect(picture.getAttribute('data-ready')).toBe('false');
+    view.rerender(<Poster {...props} ready />);
+    expect(picture.getAttribute('data-ready')).toBe('true');
+  });
+
+  it('asks to be removed once the opacity transition has ended, and only once', () => {
+    const { picture, onGone } = setup(true);
+    expect(onGone).not.toHaveBeenCalled();
+    fireEvent.transitionEnd(picture, { propertyName: 'opacity' });
+    fireEvent.transitionEnd(picture, { propertyName: 'opacity' });
+    expect(onGone).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the end of any other transition, and of its child\'s', () => {
+    const { picture, onGone } = setup(true);
+    fireEvent.transitionEnd(picture, { propertyName: 'transform' });
+    fireEvent.transitionEnd(picture.querySelector('img') as HTMLElement, { propertyName: 'opacity' });
+    expect(onGone).not.toHaveBeenCalled();
+  });
+
+  it('goes anyway if the browser never reports the end (a hidden tab), a moment after it is ready', () => {
+    const { onGone } = setup(true);
+    act(() => {
+      vi.advanceTimersByTime(799);
+    });
+    expect(onGone).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(onGone).toHaveBeenCalledTimes(1);
+  });
+
+  it('never goes before the scene is ready, however long it takes', () => {
+    const { onGone } = setup(false);
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(onGone).not.toHaveBeenCalled();
+  });
+});

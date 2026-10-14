@@ -1,0 +1,1933 @@
+/*
+ * THE QUIET WORKS — interface styles for the Certification Office.
+ * All app styling lives here: tokens, the 3D overlay, the dock, the controls, the memo and
+ * the art-directed text mode. Fonts are loaded by the app; nothing here is remote.
+ *
+ * Contrast (WCAG 2.x relative luminance), measured against the solid token backgrounds and
+ * asserted by styles.test.ts:
+ *   --bone      on --coal    12.02 : 1     --bone      on --coal-2  11.00 : 1
+ *   --bone-dim  on --coal     6.56 : 1     --bone-dim  on --coal-2   6.00 : 1
+ *   --amber     on --coal     7.18 : 1     --coral     on --coal     6.64 : 1
+ *   --paper-ink on --paper   10.69 : 1     --teal-ink  on --paper    6.74 : 1
+ *   --coal      on --amber    7.18 : 1     --bone      on --teal-ink 6.18 : 1
+ * Overlay plates (header, dock, captions) are 85-92% coal, so text on them sits within a
+ * few points of these ratios whatever the 3D scene shows behind them.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  color-scheme: dark;
+
+  /* Palette (MASTER_BLUEPRINT §6) */
+  --coal: #151a20;
+  --coal-2: #1c222a;
+  --bone: #ddd5c8;
+  --bone-dim: #a39e94;
+  --teal: #3c7775;
+  --teal-ink: #24504e;
+  --amber: #d59b4a;
+  --amber-glow: rgba(213, 155, 74, 0.38);
+  --coral: #d78d79;
+  --paper: #e6ded0;
+  --paper-ink: #2d2a26;
+
+  /* Derived: enamel, brass, wood and paper shading. Never used for text on coal. */
+  --paper-ink-dim: #5b554c; /* 5.5 : 1 on --paper */
+  --teal-hi: #5a9a96;
+  --teal-lo: #2b5957;
+  --brass-hi: #efca88;
+  --brass-lo: #bd8636; /* 4.8 : 1 under --coal text */
+  --brass-edge: #6e4a1c;
+  /* The dock stamp before the memo: the same brass, calmer and a little greyer, so the 3D
+     handle is the first invitation. coal text on --brass-calm-lo is 5.4 : 1. */
+  --brass-calm-hi: #e4cb9c;
+  --brass-calm: #cdaa6c;
+  --brass-calm-lo: #b08c4f;
+  --brass-calm-edge: #5a431f;
+  /* The dark inside of the machine's hatch, where the stencil is read. */
+  --cavity: #0a0d10;
+  --walnut-hi: #75522f;
+  --walnut: #53361f;
+  --walnut-lo: #3a2514;
+  --walnut-edge: #22140a;
+  --line: rgba(221, 213, 200, 0.14);
+  --line-strong: rgba(221, 213, 200, 0.3);
+
+  /* Type */
+  --font-ui: 'IBM Plex Sans Condensed', 'Arial Narrow', 'Helvetica Neue', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+
+  --step--2: clamp(0.75rem, 0.73rem + 0.1vw, 0.8125rem);
+  --step--1: clamp(0.8125rem, 0.79rem + 0.12vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.125rem, 1.05rem + 0.4vw, 1.375rem);
+  --step-2: clamp(1.375rem, 1.2rem + 0.9vw, 1.875rem);
+  --step-3: clamp(1.75rem, 1.4rem + 1.8vw, 2.75rem);
+  --step-4: clamp(2.125rem, 1.6rem + 2.8vw, 3.75rem);
+
+  /* 8 px spacing grid */
+  --sp-0: 0.25rem;
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --sp-5: 3rem;
+  --sp-6: 4rem;
+
+  --gutter: clamp(1rem, 0.6rem + 1.8vw, 2rem);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* ------------------------------------------------------------------- base */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--coal);
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--coal);
+  color: var(--bone);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.tqw-visually-hidden,
+.tqw-office .tqw-readout__sep,
+.tqw-office .tqw-readout :where(.tqw-visually-hidden) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* One focus treatment for every control: 2 px amber, 2 px off the edge. */
+:where(.tqw-app) :focus-visible,
+.tqw-memo :focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Amber on paper is only 1.9 : 1, so the memo uses ink for its focus ring. */
+.tqw-memo :focus-visible {
+  outline-color: var(--paper-ink);
+}
+
+.tqw-memo__title:focus-visible {
+  outline: none;
+}
+
+/* -------------------------------------------------------------------- app */
+
+.tqw-app {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--coal);
+  color: var(--bone);
+}
+
+.tqw-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--coal);
+}
+
+.tqw-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.tqw-canvas > canvas {
+  display: block;
+}
+
+/* A quiet coal field with one slow amber hairline. Never a spinner. */
+.tqw-stage__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--coal);
+}
+
+.tqw-stage__loading::after {
+  content: '';
+  width: min(14rem, 50vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber) 30%, var(--amber) 70%, transparent);
+  opacity: 0.55;
+  transform: scaleX(0.6);
+  animation: tqw-hairline 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes tqw-hairline {
+  from {
+    opacity: 0.18;
+    transform: scaleX(0.25);
+  }
+  to {
+    opacity: 0.8;
+    transform: scaleX(1);
+  }
+}
+
+/* ----------------------------------------------------------------- header */
+
+.tqw-header {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-0) var(--sp-2);
+  padding: max(0.75rem, var(--safe-top)) max(var(--gutter), var(--safe-right)) var(--sp-3)
+    max(var(--gutter), var(--safe-left));
+  background: linear-gradient(to bottom, rgba(21, 26, 32, 0.88) 0%, rgba(21, 26, 32, 0.55) 60%, rgba(21, 26, 32, 0));
+  pointer-events: none;
+}
+
+.tqw-header .tqw-toggle {
+  pointer-events: auto;
+}
+
+/* UNHELD is a small, restrained signature; the place line beneath it is quieter still. */
+.tqw-wordmark {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--sp-1);
+}
+
+.tqw-wordmark__name {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--step--2);
+  line-height: 1.2;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--bone-dim);
+}
+
+.tqw-wordmark__room {
+  font-size: var(--step-0);
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-wrap: balance;
+}
+
+/*
+ * Settings: one compact row at every width. The button is the 44 px hit target; the visible
+ * "face" inside it is smaller and quieter on desktop (icon and label, a faint outline), and
+ * on narrow screens a 40 px icon-only disc.
+ */
+.tqw-settings {
+  display: flex;
+  flex: none;
+  align-items: center;
+  pointer-events: none;
+}
+
+.tqw-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--bone-dim);
+  font-size: var(--step--1);
+  line-height: 1;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-toggle__face {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.75rem 0 0.625rem;
+  border: 1px solid rgba(221, 213, 200, 0.16);
+  border-radius: 999px;
+  background: rgba(21, 26, 32, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.tqw-toggle__icon {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+.tqw-toggle__label {
+  white-space: nowrap;
+}
+
+.tqw-toggle[aria-pressed='true'] {
+  color: var(--bone);
+}
+
+.tqw-toggle[aria-pressed='true'] .tqw-toggle__face {
+  border-color: rgba(213, 155, 74, 0.4);
+  background: rgba(40, 33, 24, 0.62);
+}
+
+.tqw-toggle[aria-pressed='true'] .tqw-toggle__icon {
+  color: var(--amber);
+}
+
+.tqw-toggle:disabled {
+  cursor: not-allowed;
+}
+
+/* The ring goes on the visible face, not the larger hit box around it. */
+.tqw-toggle:focus-visible {
+  outline: none;
+}
+
+.tqw-toggle:focus-visible .tqw-toggle__face {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .tqw-toggle:not(:disabled):hover {
+    color: var(--bone);
+  }
+  .tqw-toggle:not(:disabled):hover .tqw-toggle__face {
+    border-color: rgba(221, 213, 200, 0.34);
+  }
+  .tqw-toggle[aria-pressed='true']:not(:disabled):hover .tqw-toggle__face {
+    border-color: rgba(213, 155, 74, 0.7);
+  }
+}
+
+/* Phones: four icon discs in one row, labels kept for assistive technology only. */
+@media (max-width: 40rem) {
+  .tqw-header {
+    flex-wrap: nowrap;
+  }
+  .tqw-wordmark {
+    flex: 1 1 0;
+    padding-top: 0.25rem;
+  }
+  .tqw-wordmark__room {
+    font-size: var(--step--2);
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    color: var(--bone-dim);
+  }
+  .tqw-toggle {
+    padding: 0;
+  }
+  .tqw-toggle__face {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .tqw-toggle__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .tqw-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+  }
+}
+
+/* Below 360 px the place line would be squeezed to a few words: stack the row instead. */
+@media (max-width: 22.5rem) {
+  .tqw-header {
+    flex-wrap: wrap;
+  }
+  .tqw-wordmark {
+    flex: 1 0 100%;
+  }
+}
+
+/* ------------------------------------------------------------------- dock */
+
+.tqw-dock {
+  position: absolute;
+  z-index: 10;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: clamp(0.75rem, 4dvh, 2.5rem) max(var(--gutter), var(--safe-right)) max(var(--sp-2), var(--safe-bottom))
+    max(var(--gutter), var(--safe-left));
+  background: linear-gradient(to top, rgba(21, 26, 32, 0.94) 0%, rgba(21, 26, 32, 0.78) 50%, rgba(21, 26, 32, 0));
+  pointer-events: none;
+}
+
+.tqw-dock button {
+  pointer-events: auto;
+}
+
+/* A phone on its side: readout and actions share one row so the dock stays short. */
+@media (max-height: 30rem) and (min-width: 36rem) {
+  .tqw-dock {
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--sp-3);
+    padding-top: 1rem;
+  }
+  .tqw-dock .tqw-readout {
+    max-width: 26rem;
+    text-align: right;
+  }
+}
+
+.tqw-dock__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1) var(--sp-2);
+}
+
+/* ---------------------------------------------------------- machine readout */
+
+.tqw-readout {
+  margin: 0;
+  max-width: 42rem;
+  text-align: center;
+  text-wrap: balance;
+  font-family: var(--font-ui);
+  font-size: var(--step-0);
+  line-height: 1.45;
+  color: var(--bone-dim);
+  overflow-wrap: anywhere;
+}
+
+/* Generous tracking is for short identifiers; long status lines are set tighter. */
+.tqw-readout__display {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--step--1);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  text-shadow:
+    0 0 14px var(--amber-glow),
+    0 1px 6px rgba(21, 26, 32, 0.9);
+}
+
+.tqw-readout__display[data-long='true'] {
+  letter-spacing: 0.05em;
+}
+
+.tqw-readout__sep {
+  margin: 0 0.1em;
+}
+
+.tqw-readout__receipt {
+  display: inline;
+}
+
+/* Dock context: the receipt is an inline fragment that fades in with the reply. */
+.tqw-dock .tqw-readout__receipt-text {
+  animation: tqw-fade-in 260ms ease-out both;
+}
+
+/* On a phone the receipt takes its own line, so no dash is left hanging at a line end. */
+@media (max-width: 40rem) {
+  .tqw-dock .tqw-readout__display {
+    letter-spacing: 0.07em;
+  }
+  .tqw-dock .tqw-readout__display[data-long='true'] {
+    letter-spacing: 0.02em;
+  }
+  .tqw-dock .tqw-readout__receipt {
+    display: block;
+    font-size: 0.9375rem;
+  }
+  .tqw-dock .tqw-readout__sep [aria-hidden='true'] {
+    display: none;
+  }
+}
+
+@keyframes tqw-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+
+/* ------------------------------------------------------------ stamp button */
+
+.tqw-stamp {
+  --edge: 3px;
+  --sink: 2px;
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-stamp__face {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 0.75rem;
+  color: var(--coal);
+}
+
+.tqw-stamp__label {
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tqw-stamp__key {
+  padding: 0.0625rem 0.4375rem;
+  border: 1px solid rgba(21, 26, 32, 0.55);
+  border-bottom-width: 2px;
+  border-radius: 0.3125rem;
+  background: rgba(255, 244, 220, 0.28);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+
+/* No keyboard on a touch screen: the hint would only be noise. */
+@media (pointer: coarse) {
+  .tqw-stamp__key {
+    display: none;
+  }
+}
+
+/*
+ * Dock: a brass key that confirms the action. It is deliberately quieter than the 3D handle
+ * (smaller face, softer shadow, greyer brass). Pressing sinks it 2 px and collapses the shadow.
+ */
+.tqw-stamp[data-variant='dock'] {
+  --edge: 2px;
+  min-height: 46px;
+  min-width: 44px;
+  padding: 0 1.25rem;
+  border-radius: 0.625rem;
+  background: linear-gradient(180deg, var(--brass-calm-hi) 0%, var(--brass-calm) 52%, var(--brass-calm-lo) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 var(--edge) 0 var(--brass-calm-edge),
+    0 calc(var(--edge) + 4px) 10px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 80ms ease-out,
+    box-shadow 80ms ease-out,
+    filter 80ms ease-out,
+    background-color 150ms ease;
+}
+
+.tqw-stamp[data-variant='dock'] .tqw-stamp__label {
+  font-size: 0.9375rem;
+  letter-spacing: 0.08em;
+}
+
+.tqw-stamp[data-pressing='true'] {
+  --edge: 1px;
+  transform: translateY(var(--sink));
+  filter: brightness(0.94);
+}
+
+/*
+ * After the memo has been found, the memo is the next invitation and stamping steps back:
+ * the dock key becomes a flat outlined control in bone, still clearly labelled.
+ */
+.tqw-app[data-memo]:not([data-memo='hidden']) .tqw-dock .tqw-stamp[data-variant='dock'] {
+  --edge: 0px;
+  background: rgba(205, 170, 108, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(205, 170, 108, 0.55);
+}
+
+.tqw-app[data-memo]:not([data-memo='hidden']) .tqw-dock .tqw-stamp[data-variant='dock'] .tqw-stamp__face {
+  color: var(--bone);
+}
+
+.tqw-app[data-memo]:not([data-memo='hidden']) .tqw-dock .tqw-stamp[data-variant='dock'] .tqw-stamp__key {
+  border-color: rgba(221, 213, 200, 0.4);
+  background: none;
+}
+
+/* Desk: a rubber-stamp block seen from above — walnut body, brass inlay. */
+.tqw-stamp[data-variant='desk'] {
+  --edge: 7px;
+  --sink: 5px;
+  display: flex;
+  width: min(100%, 18.5rem);
+  min-height: 5rem;
+  padding: 0.625rem;
+  border-radius: 1.125rem;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.1) 0 1px, transparent 1px 6px),
+    repeating-linear-gradient(88deg, rgba(255, 255, 255, 0.045) 0 2px, transparent 2px 13px),
+    linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18) 28%, transparent 52%, rgba(255, 220, 170, 0.07) 74%, transparent),
+    linear-gradient(180deg, var(--walnut-hi) 0%, var(--walnut) 50%, var(--walnut-lo) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 170, 0.28),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.4),
+    0 var(--edge) 0 var(--walnut-edge),
+    0 calc(var(--edge) + 10px) 20px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 90ms ease-out,
+    box-shadow 90ms ease-out,
+    filter 90ms ease-out,
+    width 200ms ease;
+}
+
+.tqw-stamp[data-variant='desk'] .tqw-stamp__face {
+  position: relative;
+  flex: 1;
+  min-height: 3.75rem;
+  padding: 0.5rem 1.625rem;
+  border-radius: 0.75rem;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, var(--brass-hi) 0%, var(--amber) 46%, var(--brass-lo) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.28),
+    0 0 0 2px rgba(0, 0, 0, 0.4),
+    0 1px 0 2px rgba(255, 220, 170, 0.12);
+}
+
+/* Two slotted screws on the brass inlay. */
+.tqw-stamp[data-variant='desk'] .tqw-stamp__face::before,
+.tqw-stamp[data-variant='desk'] .tqw-stamp__face::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-top: -0.21875rem;
+  border-radius: 50%;
+  background:
+    linear-gradient(35deg, transparent 44%, rgba(0, 0, 0, 0.55) 46% 54%, transparent 56%),
+    radial-gradient(circle at 35% 30%, #f3d9a6, var(--brass-lo));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+.tqw-stamp[data-variant='desk'] .tqw-stamp__face::before {
+  left: 0.625rem;
+}
+
+.tqw-stamp[data-variant='desk'] .tqw-stamp__face::after {
+  right: 0.625rem;
+}
+
+.tqw-stamp[data-variant='desk'] .tqw-stamp__label {
+  font-size: var(--step-0);
+  letter-spacing: 0.12em;
+  /* Engraved into the brass. */
+  text-shadow: 0 1px 0 rgba(255, 236, 190, 0.6);
+}
+
+.tqw-stamp[data-variant='desk'][data-pressing='true'] {
+  --edge: 2px;
+  --sink: 5px;
+  filter: brightness(0.92);
+}
+
+/* Once the memo is found the desk stamp steps back too: smaller, and a calmer brass. */
+.tqw-office[data-memo='revealed'] .tqw-stamp[data-variant='desk'] {
+  width: min(100%, 17rem);
+  min-height: 4.25rem;
+}
+
+.tqw-office[data-memo='revealed'] .tqw-stamp[data-variant='desk'] .tqw-stamp__label {
+  font-size: 0.9375rem;
+  letter-spacing: 0.1em;
+}
+
+.tqw-office[data-memo='revealed'] .tqw-stamp[data-variant='desk'] .tqw-stamp__face {
+  min-height: 3.25rem;
+  padding-inline: 1.125rem;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, var(--brass-calm-hi) 0%, var(--brass-calm) 46%, var(--brass-calm-lo) 100%);
+}
+
+@media (hover: hover) {
+  .tqw-stamp:not([data-pressing='true']):hover {
+    filter: brightness(1.06);
+  }
+}
+
+.tqw-stamp:focus-visible {
+  outline-offset: 5px;
+}
+
+/* ------------------------------------------------- link and memo buttons */
+
+.tqw-link-button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  border: 0;
+  background: none;
+  color: var(--bone-dim);
+  font-size: var(--step--1);
+  letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+  .tqw-link-button:hover {
+    color: var(--bone);
+  }
+}
+
+/*
+ * Once found, the memo is the next invitation: a sheet of paper, lit, in the same bone
+ * stock as the memo itself. It outranks the stamp beside it.
+ */
+.tqw-memo-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: 0 1.375rem 0 1.125rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: linear-gradient(180deg, #f2ecdf 0%, var(--paper) 55%, #d8cfbe 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 0 #968d7c,
+    0 8px 18px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(230, 222, 208, 0.16);
+  color: var(--paper-ink);
+  font-size: var(--step-0);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: tqw-fade-in 520ms ease-out both;
+  transition: filter 150ms ease;
+}
+
+@media (hover: hover) {
+  .tqw-memo-button:hover {
+    filter: brightness(1.05);
+  }
+}
+
+/* A sheet of paper with a folded corner and two ruled lines, in ink. */
+.tqw-memo-button__glyph {
+  position: relative;
+  flex: none;
+  width: 0.9375rem;
+  height: 1.1875rem;
+  background:
+    linear-gradient(var(--paper), var(--paper)) 3px 9px / 9px 1.5px no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 3px 13px / 6px 1.5px no-repeat,
+    var(--paper-ink);
+  clip-path: polygon(0 0, 65% 0, 100% 28%, 100% 100%, 0 100%);
+  transform: rotate(-4deg);
+}
+
+/* ---------------------------------------------------------------- captions */
+
+.tqw-captions {
+  position: fixed;
+  z-index: 15;
+  left: max(var(--gutter), var(--safe-left));
+  bottom: calc(max(var(--sp-2), var(--safe-bottom)) + 9.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: min(26rem, calc(100% - 2 * var(--gutter)));
+  pointer-events: none;
+}
+
+.tqw-captions__line {
+  margin: 0;
+  padding: 0.375rem 0.75rem;
+  border-left: 2px solid var(--amber);
+  border-radius: 0 0.25rem 0.25rem 0;
+  background: rgba(21, 26, 32, 0.85);
+  color: var(--bone);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  line-height: 1.4;
+  animation: tqw-fade-in 200ms ease-out both;
+}
+
+/* On a phone the dock can wrap to two rows of actions: lift the captions clear of it. */
+@media (max-width: 30rem) {
+  .tqw-captions {
+    bottom: calc(max(var(--sp-2), var(--safe-bottom)) + 13rem);
+  }
+}
+
+.tqw-app[data-mode='text'] .tqw-captions {
+  /* Above the sticky stamp bar, which is up to about 11 rem tall with the memo shown. */
+  bottom: calc(max(var(--sp-2), var(--safe-bottom)) + 12.5rem);
+}
+
+@media (min-width: 56.25rem) {
+  .tqw-app[data-mode='text'] .tqw-captions {
+    bottom: max(var(--sp-3), var(--safe-bottom));
+  }
+}
+
+/* ------------------------------------------------------------------- memo */
+
+.tqw-memo {
+  width: min(40rem, calc(100vw - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: 3px;
+  color: var(--paper-ink);
+  background:
+    radial-gradient(120% 70% at 12% 0%, rgba(255, 255, 255, 0.4), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.028) 0 1px, transparent 1px 3px),
+    var(--paper);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 2px 0 rgba(45, 42, 38, 0.1),
+    0 40px 80px rgba(0, 0, 0, 0.6);
+}
+
+.tqw-memo::backdrop {
+  background: rgba(21, 26, 32, 0.8);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.tqw-memo[open] {
+  animation: tqw-memo-in 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.tqw-memo[open]::backdrop {
+  animation: tqw-backdrop-in 320ms ease-out both;
+}
+
+@keyframes tqw-memo-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-0.6deg);
+  }
+}
+
+@keyframes tqw-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tqw-memo__sheet {
+  position: relative;
+  padding: clamp(1.5rem, 5vw, 2.5rem) clamp(1.25rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2rem);
+  padding-left: clamp(2.75rem, 9vw, 4.5rem);
+}
+
+/* Two punched holes, as on real filing paper. */
+.tqw-memo__sheet::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(0.625rem, 2.4vw, 1.25rem);
+  width: 1rem;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(21, 26, 32, 0.82) 0 4px, rgba(45, 42, 38, 0.25) 4.5px 6px, transparent 6.5px)
+      0 clamp(3rem, 14%, 6rem) / 100% 1rem no-repeat,
+    radial-gradient(circle at 50% 50%, rgba(21, 26, 32, 0.82) 0 4px, rgba(45, 42, 38, 0.25) 4.5px 6px, transparent 6.5px)
+      0 calc(100% - clamp(3rem, 14%, 6rem)) / 100% 1rem no-repeat;
+  pointer-events: none;
+}
+
+.tqw-memo__head {
+  padding-bottom: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  border-bottom: 3px double rgba(45, 42, 38, 0.4);
+}
+
+.tqw-memo__title {
+  display: inline-block;
+  margin: 0;
+  padding: 0.3125rem 0.75rem 0.25rem 0.9375rem;
+  border: 1.5px solid var(--teal-ink);
+  border-radius: 2px;
+  color: var(--teal-ink);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--step--1);
+  line-height: 1.3;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.tqw-memo__from {
+  margin: var(--sp-2) 0 0;
+  font-family: var(--font-serif);
+  font-size: var(--step-0);
+  line-height: 1.4;
+  color: var(--paper-ink);
+}
+
+.tqw-memo__provenance {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--step-0);
+  line-height: 1.4;
+  color: var(--paper-ink-dim);
+}
+
+.tqw-memo__body {
+  max-width: 62ch;
+  font-family: var(--font-serif);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  line-height: 1.6;
+  hanging-punctuation: first;
+}
+
+.tqw-memo__body p {
+  margin: 0 0 1em;
+  text-wrap: pretty;
+}
+
+.tqw-memo__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid rgba(45, 42, 38, 0.22);
+}
+
+.tqw-memo__note {
+  margin: 0;
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  color: var(--paper-ink-dim);
+}
+
+.tqw-memo__close {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 3px;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .tqw-memo__close:hover {
+    background: #000;
+  }
+}
+
+/* ---------------------------------------------------------------- text mode */
+
+/*
+ * In text mode the whole app is the scroller: the header is ordinary content at the top of
+ * the document and scrolls away with it, which leaves the room for the machine and the
+ * sticky stamp on small and short screens.
+ */
+.tqw-app[data-mode='text'] {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-bottom: 11rem;
+  background:
+    radial-gradient(70rem 36rem at 72% 62%, rgba(213, 155, 74, 0.075), transparent 70%),
+    var(--coal);
+}
+
+.tqw-app[data-mode='text'] .tqw-header {
+  position: relative;
+  inset: auto;
+  /* Line the wordmark and settings up with the content column below. */
+  padding-inline: max(var(--gutter), var(--safe-left), calc((100% - 76rem) / 2))
+    max(var(--gutter), var(--safe-right), calc((100% - 76rem) / 2));
+  padding-bottom: var(--sp-1);
+  background: none;
+  border-bottom: 1px solid var(--line);
+  pointer-events: auto;
+}
+
+.tqw-text {
+  padding: 0 max(var(--gutter), var(--safe-right)) var(--safe-bottom) max(var(--gutter), var(--safe-left));
+}
+
+.tqw-office {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--sp-3) 0 var(--sp-4);
+}
+
+/* Intro: the room, in words. */
+
+.tqw-office__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-2);
+}
+
+.tqw-office__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-3);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  color: var(--bone);
+}
+
+.tqw-office__notice-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-1);
+}
+
+.tqw-office__notice {
+  margin: 0;
+  padding: 0.5rem 0.875rem 0.5rem 0.75rem;
+  border-left: 2px solid var(--amber);
+  background: rgba(221, 213, 200, 0.05);
+  font-size: var(--step--1);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--bone-dim);
+}
+
+/* The opening line: atmosphere, in the literary serif. */
+.tqw-office__scene {
+  max-width: 50ch;
+  font-family: var(--font-serif);
+}
+
+.tqw-office__scene p {
+  margin: 0;
+  font-style: italic;
+  font-size: var(--step-1);
+  line-height: 1.45;
+  color: var(--bone);
+  text-wrap: pretty;
+}
+
+/* The rest of the description follows the controls, ahead of the form it introduces. */
+.tqw-office__scene-rest {
+  max-width: 52ch;
+  font-family: var(--font-serif);
+}
+
+.tqw-office__scene-rest p {
+  margin: 0 0 0.75em;
+  font-size: var(--step-0);
+  line-height: 1.5;
+  color: var(--bone-dim);
+  text-wrap: pretty;
+}
+
+.tqw-office__scene-rest p:last-child {
+  margin-bottom: 0;
+}
+
+/* Desk: the objects, lit by one lamp. */
+
+.tqw-office__desk {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(40rem 22rem at 70% 0%, rgba(213, 155, 74, 0.1), transparent 70%),
+    linear-gradient(180deg, var(--coal-2), rgba(28, 34, 42, 0.55));
+  box-shadow:
+    inset 0 1px 0 rgba(221, 213, 200, 0.07),
+    0 32px 64px rgba(0, 0, 0, 0.35);
+}
+
+/* The machine: teal enamel on steel, with an amber window and a paper receipt. */
+
+.tqw-machine__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--sp-3) var(--sp-3) var(--sp-3);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 32%),
+    linear-gradient(180deg, var(--teal-hi) 0%, var(--teal) 30%, var(--teal-lo) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -14px 28px rgba(0, 0, 0, 0.28),
+    0 4px 0 #173533,
+    0 26px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Rivets in the four corners. */
+.tqw-machine__body::before {
+  content: '';
+  position: absolute;
+  inset: 0.625rem;
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.55) 0 1.5px, rgba(0, 0, 0, 0.45) 2px 3.5px, transparent 4px),
+    radial-gradient(circle at 100% 0, rgba(255, 255, 255, 0.55) 0 1.5px, rgba(0, 0, 0, 0.45) 2px 3.5px, transparent 4px),
+    radial-gradient(circle at 0 100%, rgba(255, 255, 255, 0.55) 0 1.5px, rgba(0, 0, 0, 0.45) 2px 3.5px, transparent 4px),
+    radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.55) 0 1.5px, rgba(0, 0, 0, 0.45) 2px 3.5px, transparent 4px);
+  pointer-events: none;
+}
+
+.tqw-machine__lamps {
+  display: flex;
+  gap: 0.625rem;
+  margin-bottom: var(--sp-2);
+}
+
+/* A vent grille at the other end of the lamp row. */
+.tqw-machine__lamps::after {
+  content: '';
+  align-self: center;
+  width: 5.5rem;
+  height: 0.875rem;
+  margin-left: auto;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, rgba(8, 22, 21, 0.85) 0 3px, transparent 3px 7px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.tqw-machine__lamp {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #2a3138, #0e1215);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 0 2px var(--teal-lo),
+    0 1px 0 2px rgba(255, 255, 255, 0.2);
+  transition:
+    background 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.tqw-machine__lamp[data-lit='true'] {
+  background: radial-gradient(circle at 35% 30%, #ffe2a8, var(--amber) 60%, #9b6a26);
+  box-shadow:
+    0 0 10px 1px var(--amber-glow),
+    0 0 0 2px var(--teal-lo),
+    0 1px 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* The readout, laid out as a display window above a receipt slot. */
+
+.tqw-office .tqw-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* The receipt zone is reserved up front so a printed receipt never shifts the layout. */
+  grid-template-rows: auto minmax(7rem, auto);
+  max-width: none;
+  text-align: left;
+  text-wrap: auto;
+  overflow-wrap: normal;
+}
+
+.tqw-office .tqw-readout__display {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 6.25rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 0.625rem;
+  text-align: center;
+  font-size: clamp(1.0625rem, 0.85rem + 1.4vw, 1.5rem);
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.07) 0%, transparent 38%),
+    radial-gradient(120% 140% at 50% 40%, #241d12, #0c0e10 78%);
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.9),
+    0 0 0 3px var(--teal-lo),
+    0 0 0 4px rgba(255, 255, 255, 0.16),
+    0 2px 0 4px rgba(0, 0, 0, 0.22);
+  text-shadow:
+    0 0 6px rgba(213, 155, 74, 0.75),
+    0 0 20px var(--amber-glow);
+}
+
+/* The receipt slot, with the strip hanging out of it. */
+.tqw-office .tqw-readout__display[data-long='true'] {
+  letter-spacing: 0.06em;
+}
+
+.tqw-office .tqw-readout::before {
+  content: '';
+  grid-row: 2;
+  grid-column: 1;
+  z-index: 2;
+  align-self: start;
+  justify-self: center;
+  width: min(92%, 22rem);
+  height: 0.875rem;
+  margin-top: 1.25rem;
+  border-radius: 0.375rem;
+  background: #0b0d0f;
+  box-shadow:
+    inset 0 3px 4px rgba(0, 0, 0, 0.9),
+    0 0 0 2px var(--teal-lo),
+    0 1px 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.tqw-office .tqw-readout__receipt {
+  grid-row: 2;
+  grid-column: 1;
+  display: block;
+  justify-self: center;
+  width: min(90%, 20rem);
+  margin-top: 1.5rem;
+  overflow: hidden;
+  transform: rotate(-0.7deg);
+  transform-origin: 50% 0;
+}
+
+.tqw-office .tqw-readout__receipt-text {
+  display: block;
+  text-wrap: balance;
+  padding: 1.1rem 1rem 1.6rem;
+  color: var(--paper-ink);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  background:
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.045) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.07), transparent 12%, transparent 88%, rgba(0, 0, 0, 0.07)),
+    var(--paper);
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - 7px),
+    93.75% 100%, 87.5% calc(100% - 7px), 81.25% 100%, 75% calc(100% - 7px), 68.75% 100%,
+    62.5% calc(100% - 7px), 56.25% 100%, 50% calc(100% - 7px), 43.75% 100%, 37.5% calc(100% - 7px),
+    31.25% 100%, 25% calc(100% - 7px), 18.75% 100%, 12.5% calc(100% - 7px), 6.25% 100%, 0 calc(100% - 7px)
+  );
+  animation: tqw-print 620ms cubic-bezier(0.3, 0.6, 0.25, 1) both;
+}
+
+@keyframes tqw-print {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+/* The front hatch: shut until the machine finds it has no authority to receive anything. */
+
+.tqw-hatch {
+  position: relative;
+  height: 7.5rem;
+  margin-top: auto;
+  perspective: 1100px;
+}
+
+.tqw-machine__body .tqw-readout {
+  margin-bottom: var(--sp-3);
+}
+
+.tqw-hatch__interior {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Keeps the stencil clear of the open door's lip along the bottom. */
+  padding-bottom: 1.25rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: linear-gradient(180deg, var(--cavity), var(--coal) 70%);
+  box-shadow:
+    inset 0 8px 16px rgba(0, 0, 0, 0.85),
+    0 0 0 3px var(--teal-lo),
+    0 1px 0 3px rgba(255, 255, 255, 0.16);
+}
+
+/*
+ * The stencil is the punchline, so it is read, not squinted at. The supporting line sits
+ * quietly (--bone-dim on the cavity, 7.3 : 1); the verdict is warm bone (13.4 : 1) with an
+ * amber glow. It does not fade in: it is already there behind the shut door, and the door
+ * opening is what reveals it, so no frame ever catches it half-visible.
+ */
+.tqw-hatch__stencil {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0.75rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px dashed rgba(221, 213, 200, 0.45);
+  text-align: center;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.tqw-hatch__lead {
+  font-size: var(--step--2);
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  color: var(--bone-dim);
+}
+
+.tqw-hatch__verdict {
+  font-size: clamp(1.125rem, 0.95rem + 0.9vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  color: var(--bone);
+  text-shadow: 0 0 14px rgba(213, 155, 74, 0.5);
+}
+
+/* The memo, edge-on in the dark, once the hatch has opened. */
+.tqw-hatch__paper {
+  position: absolute;
+  right: 7%;
+  bottom: -2.25rem;
+  width: 22%;
+  height: 3.5rem;
+  background: linear-gradient(180deg, var(--paper), #cfc6b6);
+  border-radius: 2px 2px 0 0;
+  transform: translateY(110%) rotate(-5deg);
+  transition: transform 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 400ms;
+}
+
+.tqw-hatch[data-open='true'] .tqw-hatch__paper {
+  transform: translateY(0) rotate(-5deg);
+}
+
+.tqw-hatch__door {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  transform-origin: 50% 100%;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.14) 0%, transparent 34%),
+    linear-gradient(180deg, var(--teal) 0%, var(--teal-lo) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.3),
+    0 3px 0 #173533,
+    0 10px 18px rgba(0, 0, 0, 0.4);
+  transition: transform 900ms cubic-bezier(0.55, 0, 0.25, 1);
+}
+
+/* Recessed handle and hinge line. */
+.tqw-hatch__door::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4.5rem;
+  height: 0.625rem;
+  margin: -0.3125rem 0 0 -2.25rem;
+  border-radius: 999px;
+  background: #0f1f1e;
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.tqw-hatch__door::after {
+  content: '';
+  position: absolute;
+  inset: auto 0.75rem 0.375rem;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.tqw-hatch[data-open='true'] .tqw-hatch__door {
+  transform: rotateX(-78deg);
+}
+
+/* The form: a sheet from an endless stack. */
+
+.tqw-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-3) var(--sp-3) var(--sp-3);
+  border-radius: 3px;
+  color: var(--paper-ink);
+  background:
+    radial-gradient(120% 60% at 10% 0%, rgba(255, 255, 255, 0.4), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.025) 0 1px, transparent 1px 3px),
+    var(--paper);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    3px 3px 0 -1px #d5ccbc,
+    6px 6px 0 -2px #c5bcab,
+    9px 9px 0 -3px #b5ad9d,
+    0 28px 44px rgba(0, 0, 0, 0.5);
+}
+
+.tqw-form::after {
+  content: '';
+  flex: none;
+  height: 3.75rem;
+  margin-top: var(--sp-3);
+  border-top: 3px double rgba(45, 42, 38, 0.32);
+  /* An embossed seal, mostly rubbed away. */
+  background: radial-gradient(
+    circle at calc(100% - 1.75rem) 52%,
+    transparent 0 0.95rem,
+    rgba(36, 80, 78, 0.22) 1rem 1.1rem,
+    transparent 1.15rem 1.35rem,
+    rgba(36, 80, 78, 0.16) 1.4rem 1.5rem,
+    transparent 1.55rem
+  );
+}
+
+.tqw-form__title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.tqw-form__no {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--step--2);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+}
+
+.tqw-form__name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-2);
+  line-height: 1.1;
+  letter-spacing: -0.008em;
+  text-wrap: balance;
+}
+
+.tqw-form__fields {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: var(--sp-3);
+}
+
+.tqw-form__fields span {
+  display: block;
+  height: 1.375rem;
+  border-bottom: 1px solid rgba(45, 42, 38, 0.3);
+}
+
+.tqw-form__fields span:nth-child(1) {
+  width: 100%;
+}
+
+.tqw-form__fields span:nth-child(2) {
+  width: 64%;
+}
+
+.tqw-form__fields span:nth-child(3) {
+  width: 82%;
+}
+
+.tqw-form__stamps {
+  display: grid;
+  /* Room for all twelve imprints from the first, so stamping never moves the page. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  flex: 1 0 auto;
+  aspect-ratio: 2.2 / 1;
+  gap: 0.375rem;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Where the next imprint will land. */
+.tqw-form__stamps[data-full='false']::after {
+  content: '';
+  border: 1.5px dashed rgba(45, 42, 38, 0.3);
+  border-radius: 3px;
+}
+
+.tqw-imprint {
+  container-type: inline-size;
+  display: grid;
+  place-items: center;
+  transform: translate(var(--dx), var(--dy)) rotate(var(--tilt));
+}
+
+.tqw-imprint__word {
+  padding: 0.22em 0.5em 0.18em 0.62em;
+  border: 0.09em solid currentColor;
+  border-radius: 0.14em;
+  color: var(--teal-ink);
+  font-size: clamp(0.6875rem, 13cqw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.92;
+  /* Ink grain: two offset speckle layers punched out of the impression. */
+  -webkit-mask:
+    radial-gradient(circle at 30% 40%, transparent 0 0.9px, #000 1.3px) 0 0 / 7px 9px,
+    radial-gradient(circle at 70% 60%, transparent 0 0.7px, #000 1.1px) 3px 2px / 11px 7px;
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 30% 40%, transparent 0 0.9px, #000 1.3px) 0 0 / 7px 9px,
+    radial-gradient(circle at 70% 60%, transparent 0 0.7px, #000 1.1px) 3px 2px / 11px 7px;
+  mask-composite: intersect;
+  text-shadow: 0 0 0.6px currentColor;
+}
+
+.tqw-imprint[data-newest='true'] .tqw-imprint__word {
+  animation: tqw-settle 640ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Wet ink: the impression lands heavy and slightly large, then sinks into the paper. */
+@keyframes tqw-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.14);
+    filter: blur(1.5px);
+    text-shadow: 0 0 5px rgba(36, 80, 78, 0.7);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(0.985);
+    filter: blur(0.4px);
+  }
+}
+
+/*
+ * Controls: the stamp, then the memo and Start over, in the order they are read and focused.
+ * Wrapped rows keep that order. On a tall phone the block sticks to the bottom edge so the
+ * stamp stays reachable while the machine is in view; on a short screen it would cover too
+ * much of the page, so it scrolls with the content instead.
+ */
+
+.tqw-office__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-0) var(--sp-2);
+}
+
+.tqw-office[data-memo='revealed'] .tqw-office__actions {
+  row-gap: var(--sp-2);
+}
+
+.tqw-office__secondary {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 var(--sp-1);
+}
+
+.tqw-office__secondary:empty {
+  display: none;
+}
+
+/* Once the memo is found it joins the stamp's row; Start over keeps its own. */
+.tqw-office[data-memo='revealed'] .tqw-office__secondary {
+  display: contents;
+}
+
+/* The bench and the sheet are plain wrappers on a phone; they become columns on a desk. */
+.tqw-office__bench,
+.tqw-office__sheet {
+  display: contents;
+}
+
+@media (max-width: 56.1875rem) and (min-height: 43.75rem) {
+  .tqw-office__actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin: 0 calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2));
+    padding: var(--sp-2) var(--sp-2) max(var(--sp-1), var(--safe-bottom));
+    border-radius: 0 0 1.25rem 1.25rem;
+    background: linear-gradient(to top, var(--coal-2) 72%, rgba(28, 34, 42, 0));
+  }
+}
+
+@media (min-width: 30.0625rem) {
+  .tqw-office__desk {
+    padding: var(--sp-3);
+  }
+  .tqw-office[data-memo='revealed'] .tqw-link-button {
+    flex: 0 0 100%;
+  }
+}
+
+@media (min-width: 30.0625rem) and (max-width: 56.1875rem) and (min-height: 43.75rem) {
+  .tqw-office__actions {
+    margin: 0 calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3));
+    padding: var(--sp-2) var(--sp-3) max(var(--sp-2), var(--safe-bottom));
+  }
+}
+
+@media (max-width: 30rem) {
+  .tqw-office {
+    gap: var(--sp-2);
+    padding-top: var(--sp-2);
+  }
+  .tqw-office__intro {
+    gap: 0.75rem;
+  }
+  .tqw-office__scene p {
+    font-size: var(--step-0);
+  }
+  .tqw-hatch {
+    height: 6.5rem;
+  }
+  .tqw-form__stamps {
+    gap: 0.25rem;
+    aspect-ratio: 1.7 / 1;
+  }
+  .tqw-machine__body {
+    padding: var(--sp-2);
+  }
+  .tqw-form {
+    padding: var(--sp-2);
+  }
+  .tqw-office .tqw-readout__display {
+    min-height: 5.5rem;
+    padding: 0.875rem 0.75rem;
+    letter-spacing: 0.1em;
+  }
+  .tqw-office .tqw-readout__display[data-long='true'] {
+    letter-spacing: 0.04em;
+  }
+  .tqw-stamp[data-variant='desk'] {
+    min-height: 4.5rem;
+    padding: 0.5rem;
+  }
+  .tqw-stamp[data-variant='desk'] .tqw-stamp__face {
+    min-height: 3.5rem;
+    padding: 0.5rem 1.5rem;
+  }
+  .tqw-office[data-memo='revealed'] .tqw-stamp[data-variant='desk'] {
+    min-height: 4rem;
+  }
+  .tqw-office[data-memo='revealed'] .tqw-stamp[data-variant='desk'] .tqw-stamp__face {
+    min-height: 3rem;
+  }
+}
+
+/* Very narrow: two columns of imprints, so a word is never squeezed into a third of 290 px. */
+@media (max-width: 24rem) {
+  .tqw-form__stamps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+    aspect-ratio: 4 / 5;
+  }
+}
+
+@media (min-width: 56.25rem) {
+  .tqw-office {
+    gap: var(--sp-4);
+    padding-top: var(--sp-4);
+  }
+
+  .tqw-office__intro {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    column-gap: var(--sp-5);
+    align-items: end;
+  }
+
+  .tqw-office__title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tqw-office__notice-row {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tqw-office__scene {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+  }
+
+  /* The machine and its controls on the left; the description and the form on the right. */
+  .tqw-office__desk {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    column-gap: var(--sp-5);
+    padding: var(--sp-3);
+  }
+
+  .tqw-office__bench,
+  .tqw-office__sheet {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .tqw-office__scene-rest {
+    margin-bottom: var(--sp-3);
+  }
+
+  .tqw-office__sheet .tqw-form {
+    flex: 1;
+  }
+
+  .tqw-office__actions {
+    margin: var(--sp-3) 0 0;
+  }
+}
+
+/* --------------------------------------------------------- forced colours */
+
+@media (forced-colors: active) {
+  .tqw-toggle__face,
+  .tqw-stamp,
+  .tqw-memo-button {
+    border: 2px solid ButtonText;
+  }
+  .tqw-toggle[aria-pressed='true'] .tqw-toggle__face {
+    border-color: Highlight;
+  }
+  .tqw-toggle[aria-pressed='true'] .tqw-toggle__icon {
+    color: Highlight;
+  }
+  .tqw-stamp__face {
+    color: ButtonText;
+  }
+}
+
+/* ----------------------------------------------------------- reduced motion */
+/*
+ * Reduced motion has two switches: the visitor's toggle (data-reduced-motion="true" on
+ * .tqw-app, or on .tqw-office when used on its own) and the OS preference. Either one
+ * removes every animation and transition. Every keyframe above starts from a change and
+ * ends on the element's ordinary style, so with the animation gone the element is simply
+ * in its final state. State changes (a pressed stamp, a lit lamp, an open hatch) still
+ * apply; they just arrive instantly.
+ */
+
+[data-reduced-motion='true'] *,
+[data-reduced-motion='true'] *::before,
+[data-reduced-motion='true'] *::after,
+[data-reduced-motion='true'].tqw-office,
+[data-reduced-motion='true'] .tqw-memo::backdrop {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tqw-app *,
+  .tqw-app *::before,
+  .tqw-app *::after,
+  .tqw-office,
+  .tqw-memo,
+  .tqw-memo::backdrop {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tqw-apparatus-controls { position: absolute; left: 1.25rem; bottom: 1.25rem; z-index: 11; }
+[data-mode="text"] .tqw-apparatus-controls { position: static; margin: 1.5rem auto; max-width: 46rem; }
+.tqw-stamp-options { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem; color: #ddd5c8; background: #151a20ed; padding: .65rem; }
+.tqw-stamp-options fieldset { margin: 0; padding: 0; border: 0; }
+.tqw-stamp-options legend { font-size: .75rem; letter-spacing: .08em; }
+.tqw-stamp-options label { display: inline-flex; align-items: center; gap: .3rem; min-height: 44px; padding: .3rem; font-size: .85rem; }
+.tqw-stamp-options button { min-height: 44px; padding: .5rem .75rem; color: #ddd5c8; background: #343d3d; border: 1px solid #777e78; font: inherit; cursor: pointer; }
+@media(max-width: 600px) { .tqw-apparatus-controls { left: .5rem; right: .5rem; bottom: calc(var(--office-dock-height, 8rem) + .5rem); } .tqw-stamp-options { padding: .3rem; gap: .2rem; } .tqw-stamp-options label { font-size: .75rem; } }
+
+.tqw-paper-action { margin: 1rem 0; padding: 1rem; background: #d6cdb9; color: #2d3431; }
+.tqw-paper-action p { margin: 0 0 .75rem; }
+.tqw-paper-action__stock { display: flex; flex-wrap: wrap; min-height: .25rem; }
+.tqw-paper-action__expiry { padding: .2rem .6rem; border: 1px solid #725144; transform: rotate(-3deg); }
+.tqw-paper-action__carbon { padding: .6rem; background: #a8b8b3; box-shadow: 4px 4px #252e2c; }
+.tqw-paper-action__fold { padding: .5rem; border-right: 1px dashed #6c7265; background: #e5ddce; transform: skewY(4deg); }
+.tqw-paper-action__empty { padding: .75rem; border: 1px solid #2d3431; }
+/* Movement remains visible beside the room, including the standing station release. */
+.tqw-room-controls { position: absolute; left: 1.25rem; top: 6rem; display: flex; flex-wrap: wrap; gap: .45rem; max-width: 24rem; z-index: 3; }
+.tqw-room-controls button, .tqw-room-controls summary { min-height: 44px; padding: .5rem .75rem; border: 1px solid #777e78; background: #151a20e8; color: #ddd5c8; font: inherit; cursor: pointer; }
+.tqw-room-controls details { max-width: 22rem; background: #151a20ee; }
+.tqw-room-controls details p { padding: .5rem .75rem; }
+@media (max-width: 600px) { .tqw-room-controls { top: 8.5rem; left: .75rem; right: .75rem; gap: .25rem; } .tqw-room-controls button, .tqw-room-controls summary { font-size: .8rem; padding: .4rem .5rem; } }
+
+.tqw-office-exploration { position: absolute; right: 1rem; top: 6rem; z-index: 3; width: min(21rem, calc(100% - 2rem)); max-height: calc(100svh - 17rem); overflow: auto; color: #ddd5c8; background: #151a20ee; padding: .65rem; }
+.tqw-office-exploration button, .tqw-office-exploration summary { min-height: 44px; padding: .5rem .65rem; color: #ddd5c8; background: #263331; border: 1px solid #68746c; font: inherit; cursor: pointer; }
+.tqw-office-exploration summary { display: flex; align-items: center; }
+.tqw-office-exploration ul { list-style: none; padding: 0; margin: .4rem 0; }
+.tqw-office-exploration li button { width: 100%; text-align: left; }
+.tqw-office-exploration p { font-family: var(--font-serif); line-height: 1.45; }
+.tqw-office-exploration h2 { margin: .75rem 0; font-size: 1.1rem; }
+.tqw-office-exploration[data-inspection="false"] .tqw-office-objects > section { display: none; }
+.tqw-office-exploration[data-exits="false"] .tqw-office-objects > nav { display: none; }
+.tqw-office-objects > details[open] { max-height: 38svh; overflow: auto; }
+.tqw-office-objects > nav { margin-top: .5rem; }
+.tqw-office-objects > nav button { display: block; width: 100%; }
+.tqw-office-exploration > button { margin-top: .35rem; }
+[data-mode="text"] .tqw-office-exploration { position: static; width: auto; max-width: 46rem; max-height: none; margin: 1rem auto; }
+[data-mode="text"] .tqw-office-exploration .tqw-office-objects > nav { display: block; }
+.tqw-counter-archive { margin: 1rem auto; max-width: 46rem; }
+@media(max-width: 600px) { .tqw-office-exploration { top: 14.5rem; right: .5rem; width: 11.5rem; padding: .4rem; max-height: calc(100svh - 28rem); font-size: .8rem; } [data-mode="text"] .tqw-office-exploration { width: auto; } }
+@media(max-width: 600px) { .tqw-office-exploration button { font-size: .75rem; padding: .35rem .4rem; } }
+.tqw-focus-label { position: absolute; top: 52%; left: 50%; transform: translateX(-50%); z-index: 2; padding: .35rem .6rem; color: #ddd5c8; background: #151a20e8; pointer-events: none; font: .85rem var(--font-ui); }
+
+/* Office actions live beside fittings or in an explicitly opened accessibility disclosure. */
+.tqw-places { position:absolute; z-index:12; top:5.5rem; left:1rem; color:#ddd5c8; font:17px var(--font-ui); }
+.tqw-places > summary { min-height:44px; padding:10px 12px; cursor:pointer; background:#151a20e8; border:1px solid #68746c; }
+.tqw-places__content { padding:12px; background:#151a20f5; width:min(26rem,calc(100vw - 2rem)); max-height:calc(100svh - 17rem); overflow:auto; }
+.tqw-places button, .tqw-places summary, .tqw-desk-actions button, .tqw-desk-actions select { min-height:44px; min-width:44px; font:17px var(--font-ui); color:#ddd5c8; background:#263331; border:1px solid #68746c; padding:8px 12px; }
+.tqw-places nav { display:grid; gap:4px; }
+.tqw-places .tqw-office-exploration { position:static; width:auto; padding:0; max-height:none; background:transparent; font-size:17px; }
+.tqw-places .tqw-office-exploration button { font-size:17px; }
+.tqw-desk-actions { position:absolute; z-index:11; bottom:1rem; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; max-width:calc(100% - 2rem); background:#151a20e8; padding:8px; }
+.tqw-desk-actions[data-revealed="false"]:not(:focus-within) { display:none; }
+.tqw-desk-actions .tqw-stamp-options { padding:0; background:none; display:flex; gap:8px; }
+.tqw-desk-actions .tqw-stamp-options label { font-size:16px; }
+.tqw-desk-actions .tqw-stamp { min-height:44px; }
+.tqw-context-cue { position:absolute; z-index:10; transform:translate(20px,-50%); max-width:15rem; animation:tqw-cue-appear 120ms ease-out; }
+.tqw-context-cue button { font:17px var(--font-ui); min-height:44px; min-width:44px; padding:8px 12px; color:#ddd5c8; background:#151a20e8; border:1px solid #8f9b8e; }
+.tqw-context-cue[data-focused="true"]::before { content:''; position:absolute; width:12px; height:12px; border:2px solid #ddd5c8; left:-20px; top:calc(50% - 8px); }
+.tqw-places :focus-visible, .tqw-desk-actions :focus-visible, .tqw-context-cue :focus-visible { outline:2px solid #ddd5c8; outline-offset:3px; }
+[data-mode="text"] .tqw-places { position:static; margin:1rem auto; max-width:46rem; }
+@keyframes tqw-cue-appear { from { opacity:0; } to { opacity:1; } }
+@media (max-width:600px) { .tqw-places { top:8rem; } .tqw-desk-actions { flex-wrap:wrap; width:calc(100% - 2rem); } .tqw-context-cue { max-width:11rem; } }
+@media (prefers-reduced-motion:reduce) { .tqw-context-cue { animation:none; } }
+.tqw-context-cue[data-side="left"] { transform:translate(calc(-100% - 20px),-50%); }
+.tqw-context-cue[data-side="above"] { transform:translate(-50%,calc(-100% - 20px)); }
+.tqw-context-cue[data-side="below"] { transform:translate(-50%,20px); }
+.tqw-office-preparing { position:absolute; inset:0; background:#151a20; pointer-events:none; }
+@media (max-width:600px) {
+  .tqw-desk-actions { display:grid; grid-template-columns:auto auto; }
+  .tqw-desk-actions .tqw-stamp-options { display:contents; }
+  .tqw-desk-actions .tqw-stamp-options label { grid-column:1 / -1; grid-row:2; padding:0; }
+  .tqw-desk-actions .tqw-stamp-options button { grid-column:2; grid-row:1; }
+  .tqw-desk-actions .tqw-stamp { grid-column:1; grid-row:1; padding:0 10px; }
+  .tqw-desk-actions .tqw-stamp__label { font-size:16px; letter-spacing:.02em; }
+}
+.tqw-desk-options { display:contents; }
+.tqw-desk-options[data-at-desk="false"]:not(:focus-within) { display:none; }
+/* Early keyboard access stays available without a permanent Office panel. */
+.tqw-app[data-mode="3d"] .tqw-places:not([open]):not(:focus-within) { opacity:0; pointer-events:none; }

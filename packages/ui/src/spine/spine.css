@@ -1,0 +1,2476 @@
+/*
+ * UNHELD's page and brand layer (ADR 0003): the hero, the smoke veil, the game window, the archive,
+ * the details, the footer and the menus, plus the notice board, the site pages, the door list and
+ * text mode. Loaded after styles.css, which it never edits.
+ *
+ * Voice: premium, cinematic, understated, timeless. Type and space do the work; there are no
+ * buttons-as-boxes and no decoration that is not a material (felt, oak, brass, paper). Amber is for
+ * actionable attention only (focus, the one open door, the way in).
+ *
+ * The page is one long column of sections: the hero, a smoke run, the game window, the archive, the
+ * details and the footer. The game window is a sticky layer pinned behind the hero and the run (so
+ * the one world shows through both) and is the element Fullscreen takes. Sections are a minimum of
+ * one viewport tall and grow with their content.
+ *
+ * Contrast (WCAG 2.x), asserted by spine.test.ts against these tokens:
+ *   --bone  on --coal 12.02 : 1       --muted on --coal  8.21 : 1       --amber on --coal 7.18 : 1
+ *   ink on the stocks (bone / buff / grey-green)       10.28 / 8.25 / 7.61 : 1
+ *   dateline --ink-soft on the stocks                   6.93 / 5.56 / 5.13 : 1
+ *   sealed stamp --teal-ink on the stocks               6.48 / 5.20 / 4.80 : 1
+ *   --coal on the door plaque 12.60 : 1                 --ink-soft on the plaque 6.93 : 1
+ * Text over the live 3D scene (the hero, the game window's strip) sits on gentle coal scrims and is
+ * measured on real frames by the browser spec, not assumed from a worst-case colour.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  /* Site tokens (ADR 0001, "Brand"). The first five restate styles.css so this layer stands alone. */
+  --coal: #151a20;
+  --bone: #ddd5c8;
+  --teal: #3c7775;
+  --amber: #d59b4a;
+  --coral: #d78d79;
+  --dawn: #b8c6a4;
+  --muted: #b7b1a6;
+  --divider: #454a4c;
+
+  /* The notice board: olive felt in an oak frame, brass pins, and three paper stocks. */
+  --felt: #505247;
+  --felt-lo: #43453b;
+  --oak: #302b25;
+  --oak-hi: #51463a;
+  --oak-lo: #211d19;
+  --brass: #897044;
+  --brass-hi: #cfb47c;
+  --stock-bone: #e2dacb;
+  --stock-buff: #d6c39b;
+  --stock-grey-green: #b9c0ab;
+  /* Ink on the stocks. --paper-ink (styles.css) is the text; this is the quieter small print. */
+  --ink-soft: #4a443c;
+
+  /* One viewport: the small viewport where the browser has one, so a collapsing toolbar never moves a section. */
+  --tqw-vh: 100vh;
+
+  /* The hero's lockup, in CSS px: UNHELD 76 / 60 px, .space 18 / 16, tagline 20 / 18, clearance 24 / 20 below 412 px wide. */
+  --hero-name: clamp(60px, calc(60px + (100vw - 320px) * 0.173913), 76px);
+  --hero-space: clamp(16px, calc(16px + (100vw - 320px) * 0.021739), 18px);
+  --hero-space-gap: 4px;
+  --hero-tagline: clamp(18px, calc(18px + (100vw - 320px) * 0.021739), 20px);
+  --hero-tagline-gap: 18px;
+  --hero-clear: clamp(20px, calc(20px + (100vw - 320px) * 0.043478), 24px);
+
+  --page-gutter: clamp(20px, 5vw, 48px);
+  /* The width of the archive, the details and the footer. */
+  --section-width: 1040px;
+}
+
+/* From 412 px up the lockup grows to 144 px UNHELD, 30 px .space, 26 px tagline and 64 px clearance at 1440. */
+@media (min-width: 412px) {
+  :root {
+    --hero-name: clamp(76px, calc(76px + (100vw - 412px) * 0.066148), 144px);
+    --hero-space: clamp(18px, calc(18px + (100vw - 412px) * 0.011673), 30px);
+    --hero-space-gap: clamp(4px, calc(4px + (100vw - 412px) * 0.001946), 6px);
+    --hero-tagline: clamp(20px, calc(20px + (100vw - 412px) * 0.005837), 26px);
+    --hero-tagline-gap: clamp(18px, calc(18px + (100vw - 412px) * 0.005837), 24px);
+    --hero-clear: clamp(24px, calc(24px + (100vw - 412px) * 0.038911), 64px);
+  }
+}
+
+@supports (height: 100svh) {
+  :root {
+    --tqw-vh: 100svh;
+  }
+}
+
+/* Holding the page while the game window is engaged hides the scrollbar: its gutter stays, so nothing shifts. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ------------------------------------------------------------------- focus */
+
+/* The one focus treatment, for the whole spine layer (styles.css only reaches inside .tqw-app). */
+:where(.tqw-site) :focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Amber on paper is under 3 : 1, so anything on a clipping or a paper rings in ink. */
+.tqw-clipping :focus-visible,
+.tqw-paper :focus-visible {
+  outline-color: var(--paper-ink);
+}
+
+/* The skip link: the first thing a keyboard visitor reaches, hidden until it is. */
+.tqw-skip {
+  position: absolute;
+  z-index: 60;
+  top: -4rem;
+  left: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--coal);
+  color: var(--bone);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  text-decoration: none;
+  border: 1px solid var(--divider);
+}
+
+.tqw-skip:focus {
+  top: 1rem;
+}
+
+/* ---------------------------------------------------------------- the stage */
+
+/*
+ * The hero, the smoke run and the game window's slot flow in one column (`__flow`) that shares its
+ * single grid cell with the game window. The window is sticky, so it stays pinned behind them for
+ * the whole run and then scrolls away with the page: the slot is always the cell's last viewport.
+ * The flow is above the window but never catches the pointer, except on its own controls.
+ */
+.tqw-journey {
+  position: relative;
+  display: grid;
+}
+
+.tqw-journey > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.tqw-journey__flow {
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* The smoke run: runViewports - 1 viewports after the hero's own (the shell sets --tqw-run; reduced motion collapses it to 1). */
+.tqw-run {
+  height: calc((var(--tqw-run, 2.5) - 1) * var(--tqw-vh));
+}
+
+/* Where the game window comes to rest: the stage's last viewport. */
+.tqw-slot {
+  height: var(--tqw-vh);
+}
+
+/* ------------------------------------------------------------------- hero */
+
+.tqw-hero {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: var(--tqw-vh);
+  padding-inline: max(var(--hero-clear), env(safe-area-inset-left, 0px)) max(var(--hero-clear), env(safe-area-inset-right, 0px));
+  pointer-events: none;
+  /* The lockup's plate reaches past the type; at the narrowest widths it would carry the page sideways. */
+  overflow-x: clip;
+}
+
+.tqw-hero > * {
+  pointer-events: auto;
+}
+
+/*
+ * A gentle coal scrim over the live world: a fade at the very top for the menu and a 15% wash over
+ * everything. The doorway and the warm light stay visible. The lockup's own plate (below) is what
+ * holds the type's contrast.
+ */
+.tqw-hero__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(21, 26, 32, 0.55), rgba(21, 26, 32, 0) 9rem),
+    rgba(21, 26, 32, var(--hero-wash, 0.15));
+}
+
+.tqw-hero__menu {
+  position: absolute;
+  top: max(0.5rem, env(safe-area-inset-top, 0px));
+  right: max(var(--hero-clear), env(safe-area-inset-right, 0px));
+  z-index: 2;
+}
+
+/* The lockup's visual centre sits near 43% down: the row above the foot, centred. */
+.tqw-hero__lockup {
+  position: relative;
+  isolation: isolate;
+  align-self: center;
+  justify-self: center;
+  max-width: 100%;
+  padding-block: 4.5rem 1rem;
+  text-align: center;
+}
+
+/*
+ * A soft plate of coal behind the lockup, attached to it so it follows it at every width: the lockup
+ * sits over the brightest part of the lobby (a lamp can sit right behind the tagline), and a scrim
+ * that does not move with the type cannot promise contrast. Solid across the type, fading to nothing
+ * beyond it; the corridor stays visible around it. Measured on real frames by the browser spec.
+ */
+.tqw-hero__lockup::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: calc(4.5rem - var(--plate-y, 2.5rem)) calc(var(--plate-x, 4rem) * -1) calc(1rem - var(--plate-y, 2.5rem));
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse closest-side at 50% 50%,
+    rgba(21, 26, 32, var(--hero-plate, 0.7)) var(--plate-solid, 62%),
+    rgba(21, 26, 32, 0) 100%
+  );
+}
+
+.tqw-hero__name {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  line-height: 0.9;
+  color: var(--bone);
+}
+
+/* Tracking is in em of the word's own size: set on the h1 it would be em of the h1's 16 px and inherited as a fixed length. */
+.tqw-hero__word {
+  display: block;
+  font-size: var(--hero-name);
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+/*
+ * The word moves, and means it: it is about being let go (ADR 0003). Six letters, three nested
+ * layers each, so the arrival, the release and the breathing never fight over one property:
+ *   .tqw-hero__letter  the scroll: let go upward and apart into the smoke (custom properties)
+ *   .tqw-hero__arrive  the arrival (opacity, translate, blur) and the release to a rest offset (transform)
+ *   .tqw-hero__glyph   the breathing (transform)
+ * Transforms and opacity only. The timeline, from when the fonts are ready:
+ *   0 ms     HELD fades up (500 ms), tight and perfectly still
+ *   700 ms   UN arrives from the left (550 ms) while the word eases back to centre
+ *   1250 ms  HELD is released: each letter takes its own offset over 1200 ms, then breathes
+ *   1800 ms  .space fades in (600 ms)     2100 ms  the tagline     2300 ms  the details
+ */
+@property --tqw-amp {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+.tqw-hero__letter {
+  display: inline-block;
+  opacity: var(--tqw-fade, 1);
+  /* Let go: spread by the 0.145 em the tracking would add, lifted by the letter's own amount. */
+  transform: translate3d(calc((var(--i) - 2.5) * 0.145em * var(--tqw-rel, 0)), calc(var(--lift, 0px) * var(--tqw-rel, 0) * -1), 0);
+}
+
+.tqw-hero__arrive,
+.tqw-hero__glyph {
+  display: inline-block;
+}
+
+/* The plate arrives with the word: until the fonts are ready there is nothing to hold it behind. */
+.tqw-hero[data-arrive='wait'] .tqw-hero__lockup::before {
+  opacity: 0;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__lockup::before {
+  animation: tqw-fade-in 800ms ease-out both;
+}
+
+/* Until the fonts are ready nothing is drawn: the word never arrives in a fallback face. */
+.tqw-hero__arrive,
+.tqw-hero__space,
+.tqw-hero__tagline,
+.tqw-hero__details {
+  opacity: 0;
+}
+
+.tqw-hero__lockup {
+  --tqw-amp: 1;
+  transition: --tqw-amp 500ms ease-out;
+}
+
+/* Touched, the letters gather back: the breath halves for a moment, as if held again. */
+.tqw-hero__lockup[data-held='true'] {
+  --tqw-amp: 0.5;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__word {
+  animation: tqw-recentre 550ms cubic-bezier(0.22, 0.61, 0.36, 1) 700ms both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__letter:nth-child(n + 3) .tqw-hero__arrive {
+  animation:
+    tqw-fade-in 500ms ease-out both,
+    tqw-release 1200ms cubic-bezier(0.22, 0.61, 0.36, 1) 1250ms both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__letter:nth-child(-n + 2) .tqw-hero__arrive {
+  animation:
+    tqw-un-arrive 550ms cubic-bezier(0.22, 0.61, 0.36, 1) 700ms both,
+    tqw-release 1200ms cubic-bezier(0.22, 0.61, 0.36, 1) 1250ms both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__glyph {
+  animation: tqw-breathe var(--bp, 11s) ease-in-out var(--bd, 2450ms) infinite both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__space {
+  animation: tqw-fade-in 600ms ease-out 1800ms both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__tagline {
+  animation: tqw-fade-in 500ms ease-out 2100ms both;
+}
+
+.tqw-hero[data-arrive='run'] .tqw-hero__details {
+  animation: tqw-fade-in 500ms ease-out 2300ms both;
+}
+
+/* A hero that mounts after the arrival has played (once per load) is simply at rest, breathing. */
+.tqw-hero[data-arrive='done'] :is(.tqw-hero__arrive, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details) {
+  opacity: 1;
+}
+
+.tqw-hero[data-arrive='done']:not([data-motion='still']) .tqw-hero__arrive {
+  transform: translate3d(var(--ox, 0px), var(--oy, 0px), 0) rotate(var(--or, 0deg));
+}
+
+.tqw-hero[data-arrive='done']:not([data-motion='still']) .tqw-hero__glyph {
+  animation: tqw-breathe var(--bp, 11s) ease-in-out calc(var(--i) * -1.3s) infinite both;
+}
+
+/*
+ * Off screen, nothing animates: paused animations make no frames. !important, because the arrival
+ * rules above are more specific and each `animation` shorthand sets the play state to running.
+ */
+.tqw-hero[data-visible='false'] :is(.tqw-hero__word, .tqw-hero__arrive, .tqw-hero__glyph, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details),
+.tqw-hero[data-visible='false'] .tqw-hero__lockup::before {
+  animation-play-state: paused !important;
+}
+
+@keyframes tqw-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tqw-recentre {
+  from {
+    transform: translate3d(calc(var(--tqw-lead, 0px) * -1), 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes tqw-un-arrive {
+  from {
+    opacity: 0;
+    translate: -0.35em 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    filter: none;
+  }
+}
+
+@keyframes tqw-release {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--ox, 0px), var(--oy, 0px), 0) rotate(var(--or, 0deg));
+  }
+}
+
+/* A very slow breath around the rest offset: at most 2 px and 0.35 degrees, scaled by --tqw-amp. */
+@keyframes tqw-breathe {
+  0%,
+  50%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(0, calc(var(--by, 0px) * var(--tqw-amp)), 0) rotate(calc(var(--br, 0deg) * var(--tqw-amp)));
+  }
+  75% {
+    transform: translate3d(0, calc(var(--by, 0px) * var(--tqw-amp) * -1), 0) rotate(calc(var(--br, 0deg) * var(--tqw-amp) * -1));
+  }
+}
+
+/*
+ * Reduced motion (and text mode): none of the above. The whole lockup fades in over 200 ms and
+ * stays perfectly still. The base layer's blanket "no animations" for reduced motion (styles.css,
+ * !important) is outranked on purpose, by specificity, for this one fade.
+ */
+.tqw-hero[data-motion='still'] :is(.tqw-hero__arrive, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details) {
+  opacity: 1;
+}
+
+.tqw-hero[data-motion='still'] .tqw-hero__letter {
+  opacity: 1;
+  transform: none;
+}
+
+.tqw-site .tqw-hero[data-motion='still'] .tqw-hero__lockup {
+  animation: tqw-fade-in 200ms ease-out both !important;
+}
+
+/* .space is secondary notation: small, regular, muted, right-aligned with the D. */
+.tqw-hero__space {
+  margin-top: var(--hero-space-gap);
+  font-size: var(--hero-space);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.tqw-hero__tagline {
+  margin: var(--hero-tagline-gap) auto 0;
+  max-width: 32rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--hero-tagline);
+  line-height: 1.3;
+  text-wrap: balance;
+  color: var(--bone);
+}
+
+.tqw-hero__details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 2rem;
+  margin: 1.25rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.tqw-hero__sep {
+  display: none;
+}
+
+.tqw-hero__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: max(1.5rem, calc(var(--tqw-vh) * 0.1));
+}
+
+.tqw-hero__cue {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-hero__cue svg {
+  color: var(--muted);
+}
+
+.tqw-hero__enter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.4em;
+  text-decoration-color: rgba(221, 213, 200, 0.35);
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .tqw-hero__cue:hover,
+  .tqw-hero__enter:hover {
+    color: var(--bone);
+  }
+  .tqw-hero__enter:hover {
+    text-decoration-color: var(--amber);
+  }
+}
+
+/* ------------------------------------------------------------------- menu */
+
+/* Notice board, About and Menu: small, at the top right of the hero and again above the footer. */
+.tqw-menu {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.tqw-menu__item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--bone);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-menu__sound {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bone);
+  cursor: pointer;
+}
+
+.tqw-menu__sound .tqw-toggle__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (hover: hover) {
+  .tqw-menu__item:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+  }
+}
+
+/* A phone shows Menu alone: it holds the rest. */
+@media (max-width: 40rem) {
+  .tqw-menu__item--board,
+  .tqw-menu__item--about {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------- smoke veil */
+
+/*
+ * The veil: one 256 x 256 texture on two layers, driven by one custom property (--tqw-veil, 0..1,
+ * written by the component). Everything below is transforms and opacity, which the compositor does
+ * without repainting. The opaque backing makes full coverage certain at the seam; the layers carry
+ * the look, rising from below as broad, soft masses.
+ */
+.tqw-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tqw-veil[data-coverage='0.000'] {
+  display: none;
+}
+
+.tqw-veil__backing {
+  position: absolute;
+  inset: 0;
+  background: var(--coal);
+  opacity: clamp(0, calc((var(--tqw-veil, 0) - 0.85) / 0.15), 1);
+}
+
+/*
+ * Each layer is taller than the window and anchored to its bottom, so the smoke rises as one broad
+ * mass whose upper edge is a long feather (a mask), never a straight line.
+ */
+.tqw-veil__layer {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 160%;
+  display: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 42%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 42%);
+  background-image: var(--tqw-smoke, none);
+  background-repeat: repeat;
+  will-change: transform, opacity;
+}
+
+.tqw-veil[data-textured='true'] .tqw-veil__layer {
+  display: block;
+}
+
+.tqw-veil__layer--a {
+  background-size: max(100vw, 100vh) max(100vw, 100vh);
+  opacity: min(1, calc(var(--tqw-veil, 0) * 1.5));
+  transform: translate3d(0, calc((1 - var(--tqw-veil, 0)) * 100%), 0);
+}
+
+/* The second layer: 10% larger, mirrored so its masses do not line up with the first, and at most 6 vh off it. */
+.tqw-veil__layer--b {
+  background-size: calc(max(100vw, 100vh) * 1.1) calc(max(100vw, 100vh) * 1.1);
+  opacity: min(1, calc(var(--tqw-veil, 0) * 1.25));
+  transform: translate3d(0, calc((1 - var(--tqw-veil, 0)) * 100% - (1 - var(--tqw-veil, 0)) * 6vh), 0) scaleX(-1);
+}
+
+.tqw-veil__loading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Reduced motion: no texture and no movement, only a short dissolve of plain coal. */
+.tqw-veil[data-reduced='true'] .tqw-veil__layer {
+  display: none;
+}
+
+.tqw-veil[data-reduced='true'] .tqw-veil__backing {
+  opacity: var(--tqw-veil, 0);
+}
+
+/*
+ * The one transition reduced motion keeps: a 120 ms opacity dissolve in place of the smoke's travel
+ * (the same dissolve the corridor uses for its cuts). The base layer's blanket "no transitions" for
+ * reduced motion (styles.css, !important) is outranked on purpose, by specificity.
+ */
+.tqw-site .tqw-veil[data-reduced='true'] .tqw-veil__backing {
+  transition: opacity 120ms linear !important;
+}
+
+/* ------------------------------------------------------------ game window */
+
+.tqw-game {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+}
+
+/* Pinned for the whole run, a full viewport tall, full bleed: no rounded container, no ornamental border. */
+.tqw-game__window {
+  position: sticky;
+  top: 0;
+  height: var(--tqw-vh);
+  overflow: hidden;
+  background: var(--coal);
+}
+
+.tqw-game__world {
+  position: absolute;
+  inset: 0;
+}
+
+/* The corridor scene and any chamber fill the window, not the screen. */
+.tqw-game .tqw-corridor-canvas,
+.tqw-game .tqw-chamber-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.tqw-game .tqw-chamber-host {
+  z-index: 1;
+}
+
+.tqw-game .tqw-chamber-host .tqw-app {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+/*
+ * The poster: a still of the hero view, there the instant the page paints and dissolved (400 ms)
+ * once the live corridor has drawn its first frame. Over the canvas (later in the same layer), under
+ * a chamber, the veil and the chrome, so it never covers a room. Reduced motion keeps a short fade.
+ */
+.tqw-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  background: var(--coal);
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 400ms ease-out;
+}
+
+.tqw-poster[data-ready='true'] {
+  opacity: 0;
+}
+
+.tqw-poster img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.tqw-site .tqw-poster {
+  transition-duration: var(--tqw-poster-ms, 400ms) !important;
+  transition-property: opacity !important;
+}
+
+/*
+ * The seam between the doorway and the room. A chamber is invisible until it reports ready, so a
+ * half-built room is never seen; a coal veil holds over the doorway view if the seam has passed and
+ * the room is not ready, and the two cross over --tqw-seam-ms (SPINE_TIMING.seamMs; the short
+ * dissolve under reduced motion). Both outrank the base layer's blanket "no transitions" for reduced
+ * motion, on purpose: this is the dissolve reduced motion keeps.
+ */
+.tqw-seam-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--coal);
+  opacity: 1;
+  pointer-events: none;
+  transition:
+    opacity var(--tqw-seam-ms, 400ms) cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear var(--tqw-seam-ms, 400ms);
+}
+
+.tqw-seam-veil[data-held='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tqw-chamber-host {
+  transition: opacity var(--tqw-seam-ms, 400ms) cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.tqw-chamber-host[data-ready='false'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tqw-site .tqw-seam-veil,
+.tqw-site .tqw-chamber-host {
+  transition-property: opacity, visibility !important;
+  transition-duration: var(--tqw-seam-ms, 400ms) !important;
+}
+
+/*
+ * Engaged, the window owns every gesture. (Resting, the scene's own stylesheet leaves the page's
+ * vertical pan to the browser and shows no move pad: it is told `engaged` and acts on it.)
+ */
+.tqw-site[data-engaged='true'] .tqw-game__window {
+  touch-action: none;
+}
+
+/*
+ * The resting scrim: a coal fade 96 px deep under the strip, and one behind the Enter control. It
+ * lifts over 180 ms when the window is engaged, because the scene is then the thing in use.
+ */
+.tqw-game__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(21, 26, 32, 0.88), rgba(21, 26, 32, 0) 96px),
+    linear-gradient(to top, rgba(21, 26, 32, 0.8), rgba(21, 26, 32, 0) 14rem);
+  opacity: 1;
+  transition: opacity 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.tqw-game__window[data-engaged='true'] .tqw-game__scrim {
+  opacity: 0;
+}
+
+/* The chrome appears as the smoke clears, and is out of sight and out of reach until then. */
+.tqw-game__chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: var(--tqw-chrome-o, 0);
+}
+
+.tqw-game__window[data-chrome='off'] .tqw-game__chrome {
+  visibility: hidden;
+}
+
+.tqw-game__window[data-engaged='true'] .tqw-game__chrome {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tqw-game__strip {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1.5rem, env(safe-area-inset-right, 0px)) 0
+    max(1.5rem, env(safe-area-inset-left, 0px));
+}
+
+.tqw-game__title {
+  align-self: center;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.tqw-game__where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.875rem;
+  min-width: 0;
+}
+
+.tqw-game__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0 1rem;
+}
+
+.tqw-game__leave,
+.tqw-game__tool,
+.tqw-game__enter-button {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  color: var(--bone);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Leave is the one control that must read as a boundary: words, a key and a border, not a colour. */
+.tqw-game__leave {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5ch;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid rgba(221, 213, 200, 0.4);
+  background: rgba(21, 26, 32, 0.6);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.tqw-game__key {
+  color: var(--muted);
+}
+
+.tqw-game__location {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  color: var(--bone);
+  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+}
+
+.tqw-game__tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+}
+
+.tqw-game__tool--icon .tqw-toggle__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.tqw-game__enter {
+  position: absolute;
+  inset: auto 0 max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 2rem)) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding-inline: 1rem;
+  text-align: center;
+}
+
+.tqw-game__enter-button {
+  min-height: 48px;
+  padding: 0 2rem;
+  border: 1px solid rgba(221, 213, 200, 0.55);
+  background: rgba(21, 26, 32, 0.72);
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tqw-game__enter-line {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  color: var(--bone);
+  text-shadow: 0 1px 10px rgba(21, 26, 32, 0.95);
+}
+
+@media (hover: hover) {
+  .tqw-game__enter-button:hover,
+  .tqw-game__leave:hover {
+    border-color: var(--amber);
+  }
+  .tqw-game__tool:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+  }
+}
+
+/* The mode, in words, for touch: "Page · swipe to scroll" resting, "Walking · swipe to move" engaged. */
+.tqw-game__mode {
+  position: absolute;
+  top: calc(max(1rem, env(safe-area-inset-top, 0px)) + 3.25rem);
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  display: none;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--bone);
+  text-shadow: 0 1px 8px rgba(21, 26, 32, 0.9);
+}
+
+@media (pointer: coarse), (max-width: 40rem) {
+  .tqw-game__mode {
+    display: block;
+  }
+}
+
+/* A phone: tighter strip, the Fullscreen label becomes an icon, the location gives way to the mode line. */
+@media (max-width: 40rem) {
+  .tqw-game__strip {
+    padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0 max(1rem, env(safe-area-inset-left, 0px));
+  }
+  .tqw-game__tool-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .tqw-game__location {
+    display: none;
+  }
+}
+
+/* Fullscreen: the window is the whole screen, so it needs no page around it. */
+.tqw-game__window:fullscreen {
+  height: 100%;
+}
+
+/* ------------------------------------------------------------- door list */
+
+.tqw-doors ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tqw-door {
+  margin: 0;
+  font-family: var(--font-ui);
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The comma that makes the text equal the name is real text; the layouts that stack title above
+   status keep it for the machine and hide it from the eye. */
+.tqw-door__sep {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+ * Over the 3D corridor the buttons are invisible until one takes keyboard focus; then it is a
+ * plaque near the foot of the screen: the focused door's title and its status. Pointer visitors
+ * use the doors in the scene.
+ */
+.tqw-doors--overlay {
+  position: fixed;
+  z-index: 3;
+  left: 50%;
+  bottom: max(2rem, calc(env(safe-area-inset-bottom, 0px) + 1.5rem));
+  width: min(30rem, calc(100% - 2 * var(--page-gutter)));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.tqw-doors--overlay .tqw-door:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tqw-doors--overlay .tqw-door:focus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem 0.75rem;
+  border: 0;
+  border-radius: 2px;
+  text-align: center;
+  color: var(--coal);
+  background: linear-gradient(180deg, #e8e1d2 0%, var(--stock-bone) 55%, #d6cdbb 100%);
+  /* An engraved border, then the plate, like the 3D door plaques. */
+  box-shadow:
+    inset 0 0 0 1px rgba(21, 26, 32, 0.35),
+    inset 0 0 0 5px #e0d8c8,
+    inset 0 0 0 6px rgba(21, 26, 32, 0.22),
+    0 14px 36px rgba(0, 0, 0, 0.55);
+  pointer-events: auto;
+}
+
+.tqw-doors--overlay .tqw-door:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 4px;
+}
+
+.tqw-doors--overlay .tqw-door__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tqw-doors--overlay .tqw-door__status {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 40rem) {
+  .tqw-doors--overlay {
+    width: min(22rem, calc(100% - 2 * var(--page-gutter)));
+  }
+  .tqw-doors--overlay .tqw-door:focus {
+    padding: 0.75rem 1rem 0.625rem;
+  }
+  .tqw-doors--overlay .tqw-door__title {
+    font-size: 0.9375rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* Text mode: a readable list of doors, each with its description. */
+.tqw-doors--list {
+  max-width: 44rem;
+  margin: var(--sp-4) 0;
+}
+
+.tqw-doors--list ul {
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-doors--list .tqw-doors__item {
+  padding: 1.25rem 0 1.5rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.tqw-doors--list .tqw-door {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--bone);
+}
+
+.tqw-doors--list .tqw-door__title {
+  font-family: var(--font-serif);
+  font-size: var(--step-2);
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+}
+
+@media (max-width: 40rem) {
+  /* Title above status on a phone, every row alike, however short the title. */
+  .tqw-doors--list .tqw-door {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.tqw-doors--list .tqw-door__status {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The one open door is the one actionable thing: its status is the amber line. The words say it too. */
+.tqw-doors--list [data-status='open'] .tqw-door__status {
+  color: var(--amber);
+}
+
+@media (hover: hover) {
+  .tqw-doors--list .tqw-door:hover .tqw-door__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+.tqw-door__description {
+  max-width: 52ch;
+  margin: 0.375rem 0 0;
+  font-family: var(--font-serif);
+  font-size: var(--step-0);
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* ----------------------------------------------------------- notice board */
+
+.tqw-board,
+.tqw-page {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--bone);
+  background: rgba(21, 26, 32, 0.9);
+}
+
+.tqw-board::backdrop,
+.tqw-page::backdrop {
+  background: transparent;
+}
+
+.tqw-board[open],
+.tqw-page[open] {
+  animation: tqw-spine-in 220ms ease-out both;
+}
+
+@keyframes tqw-spine-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tqw-board__sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(66rem, calc(100% - 2 * var(--page-gutter)));
+  min-height: 100%;
+  margin: 0 auto;
+  padding: clamp(1rem, 4vh, 2.5rem) 0 0;
+}
+
+.tqw-board__head {
+  margin-bottom: clamp(1rem, 2.4vh, 1.5rem);
+}
+
+.tqw-board__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 1.4rem + 0.9vw, 2.375rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--bone);
+}
+
+.tqw-board__intro {
+  max-width: 64ch;
+  margin: 0.625rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* A 35 mm oak frame, bevelled: light on its upper edges, shadow on its lower. */
+.tqw-board__frame {
+  padding: clamp(0.5rem, 1.5vw, 1.125rem);
+  border-radius: 3px;
+  background: linear-gradient(145deg, var(--oak-hi) 0%, var(--oak) 38%, var(--oak-lo) 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 235, 200, 0.14),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.5),
+    0 28px 64px rgba(0, 0, 0, 0.55);
+}
+
+/* The felt: flat olive with a hint of nap, darker where the frame shadows it. */
+.tqw-board__clippings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.25rem, 2.2vw, 2rem);
+  margin: 0;
+  padding: clamp(1.25rem, 2.6vw, 2rem);
+  list-style: none;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 100% at 50% 40%, var(--felt) 0%, var(--felt-lo) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.4),
+    inset 0 8px 28px rgba(0, 0, 0, 0.38);
+}
+
+.tqw-board__foot {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0.5rem 0 max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.tqw-board__close {
+  min-height: 48px;
+  padding: 0 1rem;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms ease;
+}
+
+@media (hover: hover) {
+  .tqw-board__close:hover {
+    color: var(--bone);
+  }
+}
+
+/* One clipping: stock, pin, a degree or so off true. */
+.tqw-clipping {
+  --stock: var(--stock-bone);
+  --tilt: 0deg;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.75rem 1.5rem 1.125rem;
+  color: var(--paper-ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.03) 0 1px, transparent 1px 3px),
+    linear-gradient(170deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 38%),
+    var(--stock);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 1px rgba(0, 0, 0, 0.45),
+    0 8px 16px rgba(0, 0, 0, 0.4);
+  transform: rotate(var(--tilt));
+  transition:
+    transform 200ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 200ms ease;
+}
+
+.tqw-clipping[data-stock='bone'] {
+  --stock: var(--stock-bone);
+}
+.tqw-clipping[data-stock='buff'] {
+  --stock: var(--stock-buff);
+}
+.tqw-clipping[data-stock='grey-green'] {
+  --stock: var(--stock-grey-green);
+}
+
+.tqw-clipping:nth-child(4n + 1) {
+  --tilt: -1.2deg;
+}
+.tqw-clipping:nth-child(4n + 2) {
+  --tilt: 0.9deg;
+}
+.tqw-clipping:nth-child(4n + 3) {
+  --tilt: -0.5deg;
+}
+.tqw-clipping:nth-child(4n + 4) {
+  --tilt: 1.6deg;
+}
+
+/* A brass pin through the top edge. */
+.tqw-clipping::before {
+  content: '';
+  position: absolute;
+  top: 0.5625rem;
+  left: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-left: -0.375rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass) 55%, #4d3d22);
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(60, 46, 22, 0.45);
+}
+
+.tqw-clipping__headline {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.125rem, 1.02rem + 0.35vw, 1.375rem);
+  line-height: 1.2;
+  letter-spacing: 0.015em;
+  text-wrap: balance;
+}
+
+.tqw-clipping__dek {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.tqw-clipping__dateline {
+  margin: auto 0 0;
+  padding-top: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+
+.tqw-clipping__go {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  position: relative;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--paper-ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-clipping__go::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0.625rem 0;
+  height: 1px;
+  background: var(--paper-ink);
+}
+
+.tqw-clipping__go svg {
+  flex: none;
+  transition: transform 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .tqw-clipping__go:hover svg {
+    transform: translateX(4px);
+  }
+  .tqw-clipping[data-status='open']:hover {
+    --tilt: 0deg;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 1px 1px rgba(0, 0, 0, 0.45),
+      0 14px 22px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* A sealed notice states its status as a stamp: words in ink, never colour alone. */
+.tqw-clipping__status {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  margin: 0;
+}
+
+.tqw-clipping__stamp {
+  display: inline-block;
+  padding: 0.4375rem 0.75rem;
+  border: 1.5px solid var(--teal-ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal-ink);
+  transform: rotate(-1.5deg);
+}
+
+@media (max-width: 40rem) {
+  .tqw-board__clippings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* The close control stays within reach however far the clippings run. */
+  .tqw-board__foot {
+    position: sticky;
+    bottom: 0;
+    margin-top: 1rem;
+    padding-top: 0.25rem;
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--divider);
+    background: var(--coal);
+  }
+}
+
+/* ------------------------------------------------------------ site pages */
+
+.tqw-page__sheet {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, calc(100% - 2 * var(--page-gutter)));
+  min-height: 100%;
+  margin: 0 auto;
+  padding: clamp(2rem, 9vh, 6rem) 0 0;
+}
+
+.tqw-page__masthead {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 clamp(2.5rem, 7vh, 4.5rem);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+.tqw-page__mark {
+  color: var(--muted);
+}
+
+.tqw-page__title {
+  margin: 0 0 clamp(1.5rem, 4vh, 2.25rem);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  color: var(--bone);
+}
+
+.tqw-page__title:focus-visible {
+  outline: none;
+}
+
+.tqw-page__article p {
+  margin: 0 0 1.1em;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: var(--bone);
+}
+
+/* A link inside a page is bone and underlined, not the browser's blue, and stays so after a visit. */
+.tqw-page__article a {
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-color: var(--muted);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+/* The third-party models and surfaces on the Credits page: a quiet ruled list under the paragraphs. */
+.tqw-page__assets {
+  margin-top: clamp(2rem, 6vh, 3rem);
+  padding-top: clamp(1.5rem, 4vh, 2.25rem);
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-page__assets-title {
+  margin: 0 0 1rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  color: var(--bone);
+}
+
+.tqw-page__assets-provider {
+  margin: 1.75rem 0 0.5rem;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+/* A provider's name is set as it writes it (ambientCG), never in capitals. */
+.tqw-page__assets-group + p {
+  margin-top: 1.75rem;
+}
+
+.tqw-page__assets-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tqw-page__assets-list li {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--divider);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.tqw-page__nav {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 1.75rem;
+  margin-top: auto;
+  padding: 1rem 0 max(1rem, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--divider);
+  background: var(--coal);
+}
+
+.tqw-page__article {
+  padding-bottom: clamp(2rem, 6vh, 3.5rem);
+}
+
+.tqw-page__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms ease;
+}
+
+.tqw-page__link[aria-current='page'] {
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.55em;
+}
+
+@media (hover: hover) {
+  .tqw-page__link:hover {
+    color: var(--bone);
+  }
+}
+
+.tqw-page__close {
+  margin-left: auto;
+}
+
+/*
+ * The not-found page: a blank door plaque, cropped at the top as if the detail shot found nothing
+ * to read. Enamel bone, an engraved border, two brass screws, and no lettering at all.
+ */
+.tqw-plaque {
+  position: relative;
+  width: min(100%, 17.5rem);
+  height: 4.25rem;
+  margin: 0 0 clamp(1.75rem, 4.5vh, 2.5rem);
+  /* Crops the top only: the plate's shadow may fall past the other three sides. */
+  clip-path: inset(0 -2rem -3rem -2rem);
+}
+
+.tqw-plaque::before {
+  content: '';
+  position: absolute;
+  inset: -3.25rem 0 0 0;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #eae3d4 0%, var(--stock-bone) 45%, #d3cab8 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(21, 26, 32, 0.4),
+    inset 0 0 0 7px #e0d8c8,
+    inset 0 0 0 8px rgba(21, 26, 32, 0.24),
+    0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+.tqw-plaque::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(35deg, transparent 44%, rgba(0, 0, 0, 0.5) 46% 54%, transparent 56%) no-repeat 0.9rem calc(100% - 1.05rem) / 0.5rem 0.5rem,
+    radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass)) no-repeat 0.9rem calc(100% - 1.05rem) / 0.5rem 0.5rem,
+    linear-gradient(35deg, transparent 44%, rgba(0, 0, 0, 0.5) 46% 54%, transparent 56%) no-repeat calc(100% - 0.9rem) calc(100% - 1.05rem) / 0.5rem 0.5rem,
+    radial-gradient(circle at 35% 30%, var(--brass-hi), var(--brass)) no-repeat calc(100% - 0.9rem) calc(100% - 1.05rem) / 0.5rem 0.5rem;
+}
+
+@media (max-width: 40rem) {
+  .tqw-page__article p {
+    font-size: 1.125rem;
+  }
+}
+
+/* --------------------------------------------------------------- menu panel */
+
+.tqw-menu-panel {
+  position: fixed;
+  inset: 0 0 auto auto;
+  width: min(25rem, calc(100% - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  margin: 1rem;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--divider);
+  background: #1c222a;
+  color: var(--bone);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.tqw-menu-panel::backdrop {
+  background: rgba(21, 26, 32, 0.6);
+}
+
+.tqw-menu-panel[open] {
+  animation: tqw-spine-in 180ms ease-out both;
+}
+
+.tqw-menu-panel__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.tqw-menu-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tqw-menu-panel__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.1;
+  color: var(--bone);
+}
+
+.tqw-menu-panel__close,
+.tqw-menu-panel__link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-align: left;
+  text-decoration: none;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tqw-menu-panel__nav {
+  display: flex;
+  flex-direction: column;
+  padding-block: 0.25rem;
+  border-block: 1px solid var(--divider);
+}
+
+.tqw-menu-panel__link {
+  color: var(--bone);
+  font-size: 1.0625rem;
+}
+
+@media (hover: hover) {
+  .tqw-menu-panel__close:hover {
+    color: var(--bone);
+  }
+  .tqw-menu-panel__link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+  }
+}
+
+.tqw-menu-panel__heading {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Settings, with their words: in the panel there is room, on every width. */
+.tqw-menu-panel .tqw-settings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  pointer-events: auto;
+}
+
+.tqw-menu-panel .tqw-toggle {
+  justify-content: flex-start;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.tqw-menu-panel .tqw-toggle__face {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.75rem 0 0.625rem;
+  justify-content: flex-start;
+  border-radius: 999px;
+}
+
+.tqw-menu-panel .tqw-toggle__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tqw-menu-panel .tqw-toggle__label {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+}
+
+/* ------------------------------------------------------------------ archive */
+
+/*
+ * The archive is a cabinet made of spacing, grouping and paper proportions: no pins, no felt, no
+ * tilt. Each room is a group; found papers are paper, unfound ones are one closed silhouette that
+ * says "Sealed" and nothing else.
+ */
+.tqw-archive {
+  position: relative;
+  z-index: 2;
+  min-height: var(--tqw-vh);
+  padding: 4rem var(--page-gutter);
+  background: var(--coal);
+}
+
+@media (min-width: 40.0625rem) {
+  .tqw-archive {
+    padding-block: 6rem;
+  }
+}
+
+.tqw-archive__inner {
+  width: min(var(--section-width), 100%);
+  margin: 0 auto;
+}
+
+.tqw-archive__head {
+  margin-bottom: 3rem;
+}
+
+.tqw-archive__title,
+.tqw-details__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  color: var(--bone);
+}
+
+.tqw-archive__intro {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.tqw-archive__none {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  color: var(--muted);
+}
+
+.tqw-archive__room {
+  margin-bottom: 3.5rem;
+}
+
+.tqw-archive__room-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  color: var(--bone);
+}
+
+.tqw-archive__room-count {
+  margin: 0.375rem 0 1.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.tqw-archive__items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Found or sealed, every paper is the same size, so the cabinet reads as a set. */
+.tqw-paper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 10rem;
+}
+
+.tqw-paper[data-state='found'] {
+  gap: 0.5rem;
+  padding: 1.25rem 1.125rem 1rem;
+  color: var(--paper-ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.03) 0 1px, transparent 1px 3px),
+    var(--stock-bone);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.tqw-paper[data-state='found'][data-new='true'] {
+  animation: tqw-paper-in 180ms ease-out both;
+}
+
+@keyframes tqw-paper-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tqw-paper__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.25;
+}
+
+.tqw-paper__fragment {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.tqw-paper__reread {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: auto 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  color: var(--paper-ink);
+  cursor: pointer;
+}
+
+/* Sealed: one closed-paper silhouette for every unfound paper, and a single word. */
+.tqw-paper[data-state='sealed'] {
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--divider);
+  background: #1c222a;
+  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 0 100%);
+}
+
+.tqw-paper__sealed {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tqw-archive__recognitions {
+  margin: 0 0 3.5rem;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.tqw-archive__utility {
+  padding-top: 2rem;
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-archive__device {
+  max-width: 38rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.tqw-archive__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+}
+
+.tqw-archive__action {
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  text-decoration-color: rgba(221, 213, 200, 0.4);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tqw-archive__message {
+  min-height: 1.5rem;
+  margin: 0.5rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  color: var(--bone);
+}
+
+/* Forget everything: a short, calm confirmation that says what it does and offers the export first. */
+.tqw-forget {
+  width: min(30rem, calc(100% - 2rem));
+  max-width: none;
+  padding: 0;
+  border: 1px solid var(--divider);
+  background: #1c222a;
+  color: var(--bone);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.tqw-forget::backdrop {
+  background: rgba(21, 26, 32, 0.7);
+}
+
+.tqw-forget__sheet {
+  padding: 1.5rem;
+}
+
+.tqw-forget__title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+
+.tqw-forget__body {
+  margin: 0 0 1.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: var(--bone);
+}
+
+.tqw-forget__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+}
+
+.tqw-forget__button {
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  cursor: pointer;
+}
+
+/* Not coloured to alarm: the same type, set last, in bone. */
+.tqw-forget__button--confirm {
+  color: var(--bone);
+}
+
+@media (max-width: 40rem) {
+  .tqw-archive__items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .tqw-archive__room-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .tqw-archive__items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tqw-paper {
+    min-height: 8rem;
+  }
+}
+
+/* ------------------------------------------------------- contributions, details */
+
+.tqw-details {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  min-height: var(--tqw-vh);
+  padding: 4rem var(--page-gutter);
+  background: var(--coal);
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-details__inner {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 4rem;
+  width: min(var(--section-width), 100%);
+  margin: 0 auto;
+}
+
+.tqw-details__lead,
+.tqw-details__topic-body {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: var(--bone);
+}
+
+.tqw-details__lead {
+  margin-top: 1.5rem;
+  color: var(--muted);
+}
+
+.tqw-details__topic + .tqw-details__topic {
+  margin-top: 3rem;
+}
+
+.tqw-details__topic-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tqw-details__more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+  margin-top: 3rem;
+}
+
+.tqw-details__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  text-decoration-color: rgba(221, 213, 200, 0.4);
+  color: var(--bone);
+}
+
+@media (max-width: 47.5rem) {
+  .tqw-details__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+  }
+}
+
+@media (max-width: 40rem) {
+  .tqw-details__lead,
+  .tqw-details__topic-body {
+    font-size: 1.125rem;
+  }
+}
+
+/* ------------------------------------------------------------------- footer */
+
+.tqw-footer {
+  position: relative;
+  z-index: 2;
+  min-height: var(--tqw-vh);
+  padding: 2rem var(--page-gutter) max(2rem, env(safe-area-inset-bottom, 0px));
+  background: var(--coal);
+}
+
+.tqw-footer__inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4rem;
+  width: min(var(--section-width), 100%);
+  min-height: calc(var(--tqw-vh) - 4rem);
+  margin: 0 auto;
+}
+
+.tqw-footer__menu {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tqw-footer__trivia {
+  max-width: 48ch;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: var(--bone);
+}
+
+/* One rule separates the utility links from what is above them. */
+.tqw-footer__base {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+}
+
+.tqw-footer__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--bone);
+}
+
+@media (hover: hover) {
+  .tqw-footer__link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35em;
+  }
+}
+
+.tqw-footer__note,
+.tqw-footer__copyright {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.tqw-footer__copyright {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.tqw-footer__mark {
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------- text mode */
+
+/*
+ * Text mode is the page in reading order: the hero, then the corridor in prose and its door list
+ * where the game window would be, then the archive, the details and the footer. There is no world
+ * behind the hero, no smoke and no window to engage.
+ */
+.tqw-site[data-text='true'] .tqw-journey {
+  display: block;
+}
+
+.tqw-site[data-text='true'] .tqw-hero {
+  background: var(--coal);
+}
+
+.tqw-site[data-text='true'] .tqw-hero__scrim {
+  display: none;
+}
+
+.tqw-game--text {
+  position: relative;
+  z-index: 2;
+  min-height: var(--tqw-vh);
+  background: var(--coal);
+  border-top: 1px solid var(--divider);
+}
+
+/* A chamber's own text mode joins the page's flow instead of scrolling inside a fixed box. */
+.tqw-game--text .tqw-chamber-host {
+  position: relative;
+}
+
+.tqw-game--text .tqw-chamber-host .tqw-app,
+.tqw-game--text .tqw-chamber-host .tqw-app[data-mode='text'] {
+  position: relative;
+  inset: auto;
+  height: auto;
+  overflow: visible;
+  background: none;
+}
+
+.tqw-text-corridor {
+  max-width: var(--section-width);
+  margin: 0 auto;
+  padding: var(--sp-5) var(--page-gutter) var(--sp-6);
+}
+
+.tqw-text-corridor > * {
+  max-width: 44rem;
+}
+
+.tqw-text-corridor h1 {
+  margin: 0 0 var(--sp-3);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--step-3);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  color: var(--bone);
+}
+
+.tqw-text-corridor > p:not(.tqw-text__notice) {
+  margin: 0 0 1.1em;
+  font-family: var(--font-serif);
+  font-size: var(--step-1);
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: var(--bone);
+}
+
+.tqw-text-corridor > .tqw-link-button {
+  display: inline-flex;
+  align-items: center;
+  padding-left: 0;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--muted);
+}
+
+@media (hover: hover) {
+  .tqw-text-corridor > .tqw-link-button:hover {
+    color: var(--bone);
+    text-decoration: underline;
+    text-underline-offset: 0.4em;
+  }
+}
+
+.tqw-text__notice {
+  margin: 0 0 var(--sp-4);
+  padding: 0.5rem 0.875rem 0.5rem 0.75rem;
+  border-left: 2px solid var(--amber);
+  background: rgba(221, 213, 200, 0.05);
+  font-family: var(--font-ui);
+  font-size: var(--step--1);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------ reduced motion */
+
+/*
+ * Reduced motion holds every surface still: no hero drift, no smoke movement (the veil is plain coal
+ * with a 120 ms dissolve, and the run is one viewport, so there is no forced runway), clippings
+ * pinned square, no entrance fades, no hover travel. The visitor's own Settings choice
+ * (data-reduced-motion on .tqw-site) and the operating system's preference both reach here.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .tqw-clipping {
+    transform: none;
+    transition: none;
+  }
+  .tqw-board[open],
+  .tqw-page[open],
+  .tqw-menu-panel[open] {
+    animation: none;
+  }
+  .tqw-paper[data-state='found'][data-new='true'] {
+    animation: none;
+  }
+  .tqw-game__scrim {
+    transition: none;
+  }
+  .tqw-clipping__go svg,
+  .tqw-board__close,
+  .tqw-page__link {
+    transition: none;
+  }
+  .tqw-clipping__go:hover svg {
+    transform: none;
+  }
+}
+
+.tqw-site[data-reduced-motion='true'] .tqw-clipping {
+  transform: none;
+  transition: none;
+}
+.tqw-site[data-reduced-motion='true'] :is(.tqw-board, .tqw-page, .tqw-menu-panel)[open] {
+  animation: none;
+}
+.tqw-site[data-reduced-motion='true'] .tqw-paper[data-state='found'][data-new='true'] {
+  animation: none;
+}
+.tqw-site[data-reduced-motion='true'] .tqw-game__scrim {
+  transition: none;
+}
+.tqw-site[data-reduced-motion='true'] :is(.tqw-clipping__go svg, .tqw-board__close, .tqw-page__link) {
+  transition: none;
+}
+.tqw-site[data-reduced-motion='true'] .tqw-clipping__go:hover svg {
+  transform: none;
+}

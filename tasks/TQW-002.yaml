@@ -1,0 +1,54 @@
+id: TQW-002
+title: Build the Corridor spine and move the Certification Office behind its door
+owner: claude
+reviewer: codex
+risk_level: medium
+outcome: >-
+  UNHELD gets its front door and its spine: a branded landing in the entrance
+  lobby that scrolls seamlessly into a first-person walk down an endless-seeming
+  Edwardian corridor of distinct doors, an old-school notice board that reaches
+  every chamber directly, full website branding and site pages, and the
+  Certification Office integrated as the first open door.
+depends_on:
+  - TQW-001
+design: docs/ADR/0001-corridor-spine.md
+allowed_paths:
+  - apps/web/**
+  - packages/engine/**
+  - packages/ui/**
+  - docs/**
+  - tasks/TQW-002.yaml
+  - README.md
+  - .github/workflows/**
+permissions:
+  deploy_production: false
+  modify_secrets: false
+  merge_branch: false
+  install_dependencies: none
+acceptance_tests:
+  - "/ opens on the branded landing (UNHELD wordmark, tagline) over the 3D lobby; Enter, Notice board and About work from the first frame"
+  - Native scrolling walks the camera 5 m into the corridor over 2.5 viewport heights; after hand-over, wheel and swipe keep walking; reverse input walks back
+  - First person only; W/S/arrows walk, A/D/left/right turn, drag looks, touch has visible forward/back controls; no head bob, roll or sprint
+  - The corridor matches the ADR dimensions, palette, lighting and fog targets; about 22 m walkable; blank doors recede beyond and are not focusable
+  - Four Chapter Zero doors in corridor order; only the Certification Office is open and spills light; sealed doors rattle, stay shut and are captioned
+  - Clicking or tapping a door glides to it and a second activation opens it; Tab cycles door equivalents in order and Enter opens
+  - The door opens with the specified choreography and the chamber appears behind the jamb with no flash or blackout; leaving returns the visitor facing that door
+  - The notice board (3D in the lobby and DOM from anywhere) opens a chamber directly; sealed clippings state their status
+  - "/certification-office deep-links straight into the Office; back returns to the corridor, not the landing; ?mode=text persists across navigation"
+  - About, Credits, Privacy and a not-found page share the brand system; favicon, touch icon, manifest and a 1200x630 share image ship
+  - Every TQW-001 Office behaviour and test still holds at its new route
+  - No AudioContext before a deliberate click, tap or key press; scrolling alone never creates one
+  - No storage, cookies or network after load; the CSP keeps connect-src 'none'
+  - Reduced motion uses static viewpoints, destination controls and a 120 ms dissolve
+  - Without WebGL, the landing, corridor (as prose and a door list), board and pages all work in semantic HTML
+  - Context loss in the corridor falls back to text mode in the same spine state
+  - Initial landing+corridor download at most 3 MB compressed; Office chunk loads only on approach, focus or board choice; zero idle frames; corridor draw calls at most 150
+  - Lint, typecheck, unit, check:content, audit:assets and e2e pass; screenshots of every beat on desktop and mobile; independent Codex review GO
+artifact_outputs:
+  - playable landing, corridor and Office integration
+  - brand surfaces (wordmark, mark, favicon, manifest, share image, site pages)
+  - visual contact sheet of every beat, desktop and mobile
+  - test, performance and accessibility report
+max_attempts: 2
+design_review_needed: true
+status: in_progress

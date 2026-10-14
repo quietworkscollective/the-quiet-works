@@ -1,0 +1,13 @@
+UNHELD — The Quiet Works
+Copyright 2026 Asiri Dalugoda
+
+Code in this repository is licensed under the Apache License, Version 2.0 (LICENSE).
+Original art and writing are licensed under the Creative Commons Attribution 4.0
+International licence (LICENSES/CC-BY-4.0.txt). LICENSING.md says which is which.
+
+The UNHELD name and mark are not licensed under either licence.
+
+Third-party components keep their own licences; the built site ships them in
+third-party-notices.txt. Third-party 3D models and surface textures (CC0 1.0,
+LICENSES/CC0-1.0.txt) are listed with their authors and sources in
+apps/web/src/assets/THIRD_PARTY.md.

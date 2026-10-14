@@ -1,0 +1,53 @@
+id: TQW-004
+title: Build the Certification Office as a walkable, explorable chamber
+owner: claude
+reviewer: codex
+risk_level: medium
+outcome: >-
+  Build the Certification Office to its private room design: a
+  walkable first-person room with character, five physically different stamp
+  beats, dry processing sound in place of the brass fanfare, eighteen themed
+  inspectable objects, five optional side quests, seven memos, three exits that
+  return to the corridor, and full DOM/text parity.
+design: private design repository, rooms/certification-office.md
+depends_on:
+  - TQW-001
+  - TQW-002
+allowed_paths:
+  - apps/web/**
+  - packages/engine/**
+  - packages/scenes/**
+  - packages/audio/**
+  - packages/ui/**
+  - content/chapters/chapter-zero/**
+  - content/memos/**
+  - tests/**
+permissions:
+  deploy_production: false
+  modify_secrets: false
+  merge_branch: false
+acceptance_tests:
+  - The visitor walks the 8.4 x 8 m foreground in first person (corridor camera numbers); the archive depth to 30 m is visible, not walkable
+  - Approaching the desk takes the standing station; any movement or Step back releases it
+  - Each of the five stamps is a different physical joke (receive, expire, witness, approve-the-approval, empty authority) legible with sound muted
+  - The brass fanfare and ta-da are gone; processing is rubber, paper, relay and weight, degrading per step; a test proves no brass voice is scheduled for any step
+  - Eighteen objects respond on first and repeat use with finite variation; every one has a DOM equivalent
+  - Five side quests and seven memos are reachable in one deliberate session, none required for the core
+  - The three exits (overload service route, sign + side door, stillness shadow) all return to the corridor facing the Office door
+  - Stamping feels physical through animation, mass and sound
+  - Gameplay has three discovery paths: repeat, explore, pause
+  - At least three jokes land before the main recognition
+  - At least five readable memos and one secret inside a drawer
+  - No automatic diagnosis or forced personal disclosure
+  - At least 30fps target on tested midrange mobile, documented measured data
+  - Accessible DOM mode reveals same story beats and collectibles
+  - User can exit, mute, restart and skip at any time
+  - Performance snapshot, actual screenshots and accessibility report supplied
+artifact_outputs:
+  - playable certification chamber
+  - sound bus and first adaptive stems
+  - visual contact sheet
+  - test and performance report
+max_attempts: 2
+design_review_needed: true
+status: in_progress

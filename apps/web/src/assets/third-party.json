@@ -1,0 +1,3128 @@
+{
+  "schema": 1,
+  "generatedBy": "scripts/assets/build.mjs",
+  "tools": {
+    "glTF-Transform": "4.5.1",
+    "sharp": "0.35.5"
+  },
+  "licences": {
+    "CC0-1.0": {
+      "name": "CC0 1.0 Universal",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attributionRequired": false
+    },
+    "CC-BY-4.0": {
+      "name": "Creative Commons Attribution 4.0 International",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "attributionRequired": true
+    }
+  },
+  "assets": [
+    {
+      "id": "office-desk-metal",
+      "kind": "model",
+      "title": "Metal office desk",
+      "author": "Ulan Cabanilla",
+      "source": "https://polyhaven.com/a/metal_office_desk",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Metal Office Desk by Ulan Cabanilla (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/metal_office_desk",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "metal_office_desk_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/metal_office_desk/metal_office_desk_1k.gltf",
+          "bytes": 13510,
+          "sha256": "f07032a5ee89aacceebf10fd9fa192c22775ae81861cfb0bdb1594497179373c"
+        },
+        {
+          "path": "textures/metal_office_desk_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_office_desk/metal_office_desk_nor_gl_1k.jpg",
+          "bytes": 170875,
+          "sha256": "f57eb004937e46392151b803e0cb1d88983958d01ad11d93df78a82cfcc6c407"
+        },
+        {
+          "path": "textures/metal_office_desk_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_office_desk/metal_office_desk_diff_1k.jpg",
+          "bytes": 470831,
+          "sha256": "1f02e3e77e8f82a3600664c991bd45c1c187452d61e9ede4336c6f90f7fa3139"
+        },
+        {
+          "path": "textures/metal_office_desk_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_office_desk/metal_office_desk_arm_1k.jpg",
+          "bytes": 721614,
+          "sha256": "752916dd9bf8a163dc7e0d3673900791ee6d558bbe23894263ac92b42387f51b"
+        },
+        {
+          "path": "metal_office_desk.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/metal_office_desk/metal_office_desk.bin",
+          "bytes": 229700,
+          "sha256": "65b558f41a75ad4822e31cc2a97eb34ed359199279a6bfbd650deb27cef78767"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 6898 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 1024 px (normal and packed maps 512 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/office-desk-metal.glb",
+          "sha256": "a359ee1f1fdae0c56211041b90e64d90857a7c8dc6d6b26f708585fe15fa5a8d",
+          "bytes": 204132
+        }
+      ]
+    },
+    {
+      "id": "office-armchair-leather",
+      "kind": "model",
+      "title": "Leather and timber armchair",
+      "author": "Vibrant Nordic",
+      "source": "https://polyhaven.com/a/modern_arm_chair_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Modern Arm Chair 01 by Vibrant Nordic (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/modern_arm_chair_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "modern_arm_chair_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/modern_arm_chair_01/modern_arm_chair_01_1k.gltf",
+          "bytes": 5121,
+          "sha256": "d31be520add2603447b43acedbdacf9516866f7c89e9ea9230c9edbac9cc6e6a"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_pillow_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_pillow_nor_gl_1k.jpg",
+          "bytes": 302377,
+          "sha256": "2717b9d22e1d3533e3c7436a0230b00b1d25bf396246679825c8db08edaba0a8"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_legs_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_legs_nor_gl_1k.jpg",
+          "bytes": 560864,
+          "sha256": "af328e8530884907cf0d38a675338bb4e2b03c56ed2d21eb5abf505bb67c11de"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_pillow_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_pillow_arm_1k.jpg",
+          "bytes": 321223,
+          "sha256": "fec333290ddfd70e78428251874d30d5410d6d0a956dd84922b0d3f3596e4b7a"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_legs_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_legs_diff_1k.jpg",
+          "bytes": 460937,
+          "sha256": "6291421a8db6cd9bbbc8c141aa087465d698427249f813d24c6e5ccdbf0bf536"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_legs_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_legs_arm_1k.jpg",
+          "bytes": 577931,
+          "sha256": "c76b65200a52cf649a865baf7f879dc34277b923edaac7ec8164eaf7c51c935d"
+        },
+        {
+          "path": "modern_arm_chair_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modern_arm_chair_01/modern_arm_chair_01.bin",
+          "bytes": 240728,
+          "sha256": "8755f2f498c0bb165660379d1b045465751c16bbeaf553c8dd76bb14c16d1ff6"
+        },
+        {
+          "path": "textures/modern_arm_chair_01_pillow_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modern_arm_chair_01/modern_arm_chair_01_pillow_diff_1k.jpg",
+          "bytes": 228851,
+          "sha256": "f1935436b460ad5c03ac7ff9d1e1b4aaedcdc9a503d79c257beb8cdac2e9e1f7"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 8916 to 6717 triangles (tier hero, cap 7000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/office-armchair-leather.glb",
+          "sha256": "bd2b84f84e906c3c073c550e5cec97ec2ba4c6758abf52031984d6951f97f271",
+          "bytes": 164416
+        }
+      ]
+    },
+    {
+      "id": "chair-painted-wood",
+      "kind": "model",
+      "title": "Painted wooden chair",
+      "author": "Kirill Sannikov",
+      "source": "https://polyhaven.com/a/painted_wooden_chair_02",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Painted Wooden Chair 02 by Kirill Sannikov (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/painted_wooden_chair_02",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "painted_wooden_chair_02_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/painted_wooden_chair_02/painted_wooden_chair_02_1k.gltf",
+          "bytes": 2972,
+          "sha256": "e69f4558d236e0fcc9d31a85ab75117e75d224d21e04836aa438821ccf1fd2c1"
+        },
+        {
+          "path": "textures/painted_wooden_chair_02_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_chair_02/painted_wooden_chair_02_nor_gl_1k.jpg",
+          "bytes": 973745,
+          "sha256": "2c2c2f92e4aebadf06c7c675a3c903c1a647dde6f875ac55aa4945d47e053d9a"
+        },
+        {
+          "path": "textures/painted_wooden_chair_02_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_chair_02/painted_wooden_chair_02_diff_1k.jpg",
+          "bytes": 662120,
+          "sha256": "bc944fc83f440198658199080d761b19c3e2f42daa793062aa283563683a732b"
+        },
+        {
+          "path": "textures/painted_wooden_chair_02_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_chair_02/painted_wooden_chair_02_arm_1k.jpg",
+          "bytes": 718531,
+          "sha256": "7b0b2254ab2ea3dae685207b8b591bbb10cca47d0157ce8e515f03ff61ccb5d9"
+        },
+        {
+          "path": "painted_wooden_chair_02.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_chair_02/painted_wooden_chair_02.bin",
+          "bytes": 39028,
+          "sha256": "6125c4ac10e1b53803bf468eb21769fd43a3669564bfc8885a9346c8302e121f"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 1246 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/chair-painted-wood.glb",
+          "sha256": "a9113e52879846103d6480b735fa079e40d59a9576a7eb6881cdfec71ff2694f",
+          "bytes": 73956
+        }
+      ]
+    },
+    {
+      "id": "bench-painted-wood",
+      "kind": "model",
+      "title": "Painted wooden bench",
+      "author": "Kirill Sannikov",
+      "source": "https://polyhaven.com/a/painted_wooden_bench",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Painted Wooden Bench by Kirill Sannikov (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/painted_wooden_bench",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "painted_wooden_bench_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/painted_wooden_bench/painted_wooden_bench_1k.gltf",
+          "bytes": 2835,
+          "sha256": "2289ab82f3fe3045bf18f7b9541743d2c65b9f071cb34bbe424d2bc998f3e507"
+        },
+        {
+          "path": "textures/painted_wooden_bench_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_diff_1k.jpg",
+          "bytes": 545216,
+          "sha256": "9bc533313091ee71eaca5fa6334b71d27935d9d75311f64df6a53c28a67c435c"
+        },
+        {
+          "path": "textures/painted_wooden_bench_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_nor_gl_1k.jpg",
+          "bytes": 830104,
+          "sha256": "a0f53740d77fc61aac01de0b7e1ae6109445d1756839f739ae31fdf10c9911f2"
+        },
+        {
+          "path": "textures/painted_wooden_bench_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_bench/painted_wooden_bench_arm_1k.jpg",
+          "bytes": 586040,
+          "sha256": "878785565eeff706b8f1e4db7e3d794a544e9cf0e56cee424d9a271ab4ead47e"
+        },
+        {
+          "path": "painted_wooden_bench.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_bench/painted_wooden_bench.bin",
+          "bytes": 25444,
+          "sha256": "5799bcb20924105cccd6424de8cdb8e67eb57fddc19c395befeac634a7b2e013"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 630 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/bench-painted-wood.glb",
+          "sha256": "04a22a66e68db45237d8e511f95e973fb51afa4e924c3dbb7f7fe9d49a51bd17",
+          "bytes": 47136
+        }
+      ]
+    },
+    {
+      "id": "shelving-steel-frame",
+      "kind": "model",
+      "title": "Steel frame shelving",
+      "author": "James Ray Cock",
+      "source": "https://polyhaven.com/a/steel_frame_shelves_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Steel Frame Shelves 01 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/steel_frame_shelves_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "steel_frame_shelves_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/steel_frame_shelves_01/steel_frame_shelves_01_1k.gltf",
+          "bytes": 2766,
+          "sha256": "4eff8994825d654e337f8dc425e959ed6add7f4773188c87ba64402d9edd9842"
+        },
+        {
+          "path": "textures/steel_frame_shelves_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/steel_frame_shelves_01/steel_frame_shelves_01_diff_1k.jpg",
+          "bytes": 477882,
+          "sha256": "85e205b334e15e05bec9b02be1258da6ab949ae908aa57e0bee6b94ba45b4415"
+        },
+        {
+          "path": "textures/steel_frame_shelves_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/steel_frame_shelves_01/steel_frame_shelves_01_nor_gl_1k.jpg",
+          "bytes": 318836,
+          "sha256": "2a67ed7dd4f53c3e225396e6381992b768fe58b5261be703d540678e366e46ed"
+        },
+        {
+          "path": "textures/steel_frame_shelves_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/steel_frame_shelves_01/steel_frame_shelves_01_arm_1k.jpg",
+          "bytes": 655560,
+          "sha256": "858629eeaa8f68ddb4fc1a813afe6ed988ded3d6d49184ec45a14611760f0bb3"
+        },
+        {
+          "path": "steel_frame_shelves_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/steel_frame_shelves_01/steel_frame_shelves_01.bin",
+          "bytes": 142312,
+          "sha256": "306d7e72d12a5d3047b8a189f8d0add51075eaf7f51f935286fda4e1c16dd066"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 4348 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "rescaled by 0.1 to the real size the provider lists (2.141 m longest side)",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/shelving-steel-frame.glb",
+          "sha256": "6879fdee4b2a713c9fa5c63e7e8b94b0eb734de9ab0da3cd5f8bfd1987f9ab46",
+          "bytes": 114592
+        }
+      ]
+    },
+    {
+      "id": "rack-metal-worn",
+      "kind": "model",
+      "title": "Worn metal archive rack",
+      "author": "Luca B",
+      "source": "https://polyhaven.com/a/worn_metal_rack",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Worn Metal Rack by Luca B (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/worn_metal_rack",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "worn_metal_rack_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/worn_metal_rack/worn_metal_rack_1k.gltf",
+          "bytes": 2796,
+          "sha256": "e757448bd448460ecb6c7218e7857c8d071f271e3cdc2bd013ca63d824c0c308"
+        },
+        {
+          "path": "textures/worn_metal_rack_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/worn_metal_rack/worn_metal_rack_nor_gl_1k.jpg",
+          "bytes": 435767,
+          "sha256": "3222c47e6fac0d103afec06b8a53476828777f5282d6703266010ecf587ad49e"
+        },
+        {
+          "path": "textures/worn_metal_rack_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/worn_metal_rack/worn_metal_rack_diff_1k.jpg",
+          "bytes": 604202,
+          "sha256": "295c2d48ad55289fed76b7438513520cadd94516639ab8ffd8790ffe7c903dbb"
+        },
+        {
+          "path": "textures/worn_metal_rack_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/worn_metal_rack/worn_metal_rack_arm_1k.jpg",
+          "bytes": 696941,
+          "sha256": "b3523f947b3ebd960d508361bb323cec5a959d0b7043a8a7118ffab781925a65"
+        },
+        {
+          "path": "worn_metal_rack.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/worn_metal_rack/worn_metal_rack.bin",
+          "bytes": 269400,
+          "sha256": "b8cfa4138b7c0e0e69738c6f24dec7fecdc2f336f524312db48167816776fd13"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 6372 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/rack-metal-worn.glb",
+          "sha256": "a57542275bae6d19d4c06f57a9da3bc21393b68da53b11c2cbb3276b1ce91197",
+          "bytes": 193932
+        }
+      ]
+    },
+    {
+      "id": "cabinet-drawer-unit",
+      "kind": "model",
+      "title": "Steel frame drawer unit",
+      "author": "Ulan Cabanilla",
+      "source": "https://polyhaven.com/a/drawer_cabinet",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Drawer Cabinet by Ulan Cabanilla (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/drawer_cabinet",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "drawer_cabinet_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/drawer_cabinet/drawer_cabinet_1k.gltf",
+          "bytes": 8031,
+          "sha256": "899581e6a041644139a138f909c6ba001684cc55b5d1702e08f01094e20d0617"
+        },
+        {
+          "path": "textures/drawer_cabinet_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/drawer_cabinet/drawer_cabinet_arm_1k.jpg",
+          "bytes": 124942,
+          "sha256": "8f8eefaaadcee247204c5658c2f4d9cac598222336918b01eb48e4190317788c"
+        },
+        {
+          "path": "textures/drawer_cabinet_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/drawer_cabinet/drawer_cabinet_nor_gl_1k.jpg",
+          "bytes": 61593,
+          "sha256": "26d0904ad341353e095ef619d157a5f416be014500475976f1144827cc849faa"
+        },
+        {
+          "path": "textures/drawer_cabinet_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/drawer_cabinet/drawer_cabinet_diff_1k.jpg",
+          "bytes": 150011,
+          "sha256": "0fe270409b54a5609662dda14afaa94af4bd3267dcd83dd824e05fa880d96efb"
+        },
+        {
+          "path": "drawer_cabinet.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/drawer_cabinet/drawer_cabinet.bin",
+          "bytes": 798852,
+          "sha256": "3460b9fe00ffbe779b7f7f2de3b159c214cfec275c06194add0eebd951ee14e9"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 26406 to 14394 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/cabinet-drawer-unit.glb",
+          "sha256": "97131b75b14d86a0293ee6b53f36f54ef5240acde88abbb2d6a283c7205535c3",
+          "bytes": 329308
+        }
+      ]
+    },
+    {
+      "id": "cabinet-painted-white",
+      "kind": "model",
+      "title": "Painted wooden cabinet",
+      "author": "Kirill Sannikov",
+      "source": "https://polyhaven.com/a/painted_wooden_cabinet",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Painted Wooden Cabinet by Kirill Sannikov (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/painted_wooden_cabinet",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "painted_wooden_cabinet_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/painted_wooden_cabinet/painted_wooden_cabinet_1k.gltf",
+          "bytes": 9253,
+          "sha256": "ce04543cdb10e05fe9c2cc08e9c118b16c1c717a07bcbfac9b99859465c8d1ed"
+        },
+        {
+          "path": "textures/painted_wooden_cabinet_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_diff_1k.jpg",
+          "bytes": 688654,
+          "sha256": "2dbed9f9ec8e49fc2e87de8cd86e2029a80e9001b5102b4e47c7dfa913f34d89"
+        },
+        {
+          "path": "textures/painted_wooden_cabinet_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_arm_1k.jpg",
+          "bytes": 622122,
+          "sha256": "34e0bcb00a62704d85161d41e844e798d4f894e416e7769079d50a21d561d171"
+        },
+        {
+          "path": "textures/painted_wooden_cabinet_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/painted_wooden_cabinet/painted_wooden_cabinet_nor_gl_1k.jpg",
+          "bytes": 463678,
+          "sha256": "e94edf68faeaf68016c28da9b9f299bb38c57463acd94130ecf98dcaef790016"
+        },
+        {
+          "path": "painted_wooden_cabinet.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/painted_wooden_cabinet/painted_wooden_cabinet.bin",
+          "bytes": 78072,
+          "sha256": "1023d773d84c42f2709ec297247d90b0e2833e37241fbe852e2f33b41ae10cda"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 2227 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 1024 px (normal and packed maps 512 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/cabinet-painted-white.glb",
+          "sha256": "246817f8ea7155120299fece1ed93a0920f26d9fdb014f00f661d71a72e93ffd",
+          "bytes": 198820
+        }
+      ]
+    },
+    {
+      "id": "bookcase-worn",
+      "kind": "model",
+      "title": "Worn wooden bookcase",
+      "author": "Ulan Cabanilla",
+      "source": "https://polyhaven.com/a/wooden_bookshelf_worn",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Wooden Bookshelf Worn by Ulan Cabanilla (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wooden_bookshelf_worn",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "wooden_bookshelf_worn_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/wooden_bookshelf_worn/wooden_bookshelf_worn_1k.gltf",
+          "bytes": 2849,
+          "sha256": "a1c5b3f1e71ae0b5eb73047e8097bceaa5f17e5d2d0d7ae1b8053d5ec0878fc6"
+        },
+        {
+          "path": "textures/wooden_bookshelf_worn_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_bookshelf_worn/wooden_bookshelf_worn_nor_gl_1k.jpg",
+          "bytes": 993276,
+          "sha256": "90ffb1b3f7bb638d5a7e1a2b244a260d623e314a6010a6b8c23c57203e510ac9"
+        },
+        {
+          "path": "wooden_bookshelf_worn.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/wooden_bookshelf_worn/wooden_bookshelf_worn.bin",
+          "bytes": 267964,
+          "sha256": "170758113b50132380ab46943f6eab18f2714460dead065aae37241a94abf0f9"
+        },
+        {
+          "path": "textures/wooden_bookshelf_worn_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_bookshelf_worn/wooden_bookshelf_worn_arm_1k.jpg",
+          "bytes": 713979,
+          "sha256": "41b3aca38fb55cb300d971016a597c80425da3744a6d33d82fe78f9dbe609eaa"
+        },
+        {
+          "path": "textures/wooden_bookshelf_worn_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wooden_bookshelf_worn/wooden_bookshelf_worn_diff_1k.jpg",
+          "bytes": 799126,
+          "sha256": "970f60178decadd0d8fb1e5872f718350a49b027fd69469210c41ead350cba56"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 10106 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/bookcase-worn.glb",
+          "sha256": "2048c6e4fe7fd926943099c1b0284e799fccba8ae202bbae40bf85014fece017",
+          "bytes": 234724
+        }
+      ]
+    },
+    {
+      "id": "cart-tool-green",
+      "kind": "model",
+      "title": "Green steel tool cart",
+      "author": "Savva Zakharov",
+      "source": "https://polyhaven.com/a/tool_cart",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Tool Cart by Savva Zakharov (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/tool_cart",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "tool_cart_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tool_cart/tool_cart_1k.gltf",
+          "bytes": 2744,
+          "sha256": "ba4290f62b37dc08d4f99da2b3c78d8cb584bd229e8805ce586ed3f3b5303759"
+        },
+        {
+          "path": "textures/tool_cart_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tool_cart/tool_cart_nor_gl_1k.jpg",
+          "bytes": 817628,
+          "sha256": "fa995e77eacad81c78f650e28a6d4c1c7b9d6c74a3f314d5f5ebdddf6de510fc"
+        },
+        {
+          "path": "textures/tool_cart_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tool_cart/tool_cart_diff_1k.jpg",
+          "bytes": 711555,
+          "sha256": "3a3e18efa54d18f2d01ad51cb40f8edd9af76e054a6a9c21324bc14fe49be965"
+        },
+        {
+          "path": "textures/tool_cart_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tool_cart/tool_cart_arm_1k.jpg",
+          "bytes": 744873,
+          "sha256": "2b928779ab242468c90e6074ab72567bc58ecf3e0240fd709e4507b59764aef7"
+        },
+        {
+          "path": "tool_cart.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tool_cart/tool_cart.bin",
+          "bytes": 895660,
+          "sha256": "3962637a4faec733b10d9970bfeea6696a48b6fd361fda085cc3d122138f6aaa"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 29394 to 6240 triangles (tier hero, cap 6500)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/cart-tool-green.glb",
+          "sha256": "87e1dcebf353648adc92a6d0f674b4e493e4a25e09f045da84fbf0b8196f9eca",
+          "bytes": 204996
+        }
+      ]
+    },
+    {
+      "id": "plant-large",
+      "kind": "model",
+      "title": "Potted foliage plant",
+      "author": "Rico Cilliers",
+      "source": "https://polyhaven.com/a/potted_plant_02",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Potted Plant 02 by Rico Cilliers (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/potted_plant_02",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "potted_plant_02_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/potted_plant_02/potted_plant_02_1k.gltf",
+          "bytes": 6653,
+          "sha256": "c533dcce0d1aa4379eb7db04601a04983f8df2422b28578de922655a416e64a9"
+        },
+        {
+          "path": "textures/potted_plant_02_leaves_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_leaves_diff_1k.jpg",
+          "bytes": 167700,
+          "sha256": "3643dce6e6c0a9f40129bd837ec1a11802e8f43ea43cb29e58219d82e0ac632b"
+        },
+        {
+          "path": "potted_plant_02.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/potted_plant_02/potted_plant_02.bin",
+          "bytes": 1852244,
+          "sha256": "9c9812482c78a59789ed32fa842b4cbd9365e09c900c31ebb998e5efe627fe97"
+        },
+        {
+          "path": "textures/potted_plant_02_pot_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_pot_rough_1k.jpg",
+          "bytes": 114886,
+          "sha256": "4e92ad8ee0f098050785d9a025e2c5a7d55bc7a7f7e1916cc7627fc7824a938f"
+        },
+        {
+          "path": "textures/potted_plant_02_leaves_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_leaves_rough_1k.jpg",
+          "bytes": 102396,
+          "sha256": "ac8959f70c0e91e77f3cd6fd3f73578b8aed64ac6c33fc34ac027a4e88276960"
+        },
+        {
+          "path": "textures/potted_plant_02_pot_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_pot_diff_1k.jpg",
+          "bytes": 155244,
+          "sha256": "684949bf24821d7e951d46915366b5a388d2e4ccaaa9d5284e718c83604705e9"
+        },
+        {
+          "path": "textures/potted_plant_02_leaves_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_leaves_nor_gl_1k.jpg",
+          "bytes": 127232,
+          "sha256": "e0fe090ff7a511729c9bbe59df7288b400430fdab178529443dec75e0f06007d"
+        },
+        {
+          "path": "textures/potted_plant_02_pot_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_02/potted_plant_02_pot_nor_gl_1k.jpg",
+          "bytes": 108343,
+          "sha256": "981a68721c8b7b9ac26b96d0210334599d5e8f529362f505082c071a0a58e86c"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 69806 to 14371 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/plant-large.glb",
+          "sha256": "d4f02bea893212ba20834fe1aea2539699e736b47071669aeec7014181b92009",
+          "bytes": 354396
+        }
+      ]
+    },
+    {
+      "id": "clock-grandfather",
+      "kind": "model",
+      "title": "Grandfather clock",
+      "author": "Yann Kervran, James Ray Cock",
+      "source": "https://polyhaven.com/a/vintage_grandfather_clock_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Vintage Grandfather Clock 01 by Yann Kervran, James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/vintage_grandfather_clock_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "vintage_grandfather_clock_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/vintage_grandfather_clock_01/vintage_grandfather_clock_01_1k.gltf",
+          "bytes": 7868,
+          "sha256": "5d3aa1d5daabe830aed603e448a8f14f3993ec8a1116e083c181420a4fe1573a"
+        },
+        {
+          "path": "textures/vintage_grandfather_clock_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_grandfather_clock_01/vintage_grandfather_clock_01_nor_gl_1k.jpg",
+          "bytes": 639744,
+          "sha256": "a41aff853e19918f81c6b3d2a4b14034ca002b136779f8e5daa10d33cbdbecf7"
+        },
+        {
+          "path": "textures/vintage_grandfather_clock_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_grandfather_clock_01/vintage_grandfather_clock_01_diff_1k.jpg",
+          "bytes": 628931,
+          "sha256": "2da73ab925dd5c18aa4c428f34519919a115dc45c37cf27976a3a15323ef7d9f"
+        },
+        {
+          "path": "textures/vintage_grandfather_clock_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_grandfather_clock_01/vintage_grandfather_clock_01_arm_1k.jpg",
+          "bytes": 748415,
+          "sha256": "e0425b70773bc624f296f3b83f3a8001ac05f3d2cbcd1b1e1bd79dd1ca4b94de"
+        },
+        {
+          "path": "vintage_grandfather_clock_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/vintage_grandfather_clock_01/vintage_grandfather_clock_01.bin",
+          "bytes": 337224,
+          "sha256": "a6369fa664dd13d281e87c63f0ba31a0350291c93322fd10ec63f2ba4d252fd3"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (vintage_grandfather_clock_01_glass)",
+        "deduplicated, pruned and welded",
+        "kept 8563 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 1024 px (normal and packed maps 512 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/clock-grandfather.glb",
+          "sha256": "a6e7a91af81d4ccff4bd88bc82b30537d3cbedf16d58d82127778ea51edf0bbe",
+          "bytes": 371724
+        }
+      ]
+    },
+    {
+      "id": "cash-register-1910",
+      "kind": "model",
+      "title": "Cash register",
+      "author": "Joe Seabuhr",
+      "source": "https://polyhaven.com/a/CashRegister_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Cash Register 01 by Joe Seabuhr (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/CashRegister_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "CashRegister_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/CashRegister_01/CashRegister_01_1k.gltf",
+          "bytes": 6300,
+          "sha256": "323992ca49ac5527e62029ec8e554d2bd74b618784209b5abdf2abf50b941559"
+        },
+        {
+          "path": "textures/CashRegister_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_arm_1k.jpg",
+          "bytes": 207527,
+          "sha256": "b2d66b5fcb70ebba6803265936302889fe9d952dca904fb4a8dcd8d884af6d53"
+        },
+        {
+          "path": "textures/CashRegister_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_nor_gl_1k.jpg",
+          "bytes": 146745,
+          "sha256": "80e75c35d47e2eb4910932866e66e921d38cd8fc88753eaca4b70f86252c8638"
+        },
+        {
+          "path": "textures/CashRegister_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_diff_1k.jpg",
+          "bytes": 133109,
+          "sha256": "0f048e68054f480d773a6d997a5a853610fde80ecb5bae1c3994ed434c02ce84"
+        },
+        {
+          "path": "textures/CashRegister_01_glass_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_glass_arm_1k.jpg",
+          "bytes": 72642,
+          "sha256": "bba4ed60cc9cf3df8862fc4ce6ed18d911013545b0928f3f8c20319819c14497"
+        },
+        {
+          "path": "CashRegister_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/CashRegister_01/CashRegister_01.bin",
+          "bytes": 356396,
+          "sha256": "51cfd1329ae1700faaf4d1ce6116f73e795b6a31af7e86fbbb1047b57aa0fe3f"
+        },
+        {
+          "path": "textures/CashRegister_01_glass_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_glass_nor_gl_1k.jpg",
+          "bytes": 17077,
+          "sha256": "312e24f0f5d025a82bfb2fbc989ac239099ff8b4c46d3cd0125f07da18bd228a"
+        },
+        {
+          "path": "textures/CashRegister_01_glass_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/CashRegister_01/CashRegister_01_glass_diff_1k.jpg",
+          "bytes": 99676,
+          "sha256": "25607764f4956a2c59657b0eb4384a1623040ff7fa55acf18d69b2d6facfc1ec"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (CashRegister_01_glass)",
+        "deduplicated, pruned and welded",
+        "kept 9921 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 1024 px (normal and packed maps 512 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/cash-register-1910.glb",
+          "sha256": "026d9e720627d8fd2e72cc00c3cadb15de6daa42f5041c77b50d3d4b3501f941",
+          "bytes": 375500
+        }
+      ]
+    },
+    {
+      "id": "mirror-ornate",
+      "kind": "model",
+      "title": "Ornate wall mirror",
+      "author": "James Ray Cock",
+      "source": "https://polyhaven.com/a/ornate_mirror_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Ornate Mirror 01 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/ornate_mirror_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "ornate_mirror_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/ornate_mirror_01/ornate_mirror_01_1k.gltf",
+          "bytes": 2697,
+          "sha256": "2d9bb949df65d6470395959fb7976af6fcc1b3ad7d85084918ad543ee71850f6"
+        },
+        {
+          "path": "textures/ornate_mirror_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ornate_mirror_01/ornate_mirror_01_arm_1k.jpg",
+          "bytes": 126947,
+          "sha256": "0efbcf5ffae8afbcea89c3fdd7f82951f03067abe6236388303713273ea44752"
+        },
+        {
+          "path": "ornate_mirror_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/ornate_mirror_01/ornate_mirror_01.bin",
+          "bytes": 372772,
+          "sha256": "31ce7eadeb57ffa0d302ea36e4d5de64db91f9a823f1ede8158b45d9ec863a4a"
+        },
+        {
+          "path": "textures/ornate_mirror_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ornate_mirror_01/ornate_mirror_01_diff_1k.jpg",
+          "bytes": 115752,
+          "sha256": "7b131a08fcf21cb823d7c4914829c2c35215612cdadb241387c20657d6b25a62"
+        },
+        {
+          "path": "textures/ornate_mirror_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/ornate_mirror_01/ornate_mirror_01_nor_gl_1k.jpg",
+          "bytes": 59073,
+          "sha256": "bfa3a35070f0c5f4fa8e7127ffe536001cc6f65c3896e377d7a2a38f9358d3be"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 14246 to 8640 triangles (tier hero, cap 9000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/mirror-ornate.glb",
+          "sha256": "c045338a0954b92665527478c46fde60634da9c27f07a0fbda59762151d1b5fc",
+          "bytes": 178996
+        }
+      ]
+    },
+    {
+      "id": "frame-gilt-painting",
+      "kind": "model",
+      "title": "Gilt framed painting",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "source": "https://polyhaven.com/a/fancy_picture_frame_02",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Fancy Picture Frame 02 by Rob Tuytel, Rico Cilliers (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/fancy_picture_frame_02",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "fancy_picture_frame_02_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/fancy_picture_frame_02/fancy_picture_frame_02_1k.gltf",
+          "bytes": 5085,
+          "sha256": "1f8362b3118ffa82881657e0db9aec60aa76d6644b8030f9cd299b90415d1ef6"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_diff_1k.jpg",
+          "bytes": 216324,
+          "sha256": "7a2cccf33387518b10081dba5ec885888550322dee44f4f4db7ef322a629a1e5"
+        },
+        {
+          "path": "fancy_picture_frame_02.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/fancy_picture_frame_02/fancy_picture_frame_02.bin",
+          "bytes": 825908,
+          "sha256": "cc94201d75e5934dce90f3adfe7ab19e63f163bd22e22bf8e594ca8f29ef459e"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_canvas_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_canvas_nor_gl_1k.jpg",
+          "bytes": 51705,
+          "sha256": "1c988a47da1ab126fa2487e5be62c9a763878d82987cf648e179ff46906525db"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_canvas_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_canvas_diff_1k.jpg",
+          "bytes": 136007,
+          "sha256": "eca52b5f9ed8308fadf3bfda7725cde4df6a062ff2994fa4e4fcfe7ee84f9036"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_rough_1k.jpg",
+          "bytes": 165509,
+          "sha256": "94e06290ae2d906485bebb9a0a870de9629824f60c307cdcfd50c5d7ff246a0b"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_nor_gl_1k.jpg",
+          "bytes": 229904,
+          "sha256": "567bc0dc71445abc890dbf6bc50795144a8785300cea0f0cc851cc1c05d45133"
+        },
+        {
+          "path": "textures/fancy_picture_frame_02_canvas_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/fancy_picture_frame_02/fancy_picture_frame_02_canvas_rough_1k.jpg",
+          "bytes": 97678,
+          "sha256": "82ca7d94a19bb51afd3c11be69a8a08fadaea901c0f770dd87f64c93b39ae57a"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 35102 to 14400 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/frame-gilt-painting.glb",
+          "sha256": "ce73156440cd3a01d19d80ef70534155674fc8595d846aa9e74a528043abe09b",
+          "bytes": 287476
+        }
+      ]
+    },
+    {
+      "id": "chess-set",
+      "kind": "model",
+      "title": "Chess set",
+      "author": "Riley Queen",
+      "source": "https://polyhaven.com/a/chess_set",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Chess Set by Riley Queen (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/chess_set",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "chess_set_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/chess_set/chess_set_1k.gltf",
+          "bytes": 53740,
+          "sha256": "3e21ecd0c2ffb703dfdb3f3ea7a379c1dbd4ec513ba2cb8e6cb1e5f276d7eb91"
+        },
+        {
+          "path": "textures/chess_set_pieces_white_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_white_nor_gl_1k.jpg",
+          "bytes": 443642,
+          "sha256": "51c31dc44d1d0f01c10b759be7903bea9d5b04781b63dc45738dd70a6e31dd6c"
+        },
+        {
+          "path": "textures/chess_set_pieces_black_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_black_nor_gl_1k.jpg",
+          "bytes": 421230,
+          "sha256": "b92343bba552e82f271f86def504e806e73c6f5dfc4469a90fa5b4f66013bfcd"
+        },
+        {
+          "path": "textures/chess_set_pieces_black_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_black_arm_1k.jpg",
+          "bytes": 833327,
+          "sha256": "e0413b36e970c645bd9b6192bfe788b318d9bd9f4f3746cf137552bfee118982"
+        },
+        {
+          "path": "textures/chess_set_board_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_board_diff_1k.jpg",
+          "bytes": 602985,
+          "sha256": "cca44d214f48ebe2205362a3996265d1fed727e094835bec2c873e91c653eaa5"
+        },
+        {
+          "path": "textures/chess_set_board_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_board_nor_gl_1k.jpg",
+          "bytes": 227381,
+          "sha256": "bc5657ec58e0e04a2e8fa6d50ec0f6e3009b1c22b8391ccdde1a4d5d9db30d4d"
+        },
+        {
+          "path": "textures/chess_set_board_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_board_arm_1k.jpg",
+          "bytes": 756404,
+          "sha256": "67387308ce3a6424a1666e742c6556853344c01fbfcda8453b6e2e2f62bc6d30"
+        },
+        {
+          "path": "chess_set.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/chess_set/chess_set.bin",
+          "bytes": 1732220,
+          "sha256": "c73476fd032a2cb4a9c256f70573eed260708132fdc42fec161c6216711560b3"
+        },
+        {
+          "path": "textures/chess_set_pieces_white_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_white_arm_1k.jpg",
+          "bytes": 841156,
+          "sha256": "9604c461ee6d5d4f5937891b0468ff7efd354299074b139d04029b03c326e434"
+        },
+        {
+          "path": "textures/chess_set_pieces_black_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_black_diff_1k.jpg",
+          "bytes": 480796,
+          "sha256": "74471018f96f197c963cc89e7dae19960b03bc2e4bf448e4b0beb51bfee5b85d"
+        },
+        {
+          "path": "textures/chess_set_pieces_white_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/chess_set/chess_set_pieces_white_diff_1k.jpg",
+          "bytes": 590948,
+          "sha256": "d9e06002509d73c3f343e1643f0c89ef84e24602f1f6858b5628e8f3e55ae77d"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 76920 to 14372 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/chess-set.glb",
+          "sha256": "3c873c1a371ec1ec23a8a93ebd8a8d7fc9080719c61604bf8db281a3f770da44",
+          "bytes": 315228
+        }
+      ]
+    },
+    {
+      "id": "lamp-anglepoise",
+      "kind": "model",
+      "title": "Anglepoise desk lamp",
+      "author": "Yann Kervran, Kuutti Siitonen",
+      "source": "https://polyhaven.com/a/desk_lamp_arm_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Desk Lamp Arm 01 by Yann Kervran, Kuutti Siitonen (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/desk_lamp_arm_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "desk_lamp_arm_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/desk_lamp_arm_01/desk_lamp_arm_01_1k.gltf",
+          "bytes": 4453,
+          "sha256": "2ac8389afc1519449a9cfdf7efd9fa36780a2177bb47ab58f7a7dda7d247dc8c"
+        },
+        {
+          "path": "textures/desk_lamp_arm_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_nor_gl_1k.jpg",
+          "bytes": 651826,
+          "sha256": "feefedc3835ecef3634e97a24977451671f8f57747a023f48cd14c84bc73513a"
+        },
+        {
+          "path": "textures/desk_lamp_arm_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_arm_1k.jpg",
+          "bytes": 780379,
+          "sha256": "206404c79fb7dcf8e2c4558c13544342f87d2190526231a1750c3c9adc256fbc"
+        },
+        {
+          "path": "textures/desk_lamp_arm_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/desk_lamp_arm_01/desk_lamp_arm_01_diff_1k.jpg",
+          "bytes": 702522,
+          "sha256": "159eb178aba3271bd555cbe07ca36431d8af9a006f0b8e9d8c67030cbdc9e4d3"
+        },
+        {
+          "path": "desk_lamp_arm_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/desk_lamp_arm_01/desk_lamp_arm_01.bin",
+          "bytes": 736804,
+          "sha256": "07f34e32abecbaa63d28b9d12d6a0eb82b775a0f50c92327655909d72ff8489b"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 24102 to 2945 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/lamp-anglepoise.glb",
+          "sha256": "354eab4a441a07207b0c9ff6b763fc01069ebf8da5f92b63aaf9679a2a650338",
+          "bytes": 128432
+        }
+      ]
+    },
+    {
+      "id": "clock-wall",
+      "kind": "model",
+      "title": "Wall clock",
+      "author": "PierreB3D",
+      "source": "https://polyhaven.com/a/wall_clock",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Wall Clock by PierreB3D (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wall_clock",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "wall_clock_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/wall_clock/wall_clock_1k.gltf",
+          "bytes": 9008,
+          "sha256": "4e67385443e808bc709c054c1de5be1e83d4bf07eb0893884c301fec0bae8bc6"
+        },
+        {
+          "path": "textures/wall_clock_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wall_clock/wall_clock_nor_gl_1k.jpg",
+          "bytes": 236489,
+          "sha256": "6138946e055828e92d5e0d8d50c75e3d2da0ea789dd6512b30f85f0e18435d00"
+        },
+        {
+          "path": "textures/wall_clock_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wall_clock/wall_clock_diff_1k.jpg",
+          "bytes": 366683,
+          "sha256": "012bfc3ceecd5e35679fe5764e33b6d1b8a631ad4fc9f5b267af25ad10468672"
+        },
+        {
+          "path": "textures/wall_clock_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wall_clock/wall_clock_arm_1k.jpg",
+          "bytes": 444044,
+          "sha256": "c78aabec7bb4af4fd6818be1099523e59bf12d88c872530b2260cdea08d81968"
+        },
+        {
+          "path": "textures/wall_clock_glass_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wall_clock/wall_clock_glass_arm_1k.jpg",
+          "bytes": 376244,
+          "sha256": "42804955958b3d0fdc1da8d4c4e8e909b04f659ae1b02911e148abe0741b8b84"
+        },
+        {
+          "path": "wall_clock.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/wall_clock/wall_clock.bin",
+          "bytes": 132412,
+          "sha256": "61d9fe03e871508230160de546ef505f3f4405b1e82c167536945a483a8bb639"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (wall_clock_glass)",
+        "deduplicated, pruned and welded",
+        "simplified from 3130 to 2880 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/clock-wall.glb",
+          "sha256": "9c3e53329623f909c3e814470d79afd1984d403158c2f0b98c1b78695cb611b7",
+          "bytes": 88860
+        }
+      ]
+    },
+    {
+      "id": "stapler-teal",
+      "kind": "model",
+      "title": "Teal desk stapler",
+      "author": "Mateusz Sadek",
+      "source": "https://polyhaven.com/a/vintage_stapler",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Vintage Stapler by Mateusz Sadek (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/vintage_stapler",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "vintage_stapler_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/vintage_stapler/vintage_stapler_1k.gltf",
+          "bytes": 7127,
+          "sha256": "0cd8f8200e4b9756cd7873a12567252c8fae9e74284b1a610b7cba760be39f2e"
+        },
+        {
+          "path": "textures/vintage_stapler_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_stapler/vintage_stapler_nor_gl_1k.jpg",
+          "bytes": 536378,
+          "sha256": "b286c6a02bc757919962a7eaef4e6851df53844d3fcc31aed71c4d7a85c29b43"
+        },
+        {
+          "path": "textures/vintage_stapler_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_stapler/vintage_stapler_diff_1k.jpg",
+          "bytes": 797565,
+          "sha256": "37bbfabfef6ee261dfcb63c99334af0389976ee3b58d80d279c4a430397ae020"
+        },
+        {
+          "path": "textures/vintage_stapler_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_stapler/vintage_stapler_arm_1k.jpg",
+          "bytes": 821614,
+          "sha256": "53592697b5c9088cf77d3fcb723dc7feebf5bb2889d2c33f1865ccd02be45774"
+        },
+        {
+          "path": "vintage_stapler.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/vintage_stapler/vintage_stapler.bin",
+          "bytes": 159080,
+          "sha256": "7ffa9b1cc3722dd4de8cd754851884c3897f4e281ebe55defc7fc7d3223b27bf"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 4370 to 2899 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/stapler-teal.glb",
+          "sha256": "1df421bed711d226d2dd7faa11b8fc3ce831fbb5fd882275b52656a2c24080a7",
+          "bytes": 87688
+        }
+      ]
+    },
+    {
+      "id": "ledger-binders",
+      "kind": "model",
+      "title": "Ledger and binder",
+      "author": "DaDrood",
+      "source": "https://polyhaven.com/a/binder_notebook",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Binder Notebook by DaDrood (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/binder_notebook",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "binder_notebook_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/binder_notebook/binder_notebook_1k.gltf",
+          "bytes": 4309,
+          "sha256": "714596552fad383ae3ca76d42038b03a20b6864d6ef5bc6d12620ac21fef1b1e"
+        },
+        {
+          "path": "textures/binder_notebook_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/binder_notebook/binder_notebook_nor_gl_1k.jpg",
+          "bytes": 319694,
+          "sha256": "24b18d9792c3816337d7d09b30aed400a887747ea6beb04b23612b6e1210a29e"
+        },
+        {
+          "path": "textures/binder_notebook_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/binder_notebook/binder_notebook_diff_1k.jpg",
+          "bytes": 533256,
+          "sha256": "8591cce815138bd737c252dc12a4d9bf41bceb499ace7dbfef0725e64dadda2d"
+        },
+        {
+          "path": "textures/binder_notebook_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/binder_notebook/binder_notebook_arm_1k.jpg",
+          "bytes": 507028,
+          "sha256": "c0bc38cd13e5ada9552c3a9b60f88c36acf9e672011d97d066a6c0148f01898a"
+        },
+        {
+          "path": "binder_notebook.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/binder_notebook/binder_notebook.bin",
+          "bytes": 525488,
+          "sha256": "68e28e6fac708a6e172230c42debd990e48819566fa07f222415467b1034b9c0"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 18077 to 2878 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/ledger-binders.glb",
+          "sha256": "a779c9b6d05e9249a133da7a91d356e271b1ad92a9d057d5c9fc4ac447d694f0",
+          "bytes": 96056
+        }
+      ]
+    },
+    {
+      "id": "stationery-set",
+      "kind": "model",
+      "title": "Pens, pencils and cup",
+      "author": "Mateusz Sadek",
+      "source": "https://polyhaven.com/a/stationery_supplies",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Stationery Supplies by Mateusz Sadek (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/stationery_supplies",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "stationery_supplies_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/stationery_supplies/stationery_supplies_1k.gltf",
+          "bytes": 15220,
+          "sha256": "9f5ef7799af1193e5d794cc02eb6add2d2eb7e80bc1974930fae76b3cd7ce9a9"
+        },
+        {
+          "path": "textures/stationery_supplies_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/stationery_supplies/stationery_supplies_nor_gl_1k.jpg",
+          "bytes": 475821,
+          "sha256": "23c332f95ca9cafc24f51a1ad54ca81548d3ab60559401e793fdec00cbe7952c"
+        },
+        {
+          "path": "textures/stationery_supplies_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/stationery_supplies/stationery_supplies_diff_1k.jpg",
+          "bytes": 646389,
+          "sha256": "a70e92052b2da3457a6059aec0fa83bc01bf0d376be814661cee0b49e4abb9ad"
+        },
+        {
+          "path": "textures/stationery_supplies_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/stationery_supplies/stationery_supplies_arm_1k.jpg",
+          "bytes": 720443,
+          "sha256": "b7b00e07f043d9928aa4b6dc6a3feede9c870e6e810ae75b54692171cfba6052"
+        },
+        {
+          "path": "stationery_supplies.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/stationery_supplies/stationery_supplies.bin",
+          "bytes": 128940,
+          "sha256": "475d839c3569551710607cfc71416aa50a3715cd02d56da8c86271982feacb6e"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 4412 to 2874 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/stationery-set.glb",
+          "sha256": "abac5518c764aa4f35b54da053453f9aedc812b48f7a4bb866bf9c72ecd9a102",
+          "bytes": 74424
+        }
+      ]
+    },
+    {
+      "id": "notepads",
+      "kind": "model",
+      "title": "Notepads and notes",
+      "author": "Ulan Cabanilla",
+      "source": "https://polyhaven.com/a/office_notepads",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Office Notepads by Ulan Cabanilla (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/office_notepads",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "office_notepads_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/office_notepads/office_notepads_1k.gltf",
+          "bytes": 15568,
+          "sha256": "dec1bd1f656e21bbda8957bcd19a715b1d1fbc5f9f153ada7ccdaf8407d97411"
+        },
+        {
+          "path": "textures/office_notepads_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/office_notepads/office_notepads_nor_gl_1k.jpg",
+          "bytes": 393394,
+          "sha256": "d6be173e3c16755e3c163724b205114f0dc93ff2d6a746b819815f4100432018"
+        },
+        {
+          "path": "textures/office_notepads_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/office_notepads/office_notepads_diff_1k.jpg",
+          "bytes": 460873,
+          "sha256": "6cce5f76748a73954a9158904b6d26319f028f796166c140b3cbf0bbb7c62727"
+        },
+        {
+          "path": "textures/office_notepads_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/office_notepads/office_notepads_arm_1k.jpg",
+          "bytes": 445320,
+          "sha256": "a4a1c7356075ab0de890ae7de0397a0b4c35f6dd7feacafe3a32e773b76c7e68"
+        },
+        {
+          "path": "office_notepads.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/office_notepads/office_notepads.bin",
+          "bytes": 17740,
+          "sha256": "4095356347a19a2e64ee2f5cee46d50d9bdf7c52f617573bca94cfe6e494842c"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 666 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/notepads.glb",
+          "sha256": "78839a6f0b175a3bbb77806adfee7f97bef4b3cc7ec77814e0461f97f14ecbe3",
+          "bytes": 19084
+        }
+      ]
+    },
+    {
+      "id": "clipboard",
+      "kind": "model",
+      "title": "Clipboard",
+      "author": "ProgrammerOnCoffee",
+      "source": "https://polyhaven.com/a/clipboard",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Clipboard by ProgrammerOnCoffee (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/clipboard",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "clipboard_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/clipboard/clipboard_1k.gltf",
+          "bytes": 2738,
+          "sha256": "82b06cce3894693d6e2f8d7bf760dbd9d59eca232cdfccda93dbeab7aa4b4549"
+        },
+        {
+          "path": "textures/clipboard_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/clipboard/clipboard_nor_gl_1k.jpg",
+          "bytes": 406898,
+          "sha256": "ea6700ba026222656f47c654d1631f075aedb57d52977ca22bdf8d417e1eca07"
+        },
+        {
+          "path": "textures/clipboard_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/clipboard/clipboard_diff_1k.jpg",
+          "bytes": 572026,
+          "sha256": "2e823a490f24a70ff76418c578871f08608bfc370f64f5068d833e5ee63b457a"
+        },
+        {
+          "path": "textures/clipboard_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/clipboard/clipboard_arm_1k.jpg",
+          "bytes": 620747,
+          "sha256": "79658043713f9adb64d2dfc956e2818cda727d7a08fd85aa0967f1f4f9ce660f"
+        },
+        {
+          "path": "clipboard.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/clipboard/clipboard.bin",
+          "bytes": 184512,
+          "sha256": "c108d9cc94bc513ff9f91077e02cbe9f49a96d4907abd06803e379508fd98bb2"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 6176 to 2880 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/clipboard.glb",
+          "sha256": "b2c843212eeadaea9bba852d364547ec871c6bfcc12ecaa897757763555405be",
+          "bytes": 70808
+        }
+      ]
+    },
+    {
+      "id": "basket-wicker",
+      "kind": "model",
+      "title": "Wicker basket with lid",
+      "author": "Kuutti Siitonen",
+      "source": "https://polyhaven.com/a/wicker_basket_02",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Wicker Basket 02 by Kuutti Siitonen (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wicker_basket_02",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "wicker_basket_02_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/wicker_basket_02/wicker_basket_02_1k.gltf",
+          "bytes": 4497,
+          "sha256": "78c7a3bdd7025eb092b3ac744e9d83e9a75fbb242696b5dce87ec215af617768"
+        },
+        {
+          "path": "textures/wicker_basket_02_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wicker_basket_02/wicker_basket_02_nor_gl_1k.jpg",
+          "bytes": 1041220,
+          "sha256": "d3de9d9ec34955ed866a819763eb323a0dee571f55b02f5b4c44b0fc34cf2376"
+        },
+        {
+          "path": "wicker_basket_02.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/wicker_basket_02/wicker_basket_02.bin",
+          "bytes": 432572,
+          "sha256": "bd92d61a377879fa28c2bdb18fd0b0a42c42c7333c04e324f346b68689655fdb"
+        },
+        {
+          "path": "textures/wicker_basket_02_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wicker_basket_02/wicker_basket_02_arm_1k.jpg",
+          "bytes": 718943,
+          "sha256": "641013be798757f4bf2c82cf335b80db2b6d2b52f8fbf0b1f1e2e22196bc60ee"
+        },
+        {
+          "path": "textures/wicker_basket_02_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/wicker_basket_02/wicker_basket_02_diff_1k.jpg",
+          "bytes": 867277,
+          "sha256": "c03525c27579160bcd71054aa17796570a074ff4cdd560bfed3fb9770c9ba975"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 17850 to 2878 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/basket-wicker.glb",
+          "sha256": "d55c752c4613e37929db6cedc1a6cb9687ffd20f517c33e4427700758a3e4fd8",
+          "bytes": 70188
+        }
+      ]
+    },
+    {
+      "id": "kettle-vintage",
+      "kind": "model",
+      "title": "Vintage kettle",
+      "author": "SV Garip",
+      "source": "https://polyhaven.com/a/vintage_electric_kettle",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Vintage Electric Kettle by SV Garip (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/vintage_electric_kettle",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "vintage_electric_kettle_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/vintage_electric_kettle/vintage_electric_kettle_1k.gltf",
+          "bytes": 4801,
+          "sha256": "c03d2ef0e9f46eb06a1ccef6ff78d7baf83e76808e31d7016505e3ee0a416859"
+        },
+        {
+          "path": "textures/vintage_electric_kettle_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_electric_kettle/vintage_electric_kettle_nor_gl_1k.jpg",
+          "bytes": 624432,
+          "sha256": "7723e22b77b73c6cc20d2593849d56cc64ee5c8e54bacf3bf8b2f4dd4f2ffaf0"
+        },
+        {
+          "path": "textures/vintage_electric_kettle_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_electric_kettle/vintage_electric_kettle_diff_1k.jpg",
+          "bytes": 584337,
+          "sha256": "eee3052a610f24055f7b25749cfaf64016a5621afcff931fe513ab62c0a829f3"
+        },
+        {
+          "path": "textures/vintage_electric_kettle_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/vintage_electric_kettle/vintage_electric_kettle_arm_1k.jpg",
+          "bytes": 756927,
+          "sha256": "ff683e24348d6319edf7bd5a14659a846d3008ae614bf966d4db23fc156b5e0c"
+        },
+        {
+          "path": "vintage_electric_kettle.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/vintage_electric_kettle/vintage_electric_kettle.bin",
+          "bytes": 416612,
+          "sha256": "6be39ebc1893feaef3aa05bec6d2bf069af65fec0c1500422aaedf14357dab59"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (vintage_electric_kettle_glass)",
+        "deduplicated, pruned and welded",
+        "simplified from 14650 to 2878 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/kettle-vintage.glb",
+          "sha256": "e240cee3da028a0012aa7d030c1d2fa46383574db9492c4953cc50e7b290fb62",
+          "bytes": 76532
+        }
+      ]
+    },
+    {
+      "id": "box-cardboard",
+      "kind": "model",
+      "title": "Cardboard box",
+      "author": "Rahul Chaudhary",
+      "source": "https://polyhaven.com/a/cardboard_box_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Cardboard Box 01 by Rahul Chaudhary (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/cardboard_box_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "cardboard_box_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/cardboard_box_01/cardboard_box_01_1k.gltf",
+          "bytes": 2903,
+          "sha256": "6038bcc5bba5a08a5f6643a265977e37e3d14553e62981e144c33a89f10b78e1"
+        },
+        {
+          "path": "textures/cardboard_box_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/cardboard_box_01/cardboard_box_01_arm_1k.jpg",
+          "bytes": 398433,
+          "sha256": "5db63828d0f904c6a8d9c83afc912260b2a27261c15a28d06360519384574d2b"
+        },
+        {
+          "path": "cardboard_box_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/cardboard_box_01/cardboard_box_01.bin",
+          "bytes": 381936,
+          "sha256": "7212d43b4cb56459e46d31ab34dc7c310fcfbe170f4a588416dea07ae5628a4b"
+        },
+        {
+          "path": "textures/cardboard_box_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/cardboard_box_01/cardboard_box_01_diff_1k.jpg",
+          "bytes": 567741,
+          "sha256": "122c7ba8c5935e289804a730b480677a4bffdf74a45c91970cba682df92e171c"
+        },
+        {
+          "path": "textures/cardboard_box_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/cardboard_box_01/cardboard_box_01_nor_gl_1k.jpg",
+          "bytes": 817424,
+          "sha256": "d2d1f529a851966b65411b5094510dd9eba03cd5c0a89921f79325c377a8e8eb"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 16952 to 2880 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/box-cardboard.glb",
+          "sha256": "a1063fd91b4ccf455b41c68340c1a034e14b78169c49c1c22f10d235aab6f192",
+          "bytes": 75924
+        }
+      ]
+    },
+    {
+      "id": "plant-succulent",
+      "kind": "model",
+      "title": "Potted succulent",
+      "author": "James Ray Cock",
+      "source": "https://polyhaven.com/a/potted_plant_04",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Potted Plant 04 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/potted_plant_04",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "potted_plant_04_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/potted_plant_04/potted_plant_04_1k.gltf",
+          "bytes": 7081,
+          "sha256": "b3a3bc3e97da75844999c4da07b7104b6c023f729a7c045979929b9504184339"
+        },
+        {
+          "path": "potted_plant_04.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/potted_plant_04/potted_plant_04.bin",
+          "bytes": 241800,
+          "sha256": "158c1d27503d4845eb3573f00c01ae3f4f77f1d6ca8754c67bf1762745946f7f"
+        },
+        {
+          "path": "textures/potted_plant_04_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_04/potted_plant_04_nor_gl_1k.jpg",
+          "bytes": 817786,
+          "sha256": "66e4627f6691a2d8104a6c53a39b41daddbd5bad8103e73f372c39166a3dcb07"
+        },
+        {
+          "path": "textures/potted_plant_04_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_04/potted_plant_04_arm_1k.jpg",
+          "bytes": 478413,
+          "sha256": "7f3288345570ef700c851ea382ed267490ffc8c901ccc31f2ec5507e4d098e48"
+        },
+        {
+          "path": "textures/potted_plant_04_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/potted_plant_04/potted_plant_04_diff_1k.jpg",
+          "bytes": 577545,
+          "sha256": "8693a971557fbafb12a24a2e23c1a04ab6b04ecdc4d26808c5ad3516a4971f24"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 8929 to 2877 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/plant-succulent.glb",
+          "sha256": "21d48ee33d22659df52c3288a44e4314c0ce032bd417334a0290b5b4de17c5a2",
+          "bytes": 73620
+        }
+      ]
+    },
+    {
+      "id": "football-leather",
+      "kind": "model",
+      "title": "Leather football",
+      "author": "Rohit Seervi",
+      "source": "https://polyhaven.com/a/dirty_football",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Dirty Football by Rohit Seervi (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/dirty_football",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "dirty_football_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/dirty_football/dirty_football_1k.gltf",
+          "bytes": 3255,
+          "sha256": "a1991a1c3bcbf9f3bcb49b12bdebe2749c1a7b966218f7903743f01cfdec4382"
+        },
+        {
+          "path": "textures/dirty_football_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dirty_football/dirty_football_nor_gl_1k.jpg",
+          "bytes": 518245,
+          "sha256": "941994179e8809b6ed992775b1514ee90d2cd26d09649e72f3a5757c3e2ac68d"
+        },
+        {
+          "path": "textures/dirty_football_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dirty_football/dirty_football_arm_1k.jpg",
+          "bytes": 333897,
+          "sha256": "eca6902b24b3b2cf9b6cd845afa41b2d5ec7b7dfdd4dd03eedf1968e58352947"
+        },
+        {
+          "path": "textures/dirty_football_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/dirty_football/dirty_football_diff_1k.jpg",
+          "bytes": 401120,
+          "sha256": "4fa797a4a38b70dd64d6658e5371fcdeb0c63cc577caa87cecddc432ab30ec39"
+        },
+        {
+          "path": "dirty_football.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/dirty_football/dirty_football.bin",
+          "bytes": 738484,
+          "sha256": "1c71054b6bd9c2c6a5b29cd63d3abbbb9c13030a64b9bc73d1f7990c287251f4"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 19998 to 14398 triangles (tier hero, cap 15000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 80 colour, 82 normal, 82 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/football-leather.glb",
+          "sha256": "ae40aeac0e955403feb407f8ead6051861d04a0141775d3dda37913e6dbbc625",
+          "bytes": 338408
+        }
+      ]
+    },
+    {
+      "id": "boots-wellington",
+      "kind": "model",
+      "title": "Rubber boots",
+      "author": "L",
+      "source": "https://polyhaven.com/a/rubber_boots",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Rubber Boots by L (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/rubber_boots",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "rubber_boots_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/rubber_boots/rubber_boots_1k.gltf",
+          "bytes": 6106,
+          "sha256": "28d05445827905a3ef77bdc2c9afd9d0dd0cf066b743a9ab7627dd32cb155222"
+        },
+        {
+          "path": "textures/rubber_boots_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_nor_gl_1k.jpg",
+          "bytes": 204450,
+          "sha256": "19b1adab8853b829e4e803f1c6920fe78767343e4bc49a63e59129ecaff47394"
+        },
+        {
+          "path": "textures/rubber_boots_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_diff_1k.jpg",
+          "bytes": 122413,
+          "sha256": "23785002747feb5b8042025889cdc6d9b822e7f02ef56e41605bf22fdb9e2a68"
+        },
+        {
+          "path": "textures/rubber_boots_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_arm_1k.jpg",
+          "bytes": 111952,
+          "sha256": "138bc0281bf63053b667009e3ddd68ae692e7d31d6eb9d12b145fcd586c8c090"
+        },
+        {
+          "path": "textures/rubber_boots_dirty_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_nor_gl_1k.jpg",
+          "bytes": 248492,
+          "sha256": "7ccf35399431feeb2257887e852e6bd340e958b9b7c1eb7b0ccc095faf63ffc2"
+        },
+        {
+          "path": "textures/rubber_boots_dirty_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_diff_1k.jpg",
+          "bytes": 291900,
+          "sha256": "4de29d2cfd4864cb97fcc7dd976ffc4dedb713896ffad7690086c7402c34ec85"
+        },
+        {
+          "path": "textures/rubber_boots_dirty_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/rubber_boots/rubber_boots_dirty_arm_1k.jpg",
+          "bytes": 373800,
+          "sha256": "a6996bfb9b003574aa244fee1f6f455c94453ad33716d601fe7b7cb3d9c8e09e"
+        },
+        {
+          "path": "rubber_boots.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/rubber_boots/rubber_boots.bin",
+          "bytes": 653312,
+          "sha256": "2b0aa0fcf7ed8363bdb9a7f200c64620780ef3581f44b63cc55ef5f7bc6c6a9c"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 56128 to 2880 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/boots-wellington.glb",
+          "sha256": "7a96475bb6456ed6b5f152823585c53e90f7993b1bce38e56e72222f80516128",
+          "bytes": 52656
+        }
+      ]
+    },
+    {
+      "id": "watering-can",
+      "kind": "model",
+      "title": "Galvanised watering can",
+      "author": "Charles Nderitu",
+      "source": "https://polyhaven.com/a/watering_can_metal_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Watering Can Metal 01 by Charles Nderitu (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/watering_can_metal_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "watering_can_metal_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/watering_can_metal_01/watering_can_metal_01_1k.gltf",
+          "bytes": 3183,
+          "sha256": "aaf3cdf52d64d1081fc7a9113a1ee91a0f8c9bcf569b5ac9927c713b65bbbd2e"
+        },
+        {
+          "path": "textures/watering_can_metal_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/watering_can_metal_01/watering_can_metal_01_nor_gl_1k.jpg",
+          "bytes": 725001,
+          "sha256": "13aaedd908aba518ab28d3401881529c9d2ee656459a110f5619b9aad2e86be7"
+        },
+        {
+          "path": "watering_can_metal_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/watering_can_metal_01/watering_can_metal_01.bin",
+          "bytes": 318736,
+          "sha256": "8d8db62f70b3a0a8887dbc31f6507bd2dfb93b2878527cc06362dca766493a32"
+        },
+        {
+          "path": "textures/watering_can_metal_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/watering_can_metal_01/watering_can_metal_01_arm_1k.jpg",
+          "bytes": 944654,
+          "sha256": "966f78fca72dd7ae358c3199f6f7734830a7b09c782673e3e4bdfd0ce2d16689"
+        },
+        {
+          "path": "textures/watering_can_metal_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/watering_can_metal_01/watering_can_metal_01_diff_1k.jpg",
+          "bytes": 619613,
+          "sha256": "e684096ed02bf20dbe46875185aeef02bbc50d31730badfe5853a36ccc5ee2fe"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 11837 to 2879 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/watering-can.glb",
+          "sha256": "2d316963b36fca7ba5e55875af68e9703050ceb5cc0fa0e8c7513ddd06ba9295",
+          "bytes": 112480
+        }
+      ]
+    },
+    {
+      "id": "toolbox-metal",
+      "kind": "model",
+      "title": "Metal toolbox",
+      "author": "Mateusz Sadek",
+      "source": "https://polyhaven.com/a/metal_toolbox",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Metal Toolbox by Mateusz Sadek (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/metal_toolbox",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "metal_toolbox_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/metal_toolbox/metal_toolbox_1k.gltf",
+          "bytes": 10717,
+          "sha256": "9b8d240f1e41e83119771a063e4f4b4bb9ddfefd47f9f5baeda998107aa135c5"
+        },
+        {
+          "path": "textures/metal_toolbox_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_toolbox/metal_toolbox_nor_gl_1k.jpg",
+          "bytes": 572273,
+          "sha256": "7ba19a233bcfff9c3d95b62c3a992c8e19cb2d6355c98d6e12bdc756a8af44cf"
+        },
+        {
+          "path": "textures/metal_toolbox_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_toolbox/metal_toolbox_diff_1k.jpg",
+          "bytes": 661804,
+          "sha256": "21e1d21880e49db3fde0457d53b78a70db61234a201da9f0181dd0880b110473"
+        },
+        {
+          "path": "textures/metal_toolbox_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/metal_toolbox/metal_toolbox_arm_1k.jpg",
+          "bytes": 1033149,
+          "sha256": "97676b2324b105b710904b20bfdeb32bfce3c6b4ccaaf215827b37961fc22763"
+        },
+        {
+          "path": "metal_toolbox.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/metal_toolbox/metal_toolbox.bin",
+          "bytes": 468892,
+          "sha256": "fe5551028e5b398c78c86911abf549010f83831c30b01593ca3eb3d8ba7ceae7"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 14228 to 2922 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/toolbox-metal.glb",
+          "sha256": "27e5eb455c63f37e1c050dbc33451a1dcc7bf742637b19b315655c0cda23daaa",
+          "bytes": 95396
+        }
+      ]
+    },
+    {
+      "id": "glove-work",
+      "kind": "model",
+      "title": "Work gloves",
+      "author": "Satyaki Mandal",
+      "source": "https://polyhaven.com/a/garden_gloves_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Garden Gloves 01 by Satyaki Mandal (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/garden_gloves_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "garden_gloves_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/garden_gloves_01/garden_gloves_01_1k.gltf",
+          "bytes": 2813,
+          "sha256": "ab36c016f48b8cecf0658a9e3264592265dd159777ee56f3dbfdd765650f0287"
+        },
+        {
+          "path": "garden_gloves_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/garden_gloves_01/garden_gloves_01.bin",
+          "bytes": 168132,
+          "sha256": "8d4d237eaa5d28fe7d5ba8daa700a6a888963e226a44653fc66067232202395b"
+        },
+        {
+          "path": "textures/garden_gloves_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/garden_gloves_01/garden_gloves_01_nor_gl_1k.jpg",
+          "bytes": 1042336,
+          "sha256": "da7ef6105041181532cc69466c645966b0e0d039ae1fdba3986d7e96af121f57"
+        },
+        {
+          "path": "textures/garden_gloves_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/garden_gloves_01/garden_gloves_01_diff_1k.jpg",
+          "bytes": 806038,
+          "sha256": "09aa415fbb228cdc5c7539f0c79bd3caa5fff1b4a7aa8470c6163c497115b062"
+        },
+        {
+          "path": "textures/garden_gloves_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/garden_gloves_01/garden_gloves_01_arm_1k.jpg",
+          "bytes": 885378,
+          "sha256": "4ca81495947ed5a7c29295caf83014c88a2eebd736f8dfbd92e7672e8e431a86"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 6822 to 2880 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 256 px (normal and packed maps 128 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/glove-work.glb",
+          "sha256": "ce74562e845f97411265eddda34050789876cf418c799f64a80f041661bc810e",
+          "bytes": 65156
+        }
+      ]
+    },
+    {
+      "id": "goblets-brass",
+      "kind": "model",
+      "title": "Brass goblets",
+      "author": "Tina",
+      "source": "https://polyhaven.com/a/brass_goblets",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Brass Goblets by Tina (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/brass_goblets",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "brass_goblets_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/brass_goblets/brass_goblets_1k.gltf",
+          "bytes": 7782,
+          "sha256": "f78416e66ef2dc2de3aadfbd3bcd5da78902bc129764bc92bf62436cea6c4c65"
+        },
+        {
+          "path": "textures/brass_goblet_03_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_03_nor_gl_1k.jpg",
+          "bytes": 340910,
+          "sha256": "60cf06c6d80de97ef36741bbfe077dc8a6f1f624622defc92dd06307301e8a45"
+        },
+        {
+          "path": "textures/brass_goblet_01_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_01_arm_1k.jpg",
+          "bytes": 548137,
+          "sha256": "d0a038e368f11a819229c5cd81ef3e9a932b141fe55468b14734437bb7876c8b"
+        },
+        {
+          "path": "textures/brass_goblet_01_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_01_nor_gl_1k.jpg",
+          "bytes": 465530,
+          "sha256": "d61c14515de7937b8503011597134196e783ee6f919b833ec881f4304ad1763c"
+        },
+        {
+          "path": "textures/brass_goblet_02_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_02_diff_1k.jpg",
+          "bytes": 656888,
+          "sha256": "4908e0e92bdbfa931337101d9c1d43b0da881d62ec3333f25a60b7a3a3a41c19"
+        },
+        {
+          "path": "brass_goblets.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/brass_goblets/brass_goblets.bin",
+          "bytes": 261728,
+          "sha256": "a9f5a889632e96a78cf2491b28a9947eff05a7d0507329d20a757dfab1a3c7cd"
+        },
+        {
+          "path": "textures/brass_goblet_01_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_01_diff_1k.jpg",
+          "bytes": 653366,
+          "sha256": "fdc7000d8e83490e345ccf952f219aa47460b631d74018f0c12864c660d901ba"
+        },
+        {
+          "path": "textures/brass_goblet_03_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_03_arm_1k.jpg",
+          "bytes": 355069,
+          "sha256": "f583aaf07f5d8e36570e87599d8aa7b71db44e8483f5fd5c0a42a9ac4b3c3aef"
+        },
+        {
+          "path": "textures/brass_goblet_02_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_02_arm_1k.jpg",
+          "bytes": 544177,
+          "sha256": "8ed09a195d37d6bf9b21f8a99cb0e4fa7aad894d7fa3908555c6d698e3f75483"
+        },
+        {
+          "path": "textures/brass_goblet_02_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_02_nor_gl_1k.jpg",
+          "bytes": 409051,
+          "sha256": "8a2b13183431b80060e46ee6a7a753f2b0ec92c5d2c1c22a0a2f81fee84be8cf"
+        },
+        {
+          "path": "textures/brass_goblet_03_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/brass_goblets/brass_goblet_03_diff_1k.jpg",
+          "bytes": 533840,
+          "sha256": "fe02509e3954d97d1e487c2e072238ffe1365a280837a6c85c9ab901ec13f690"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "simplified from 9600 to 2876 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/goblets-brass.glb",
+          "sha256": "fe952c020353a361f4db70bcf722c5b21e1377c6c6fd41dce26aada0f80ba56c",
+          "bytes": 160008
+        }
+      ]
+    },
+    {
+      "id": "frame-photo-white",
+      "kind": "model",
+      "title": "White framed photograph",
+      "author": "James Ray Cock",
+      "source": "https://polyhaven.com/a/hanging_picture_frame_02",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Hanging Picture Frame 02 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/hanging_picture_frame_02",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "hanging_picture_frame_02_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/hanging_picture_frame_02/hanging_picture_frame_02_1k.gltf",
+          "bytes": 6433,
+          "sha256": "ea9a1d44e8d794e224a5342204669a328b57d64d5df629d1d5d86e60e27245e5"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_diff_1k.jpg",
+          "bytes": 146402,
+          "sha256": "575f2b6481b9e02474750ded776a0b490744228cb64d9b346f28bd78b9cf5897"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_artwork_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_artwork_diff_1k.jpg",
+          "bytes": 138383,
+          "sha256": "7e26aee962965fb201975ef5a99e2751a24c4b461b48e8348cea9f31cde027c2"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_arm_1k.jpg",
+          "bytes": 113780,
+          "sha256": "67378630bc6bb69799f8ee0fde4ab11ecd9e7a43ed3dfef402fdd784d8c2cea3"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_artwork_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_artwork_nor_gl_1k.jpg",
+          "bytes": 45035,
+          "sha256": "8a700c0d7d3f464177ead95879d60a8bf43ef77c034881379b2c036406ab9e27"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_artwork_roughness_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_artwork_roughness_1k.jpg",
+          "bytes": 74142,
+          "sha256": "305018ab800cbd02d61c08f9c5a422c2777f2b5cbb20579f671be56a1fb21853"
+        },
+        {
+          "path": "hanging_picture_frame_02.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/hanging_picture_frame_02/hanging_picture_frame_02.bin",
+          "bytes": 115080,
+          "sha256": "0ed5813c8b30f63807ffac962e47135d3248b3804e07cb93862c13e29bed83d8"
+        },
+        {
+          "path": "textures/hanging_picture_frame_02_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_02/hanging_picture_frame_02_nor_gl_1k.jpg",
+          "bytes": 56776,
+          "sha256": "79367cf9d7e4981263dd1439297585148d6c93500acaffa7afeb534351e68b86"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (hanging_picture_frame_02_glass)",
+        "deduplicated, pruned and welded",
+        "simplified from 3676 to 2879 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/frame-photo-white.glb",
+          "sha256": "149ea4621b28b1d40d43352921fe412a245806b488e40deb619511ae366baebd",
+          "bytes": 95200
+        }
+      ]
+    },
+    {
+      "id": "frame-oval-photo",
+      "kind": "model",
+      "title": "Oval carved frame",
+      "author": "James Ray Cock",
+      "source": "https://polyhaven.com/a/hanging_picture_frame_03",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Hanging Picture Frame 03 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/hanging_picture_frame_03",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "hanging_picture_frame_03_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/hanging_picture_frame_03/hanging_picture_frame_03_1k.gltf",
+          "bytes": 7644,
+          "sha256": "39223fc47a8714cdf4db3b4d68042a02207db5ec3947bf021e47203540e21ddd"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_nor_gl_1k.jpg",
+          "bytes": 110456,
+          "sha256": "09d7ac399afbcecbef406b72242bde538a0533bc0f509da40bbcafeb9e050137"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_diff_1k.jpg",
+          "bytes": 108895,
+          "sha256": "a75f9cd4535bbdbf46d8be686b9a6c1edc5db6fd00ae373c7469f349665f52bd"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_artwork_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_artwork_rough_1k.jpg",
+          "bytes": 12683,
+          "sha256": "5d64b06ca0862436e3836b6bfe021565a30126d89ec0bb820a918d9fc4a86559"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_arm_1k.jpg",
+          "bytes": 110215,
+          "sha256": "f2fe1ad0978bc9a7fcdbd55158e481fcb1519c62d6fc850603433b3eb9a7c080"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_rough_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_rough_1k.jpg",
+          "bytes": 120448,
+          "sha256": "acbb5cfb61e68c5fd966768624fc1851f60feae06ae50aa96affaabc8d05be7b"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_artwork_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_artwork_nor_gl_1k.jpg",
+          "bytes": 17121,
+          "sha256": "9dccb54616b192a1c56b52891de27d1a047da9dfee0fa4b2bff540e89220a8b5"
+        },
+        {
+          "path": "textures/hanging_picture_frame_03_artwork_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/hanging_picture_frame_03/hanging_picture_frame_03_artwork_diff_1k.jpg",
+          "bytes": 131410,
+          "sha256": "1f6c82a48a0ea02d7a66956282d734ee39860ac5ca98afb4dd81f6a496f2176e"
+        },
+        {
+          "path": "hanging_picture_frame_03.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/hanging_picture_frame_03/hanging_picture_frame_03.bin",
+          "bytes": 643304,
+          "sha256": "e96c6046c6e5b6c8174a53d5956b6147eeec16cb426aa2a8d761216381b75561"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "removed the blended glass pane (hanging_picture_frame_03_glass)",
+        "deduplicated, pruned and welded",
+        "simplified from 22300 to 2874 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/frame-oval-photo.glb",
+          "sha256": "ee3369929c005b1f59b35de61b618e69d4fcdfa7bc25f211a8c43570a54ae48d",
+          "bytes": 107896
+        }
+      ]
+    },
+    {
+      "id": "easel-chalkboard",
+      "kind": "model",
+      "title": "Chalkboard easel",
+      "author": "ParzivalCG",
+      "source": "https://polyhaven.com/a/standing_chalkboard_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Standing Chalkboard 01 by ParzivalCG (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/standing_chalkboard_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "standing_chalkboard_01_1k.gltf",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/standing_chalkboard_01/standing_chalkboard_01_1k.gltf",
+          "bytes": 5145,
+          "sha256": "95e3a825067d6a96adf1e732ff088485bc8edc1f87e79f707c97a44702be0574"
+        },
+        {
+          "path": "standing_chalkboard_01.bin",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/standing_chalkboard_01/standing_chalkboard_01.bin",
+          "bytes": 100120,
+          "sha256": "5d848d6ed6dd5c69a99620bbddc7516b2175cbc4b1fdefc02538c27dd8ddeb69"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_frame_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_frame_nor_gl_1k.jpg",
+          "bytes": 503632,
+          "sha256": "941c640d2d9aa63fe78302569868ceb1277bdd85a503faf5ac5a14fef6c85ef7"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_board_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_board_arm_1k.jpg",
+          "bytes": 491057,
+          "sha256": "090e2f7e70170e2d22c710ff19fb368a78c1c010cf59a51bde9b8647d6cf3b4d"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_board_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_board_diff_1k.jpg",
+          "bytes": 142727,
+          "sha256": "27a77bb4472385470469a2dcc25c2dc4e3ce303d46ba2fb60f5e6b1f6242fc4f"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_frame_arm_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_frame_arm_1k.jpg",
+          "bytes": 671800,
+          "sha256": "a2922087465730645fbf32724fa4c44a276d91d339e5c97ff421826de171ec4a"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_board_nor_gl_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_board_nor_gl_1k.jpg",
+          "bytes": 164130,
+          "sha256": "3ac29c09203e61c4d96eded3f90c4247a0178214913a94cffb7dfd55a5f4b9f3"
+        },
+        {
+          "path": "textures/standing_chalkboard_01_frame_diff_1k.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/standing_chalkboard_01/standing_chalkboard_01_frame_diff_1k.jpg",
+          "bytes": 538645,
+          "sha256": "37bb9789728b29eb30d02f82ad96d8a123d7dda14438314f40d2721ce8ab7617"
+        }
+      ],
+      "transforms": [
+        "removed animations and cameras",
+        "deduplicated, pruned and welded",
+        "kept 2372 triangles (tier prop, cap 3000)",
+        "textures: resized to at most 512 px (normal and packed maps 256 px) and re-encoded as WebP (EXT_texture_webp), quality 74 colour, 76 normal, 78 packed occlusion-roughness-metalness",
+        "recentred to floor-centre (origin at the middle of the footprint, base on y = 0), metres, +Y up",
+        "geometry quantised (KHR_mesh_quantization: 14-bit positions, 8-bit normals, 12-bit texture coordinates)"
+      ],
+      "outputs": [
+        {
+          "path": "models/easel-chalkboard.glb",
+          "sha256": "c596721d24d5ca7f5edb85ad3a0a6ca2a6266ef614bf512107a898fd17984154",
+          "bytes": 96420
+        }
+      ]
+    },
+    {
+      "id": "plaster-clean",
+      "kind": "surface",
+      "title": "Plaster, clean",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Plaster002",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Plaster 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Plaster002_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Plaster002_1K-JPG.zip",
+          "bytes": 7519098,
+          "sha256": "99d88bd74b8b764eb376f5bb52b5c4a432ff13b989e72882be517c9b2fa13a03"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Plaster002_1K-JPG.zip",
+          "name": "Plaster002_1K-JPG_Color.jpg",
+          "sha256": "94348c7b3031644449c5926581144d8a0b84ed15685faf0daa4e7a5807dffaca"
+        },
+        {
+          "archive": "Plaster002_1K-JPG.zip",
+          "name": "Plaster002_1K-JPG_NormalGL.jpg",
+          "sha256": "585d97ccccdc9d63a541f95d4d9649ea19b4d79485bfd7312cca7ba879468b88"
+        },
+        {
+          "archive": "Plaster002_1K-JPG.zip",
+          "name": "Plaster002_1K-JPG_Roughness.jpg",
+          "sha256": "fd9299d7e8ce4a05b55e5e6a9b0b775c2066a9b0aa9d5f4e4c3c08beaa7e5051"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/plaster-clean-albedo.webp",
+          "sha256": "5bdb4d43858958d98fa2091a7c43b31cb5581a9308a834751a18676e78e78e9d",
+          "bytes": 119556
+        },
+        {
+          "path": "surfaces/plaster-clean-normal.webp",
+          "sha256": "ff72497b65c6df730bcd96969dee678703eed27d98e202c57d7c6207a07267df",
+          "bytes": 54654
+        },
+        {
+          "path": "surfaces/plaster-clean-orm.webp",
+          "sha256": "5428042c29f8544bc4e04909cdb5e9cefe77b569789e61adbc89b3e8c0029ca0",
+          "bytes": 6588
+        }
+      ]
+    },
+    {
+      "id": "plaster-worn",
+      "kind": "surface",
+      "title": "Plaster, worn",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Plaster005",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Plaster 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Plaster005_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Plaster005_1K-JPG.zip",
+          "bytes": 8000945,
+          "sha256": "74c336229a9a5055d4db69192dd49867f95e63cf18181246c6f32062b8d65452"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Plaster005_1K-JPG.zip",
+          "name": "Plaster005_1K-JPG_Color.jpg",
+          "sha256": "3cc2561aa2d8c33bb019ec17f84cec56213531f2fb2d66e22dbfb9b656300898"
+        },
+        {
+          "archive": "Plaster005_1K-JPG.zip",
+          "name": "Plaster005_1K-JPG_NormalGL.jpg",
+          "sha256": "e71d382f5a395ba53472005bb67e852b8d6472479a00fb48848a908ab30a32e2"
+        },
+        {
+          "archive": "Plaster005_1K-JPG.zip",
+          "name": "Plaster005_1K-JPG_Roughness.jpg",
+          "sha256": "ced240064ccfecc40ba5cb05a7e6a275ad6e431e2cba2ccfbccff331c4bd62e7"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/plaster-worn-albedo.webp",
+          "sha256": "0aeaa80b28f65e3a9d1d42f694e9fb5314aea65007367fd5b9e7578241ee9f47",
+          "bytes": 36750
+        },
+        {
+          "path": "surfaces/plaster-worn-normal.webp",
+          "sha256": "e29152323926f92006d65caf1cfe0784b499c2cdae8336959a5d4da0819e0754",
+          "bytes": 73106
+        },
+        {
+          "path": "surfaces/plaster-worn-orm.webp",
+          "sha256": "f4551ff455b0832c8da5ecfcb4c9cf756d31a4a126fdffbacb7f381ef83e0292",
+          "bytes": 3540
+        }
+      ]
+    },
+    {
+      "id": "oak-floor",
+      "kind": "surface",
+      "title": "Oak floorboards",
+      "author": "Dimitrios Savva",
+      "source": "https://polyhaven.com/a/wood_floor",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Wood Floor by Dimitrios Savva (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wood_floor",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "albedo.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_diff_1k.jpg",
+          "bytes": 734493,
+          "sha256": "2a1c07687b6dbb214c4b9213739c6d92d425f1f0fc8ab3ac157f105d78240789"
+        },
+        {
+          "path": "normal.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_nor_gl_1k.jpg",
+          "bytes": 423303,
+          "sha256": "452247f0d0d1b7fc7f8324ff3b6ed60bcc6de1405f4284eeb8d9bce90d4939c2"
+        },
+        {
+          "path": "arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_arm_1k.jpg",
+          "bytes": 447855,
+          "sha256": "a84d9457fa35a76cf8a41da8bcef55387230c6b236819de878799585eda76059"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, arm (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 512 px; WebP quality 76 colour, 84 normal, 84 orm"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/oak-floor-albedo.webp",
+          "sha256": "5a9643475a845716d2891c2637cb24bc58a9520afe36fabe74d955ff88ced578",
+          "bytes": 84828
+        },
+        {
+          "path": "surfaces/oak-floor-normal.webp",
+          "sha256": "81a49deebb72d81b14f71b98b8e5d6bbacc924ba4a30632cc3cefc528ecbc916",
+          "bytes": 1042
+        },
+        {
+          "path": "surfaces/oak-floor-orm.webp",
+          "sha256": "a3d02cb26b51098af4b78d4fb03eb58f9fe1f7322e9b906fe5663e4e1c07ce3b",
+          "bytes": 9424
+        }
+      ]
+    },
+    {
+      "id": "oak-panelling",
+      "kind": "surface",
+      "title": "Oak panelling",
+      "author": "Jenelle van Heerden",
+      "source": "https://polyhaven.com/a/oak_veneer_01",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Oak Veneer 01 by Jenelle van Heerden (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/oak_veneer_01",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "albedo.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/oak_veneer_01/oak_veneer_01_diff_1k.jpg",
+          "bytes": 641756,
+          "sha256": "c14681f72f59f17bff568cae7a837641443b607b899f0c279cd64a5638f877a7"
+        },
+        {
+          "path": "normal.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/oak_veneer_01/oak_veneer_01_nor_gl_1k.jpg",
+          "bytes": 484844,
+          "sha256": "1297acf7b4476d5ccd83cc8b27be96aa6110f7a9c3a40be0bd767bf81b17db01"
+        },
+        {
+          "path": "arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/oak_veneer_01/oak_veneer_01_arm_1k.jpg",
+          "bytes": 982665,
+          "sha256": "8bf4f36a9ba1d5377a2fa5273a2a0763775afe511b50293d71b159d15576cf1e"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, arm (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/oak-panelling-albedo.webp",
+          "sha256": "1155f4bf73730f8c580b7a2ca0c046932591fb28421e651ebf0f344033df2337",
+          "bytes": 65626
+        },
+        {
+          "path": "surfaces/oak-panelling-normal.webp",
+          "sha256": "edacfe18b35fa79ba072ebdcc09fd7f179d4597617f53cca6c0af2648ab8679e",
+          "bytes": 2226
+        },
+        {
+          "path": "surfaces/oak-panelling-orm.webp",
+          "sha256": "0f5761e2341bf21673822a47595733105f9b2b630e68074ed6b99bf6be8b3076",
+          "bytes": 15610
+        }
+      ]
+    },
+    {
+      "id": "terrazzo",
+      "kind": "surface",
+      "title": "Terrazzo",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Terrazzo005",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Terrazzo 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Terrazzo005_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Terrazzo005_1K-JPG.zip",
+          "bytes": 6956162,
+          "sha256": "d8b28aa460137005f1942399985d70f459c898653fd0ed3a683192c28844ec5a"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Terrazzo005_1K-JPG.zip",
+          "name": "Terrazzo005_1K-JPG_Color.jpg",
+          "sha256": "32e2ebb8685ecb4438d06f4d9d865d227c8765ccd98860b266f90ae7159ebdfb"
+        },
+        {
+          "archive": "Terrazzo005_1K-JPG.zip",
+          "name": "Terrazzo005_1K-JPG_NormalGL.jpg",
+          "sha256": "49997c1be4826584f4a169a9f1986656a682bd2f432354f7d58ad061b4f1a258"
+        },
+        {
+          "archive": "Terrazzo005_1K-JPG.zip",
+          "name": "Terrazzo005_1K-JPG_Roughness.jpg",
+          "sha256": "196ce8dd1f9fdf558790f0612fe19e658c446d17c0f9d5305d9d08fb10526231"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 72 colour, 76 normal, 76 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/terrazzo-albedo.webp",
+          "sha256": "cbdd5139ec543e9b6845aac5e95468f46a734ea5241f574bc1c92f27123ad722",
+          "bytes": 254884
+        },
+        {
+          "path": "surfaces/terrazzo-normal.webp",
+          "sha256": "6accb06605f58ffce25320f1ff3baf5326cac34b67914920fb68d569b06731ac",
+          "bytes": 2670
+        },
+        {
+          "path": "surfaces/terrazzo-orm.webp",
+          "sha256": "6ef91f59f677e2d7b3b8263945486d354982b7730e4f992bd9af39d698aa71f5",
+          "bytes": 3980
+        }
+      ]
+    },
+    {
+      "id": "concrete",
+      "kind": "surface",
+      "title": "Cast concrete",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Concrete030",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Concrete 030 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Concrete030_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Concrete030_1K-JPG.zip",
+          "bytes": 7665277,
+          "sha256": "9101871625bde3ccf3c57ca7af4372196d9ca9f678c786b8de698a576784d403"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Concrete030_1K-JPG.zip",
+          "name": "Concrete030_1K-JPG_Color.jpg",
+          "sha256": "6bf11ddad96a2db2638f0fd2e4d129c266b3a3bfc1114e2fbae3e20c88f88f57"
+        },
+        {
+          "archive": "Concrete030_1K-JPG.zip",
+          "name": "Concrete030_1K-JPG_NormalGL.jpg",
+          "sha256": "2467fd294fe69c1dcb969d5c141eca13ac0acda9915f9b0842405f493b82cd4e"
+        },
+        {
+          "archive": "Concrete030_1K-JPG.zip",
+          "name": "Concrete030_1K-JPG_Roughness.jpg",
+          "sha256": "9963905b22554fd82f7fa98e3f2280a05390184eb9d1086033949478a5164329"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/concrete-albedo.webp",
+          "sha256": "20429f5fca6c6b7fcdd20177032fcaa889718b9ddae926d82973d0a1b116f968",
+          "bytes": 7250
+        },
+        {
+          "path": "surfaces/concrete-normal.webp",
+          "sha256": "de5a7409421a63e2e4aa7a0cfc88bdd0138129aad980762d8f443326fe1613a5",
+          "bytes": 29256
+        },
+        {
+          "path": "surfaces/concrete-orm.webp",
+          "sha256": "67156e539a33776043c977895ea7b11594a8391c2843b216b68c4af58355cf34",
+          "bytes": 5078
+        }
+      ]
+    },
+    {
+      "id": "linoleum",
+      "kind": "surface",
+      "title": "Brown linoleum",
+      "author": "Rob Tuytel",
+      "source": "https://polyhaven.com/a/linoleum_brown",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Linoleum Brown by Rob Tuytel (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/linoleum_brown",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "albedo.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/linoleum_brown/linoleum_brown_diff_1k.jpg",
+          "bytes": 684269,
+          "sha256": "8947b927043fafc668d6b90454aee18edd37e6f49dc8f87253ca3693ef94f3a4"
+        },
+        {
+          "path": "normal.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/linoleum_brown/linoleum_brown_nor_gl_1k.jpg",
+          "bytes": 555729,
+          "sha256": "e880ac8cad3f79fe7babd61871e95c859f258deeba45aab5b53c3f18f139df2d"
+        },
+        {
+          "path": "arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/linoleum_brown/linoleum_brown_arm_1k.jpg",
+          "bytes": 694142,
+          "sha256": "afc044820d88da82f4508be44296e757801e43d17322b2c44337c0674eb5abf1"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, arm (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/linoleum-albedo.webp",
+          "sha256": "fa36608d9b99e2a1baaf9ed2caaddf4dc689682672c068724eadd34250dd56f7",
+          "bytes": 74258
+        },
+        {
+          "path": "surfaces/linoleum-normal.webp",
+          "sha256": "a8c3d7a8acbd976c58693c8e92e44521a84f79b3573237bf3d7a41d30cbd73e3",
+          "bytes": 1504
+        },
+        {
+          "path": "surfaces/linoleum-orm.webp",
+          "sha256": "a0099a96e7a8033172d481eadc736631f78800771f256db3f684f8cf204ed457",
+          "bytes": 2648
+        }
+      ]
+    },
+    {
+      "id": "enamel-steel",
+      "kind": "surface",
+      "title": "Painted enamel steel",
+      "author": "Rob Tuytel",
+      "source": "https://polyhaven.com/a/green_metal_rust",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Green Metal Rust by Rob Tuytel (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/green_metal_rust",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "albedo.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/green_metal_rust/green_metal_rust_diff_1k.jpg",
+          "bytes": 212088,
+          "sha256": "4509ab0cb1cf6bf9b9f970450a41f83ebd9bff178006deae568ff34b404856fc"
+        },
+        {
+          "path": "normal.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/green_metal_rust/green_metal_rust_nor_gl_1k.jpg",
+          "bytes": 121379,
+          "sha256": "8ecb28b0ea4026b740ce492e3f606f61a76bdce1f78cb2e29287bf9a56c54a80"
+        },
+        {
+          "path": "arm.jpg",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/green_metal_rust/green_metal_rust_arm_1k.jpg",
+          "bytes": 108674,
+          "sha256": "c1a48da0c5bba8f490497bbedadf4cb21d5387de8b3d49988c065e4b16805434"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, arm (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/enamel-steel-albedo.webp",
+          "sha256": "c303279113f1cebd7be976629e40a49ce7e3d0ac46c63185785520e062f73853",
+          "bytes": 3898
+        },
+        {
+          "path": "surfaces/enamel-steel-normal.webp",
+          "sha256": "2436dedb396994fe2cb0805d8fb32a378ce23d5487fb5b3b1cc8093a6bf22ec0",
+          "bytes": 2014
+        },
+        {
+          "path": "surfaces/enamel-steel-orm.webp",
+          "sha256": "5846e468637e698de538f2c8e5d0e9a2ba33f142004d1edb195a6c429620b366",
+          "bytes": 2284
+        }
+      ]
+    },
+    {
+      "id": "brass",
+      "kind": "surface",
+      "title": "Brass, handled",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Metal048B",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Metal 048 B from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Metal048B_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Metal048B_1K-JPG.zip",
+          "bytes": 3218603,
+          "sha256": "2e9221c60048e97cf16e8070b76ed53a36ed53db3db69c62da31017e274da34b"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Metal048B_1K-JPG.zip",
+          "name": "Metal048B_1K-JPG_Color.jpg",
+          "sha256": "0614a52181c7cb1f1fa4e75cf3a1914091b9736d96ee6a193e6867ad09a8d034"
+        },
+        {
+          "archive": "Metal048B_1K-JPG.zip",
+          "name": "Metal048B_1K-JPG_NormalGL.jpg",
+          "sha256": "697f5f87f7c87eb732e1cbe65630f166fa6f4e4a91eda944b5fce4257ec4e15a"
+        },
+        {
+          "archive": "Metal048B_1K-JPG.zip",
+          "name": "Metal048B_1K-JPG_Roughness.jpg",
+          "sha256": "288e01b1a8caab31b895b7616b4ee007b0efec8f3773b3fb9c37c06f6482cbc4"
+        },
+        {
+          "archive": "Metal048B_1K-JPG.zip",
+          "name": "Metal048B_1K-JPG_Metalness.jpg",
+          "sha256": "33220998ae3792f801251f52e9eec82e02b0dcd209843eec456c6b55fb66d706"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough, metal (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough, metal into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/brass-albedo.webp",
+          "sha256": "93f4c1d85f0bdafa082d92a59565bb079fb52c08937a19eda2089f5008c029b8",
+          "bytes": 3596
+        },
+        {
+          "path": "surfaces/brass-normal.webp",
+          "sha256": "f53862ccbcdaaf71c179ade1b417e7a196f5be8fe88e860d877ebbc40c2a10f7",
+          "bytes": 602
+        },
+        {
+          "path": "surfaces/brass-orm.webp",
+          "sha256": "000030c47b36e6a822e3e70536a410e4785715a6916def46ad856c6fddcee955",
+          "bytes": 1326
+        }
+      ]
+    },
+    {
+      "id": "painted-timber",
+      "kind": "surface",
+      "title": "Painted timber",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/PaintedWood009C",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Painted Wood 009 C from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "PaintedWood009C_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=PaintedWood009C_1K-JPG.zip",
+          "bytes": 7651990,
+          "sha256": "8cf82da3036a33a681dceb8c25a7e3f203d08d687f719969f7c060d3f09f0997"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "PaintedWood009C_1K-JPG.zip",
+          "name": "PaintedWood009C_1K-JPG_Color.jpg",
+          "sha256": "2e7cfdfce8691369c5e2997433bc60c01040283c92584202daaf7619df360ed4"
+        },
+        {
+          "archive": "PaintedWood009C_1K-JPG.zip",
+          "name": "PaintedWood009C_1K-JPG_NormalGL.jpg",
+          "sha256": "6df31a8b25275e27630c2596844e118bd3d199f8c9aa7f1eb054be0d6d062b64"
+        },
+        {
+          "archive": "PaintedWood009C_1K-JPG.zip",
+          "name": "PaintedWood009C_1K-JPG_Roughness.jpg",
+          "sha256": "51382221fec534381abf41a437e70574b663d842f261c2c3613c7dcaa00c0a57"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/painted-timber-albedo.webp",
+          "sha256": "66cd8ff9cf3bd333f9fbbf39b574cae91286423fa7f95988b1e7dff9ca32a26a",
+          "bytes": 104766
+        },
+        {
+          "path": "surfaces/painted-timber-normal.webp",
+          "sha256": "965e1b20c985629bd3143b015bcbd6712cfc579b5221400c8d1fbf62dc681638",
+          "bytes": 21952
+        },
+        {
+          "path": "surfaces/painted-timber-orm.webp",
+          "sha256": "d39a8a9d923fa20da6f8f063d56187e5900a5b401aa5b26b4784344eee0f5e4a",
+          "bytes": 3348
+        }
+      ]
+    },
+    {
+      "id": "felt",
+      "kind": "surface",
+      "title": "Felt",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Fabric034",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Fabric 034 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Fabric034_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Fabric034_1K-JPG.zip",
+          "bytes": 8219829,
+          "sha256": "10ce98f31a2fd336d2bcb82731d35502932f38da42446980bc91a08166d5fb53"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Fabric034_1K-JPG.zip",
+          "name": "Fabric034_1K-JPG_Color.jpg",
+          "sha256": "23d4da86236b98235a493d5ab9a79f0345d041fc721544fd5f148a76d96d1f01"
+        },
+        {
+          "archive": "Fabric034_1K-JPG.zip",
+          "name": "Fabric034_1K-JPG_NormalGL.jpg",
+          "sha256": "2e8bcb8be56ff6f1f529ac0d9f798120210e54d98adc7e3d437904cf9287ce94"
+        },
+        {
+          "archive": "Fabric034_1K-JPG.zip",
+          "name": "Fabric034_1K-JPG_Roughness.jpg",
+          "sha256": "768c4d09770b4198a7525d406e30c3a4c1197846a14e4cd67132fa91c7065893"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 256 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/felt-albedo.webp",
+          "sha256": "46c5a1f84e7ef84445b0cdf4771f604d393657d93a31781d496c3921fb9b9513",
+          "bytes": 37852
+        },
+        {
+          "path": "surfaces/felt-normal.webp",
+          "sha256": "34f0b148d9edf71a3475f06adad9e25ea0e9451ee1451f85d187e22993901f46",
+          "bytes": 5562
+        },
+        {
+          "path": "surfaces/felt-orm.webp",
+          "sha256": "299778fee6805e83f3f7aba4d885e2069611bf861c762274aa9583af0557f33b",
+          "bytes": 22096
+        }
+      ]
+    },
+    {
+      "id": "leather",
+      "kind": "surface",
+      "title": "Aged leather",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Leather014",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Leather 014 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Leather014_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Leather014_1K-JPG.zip",
+          "bytes": 7561208,
+          "sha256": "e0d989e5ae4a336cca1b15ca22aca4112722f285d7bdb56061d199b400e60ca4"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Leather014_1K-JPG.zip",
+          "name": "Leather014_1K-JPG_Color.jpg",
+          "sha256": "502bf079412fa4a6d8b1f0b5343d8fc730f174e81ec0f49c9d1dcfc29eb00f1b"
+        },
+        {
+          "archive": "Leather014_1K-JPG.zip",
+          "name": "Leather014_1K-JPG_NormalGL.jpg",
+          "sha256": "586fa7140cddfdfe0f85f3e1226067244d8e9e6b13892ced35ccc8d1e8528c3f"
+        },
+        {
+          "archive": "Leather014_1K-JPG.zip",
+          "name": "Leather014_1K-JPG_Roughness.jpg",
+          "sha256": "3e571f5093c31cab4cf7661d0248f047330902426ef084e89c16876aed3a370f"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/leather-albedo.webp",
+          "sha256": "fc8d324602946aeb1a2336500c5b3526491f77d17ed4fbe0d0e07817a843bab4",
+          "bytes": 8094
+        },
+        {
+          "path": "surfaces/leather-normal.webp",
+          "sha256": "3a743dc7928570f29d8290ed3ca044e59f780bc34f2d4a06e5aa26c69ef9f3dc",
+          "bytes": 38506
+        },
+        {
+          "path": "surfaces/leather-orm.webp",
+          "sha256": "443db33dfa73864e539934e191eb046437f79e3613f8cb81abcc4d6b5c7eba83",
+          "bytes": 5800
+        }
+      ]
+    },
+    {
+      "id": "cardboard",
+      "kind": "surface",
+      "title": "Cardboard",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Cardboard002",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Cardboard 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Cardboard002_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Cardboard002_1K-JPG.zip",
+          "bytes": 6039839,
+          "sha256": "c9e666f77d36889873c5e9cfcdd470f153802ac3025cb0d3f765b64725184f2c"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Cardboard002_1K-JPG.zip",
+          "name": "Cardboard002_1K-JPG_Color.jpg",
+          "sha256": "94443ec58d123a5bb99a54ae21beb53ce6a70247f52035688678625a31cbddde"
+        },
+        {
+          "archive": "Cardboard002_1K-JPG.zip",
+          "name": "Cardboard002_1K-JPG_NormalGL.jpg",
+          "sha256": "29e8ff279deac531a5ca793fdde60fe1da36367eaca82fcab6832448d6a14f5a"
+        },
+        {
+          "archive": "Cardboard002_1K-JPG.zip",
+          "name": "Cardboard002_1K-JPG_Roughness.jpg",
+          "sha256": "39ead79d0e19ec7470a6bf95dc69e268ddc4079160763db423d93ca9a1fae90e"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, normal 256 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/cardboard-albedo.webp",
+          "sha256": "e6889d07bd36755998704bb6dadd75ffe7a9f11672d7745c0ff9d5eea197d635",
+          "bytes": 2408
+        },
+        {
+          "path": "surfaces/cardboard-normal.webp",
+          "sha256": "c9a8c9c6a9d7a0593c8e79b9ca8135e1664e03d54faaaf0f4f0cd7ac95f16a7c",
+          "bytes": 1656
+        },
+        {
+          "path": "surfaces/cardboard-orm.webp",
+          "sha256": "a43971a3e04c0c5b198d9e6592d475fda87ff5835757c4db466d48b8a030e0d8",
+          "bytes": 5368
+        }
+      ]
+    },
+    {
+      "id": "paper",
+      "kind": "surface",
+      "title": "Paper",
+      "author": "ambientCG",
+      "source": "https://ambientcg.com/a/Paper002",
+      "licence": "CC0-1.0",
+      "licenceUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Created using Paper 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.",
+      "retrieved": "2026-10-14",
+      "sourceFiles": [
+        {
+          "path": "Paper002_1K-JPG.zip",
+          "url": "https://ambientcg.com/get?file=Paper002_1K-JPG.zip",
+          "bytes": 5579518,
+          "sha256": "15b07f4abef6960de4e8b890228cf96dbadd86522c2053b46f6eaa5000426110"
+        }
+      ],
+      "sourceMembers": [
+        {
+          "archive": "Paper002_1K-JPG.zip",
+          "name": "Paper002_1K-JPG_Color.jpg",
+          "sha256": "15e45b65948f054d9c783dee72067b0a8029975de1b22984a2c3c084a4c6d460"
+        },
+        {
+          "archive": "Paper002_1K-JPG.zip",
+          "name": "Paper002_1K-JPG_Roughness.jpg",
+          "sha256": "c54403673811acb9bfa2bb98a358b3258cf28eb1b3d2801b5d64eb2659f3e74f"
+        }
+      ],
+      "transforms": [
+        "maps: albedo, rough (OpenGL normal convention; no displacement)",
+        "resized to albedo 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
+      ],
+      "outputs": [
+        {
+          "path": "surfaces/paper-albedo.webp",
+          "sha256": "6ebf66fa96b2f3ca60a5f14ea83759b84d52f4552d804987e04f7bb81b6fac0a",
+          "bytes": 6710
+        },
+        {
+          "path": "surfaces/paper-orm.webp",
+          "sha256": "e6e47628af19103008af9c1d0816379362a03cc974dd57080c7cb804ef3991b5",
+          "bytes": 320
+        }
+      ]
+    }
+  ]
+}

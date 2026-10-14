@@ -1,0 +1,40 @@
+id: TQW-001
+title: Create browser-runtime foundation
+owner: claude
+reviewer: codex
+risk_level: low
+outcome: >-
+  Create a small browser-native Three.js/React experience with a visible
+  tactile stamp toy and a fully functioning accessible equivalent.
+depends_on: []
+allowed_paths:
+  - apps/web/**
+  - packages/engine/**
+  - packages/ui/**
+  - package.json
+  - pnpm-lock.yaml
+  - pnpm-workspace.yaml
+  - tsconfig.json
+  - .github/workflows/**
+permissions:
+  deploy_production: false
+  modify_secrets: false
+  merge_branch: false
+  install_dependencies: review_licenses
+acceptance_tests:
+  - TypeScript strict mode enabled; build works
+  - Browser scene contains pressable 3D stamp prototype
+  - Pointer, touch, Enter, Space interact with same state
+  - Reduced-motion preference disables shake and excessive animation
+  - Sound begins only after deliberate interaction; separate mute toggle
+  - WebGL unavailable shows equivalent DOM interaction, not blank screen
+  - Screenshot evidence attached for desktop and mobile viewport
+  - No remote services, accounts or telemetry required
+artifact_outputs:
+  - apps/web initial application
+  - README setup commands
+  - screenshot evidence
+  - test report
+max_attempts: 2
+design_review_needed: true
+status: proposed

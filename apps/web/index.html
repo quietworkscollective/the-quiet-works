@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#151a20" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- The hero's poster, fetched before the script runs so the first paint is the corridor, not black. -->
+    <link rel="preload" as="image" href="/poster-hero-1440x900.webp" type="image/webp" media="(orientation: landscape)" fetchpriority="high" />
+    <link rel="preload" as="image" href="/poster-hero-412x915.webp" type="image/webp" media="(orientation: portrait)" fetchpriority="high" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="description" content="%SITE_NAME% is an interactive artwork. %SITE_TAGLINE% Walk the corridor of %SITE_WORLD%. The %SITE_ROOM% is open." />
+    <link rel="canonical" href="%SITE_URL%" />
+    <meta property="og:site_name" content="%SITE_NAME%" />
+    <meta property="og:title" content="%SITE_NAME% — %SITE_WORLD%" />
+    <meta property="og:description" content="%SITE_TAGLINE%" />
+    <meta property="og:url" content="%SITE_URL%" />
+    <meta property="og:type" content="website" />
+    <title>%SITE_NAME% — %SITE_WORLD%</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p>%SITE_NAME% needs JavaScript to open %SITE_WORLD%. Nothing is collected or sent anywhere.</p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

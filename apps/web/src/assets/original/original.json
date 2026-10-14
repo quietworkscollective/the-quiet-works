@@ -1,0 +1,714 @@
+{
+  "props": [
+    {
+      "id": "trophy-cup-tall",
+      "title": "Tall two-handled cup",
+      "file": "trophy-cup-tall.glb",
+      "source": "scripts/blender/props/trophy_cup_tall.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 5064,
+      "textureBytes": 491984,
+      "compressedBytes": 609468,
+      "sha256": "3b66c640bc05cf4fbb65d755633e3e4ec532317c2f3b5b76816d7d79a4646882",
+      "dimensions": {
+        "x": 0.235,
+        "y": 0.312,
+        "z": 0.152
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/trophy-cup-tall-view.webp",
+        "previews/trophy-cup-tall-detail.webp"
+      ]
+    },
+    {
+      "id": "trophy-cup-squat",
+      "title": "Squat two-eared cup",
+      "file": "trophy-cup-squat.glb",
+      "source": "scripts/blender/props/trophy_cup_squat.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 2666,
+      "textureBytes": 114128,
+      "compressedBytes": 173908,
+      "sha256": "7e98033410cd05111c2a8c14bc8942bfe95e1fcb5e2c3d75996d35a6cf602f35",
+      "dimensions": {
+        "x": 0.22,
+        "y": 0.187,
+        "z": 0.159
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/trophy-cup-squat-view.webp",
+        "previews/trophy-cup-squat-detail.webp"
+      ]
+    },
+    {
+      "id": "trophy-shield",
+      "title": "Oak shield with brass plates",
+      "file": "trophy-shield.glb",
+      "source": "scripts/blender/props/trophy_shield.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 2148,
+      "textureBytes": 88714,
+      "compressedBytes": 157312,
+      "sha256": "562ee27459fbbed1a8624b835d8b6eb9be07355c04defbc4ff242de745a924b8",
+      "dimensions": {
+        "x": 0.34,
+        "y": 0.397,
+        "z": 0.025
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/trophy-shield-view.webp",
+        "previews/trophy-shield-detail.webp"
+      ]
+    },
+    {
+      "id": "trophy-plinth-small",
+      "title": "Small column trophy on a plinth",
+      "file": "trophy-plinth-small.glb",
+      "source": "scripts/blender/props/trophy_plinth_small.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 2848,
+      "textureBytes": 85974,
+      "compressedBytes": 163776,
+      "sha256": "e11ba78b106d3f447520f7ad414cedf8dc96a7564c65929543c06ec58537a6df",
+      "dimensions": {
+        "x": 0.1,
+        "y": 0.206,
+        "z": 0.1
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/trophy-plinth-small-view.webp",
+        "previews/trophy-plinth-small-detail.webp"
+      ]
+    },
+    {
+      "id": "trophy-plinth-empty",
+      "title": "Empty plinth for the reserved place",
+      "file": "trophy-plinth-empty.glb",
+      "source": "scripts/blender/props/trophy_plinth_empty.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 356,
+      "textureBytes": 84832,
+      "compressedBytes": 104176,
+      "sha256": "01398594c0ca487a456dabd844a1c5fabb00b552a54b320a3a5f13e458d31d64",
+      "dimensions": {
+        "x": 0.132,
+        "y": 0.05,
+        "z": 0.132
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/trophy-plinth-empty-view.webp",
+        "previews/trophy-plinth-empty-detail.webp"
+      ]
+    },
+    {
+      "id": "service-bell",
+      "title": "Service bell",
+      "file": "service-bell.glb",
+      "source": "scripts/blender/props/service_bell.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 2464,
+      "textureBytes": 112684,
+      "compressedBytes": 167032,
+      "sha256": "c9890e25b6fd8de6314b5621be9c0e90f42fd0e9f8a0394fc3c64afd5d258808",
+      "dimensions": {
+        "x": 0.096,
+        "y": 0.066,
+        "z": 0.095
+      },
+      "movingNodes": [
+        "plunger"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/service-bell-view.webp",
+        "previews/service-bell-detail.webp"
+      ]
+    },
+    {
+      "id": "column-radiator-6",
+      "title": "Column radiator, six sections",
+      "file": "column-radiator-6.glb",
+      "source": "scripts/blender/props/column_radiator.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 5580,
+      "textureBytes": 359974,
+      "compressedBytes": 499564,
+      "sha256": "29099961339de6de745326cbd3b88223b8af4d448c82d2cfbb93bc567909cf05",
+      "dimensions": {
+        "x": 0.393,
+        "y": 0.688,
+        "z": 0.106
+      },
+      "movingNodes": [
+        "valve_wheel"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/column-radiator-6-view.webp",
+        "previews/column-radiator-6-detail.webp"
+      ]
+    },
+    {
+      "id": "column-radiator-10",
+      "title": "Column radiator, ten sections",
+      "file": "column-radiator-10.glb",
+      "source": "scripts/blender/props/column_radiator.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 7746,
+      "textureBytes": 333632,
+      "compressedBytes": 527836,
+      "sha256": "1ac13b8b2eb708a830ad7281d391ef9d8393ca69f5a1d106d9aec46eaeccf382",
+      "dimensions": {
+        "x": 0.583,
+        "y": 0.688,
+        "z": 0.106
+      },
+      "movingNodes": [
+        "valve_wheel"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/column-radiator-10-view.webp",
+        "previews/column-radiator-10-detail.webp"
+      ]
+    },
+    {
+      "id": "filing-cabinet-4",
+      "title": "Four-drawer filing cabinet",
+      "file": "filing-cabinet-4.glb",
+      "source": "scripts/blender/props/filing_cabinet.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 2562,
+      "textureBytes": 206676,
+      "compressedBytes": 284324,
+      "sha256": "401e13f240bee4e3c706115c99b6a70428275e5282b806753d320bdf6390a5f0",
+      "dimensions": {
+        "x": 0.472,
+        "y": 1.325,
+        "z": 0.632
+      },
+      "movingNodes": [
+        "drawer_1",
+        "drawer_2",
+        "drawer_3",
+        "drawer_4"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/filing-cabinet-4-view.webp",
+        "previews/filing-cabinet-4-detail.webp"
+      ]
+    },
+    {
+      "id": "cricket-bat",
+      "title": "Cricket bat",
+      "file": "cricket-bat.glb",
+      "source": "scripts/blender/props/cricket_bat.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 2836,
+      "textureBytes": 298460,
+      "compressedBytes": 360780,
+      "sha256": "2462824190945dbf189810be5bec77b405d0645001b4c175c6e08850598334d1",
+      "dimensions": {
+        "x": 0.11,
+        "y": 0.85,
+        "z": 0.047
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/cricket-bat-view.webp",
+        "previews/cricket-bat-detail.webp"
+      ]
+    },
+    {
+      "id": "cricket-stumps",
+      "title": "Cricket stumps and bails",
+      "file": "cricket-stumps.glb",
+      "source": "scripts/blender/props/cricket_stumps.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 2838,
+      "textureBytes": 93922,
+      "compressedBytes": 154584,
+      "sha256": "4e07e133eec47f8748bc9843d296d10b1f361f65024068688929c13fd5f52f58",
+      "dimensions": {
+        "x": 0.292,
+        "y": 0.741,
+        "z": 0.088
+      },
+      "movingNodes": [
+        "bail_1",
+        "bail_2"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/cricket-stumps-view.webp",
+        "previews/cricket-stumps-detail.webp"
+      ]
+    },
+    {
+      "id": "cricket-ball",
+      "title": "Cricket ball",
+      "file": "cricket-ball.glb",
+      "source": "scripts/blender/props/cricket_ball.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 1920,
+      "textureBytes": 157238,
+      "compressedBytes": 196236,
+      "sha256": "2a01e29a976bca2c56d5de98fdebc4d30cb564fcd6f2b4d1f4a88ebac8c6abbd",
+      "dimensions": {
+        "x": 0.071,
+        "y": 0.071,
+        "z": 0.071
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/cricket-ball-view.webp",
+        "previews/cricket-ball-detail.webp"
+      ]
+    },
+    {
+      "id": "scorebook",
+      "title": "Cloth-bound scorebook",
+      "file": "scorebook.glb",
+      "source": "scripts/blender/props/scorebook.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 500,
+      "textureBytes": 64728,
+      "compressedBytes": 83944,
+      "sha256": "88f53f9ae944bdccac5bde3add7359e5cb5bd0ce983fc1d76f27611657ce0c4a",
+      "dimensions": {
+        "x": 0.222,
+        "y": 0.03,
+        "z": 0.39
+      },
+      "movingNodes": [
+        "cover"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/scorebook-view.webp",
+        "previews/scorebook-detail.webp"
+      ]
+    },
+    {
+      "id": "stamp-rack",
+      "title": "Desk stamp rack with four stamps",
+      "file": "stamp-rack.glb",
+      "source": "scripts/blender/props/stamp_rack.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 4138,
+      "textureBytes": 264604,
+      "compressedBytes": 380064,
+      "sha256": "49d91b50dc28912bfea2625fa248d016dba9d3118a42888a1c46497cc0154125",
+      "dimensions": {
+        "x": 0.25,
+        "y": 0.08,
+        "z": 0.086
+      },
+      "movingNodes": [
+        "stamp_1",
+        "stamp_2",
+        "stamp_3",
+        "stamp_4"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/stamp-rack-view.webp",
+        "previews/stamp-rack-detail.webp"
+      ]
+    },
+    {
+      "id": "banker-lamp",
+      "title": "Banker's lamp",
+      "file": "banker-lamp.glb",
+      "source": "scripts/blender/props/banker_lamp.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 3834,
+      "textureBytes": 282504,
+      "compressedBytes": 376672,
+      "sha256": "878e81c966299a826370ae5539e6e5cd6e2b93b36b5a9c498c5d4a5c35bcf96d",
+      "dimensions": {
+        "x": 0.3,
+        "y": 0.402,
+        "z": 0.18
+      },
+      "movingNodes": [
+        "pull_chain"
+      ],
+      "emissiveNodes": [
+        "bulb",
+        "shade_glow"
+      ],
+      "previews": [
+        "previews/banker-lamp-view.webp",
+        "previews/banker-lamp-detail.webp"
+      ]
+    },
+    {
+      "id": "book-row-60",
+      "title": "Row of books, 0.6 m of shelf",
+      "file": "book-row-60.glb",
+      "source": "scripts/blender/props/book_rows.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 652,
+      "textureBytes": 217330,
+      "compressedBytes": 244300,
+      "sha256": "1a68a3e47dc0f64f0b5a2c3b92bdfc17358c536f0fefafd60b3156f9bce7cd92",
+      "dimensions": {
+        "x": 0.574,
+        "y": 0.343,
+        "z": 0.244
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/book-row-60-view.webp",
+        "previews/book-row-60-detail.webp"
+      ]
+    },
+    {
+      "id": "book-row-90",
+      "title": "Row of books, 0.9 m of shelf",
+      "file": "book-row-90.glb",
+      "source": "scripts/blender/props/book_rows.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 1012,
+      "textureBytes": 234642,
+      "compressedBytes": 274460,
+      "sha256": "dfee5b49b9cb33d4b4d52f489eedd432a872dd3523543431c406669fc9ee3d9e",
+      "dimensions": {
+        "x": 0.876,
+        "y": 0.332,
+        "z": 0.254
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/book-row-90-view.webp",
+        "previews/book-row-90-detail.webp"
+      ]
+    },
+    {
+      "id": "book-stack",
+      "title": "Short stack of books",
+      "file": "book-stack.glb",
+      "source": "scripts/blender/props/book_rows.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 190,
+      "textureBytes": 75634,
+      "compressedBytes": 84356,
+      "sha256": "b4ee95419b51388c1e3c8a2a754ff0272fc79543c4e9ae1dd157da040da5594a",
+      "dimensions": {
+        "x": 0.301,
+        "y": 0.17,
+        "z": 0.225
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/book-stack-view.webp",
+        "previews/book-stack-detail.webp"
+      ]
+    },
+    {
+      "id": "book-open",
+      "title": "Open book",
+      "file": "book-open.glb",
+      "source": "scripts/blender/props/book_rows.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 236,
+      "textureBytes": 63762,
+      "compressedBytes": 74192,
+      "sha256": "f74076bd400d316ce75f57452f16540bafd34ef44ae785c0f7d395303f05e91b",
+      "dimensions": {
+        "x": 0.412,
+        "y": 0.023,
+        "z": 0.309
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/book-open-view.webp",
+        "previews/book-open-detail.webp"
+      ]
+    },
+    {
+      "id": "desk-globe",
+      "title": "Desk globe",
+      "file": "desk-globe.glb",
+      "source": "scripts/blender/props/desk_globe.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 4724,
+      "textureBytes": 346248,
+      "compressedBytes": 449592,
+      "sha256": "a30a15c5cb4c261267583bf33f49bd8cc799527e83a17703b65e71fc05de084f",
+      "dimensions": {
+        "x": 0.249,
+        "y": 0.356,
+        "z": 0.23
+      },
+      "movingNodes": [
+        "globe"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/desk-globe-view.webp",
+        "previews/desk-globe-detail.webp"
+      ]
+    },
+    {
+      "id": "ledger-a",
+      "title": "Green cloth ledger",
+      "file": "ledger-a.glb",
+      "source": "scripts/blender/props/ledgers.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 782,
+      "textureBytes": 71046,
+      "compressedBytes": 95360,
+      "sha256": "a557c307b7d6d1dcd7101199d39c676b1c31486f68fcada9470bc8ef9125a4d1",
+      "dimensions": {
+        "x": 0.056,
+        "y": 0.372,
+        "z": 0.27
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/ledger-a-view.webp",
+        "previews/ledger-a-detail.webp"
+      ]
+    },
+    {
+      "id": "ledger-b",
+      "title": "Black day book",
+      "file": "ledger-b.glb",
+      "source": "scripts/blender/props/ledgers.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 566,
+      "textureBytes": 66090,
+      "compressedBytes": 84504,
+      "sha256": "e550d36b62f86994fbbd4fdf7aa8dff930b794f06b5081f95299cdc154672a68",
+      "dimensions": {
+        "x": 0.04,
+        "y": 0.338,
+        "z": 0.214
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/ledger-b-view.webp",
+        "previews/ledger-b-detail.webp"
+      ]
+    },
+    {
+      "id": "ledger-c",
+      "title": "Oxblood journal",
+      "file": "ledger-c.glb",
+      "source": "scripts/blender/props/ledgers.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 1106,
+      "textureBytes": 74676,
+      "compressedBytes": 108816,
+      "sha256": "37c8b009711165e3902c3f692202d10e44a69d924f6fe201e34e12ec565af9c4",
+      "dimensions": {
+        "x": 0.071,
+        "y": 0.364,
+        "z": 0.254
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/ledger-c-view.webp",
+        "previews/ledger-c-detail.webp"
+      ]
+    },
+    {
+      "id": "box-file-a",
+      "title": "Marbled box file",
+      "file": "box-file-a.glb",
+      "source": "scripts/blender/props/box_files.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 806,
+      "textureBytes": 91630,
+      "compressedBytes": 115916,
+      "sha256": "df9b2f19a29a4beae73dd946ff9d19d36636b4412cabaf7995cd0321632e6563",
+      "dimensions": {
+        "x": 0.087,
+        "y": 0.326,
+        "z": 0.293
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/box-file-a-view.webp",
+        "previews/box-file-a-detail.webp"
+      ]
+    },
+    {
+      "id": "box-file-b",
+      "title": "Green pressboard box file",
+      "file": "box-file-b.glb",
+      "source": "scripts/blender/props/box_files.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "small",
+      "triangleCap": 3000,
+      "triangles": 806,
+      "textureBytes": 82316,
+      "compressedBytes": 106740,
+      "sha256": "eee99e586282c219e9378e6c60435bf045dd6b71fe1b940343371d1d312f0ec6",
+      "dimensions": {
+        "x": 0.079,
+        "y": 0.318,
+        "z": 0.287
+      },
+      "movingNodes": [],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/box-file-b-view.webp",
+        "previews/box-file-b-detail.webp"
+      ]
+    },
+    {
+      "id": "rotary-telephone",
+      "title": "Rotary telephone",
+      "file": "rotary-telephone.glb",
+      "source": "scripts/blender/props/rotary_telephone.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 8138,
+      "textureBytes": 254334,
+      "compressedBytes": 457212,
+      "sha256": "ff650c7952bed664c58892c7bb2cee360757f9faf0d1d4eb0c8a6d55be09a907",
+      "dimensions": {
+        "x": 0.265,
+        "y": 0.195,
+        "z": 0.184
+      },
+      "movingNodes": [
+        "handset",
+        "dial"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/rotary-telephone-view.webp",
+        "previews/rotary-telephone-detail.webp"
+      ]
+    },
+    {
+      "id": "typewriter",
+      "title": "Office typewriter",
+      "file": "typewriter.glb",
+      "source": "scripts/blender/props/typewriter.py",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "tier": "hero",
+      "triangleCap": 15000,
+      "triangles": 8872,
+      "textureBytes": 306546,
+      "compressedBytes": 542868,
+      "sha256": "b4222280f74d79580013752ffd8c47c16b5b6f42e133634544cbd5b808186119",
+      "dimensions": {
+        "x": 0.421,
+        "y": 0.353,
+        "z": 0.372
+      },
+      "movingNodes": [
+        "carriage",
+        "return_lever",
+        "spacebar"
+      ],
+      "emissiveNodes": [],
+      "previews": [
+        "previews/typewriter-view.webp",
+        "previews/typewriter-detail.webp"
+      ]
+    }
+  ]
+}

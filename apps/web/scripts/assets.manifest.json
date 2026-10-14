@@ -1,0 +1,183 @@
+{
+  "$comment": [
+    "Reviewed manifest of every media file the web build ships (AGENTS.md #8: all asset reuse must be licensed and attributed).",
+    "scripts/audit-assets.mjs fails when a media file in dist/ matches no entry, matches more than one, or when an entry's licence file is missing or does not name its licence.",
+    "pattern: regular expression tested against the file's base name in dist/ (bundler content hashes vary, so match [\\w-]+ for the hash).",
+    "source: the npm package the file comes from; \"in-repo\" for an asset authored in this repository; or \"third-party:<provider>\" for a third-party file committed to this repository (its licence text lives in LICENSES/).",
+    "licence: SPDX id; must be one of the ids reviewed in the script's LICENCE_EXPECTATIONS table.",
+    "licenceFile: path relative to apps/web. npm sources must point into node_modules/<source>/; in-repo sources must point outside node_modules.",
+    "attribution: the credit the project publishes for the asset; keep it consistent with README.md 'Credits and licences'.",
+    "Derived from a real build: the files below are exactly the Fontsource subsets imported in src/main.tsx (latin 400 and 600 for IBM Plex Mono, latin 400, 600 and 700 for IBM Plex Sans Condensed (700 is the hero's UNHELD), latin 400 normal and italic for Newsreader), each emitted as .woff and .woff2.",
+    "In-repo brand files: public/ files are copied unhashed, so their patterns are exact file names. scripts/brand-assets.mjs draws them. They are original art under CC BY 4.0 (LICENSING.md); the licence text is LICENSES/CC-BY-4.0.txt. The UNHELD name and mark as the project's identity are reserved by LICENSING.md."
+  ],
+  "entries": [
+    {
+      "name": "IBM Plex Mono",
+      "pattern": "^ibm-plex-mono-latin-(?:400|600)-normal-[\\w-]+\\.woff2?$",
+      "source": "@fontsource/ibm-plex-mono",
+      "licence": "OFL-1.1",
+      "licenceFile": "node_modules/@fontsource/ibm-plex-mono/LICENSE",
+      "attribution": "IBM Plex Mono, copyright 2017 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource."
+    },
+    {
+      "name": "IBM Plex Sans Condensed",
+      "pattern": "^ibm-plex-sans-condensed-latin-(?:400|600|700)-normal-[\\w-]+\\.woff2?$",
+      "source": "@fontsource/ibm-plex-sans-condensed",
+      "licence": "OFL-1.1",
+      "licenceFile": "node_modules/@fontsource/ibm-plex-sans-condensed/LICENSE",
+      "attribution": "IBM Plex Sans Condensed, copyright 2019 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource."
+    },
+    {
+      "name": "Newsreader",
+      "pattern": "^newsreader-latin-400-(?:normal|italic)-[\\w-]+\\.woff2?$",
+      "source": "@fontsource/newsreader",
+      "licence": "OFL-1.1",
+      "licenceFile": "node_modules/@fontsource/newsreader/LICENSE",
+      "attribution": "Newsreader, copyright 2020 The Newsreader Project Authors (Production Type), SIL Open Font License 1.1, bundled via Fontsource."
+    },
+    {
+      "name": "UNHELD mark: favicon",
+      "pattern": "^favicon\\.svg$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD mark artwork (favicon.svg), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md)."
+    },
+    {
+      "name": "UNHELD mark: touch icon",
+      "pattern": "^apple-touch-icon\\.png$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD mark artwork (apple-touch-icon.png), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md)."
+    },
+    {
+      "name": "UNHELD mark: app icon",
+      "pattern": "^icon-512\\.png$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD mark artwork (icon-512.png), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md)."
+    },
+    {
+      "name": "UNHELD hero poster",
+      "pattern": "^poster-hero-(?:1440x900|412x915)\\.webp$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD hero posters (poster-hero-1440x900.webp, poster-hero-412x915.webp): stills of the corridor scene captured from the build by scripts/capture-poster.mjs, (c) 2026 Asiri Dalugoda, CC BY 4.0 (LICENSING.md); re-captured whenever the corridor's art changes."
+    },
+    {
+      "name": "Surface: plaster-clean",
+      "pattern": "^plaster-clean-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Plaster 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: plaster-worn",
+      "pattern": "^plaster-worn-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Plaster 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: oak-floor",
+      "pattern": "^oak-floor-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:Poly Haven",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Wood Floor by Dimitrios Savva (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wood_floor"
+    },
+    {
+      "name": "Surface: oak-panelling",
+      "pattern": "^oak-panelling-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:Poly Haven",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Oak Veneer 01 by Jenelle van Heerden (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/oak_veneer_01"
+    },
+    {
+      "name": "Surface: terrazzo",
+      "pattern": "^terrazzo-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Terrazzo 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: concrete",
+      "pattern": "^concrete-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Concrete 030 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: linoleum",
+      "pattern": "^linoleum-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:Poly Haven",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Linoleum Brown by Rob Tuytel (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/linoleum_brown"
+    },
+    {
+      "name": "Surface: enamel-steel",
+      "pattern": "^enamel-steel-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:Poly Haven",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Green Metal Rust by Rob Tuytel (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/green_metal_rust"
+    },
+    {
+      "name": "Surface: brass",
+      "pattern": "^brass-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Metal 048 B from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: painted-timber",
+      "pattern": "^painted-timber-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Painted Wood 009 C from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: felt",
+      "pattern": "^felt-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Fabric 034 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: leather",
+      "pattern": "^leather-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Leather 014 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: cardboard",
+      "pattern": "^cardboard-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Cardboard 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Surface: paper",
+      "pattern": "^paper-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
+      "source": "third-party:ambientCG",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Created using Paper 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    }
+  ]
+}

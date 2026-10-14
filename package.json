@@ -1,0 +1,29 @@
+{
+  "name": "the-quiet-works",
+  "private": true,
+  "description": "UNHELD — a space for everything we carry. The Quiet Works is its browser-native 3D world; Chapter Zero: HE'S FINE.",
+  "homepage": "https://unheld.space/",
+  "author": "Asiri Dalugoda",
+  "license": "(Apache-2.0 AND CC-BY-4.0)",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @tqw/web dev",
+    "build": "pnpm --filter @tqw/web build",
+    "preview": "pnpm --filter @tqw/web preview",
+    "lint": "pnpm -r --parallel lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @tqw/web test:e2e",
+    "check:content": "pnpm --filter @tqw/engine check:content",
+    "audit:assets": "pnpm --filter @tqw/web audit:assets",
+    "check:public": "node scripts/check-public.mjs",
+    "seal": "node scripts/seal-content.ts"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@gltf-transform/cli": "4.5.1"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+coverage/
+apps/web/test-results/
+apps/web/playwright-report/
+.DS_Store
+
+# Third-party asset download cache (scripts/assets/fetch.mjs); never committed.
+.asset-cache/

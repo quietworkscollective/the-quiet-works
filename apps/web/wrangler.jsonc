@@ -1,0 +1,20 @@
+// Cloudflare Workers static assets: serves the Vite build output with no Worker script.
+// "name" must match the Worker connected in the Cloudflare dashboard (Workers Builds).
+// Workers Builds settings (production branch main and preview branches): root directory
+// apps/web, build command `pnpm build`, deploy `npx wrangler@4.147.0 deploy`, preview
+// `npx wrangler@4.147.0 preview`, build variable PNPM_VERSION=10.33.0. Wrangler is pinned in
+// the commands rather than added as a dependency.
+// Production deploys (a merge to main) and attaching the unheld.space custom domain both
+// require explicit founder approval. workers.dev and Preview URLs stay disabled until
+// Cloudflare Access protects them. wrangler defaults workers_dev to true, so both keys are
+// set explicitly; without them every deploy re-enables the public workers.dev URL.
+{
+  "name": "the-quiet-works",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

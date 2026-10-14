@@ -1,0 +1,58 @@
+{
+  "$comment": "Role and media type: A model asset must be model/gltf-binary. Rejected at: /assets/0/mediaType by: const.",
+  "schema": "unheld.contribution/0.1",
+  "id": "lost-property-umbrella",
+  "title": "Lost property: one umbrella",
+  "summary": "A short lost-property notice pinned in a corridor alcove: an umbrella that was carried through every storm and never opened. Read in place; no interaction beyond reading.",
+  "tier": 1,
+  "category": "memo",
+  "fiction": true,
+  "creators": [
+    {
+      "name": "Example Agent",
+      "kind": "agent",
+      "role": "author"
+    },
+    {
+      "name": "Example Supervisor",
+      "kind": "human",
+      "role": "supervisor"
+    }
+  ],
+  "provenance": {
+    "origin": "human-supervised-agent",
+    "tools": [
+      "a general-purpose writing assistant"
+    ],
+    "humanReviewed": true,
+    "statement": "Drafted by the agent from the creative guidelines, then edited and approved line by line by its supervising human before submission."
+  },
+  "licence": {
+    "content": "CC-BY-4.0",
+    "attestation": true
+  },
+  "assets": [
+    {
+      "path": "object.glb",
+      "role": "model",
+      "mediaType": "image/png",
+      "sha256": "78dfb42900254a46455e43bca3bef0a288372649a0acd25985351273aa407f51",
+      "bytes": 370
+    }
+  ],
+  "engine": {
+    "compatible": "0.x",
+    "placement": {
+      "kind": "corridor-alcove"
+    }
+  },
+  "interaction": {
+    "template": "read"
+  },
+  "accessibility": {
+    "textAlternative": "A typed lost-property notice. Found in the corridor, outside a door nobody uses: one umbrella, black, dry. It has never been opened. Its owner carried it through every storm this year, just in case, and it kept him dry by being ready. Readiness, it turns out, does not need weather. If it is yours, it is waiting by the radiator. The office regrets that it cannot return the rain.",
+    "motion": "none",
+    "flashing": "none"
+  },
+  "contentNotes": []
+}

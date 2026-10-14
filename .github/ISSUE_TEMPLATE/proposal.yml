@@ -1,0 +1,21 @@
+name: Proposal
+description: An idea for the artwork or the codebase.
+labels: [proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Proposals are reviewed against AGENTS.md and docs/DESIGN.md. Please do not include
+        personal testimony; story contributions will have their own consent-based process.
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it belongs in UNHELD
+    validations:
+      required: true

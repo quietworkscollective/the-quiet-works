@@ -1,0 +1,397 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unheld.space/commons/schema/contribution-0.1.json",
+  "title": "UNHELD Commons contribution manifest, version 0.1",
+  "description": "Describes one Tier 1 or Tier 2 contribution: what it is, who made it and how, its licence, its assets with hashes, and how it may be experienced. A manifest is data only and never executes. Tier 3 proposals are issues and Tier 4 changes are ordinary pull requests; neither uses a manifest. Checks that need the files themselves or content analysis (duplicate asset paths, hashes, sizes, text and media rules, path containment) belong to the package validator, not to this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "title",
+    "summary",
+    "tier",
+    "category",
+    "fiction",
+    "creators",
+    "provenance",
+    "licence",
+    "assets",
+    "engine",
+    "accessibility",
+    "contentNotes"
+  ],
+  "properties": {
+    "schema": {
+      "description": "Manifest format and version.",
+      "const": "unheld.contribution/0.1"
+    },
+    "id": {
+      "description": "Kebab-case slug chosen by the contributor; becomes the folder name commons/<id>/. Unique across the Commons.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+){1,7}$",
+      "maxLength": 64
+    },
+    "title": { "type": "string", "minLength": 3, "maxLength": 80 },
+    "summary": {
+      "description": "What it is and what a visitor experiences, in plain words. Not shown to visitors.",
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 600
+    },
+    "tier": { "description": "1 micro or 2 environmental. Tier 3 is a proposal issue and Tier 4 an ordinary pull request; neither has a manifest.", "enum": [1, 2] },
+    "category": {
+      "description": "Tier 1: memo, reflection, poem, sound, ambience, sculpture, texture, illustration, hidden-message, collectible, environmental-story. Tier 2: interactive-object, puzzle, soundscape, visual-effect, architecture, collectible-series, installation.",
+      "enum": [
+        "memo",
+        "reflection",
+        "poem",
+        "sound",
+        "ambience",
+        "sculpture",
+        "texture",
+        "illustration",
+        "hidden-message",
+        "collectible",
+        "environmental-story",
+        "interactive-object",
+        "puzzle",
+        "soundscape",
+        "visual-effect",
+        "architecture",
+        "collectible-series",
+        "installation"
+      ]
+    },
+    "fiction": {
+      "description": "Always true. Every Commons contribution is invented work, and any first-person voice in it is invented too. Consented first-person testimony is never accepted through public pull requests.",
+      "const": true
+    },
+    "parent": {
+      "description": "The id of the contribution this one derives from, remixes or extends.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+){1,7}$",
+      "maxLength": 64
+    },
+    "creators": {
+      "description": "Everyone who made it. Names are public credits; no email addresses or other contact details. Agent-made work is accepted only when a named human or organisation, listed here with role supervisor or author, grants CC BY 4.0. No grantor, no acceptance.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind", "role"],
+        "properties": {
+          "name": {
+            "description": "A public credit. It must not contain @ or ://, so it cannot carry an email address or a link.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "pattern": "^(?!.*://)[^@]+$"
+          },
+          "kind": { "enum": ["human", "agent", "organisation"] },
+          "role": { "enum": ["author", "co-author", "supervisor", "remixer", "translator"] },
+          "github": {
+            "description": "Optional GitHub account, without @.",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"
+          }
+        }
+      }
+    },
+    "provenance": {
+      "description": "How the work was made. Self-reported: it is a statement, not proof of identity, authorship or safety.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "humanReviewed", "statement"],
+      "properties": {
+        "origin": { "enum": ["human", "agent", "human-supervised-agent", "collaborative"] },
+        "tools": {
+          "description": "Tools and systems used, in the contributor's own words.",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "string", "minLength": 1, "maxLength": 60 }
+        },
+        "humanReviewed": { "description": "A human read, watched or listened to the whole work before submission.", "type": "boolean" },
+        "statement": { "description": "A few sentences on how it was made.", "type": "string", "minLength": 10, "maxLength": 600 }
+      }
+    },
+    "licence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content", "attestation"],
+      "properties": {
+        "content": { "description": "Licence for original art and writing. A manifest carries no code, so there is no code licence.", "const": "CC-BY-4.0" },
+        "attestation": {
+          "description": "A statement, not proof: the submitter says they have the right to license every part of this contribution on these terms, and that nothing in it is copied from elsewhere except the third-party items listed. Unclear rights are a reason to reject.",
+          "const": true
+        },
+        "thirdParty": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["asset", "licence", "source", "attribution"],
+            "properties": {
+              "asset": { "type": "string", "minLength": 1, "maxLength": 120 },
+              "licence": { "enum": ["CC0-1.0", "CC-BY-4.0", "OFL-1.1", "MIT", "Apache-2.0"] },
+              "source": { "description": "Where it came from, in words (a URL is allowed here only).", "type": "string", "minLength": 1, "maxLength": 300 },
+              "attribution": { "type": "string", "minLength": 1, "maxLength": 300 }
+            }
+          }
+        }
+      }
+    },
+    "assets": {
+      "description": "Every file the contribution uses, with its hash. Paths are relative to commons/<id>/. The validator rejects duplicate paths and checks every hash, size and path against the files.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "mediaType", "sha256", "bytes"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(?!.*\\.\\.)(?![/\\\\])[a-z0-9][a-z0-9._/-]{0,119}$"
+          },
+          "role": { "enum": ["text", "audio", "model", "texture", "image", "preview"] },
+          "mediaType": {
+            "description": "Allowlisted formats only. No SVG, HTML, scripts or archives.",
+            "enum": ["text/markdown", "audio/ogg", "model/gltf-binary", "image/png", "image/webp", "image/ktx2"]
+          },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1, "maximum": 8388608 }
+        },
+        "allOf": [
+          {
+            "if": { "required": ["role"], "properties": { "role": { "const": "text" } } },
+            "then": { "properties": { "mediaType": { "const": "text/markdown" } } }
+          },
+          {
+            "if": { "required": ["role"], "properties": { "role": { "const": "audio" } } },
+            "then": { "properties": { "mediaType": { "const": "audio/ogg" } } }
+          },
+          {
+            "if": { "required": ["role"], "properties": { "role": { "const": "model" } } },
+            "then": { "properties": { "mediaType": { "const": "model/gltf-binary" } } }
+          },
+          {
+            "if": { "required": ["role"], "properties": { "role": { "enum": ["texture", "image", "preview"] } } },
+            "then": { "properties": { "mediaType": { "enum": ["image/png", "image/webp", "image/ktx2"] } } }
+          }
+        ]
+      }
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compatible", "placement"],
+      "properties": {
+        "compatible": {
+          "description": "Contribution format range this was made for.",
+          "const": "0.x"
+        },
+        "placement": {
+          "description": "Where it is meant to live. Maintainers decide the final placement. The corridor alcove opens first; the reading room is built by the core team and opens second. Door and chamber placements wait for a reviewed door data contract, and no placement names an existing chamber.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "enum": ["corridor-alcove", "reading-room", "collectible", "soundscape"] }
+          }
+        }
+      }
+    },
+    "interaction": {
+      "description": "Optional. One declarative template from the engine's allowlist with the simple parameters that template accepts. Never code.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template"],
+      "properties": {
+        "template": { "enum": ["read", "inspect", "listen", "toggle", "rotate", "wind", "place", "find"] },
+        "parameters": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "read" } } },
+          "then": { "properties": { "parameters": { "additionalProperties": false } } }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "inspect" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": { "views": { "type": "integer", "minimum": 1, "maximum": 6 } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "listen" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "loop": { "type": "boolean" },
+                  "volume": { "type": "number", "minimum": 0, "maximum": 1 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "toggle" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "labelOn": { "type": "string", "minLength": 1, "maxLength": 120 },
+                  "labelOff": { "type": "string", "minLength": 1, "maxLength": 120 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "rotate" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": {
+                  "stops": { "type": "integer", "minimum": 2, "maximum": 12 },
+                  "revealAt": { "type": "integer", "minimum": 1, "maximum": 12 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "wind" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": { "turnsToPeak": { "type": "integer", "minimum": 1, "maximum": 12 } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "place" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": { "slots": { "type": "integer", "minimum": 1, "maximum": 6 } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "required": ["template"], "properties": { "template": { "const": "find" } } },
+          "then": {
+            "properties": {
+              "parameters": {
+                "additionalProperties": false,
+                "properties": { "waitSeconds": { "type": "number", "minimum": 5, "maximum": 120 } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["textAlternative", "motion", "flashing"],
+      "properties": {
+        "textAlternative": {
+          "description": "Everything a visitor needs to experience this without sight or sound: the text-mode version.",
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 2000
+        },
+        "captions": {
+          "description": "Required, with at least one item, when any asset has the audio role. Each caption is in square brackets, holds one to seven whitespace-separated words, and has 1 to 60 characters between the brackets, none of them a bracket.",
+          "type": "array",
+          "maxItems": 24,
+          "items": { "type": "string", "pattern": "^\\[(?=[^\\[\\]]{1,60}\\]$)\\s*(?:\\S+\\s+){0,6}\\S+\\s*\\]$" }
+        },
+        "motion": { "enum": ["none", "gentle", "has-reduced-motion-variant"] },
+        "flashing": { "description": "No content may flash more than three times per second.", "const": "none" }
+      }
+    },
+    "contentNotes": {
+      "description": "Subjects a visitor may want warning of. Empty when none.",
+      "type": "array",
+      "uniqueItems": true,
+      "maxItems": 8,
+      "items": { "enum": ["grief", "loss", "illness", "injury", "violence", "substance-use", "self-harm-reference", "suicide-reference"] }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["tier"], "properties": { "tier": { "const": 1 } } },
+      "then": {
+        "properties": {
+          "category": {
+            "enum": ["memo", "reflection", "poem", "sound", "ambience", "sculpture", "texture", "illustration", "hidden-message", "collectible", "environmental-story"]
+          }
+        }
+      }
+    },
+    {
+      "if": { "required": ["tier"], "properties": { "tier": { "const": 2 } } },
+      "then": {
+        "properties": {
+          "category": {
+            "enum": ["interactive-object", "puzzle", "soundscape", "visual-effect", "architecture", "collectible-series", "installation"]
+          }
+        }
+      }
+    },
+    {
+      "description": "Any audio asset needs at least one caption.",
+      "if": {
+        "required": ["assets"],
+        "properties": { "assets": { "contains": { "required": ["role"], "properties": { "role": { "const": "audio" } } } } }
+      },
+      "then": {
+        "properties": { "accessibility": { "required": ["captions"], "properties": { "captions": { "minItems": 1 } } } }
+      }
+    },
+    {
+      "description": "Agent-made work needs a named human or organisation, recorded as author or supervisor, who grants the licence.",
+      "if": {
+        "anyOf": [
+          {
+            "required": ["creators"],
+            "properties": { "creators": { "contains": { "required": ["kind"], "properties": { "kind": { "const": "agent" } } } } }
+          },
+          {
+            "required": ["provenance"],
+            "properties": { "provenance": { "required": ["origin"], "properties": { "origin": { "enum": ["agent", "human-supervised-agent"] } } } }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "creators": {
+            "contains": {
+              "required": ["kind", "role"],
+              "properties": { "kind": { "enum": ["human", "organisation"] }, "role": { "enum": ["author", "supervisor"] } }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+html,
+body {
+  margin: 0;
+  background: #14110e;
+}
+
+canvas {
+  display: block;
+}
+
+#labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.cell-label {
+  position: absolute;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 4px 8px;
+  white-space: pre-line;
+  font: 12px/16px ui-monospace, Menlo, monospace;
+  color: #e8dfcf;
+  background: #14110e;
+}

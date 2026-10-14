@@ -1,0 +1,21 @@
+# Monthly and grouped: each ecosystem opens at most one pull request a month, so dependency
+# upkeep costs one CI run per ecosystem. Security updates are enabled separately in the
+# repository settings and are not delayed by this schedule.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      all-npm:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 1
+    groups:
+      all-actions:
+        patterns: ['*']

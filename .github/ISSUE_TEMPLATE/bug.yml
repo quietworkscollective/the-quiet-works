@@ -1,0 +1,30 @@
+name: Something is broken
+description: A defect in the artwork, its accessibility or its performance.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe what happened in the artwork, not in your life. This tracker is public and
+        is not a place for personal stories or crisis details. If you are in immediate danger,
+        contact your local emergency number.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Page or chamber, input used (mouse, touch, keyboard, screen reader), settings on.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: e.g. Pixel 7, Chrome 140; MacBook Air, Safari 19
+    validations:
+      required: true
