@@ -10,6 +10,10 @@
  * interaction bus, and is built the first time it is needed. Until a room is set the desk is in
  * the Office, the room it was built for.
  *
+ * Music: the lobby gramophone (`music/`) is built with the engine, on the first unlock, and plays
+ * through the music bus. It is in step with the room (faded out in a chamber, back in the corridor),
+ * with mute, and with the corridor's reverb; everything else about it is in `music/`.
+ *
  * Timing rule (see `TIMING`): a `contact` cue at T starts the descent; the rubber meets the paper
  * at T + the Office contactMs. A `lift` cue at R peels at max(R, T + contactMs + minDwellMs). The reply
  * processing starts replyDelayMs after the lift; the hatch keeps its shared overload timing. Every
@@ -18,6 +22,9 @@
  */
 import { OFFICE_PRESS_TIMING, type Cue, type SpineCue } from '@tqw/engine';
 import { TIMING } from '../timing.ts';
+import { RECORDS } from './music/catalogue.ts';
+import { gramophone } from './music/index.ts';
+import { MusicSound } from './music/musicSound.ts';
 import { createNoiseBuffers, createPrng, type NoiseBuffers } from './noise.ts';
 import { crossfade, ROOM_FADE_S, SpineSound } from './spineSound.ts';
 import type { SoundDesk, SoundRoom } from './types.ts';
@@ -97,6 +104,8 @@ class Engine {
   /** The corridor: built the first time it is needed, so an Office-only session never pays for it. */
   private spine: SpineSound | null = null;
   private spineFailed = false;
+  /** The lobby gramophone: built with the engine, so never before the first unlock. */
+  private music: MusicSound | null = null;
 
   private epoch: Epoch;
   private envs: Record<BusName, voices.VoiceEnv>;
@@ -151,11 +160,14 @@ class Engine {
 
     this.epoch = this.createEpoch();
     this.envs = this.createEnvs(this.epoch);
+    this.music = this.createMusic(room === 'corridor');
   }
 
   // Lifecycle ---------------------------------------------------------------------------------
 
   wake(): void {
+    // A fresh gesture: if the browser had refused to play the record, it may play it now.
+    this.music?.nudge();
     if (this.ctx.state === 'running' || this.ctx.state === 'closed') return;
     try {
       void Promise.resolve(this.ctx.resume()).catch(() => undefined);
@@ -173,9 +185,11 @@ class Engine {
     );
     if (muted) this.spine?.pause();
     else this.spine?.resume();
+    this.music?.setMuted(muted);
   }
 
   dispose(): void {
+    this.music?.dispose();
     this.spine?.dispose();
     for (const source of this.ambience?.sources ?? []) {
       try {
@@ -212,6 +226,8 @@ class Engine {
 
   /** Crossfade to `next`'s tone. The Office's ventilation belongs to the Office; everywhere else is the corridor. */
   setRoom(next: SoundRoom): void {
+    // The music is the corridor's alone: every chamber, sealed or open, has a soundscape of its own.
+    this.music?.setCorridor(next === 'corridor');
     const room = toneRoom(next);
     if (room === this.room) return;
     this.room = room;
@@ -242,10 +258,27 @@ class Engine {
     if (this.spine !== null || this.spineFailed) return this.spine;
     try {
       this.spine = new SpineSound(this.ctx, this.noise, this.buses.interaction, { corridor, fadeInS });
+      // The gramophone sits in the same long room as everything else in the building.
+      this.music?.setRoomSend(this.spine.roomSend);
     } catch {
       this.spineFailed = true;
     }
     return this.spine;
+  }
+
+  /** Sound is decoration: a platform with no media element source gets no gramophone, once. */
+  private createMusic(corridor: boolean): MusicSound | null {
+    try {
+      return new MusicSound(this.ctx, this.noise, this.buses.music, {
+        store: gramophone,
+        records: RECORDS,
+        createElement: () => new Audio(),
+        corridor,
+        roomSend: this.spine?.roomSend ?? null,
+      });
+    } catch {
+      return null;
+    }
   }
 
   // Epochs ------------------------------------------------------------------------------------
@@ -467,7 +500,7 @@ export function createSoundDesk(): SoundDesk {
     }
   };
 
-  return {
+  const desk: SoundDesk = {
     unlock() {
       safely(() => {
         if (disposed || muted) return;
@@ -479,6 +512,7 @@ export function createSoundDesk(): SoundDesk {
     },
     setMuted(next) {
       muted = next;
+      gramophone.setMuted(next);
       safely(() => {
         if (disposed || engine === null) return;
         engine.setMuted(next);
@@ -518,9 +552,13 @@ export function createSoundDesk(): SoundDesk {
     dispose() {
       if (disposed) return;
       disposed = true;
+      forgetUnlock();
       const closing = engine;
       engine = null;
       safely(() => closing?.dispose());
     },
   };
+  // A verb pressed on the gramophone's page controls can be the very first gesture: it unlocks this desk.
+  const forgetUnlock = gramophone.setUnlocker(() => desk.unlock());
+  return desk;
 }

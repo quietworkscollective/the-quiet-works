@@ -35,7 +35,7 @@ if [ "$APPLY" -eq 0 ]; then
   echo "  - $( [ "$MAKE_PUBLIC" -eq 1 ] && echo 'make the repository public, then ' )apply .github/rulesets/main.json and tags.json"
   echo "  - enable secret scanning, push protection, Dependabot alerts and security updates, private vulnerability reporting"
   echo "  - require approval for workflow runs from all external contributors"
-  echo "  - allow forking, delete branches on merge, disable wiki and projects"
+  echo "  - delete branches on merge, disable wiki and projects (public repositories are always forkable)"
   exit 0
 fi
 
@@ -72,7 +72,6 @@ gh api -X PATCH "repos/$REPO" --silent --input - <<'JSON'
     "secret_scanning": { "status": "enabled" },
     "secret_scanning_push_protection": { "status": "enabled" }
   },
-  "allow_forking": true,
   "delete_branch_on_merge": true,
   "has_wiki": false,
   "has_projects": false

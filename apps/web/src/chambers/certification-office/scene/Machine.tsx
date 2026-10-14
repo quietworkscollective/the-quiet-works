@@ -608,7 +608,7 @@ export function Machine() {
         />
 
         {/* Front hatch, hinged at its bottom edge. */}
-        <group ref={hatchGroup} position={[0, h.hingeY, h.hingeZ]}>
+        <group ref={hatchGroup} userData={{ bake: 'dynamic' }} position={[0, h.hingeY, h.hingeZ]}>
           <mesh geometry={parts.hatchPanel} material={materials.enamelHatch} castShadow receiveShadow />
           <mesh geometry={parts.pull} material={materials.brassWorn} />
           <mesh
@@ -619,18 +619,18 @@ export function Machine() {
         </group>
 
         {/* Service bell stays still until a visitor deliberately operates it. */}
-        <group position={[MACHINE.bell.x, MACHINE.bodyTop + 0.006, MACHINE.bell.z]}>
+        <group userData={{ bake: 'dynamic' }} position={[MACHINE.bell.x, MACHINE.bodyTop + 0.006, MACHINE.bell.z]}>
           <mesh geometry={parts.bell} material={materials.brass} castShadow receiveShadow />
         </group>
 
-        <group ref={rearLink} position={[MACHINE.width / 2 + 0.018, 0.12, -MACHINE.depth / 2]}>
+        <group ref={rearLink} userData={{ bake: 'dynamic' }} position={[MACHINE.width / 2 + 0.018, 0.12, -MACHINE.depth / 2]}>
           <mesh geometry={parts.rearLink} material={materials.brassWorn} />
         </group>
-        <Receipt />
+        <group userData={{ bake: 'dynamic' }}><Receipt /></group>
       </group>
 
-      <SpillReceipts />
-      <MemoSheet />
+      <group userData={{ bake: 'dynamic' }}><SpillReceipts /></group>
+      <group userData={{ bake: 'dynamic' }}><MemoSheet /></group>
     </group>
   );
 }

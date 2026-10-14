@@ -23,6 +23,7 @@ import { StampPress } from './StampPress.tsx';
 import { areFontsLoaded, loadFonts } from './textures.ts';
 import { whenOfficeReady } from './ready.ts';
 import type { OfficeSceneProps } from './types.ts';
+import { BakedSpace } from '../../../baked/BakedSpace.tsx';
 import { LookStack, OFFICE_LOOK, type AtmosphereLamp } from '../../../look/index.ts';
 
 // Start fetching the canvas fonts as soon as the scene chunk loads.
@@ -153,7 +154,7 @@ export default function OfficeScene(props: OfficeSceneProps) {
         <Canvas
           frameloop="demand"
           dpr={dpr}
-          shadows="percentage"
+          shadows={false}
           gl={GL_PROPS}
           camera={CAMERA_PROPS}
           onCreated={onCreated}
@@ -239,12 +240,19 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
   const camera = useThree(s => s.camera);
 
   const materials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), coarse), [gl, coarse]);
+  const [resourcesReady, setResourcesReady] = useState(false);
+  const [bakeReady, setBakeReady] = useState(false);
+  const onResourcesReady = useCallback(() => setResourcesReady(true), []);
+  const onBakeReady = useCallback(() => setBakeReady(true), []);
+  useEffect(() => {
+    if (resourcesReady && bakeReady) onPrepared();
+  }, [resourcesReady, bakeReady, onPrepared]);
   useLayoutEffect(() => {
     let cancelReady = () => {};
     const cancelBind = bindAfterFirstFrame(room, () => {
       try {
         const unbind = materials.bindEnvironment(gl);
-        cancelReady = whenOfficeReady(gl, onPrepared, {
+        cancelReady = whenOfficeReady(gl, onResourcesReady, {
           scene: room, camera, fontsReady: areFontsLoaded, invalidate,
           onError: () => handlers.current.onContextLost(),
         });
@@ -255,7 +263,7 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
       }
     });
     return () => { cancelReady(); cancelBind(); };
-  }, [materials, gl, room, camera, invalidate, onPrepared, handlers]);
+  }, [materials, gl, room, camera, invalidate, onResourcesReady, handlers]);
   useEffect(() => () => materials.dispose(), [materials]);
 
   const cursor = useMemo(() => {
@@ -291,9 +299,12 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
 
       <group dispose={null}>
         <Room materials={materials} />
+        <BakedSpace space="office" onReady={onBakeReady} />
         <Application />
         <Wear inkPadOpen={objects.toggles['ink-pad']} />
-        <InspectionLamp understood={shadow || certification.memo.revealed || objects.uses.sign > 0 || objects.uses.conduit > 0} />
+        <group userData={{ bake: 'dynamic' }}>
+          <InspectionLamp understood={shadow || certification.memo.revealed || objects.uses.sign > 0 || objects.uses.conduit > 0} />
+        </group>
         <RoomObjects office={office} archive={archive} overloaded={certification.phase === 'overloaded'} shadow={shadow} onInspect={id => { if (!navigation.wasDrag()) onInspect(id); }} onFocus={onFocusObject} onEntrance={() => { if (!navigation.wasDrag()) onEntrance(); }} />
         <OfficeAsset id="desk" fittings={['drawer']}>
           <Desk materials={materials} showStationery={false} />
@@ -301,7 +312,7 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
         <group {...officeAssetPose('press-rig')} userData={{officeObjectId:'press'}}>
           <StampPress freshInk={freshInk} selectedPosition={selectedPosition} windowClipWorld={[-2.25, 1.08, 7.85]} channelDirection={[-2, -0.9]} />
         </group>
-        <group {...officeAssetPose('lamp-rig')} userData={{officeObjectId:'lamp'}}>
+        <group {...officeAssetPose('lamp-rig')} userData={{officeObjectId:'lamp', bake:'dynamic'}}>
           <Lamp materials={materials} towardWall={objects.toggles.lamp} deskTarget={[-1.68, .0115, -.04]} />
         </group>
         <group {...officeAssetPose('machine-rig')} userData={{officeObjectId:'machine'}} scale={[1.7, 2.9, 1.9]}>
@@ -330,12 +341,13 @@ function logFirstFrame(state: RootState): () => void {
     if (tries < 600) frame = requestAnimationFrame(poll);
   };
   frame = requestAnimationFrame(poll);
-  const dev = window as unknown as { __tqwGl?: typeof gl; __tqwCamera?: typeof state.camera; __tqwScene?: typeof state.scene };
+  const dev = window as unknown as { __tqwGl?: typeof gl; __tqwCamera?: typeof state.camera; __tqwScene?: typeof state.scene; __tqwFreeze?: () => void };
+  dev.__tqwFreeze = () => state.setFrameloop('never');
   dev.__tqwGl = gl;
   dev.__tqwCamera = state.camera;
   dev.__tqwScene = state.scene;
   return () => {
     cancelAnimationFrame(frame);
-    if (dev.__tqwGl === gl) { delete dev.__tqwGl; delete dev.__tqwCamera; delete dev.__tqwScene; }
+    if (dev.__tqwGl === gl) { delete dev.__tqwGl; delete dev.__tqwCamera; delete dev.__tqwScene; delete dev.__tqwFreeze; }
   };
 }

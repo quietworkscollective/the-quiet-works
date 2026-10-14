@@ -171,10 +171,15 @@ async function recordPoses(page: Page): Promise<void> {
   await page.evaluate(() => {
     const el = document.querySelector('.tqw-corridor-canvas')!;
     const w = window as unknown as { __poses: { t: number; pose: string }[] };
-    w.__poses = [{ t: performance.now(), pose: el.getAttribute('data-pose') ?? '' }];
-    new MutationObserver(() =>
-      w.__poses.push({ t: performance.now(), pose: el.getAttribute('data-pose') ?? '' }),
-    ).observe(el, {
+    const sample = () => {
+      const time = el.getAttribute('data-pose-time');
+      if (time === null || time.trim() === '' || !Number.isFinite(Number(time))) {
+        throw new Error('A recorded pose requires a finite frame timestamp');
+      }
+      return { t: Number(time), pose: el.getAttribute('data-pose') ?? '' };
+    };
+    w.__poses = [sample()];
+    new MutationObserver(() => w.__poses.push(sample())).observe(el, {
       attributes: true,
       attributeFilter: ['data-pose'],
     });
@@ -280,6 +285,7 @@ test.describe('landing walk-in', () => {
   test('the walk-in is a function of scroll alone: it stops when the scroll stops', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+    await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await settle(page);
     const rested = await pose(page);
     await page.waitForTimeout(1500);

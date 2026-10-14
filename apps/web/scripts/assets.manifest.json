@@ -178,6 +178,38 @@
       "licence": "CC0-1.0",
       "licenceFile": "../../LICENSES/CC0-1.0.txt",
       "attribution": "Created using Paper 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License."
+    },
+    {
+      "name": "Space indirect-light atlases",
+      "pattern": "^(?:corridor|office)-[0-9]+-[\\w-]+\\.webp$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD baked scene lighting (indirect-light atlases), (c) 2026 Asiri Dalugoda, CC BY 4.0; see LICENSING.md."
+    },
+    {
+      "name": "Record: satie-gymnopedie-1",
+      "pattern": "^satie-gymnopedie-1-[\\w-]+\\.(?:webm|m4a)$",
+      "source": "third-party:Musopen",
+      "licence": "LicenseRef-Public-Domain",
+      "licenceFile": "../../LICENSES/Public-Domain-Recordings.txt",
+      "attribution": "Gymnopédie No. 1 by Erik Satie (1888), performed by Robin Alciatore, recording from Musopen (musopen.org), public domain."
+    },
+    {
+      "name": "Record: chopin-waltz-a-minor",
+      "pattern": "^chopin-waltz-a-minor-[\\w-]+\\.(?:webm|m4a)$",
+      "source": "third-party:Musopen",
+      "licence": "CC0-1.0",
+      "licenceFile": "../../LICENSES/CC0-1.0.txt",
+      "attribution": "Waltz in A minor, B. 150 by Frédéric Chopin, performed by Aya Higuchi, recording from Musopen (musopen.org), CC0 1.0 Universal."
+    },
+    {
+      "name": "Record: schumann-at-the-fireside",
+      "pattern": "^schumann-at-the-fireside-[\\w-]+\\.(?:webm|m4a)$",
+      "source": "third-party:Musopen",
+      "licence": "LicenseRef-Public-Domain",
+      "licenceFile": "../../LICENSES/Public-Domain-Recordings.txt",
+      "attribution": "At the Fireside (Kinderszenen, Op. 15, No. 8) by Robert Schumann (1838), performed by Donald Betts, recording from Musopen (musopen.org), public domain."
     }
   ]
 }

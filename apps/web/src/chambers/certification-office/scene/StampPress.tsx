@@ -402,6 +402,7 @@ export function StampPress({
         <mesh geometry={parts.platen} material={materials.platen} castShadow receiveShadow />
         <mesh geometry={parts.rods} material={materials.brassWorn} castShadow />
         <mesh
+          userData={{ bake: 'dynamic' }}
           geometry={parts.springs}
           material={materials.springSteel}
           customDepthMaterial={parts.depth}
@@ -421,7 +422,7 @@ export function StampPress({
           <mesh geometry={parts.hit}>
             <meshBasicMaterial visible={false} />
           </mesh>
-          <group ref={carriage} position={[0, PAPER_TOP + REST_HEIGHT, 0]}>
+          <group ref={carriage} userData={{ bake: 'dynamic' }} position={[0, PAPER_TOP + REST_HEIGHT, 0]}>
             <group ref={padGroup}>
               <mesh geometry={parts.pad} material={materials.rubber} castShadow />
             </group>
@@ -432,13 +433,15 @@ export function StampPress({
           </group>
         </group>
       </group>
-      <PaperBeats
-        selectedPosition={selectedPosition}
-        freshInk={freshInk}
-        formTexture={form.texture}
-        {...(windowClipWorld ? { windowClipWorld } : {})}
-        {...(channelDirection ? { channelDirection } : {})}
-      />
+      <group userData={{ bake: 'dynamic' }}>
+        <PaperBeats
+          selectedPosition={selectedPosition}
+          freshInk={freshInk}
+          formTexture={form.texture}
+          {...(windowClipWorld ? { windowClipWorld } : {})}
+          {...(channelDirection ? { channelDirection } : {})}
+        />
+      </group>
     </>
   );
 }

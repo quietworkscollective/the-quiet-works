@@ -9,3 +9,5 @@ apps/web/playwright-report/
 
 # Third-party asset download cache (scripts/assets/fetch.mjs); never committed.
 .asset-cache/
+.bake-cache/
+scripts/bake/__pycache__/

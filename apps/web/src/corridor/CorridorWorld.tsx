@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { BakedSpace } from '../baked/BakedSpace.tsx';
 import { CorridorProps } from './world/props/CorridorProps.tsx';
 import { AmbientDirector, AmbientLife } from './world/ambient/AmbientLife.tsx';
 import { WORLD_UPDATERS } from './world/ambient/useWorldAmbient.ts';
@@ -84,6 +85,8 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
   const world = useMemo(() => buildWorld(), []);
   const geometries = useMemo(() => bucketGeometries(world.buckets), [world]);
   const quality = useMemo(() => chooseQuality(rendererName(gl.getContext()), window.location.search), [gl]);
+  const [bakeReady, setBakeReady] = useState(() => new URLSearchParams(window.location.search).get('bake') === 'off');
+  const markBakeReady = useCallback(() => setBakeReady(true), []);
   const materials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), window.matchMedia('(pointer: coarse)').matches, quality), [gl, quality]);
   // A software rasteriser draws a frame in about a second: render fewer pixels of it.
   const setDpr = useThree((s) => s.setDpr);
@@ -162,16 +165,16 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
     if (t.ground) h.groundColor.set(t.ground);
   });
 
-  // Tell the page (and tests) the world is drawn: the canvas is marked once the lettering exists.
+  // Readiness waits for the baked receiver's first completed on-screen draw.
   useEffect(() => {
-    if (!art) return;
+    if (!art || !bakeReady) return;
     const canvas = gl.domElement;
     canvas.dataset['world'] = 'ready';
     invalidate();
     return () => {
       delete canvas.dataset['world'];
     };
-  }, [art, gl, invalidate]);
+  }, [art, bakeReady, gl, invalidate]);
 
   // Nothing is drawn until the lettering can be: the DOM landing covers the short wait.
   if (!art) return null;
@@ -183,14 +186,23 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
       {entries.map(([key, geometry]) => (
         <mesh key={key} name={key} geometry={geometry} material={materials.byKey[key]} renderOrder={RENDER_ORDER[key] ?? 0} />
       ))}
+      <BakedSpace space="corridor" onReady={markBakeReady} />
       <Fixtures materials={materials} />
       <Beacon materials={materials} />
       {world.chamberDoors.map((door) => (
-        <ChamberDoor key={door.placement.key} door={door} materials={materials} animation={animation} reducedMotion={reducedMotion} onPointer={onDoorPointer} />
+        <group key={door.placement.key} userData={{ bake: 'dynamic' }}>
+          <ChamberDoor door={door} materials={materials} animation={animation} reducedMotion={reducedMotion} onPointer={onDoorPointer} />
+        </group>
       ))}
-      <Board materials={materials} atlas={art.clippings} onClipping={onClipping} reducedMotion={reducedMotion} />
-      <CorridorProps animation={propAnimation} reducedMotion={reducedMotion} onPointer={onPropPointer} />
-      <AmbientLife materials={materials} reducedMotion={reducedMotion} scheduler={scheduler} desktop={desktop} />
+      <group userData={{ bake: 'dynamic' }}>
+        <Board materials={materials} atlas={art.clippings} onClipping={onClipping} reducedMotion={reducedMotion} />
+      </group>
+      <group userData={{ bake: 'dynamic' }}>
+        <CorridorProps animation={propAnimation} reducedMotion={reducedMotion} onPointer={onPropPointer} />
+      </group>
+      <group userData={{ bake: 'dynamic' }}>
+        <AmbientLife materials={materials} reducedMotion={reducedMotion} scheduler={scheduler} desktop={desktop} />
+      </group>
       <AmbientDirector reducedMotion={reducedMotion} desktop={desktop} scheduler={scheduler} />
     </group>
   );

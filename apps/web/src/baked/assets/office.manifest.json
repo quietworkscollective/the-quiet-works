@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "space": "office",
+  "hash": "0b8c2940be38c14f8880aafd2b9104fd233d69b27b88f50d7471f3e988d6472b",
+  "materialHash": "c4375c82b840ccb122b7800481f1c198b7a9f5c34474e943263b6ddf0193a4eb",
+  "baselineHash": "e04a2e624dc074665e436d979e17a0e65fec02cc49781f427f8e466b06c99eb2",
+  "meshes": [
+    "056184693e05ebf0b836c3444bec9a0fa9b44de44e607254a8c41078e1bb4026",
+    "065d0013ca73a3da4559dcde27031217de232131919a18d5342b12328cd1c231",
+    "08bd7927cc424ea441e326a353c901c3029c061513bd62b6b93980e2e52ab696",
+    "0eaa5ea53bf28afeea45b2d06d75dd3c0b3422d945c2129eba706c64dd9ad898",
+    "115b7af79a0c9a34248e2b915a9bdc498475958c57bfc75791cbd16f7f68e518",
+    "158ed15f25e7b575b985075417d1e0cf12cf1ec4e0644604440038deafae48bc",
+    "1666bac75aa83e47ad4f9a75b85a4a07448a08d7116874b7b4686c1d55a7f63c",
+    "1ca7a697a183ea988d21f6ae9fd3b4d92e79e38b2d70432b96645dcb5313e241",
+    "2cf50fa0103bfa196ea9f32ad0f79d8fac8e2a06009eaeb821a7696483979805",
+    "2f7f6266d6ba33e4d48449bee98a1fa0a5b1adb15d1aaeac9d75371a82e209a9",
+    "304b49356333cfb9db1276e3a73cc6a1c74a9109cf98e0e629cc77f01d078ca0",
+    "30b44bd37842a19a7e160ad0ff8d870b76244e3bd6c5e328635ff5ecd7befc7e",
+    "33e397a9850bcbc93f1be6242bbb9571aeda468e0604cae7a5549e2650b25de6",
+    "3567bc34af228dd40da51b1b812ed06c9e8eb4b6dbd076a809217b9dd7e7273e",
+    "36af5b992993a59b0ff71dbf7b5e0168bc7d56b9cb85004e21126e2c6ee4e5be",
+    "394f82346bb493dcc657807cf72f3924d2cb1256c8a52528a1b1558536ef01d4",
+    "3cd7845289b39eed8bd5b5c4d3593a1be7258dd1fb7ad220e5bcb3d225138f7d",
+    "42858e23a0810f355b07d57c92ea1cd965a7ae1be08d47c800142b1dc827aa6e",
+    "451f18f769c984ecc0e06d5e50d3e7fd7eb8912e7ef3156ffe005f4fcca0d116",
+    "4c7a1a4d3f4fe4ec99a3e767dfc8ca545ae83bd8720aff88809569ac4804f564",
+    "510e9f3f0afcb36bf31cb0ec79b74ad2b62c4bc956b765e5e1e00d7e6e657a78",
+    "52466a4ae9995302eeb12040a31f6c8a6d6a7395b325ac491af7177d7a4b0503",
+    "5381e614942dc6630ee8bc188a74bd09be39f1764a69ab3866ecd9c24cf26718",
+    "57bcb87d65fb757b3ef18ba29be90654b1d468a19c5de1dcd034bdbd76501291",
+    "589cbbf2e75cd4244d988ad479b385e27d99c2a568f66410fb945324aa3112c0",
+    "597a336a3ab399767457e7f230abd8a52681dc3707f3d2982ca2345e1de96f64",
+    "5b1d0dc3f6717b937c83fc75e4f037294d1eeae7914cd451dfdb1eab4e0f8e7e",
+    "5e75cd22cb28c22d7ba91c3be70fed0cff82d6a59aca8798b362011bddabace8",
+    "629a4489883e61a6118b95c2fc5e4a46b9119e66006318cc677ef261a00bd3c5",
+    "641e7c3075d1f7e92c11e2ed90c914143e25fd4b42f1c0bb03c7824e2ade3aab",
+    "6909b4bc1fe8db879a88cc9ce0feec966c4c3dcef0010060404751804fb54251",
+    "6fc4af6151d01472311c593599152a5caa3f2c7069bed49e44c2e50bb9349dce",
+    "701d04e5d6009b27ee5bb02322297ec328393d4ad1a4cc906a12e7ca537ea291",
+    "713e69ecb7e65852e89ee03627c7896f22f5e79883ca447d5cc994e1abe630e4",
+    "724506238124cada0ddb1effab3573db68a12012463e8ea7d665aa3d0815f8ba",
+    "725eebcb81759f86aa16241c41c0a640577e470b39dcf3b922b192998f2d9f77",
+    "79c2366f3fb32269063b52413404c7057dbd64bffe6c62c074cc91417f941989",
+    "7dec2d9973e69d798736a737fe4cf647458d1f1b95e14181bd2bbfcc48f30e21",
+    "7e2d1b7f0ceaf8ddb07fabe34f1c824300cacb75ec18a66e29048af714eca0a2",
+    "80ec316b153c7aae6ece60ead23d22cbdfbc28a985982e710bbeecc0d65656d7",
+    "832e6076c2c34078223cbe8867153d7fe74c9dce588fa625e4a6ac8f4fa735ba",
+    "86e7269e167fa69de4196316d90866803d24fe31b90a1832125e73d37c43925b",
+    "8b2ca84c4d9321b668b5cc02e783e3ec24bf874d7a236a71c09b19befee38449",
+    "9118ea7cf200e05ea94f16adfd30895e128440ded1a07447f43cb6ea9bd8ae79",
+    "97c5cf0e18d5ac3e353a3f75fe0aa107fc358e295a95b2a269cb9e42cb85931b",
+    "9867307bd77af5fb16b25e963be7a4deb15b46e37b36034dcfcfa3a25238d9c1",
+    "9d8f516bb22b344707fc7e4f185865cead9f0ff41d9be7001f04ef334b568648",
+    "9e1c652a2f713c8ba2e89aacaf80806c117127059024dbf301682b11623a06a7",
+    "a8478ba17839dadfdde46f85f61681a439b925b27301b75d1466cc9a86d5b90f",
+    "aba8291bfc17ae750d6cca1256e84423fd5d81d4ab83a0ec1ed87b56c8da0fde",
+    "ae9b0b9b11b7663177d0664c6c9eca9ec07368fd27d47c7559be9d70eb35d081",
+    "af26a08ed0cb4707cca228381a822d0bec93a371d923493610507fb67fe8833b",
+    "b9c13a25897bd904ffd7607683188063a83ef4fd7d29eb131f8711106ac678ad",
+    "ba9e3c04f4e6d63178175205e8211e0f9396f9f3d33570396e42e1a8f9d9c9d3",
+    "bb0a91596f5f4acbf4c634db2235f28e0f48bd914b2bc5c463310a7db73a8b66",
+    "bc4d0c6daa043cb550ff263c166165e2d3747150a23a0ed2b18805f298177b92",
+    "c6948e88219dc4a0b428f1e47718dd85b5e48a5ad17d1a6659f1aba0ba209a3b",
+    "c6c3aad03efbd1107848d2fa16483fef4e636bbadd876c578e8a8499a6cd08c9",
+    "c817e1d1b3d1807ca1c6a47835c83c3c65816f789abb44c3f604844d78df7832",
+    "c9f9f6859b4dd5f9808718e73ef1127b0dee6bed5c3db952d8252fbd314455a4",
+    "d216da6a451869f58c46a08032607f6c2e70f812d5257f2e0365b7844a3f5589",
+    "dcefa48412b10bb8d779bc043af1a7325349c53c007092637e151ed1f3aa4c6e",
+    "e152d2d5624cef58b469aa450693f305d2ca87abc7bcb8a64a26502c26e6fe4d",
+    "e21f52439cf58d8acaef42d51a1d760ae990372a93447ddc9e1385db82e387af",
+    "e3b90b0e2d4f22583439a45a371b9e32c49e3c5b206e452976bd6cce2805b4db",
+    "e55baa92106825153d75e93a8ed08f2f1c596f7f6627703a474af183984e921b",
+    "e997dccb5be08911676591f8a2e4775d4619ebcc00e50e4c04f177aa6716f04e",
+    "feb41e2bcb06e80897d342718833073c69343604cea5b531debc772eae05adb7",
+    "ff797e7a95cfd74226fff0dc54c37f58985ae9200180662019b587956bc5625c"
+  ],
+  "lights": [
+    {
+      "type": "DirectionalLight",
+      "position": [
+        -2,
+        4.8,
+        2
+      ],
+      "colour": [
+        0.5457244613615395,
+        0.6307571363387763,
+        0.6307571363387763
+      ],
+      "intensity": 1.5,
+      "distance": 0,
+      "decay": 2,
+      "direction": [
+        0.3589790793088691,
+        -0.8615497903412858,
+        -0.3589790793088691
+      ]
+    },
+    {
+      "type": "HemisphereLight",
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "colour": [
+        0.27224131785744976,
+        0.30994592551793937,
+        0.2888102472144568
+      ],
+      "intensity": 1.15,
+      "distance": 0,
+      "decay": 2
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        -2.25,
+        2.2,
+        8.8
+      ],
+      "colour": [
+        0.6375968739867731,
+        0.7156935005005721,
+        0.5711248294565854
+      ],
+      "intensity": 8,
+      "distance": 7,
+      "decay": 2,
+      "power": 100.53096491487338
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0,
+        4.8,
+        6
+      ],
+      "colour": [
+        0.8962693533719567,
+        0.623960391667596,
+        0.3049873140591091
+      ],
+      "intensity": 24,
+      "distance": 13,
+      "decay": 2,
+      "power": 301.59289474462014
+    },
+    {
+      "type": "SpotLight",
+      "position": [
+        -2.2460668121937317,
+        1.3764146021016432,
+        4.26838362108788
+      ],
+      "colour": [
+        1,
+        0.6795424696265424,
+        0.3515325994898463
+      ],
+      "intensity": 4.2,
+      "distance": 0,
+      "decay": 2,
+      "power": 13.194689145077131,
+      "direction": [
+        0.8988864634378125,
+        -0.3930899649726126,
+        -0.19360631520198981
+      ],
+      "angle": 0.62,
+      "penumbra": 0.75
+    },
+    {
+      "type": "SpotLight",
+      "position": [
+        2.9026838704611664,
+        4.603649774289169,
+        1.3829308734049996
+      ],
+      "colour": [
+        0.7379104087672317,
+        0.5583403896257968,
+        0.3371636150376657
+      ],
+      "intensity": 2.8,
+      "distance": 5,
+      "decay": 2,
+      "power": 8.79645943005142,
+      "direction": [
+        0.0973161295388335,
+        -0.9036497742891679,
+        0.41706912659500045
+      ],
+      "angle": 0.52,
+      "penumbra": 0.8
+    }
+  ],
+  "atlases": [
+    {
+      "file": "office-0.webp",
+      "width": 2048,
+      "height": 2048,
+      "scale": 2.816494941711426,
+      "encoding": "srgb-scale",
+      "bytes": 347882,
+      "density": {
+        "foreground": {
+          "min": 31.998104244399347,
+          "max": 32.00304279240492,
+          "area": 2046.8436271498724,
+          "target": 32
+        },
+        "archive": {
+          "min": 11.9999712857244,
+          "max": 12.000018748824536,
+          "area": 177.29562759076975,
+          "target": 12
+        },
+        "desk": {
+          "min": 63.994728456022614,
+          "max": 64.00205414603239,
+          "area": 13.671343311303813,
+          "target": 64
+        }
+      }
+    },
+    {
+      "file": "office-1.webp",
+      "width": 1024,
+      "height": 1024,
+      "scale": 0.2910827696323395,
+      "encoding": "srgb-scale",
+      "bytes": 80872,
+      "density": {
+        "archive": {
+          "min": 11.999722903139363,
+          "max": 12.00024337263115,
+          "area": 267.1252439506631,
+          "target": 12
+        }
+      }
+    }
+  ]
+}

@@ -87,9 +87,9 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
       <group {...officeAssetPose('ink-pad')} userData={{officeObjectId:'ink-pad'}}>
         {box([.16,.028,.1],[0,0,0],materials.tin)}
         {box([.145,.004,.085],[0,.017,0],materials.felt)}
-        <group position={[0,.022,.05]} rotation={[inkOpen ? 1.7 : 0,0,0]}>{box([.16,.007,.1],[0,0,-.05],materials.tin)}</group>
+        <group userData={{ bake: 'dynamic' }} position={[0,.022,.05]} rotation={[inkOpen ? 1.7 : 0,0,0]}>{box([.16,.007,.1],[0,0,-.05],materials.tin)}</group>
       </group>
-      <group position={[...officeAssetSlot('drawer').position.slice(0,2),officeAssetSlot('drawer').position[2] - (drawerOpen ? .32 : 0)] as [number,number,number]} userData={{officeObjectId:'drawer'}}>
+      <group position={[...officeAssetSlot('drawer').position.slice(0,2),officeAssetSlot('drawer').position[2] - (drawerOpen ? .32 : 0)] as [number,number,number]} userData={{officeObjectId:'drawer', bake:'dynamic'}}>
         {box([.42,.02,.4],[0,0,0],materials.wood)}
         {box([.42,.1,.025],[0,.04,-.2],materials.wood)}
         {drawerOpen ? <group position={[0,.05,0]} rotation={[0,state.uses.drawer > 1 ? Math.PI/2 : 0,0]}>
@@ -100,21 +100,21 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
           {box([.065,.002,.035],[.095,-.013,-.04],parts.labels.ticket.material)}
         </group> : null}
       </group>
-      <group position={[-.45,.75,4]} rotation={[state.uses['tiny-stamp'] ? Math.PI/2 : 0,0,0]}>
+      <group userData={{ bake: 'dynamic' }} position={[-.45,.75,4]} rotation={[state.uses['tiny-stamp'] ? Math.PI/2 : 0,0,0]}>
         {box([.045,.035,.025],[0,0,0],materials.wood)}
         {box([.045,.002,.025],[0,-.018,0],parts.labels.tiny.material)}
       </group>
       <group {...officeAssetPose('register')} userData={{officeObjectId:'register'}}>
         {box([.32,.04,.24],[0,0,0],materials.enamelDark)}
-        <group rotation={[0,0,state.uses.register && state.variants.register !== 2 ? -1.35 : 0]}>{box([.32,.004,.24],[0,.025,0],materials.boneSheet)}</group>
+        <group userData={{ bake: 'dynamic' }} rotation={[0,0,state.uses.register && state.variants.register !== 2 ? -1.35 : 0]}>{box([.32,.004,.24],[0,.025,0],materials.boneSheet)}</group>
         {box([.3,.002,.16],[0,.029,0],state.variants.register === 1 ? parts.labels.issue.material : parts.labels.register.material)}
       </group>
       <group position={[-2.25,1.15,7.85]}>
         {box([.35,.22,.01],[0,0,0],materials.brass)}
-        <group rotation={[windowOpen ? -1.1 : 0,0,0]}>{box([.32,.19,.015],[0,0,-.015],materials.enamelDark)}</group>
+        <group userData={{ bake: 'dynamic' }} rotation={[windowOpen ? -1.1 : 0,0,0]}>{box([.32,.19,.015],[0,0,-.015],materials.enamelDark)}</group>
       </group>
       {box([.3,.002,.13],[-2.25,1.01,7.77],parts.labels.bell.material)}
-      <group position={[3.65,1.55,1.8]} rotation={[0,-Math.PI/2 + (signTurned ? Math.PI : 0),0]}>
+      <group userData={{ bake: 'dynamic' }} position={[3.65,1.55,1.8]} rotation={[0,-Math.PI/2 + (signTurned ? Math.PI : 0),0]}>
         {box([.35,.22,.012],[0,0,0],signTurned ? parts.labels.reverse.material : parts.labels.sign.material)}
       </group>
       <OfficeAsset id="side-door" fittings={['side-door']}>{box([1.03,2.22,.06],[0,0,0],parts.doorPaint)}</OfficeAsset>
@@ -125,25 +125,25 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
         <mesh geometry={parts.frame} material={materials.frame} />
         {box([1.1,2.3,.07],[0,0,0],parts.doorPaint)}
         {Array.from({length:8},(_,i)=>box([.018,2.16,.025],[-.45+i*.13,0,-.05],materials.frame))}
-        {box([.12,.08,.035],[.3,.05,overloaded ? -.12 : -.045],materials.brassWorn)}
+        <group userData={{ bake: 'dynamic' }}>{box([.12,.08,.035],[.3,.05,overloaded ? -.12 : -.045],materials.brassWorn)}</group>
         {box([.8,.16,.012],[0,.5,-.047],parts.labels.panel.material)}
       </group>
       <OfficeAsset id="clerk-chair" fittings={['chair']}><mesh geometry={parts.chair} material={materials.enamelDark} /></OfficeAsset>
       {box([.16,.003,.25],[-2.3,.599,8.77],materials.wood)}
       {box([.12,.002,.085],[-2.11,.602,8.64],materials.boneSheet)}
       <OfficeAsset id="attended-stack" fittings={['stack']}><mesh geometry={parts.stack} material={materials.paperStack} /></OfficeAsset>
-      {state.uses.stack > 0 ? <group position={[-2.55,1.3,6.7]} rotation={[0,0,state.variants.stack ? Math.PI : 0]}>{box([.22,.002,.28],[0,0,0],materials.boneSheet)}</group> : null}
-      {state.uses['tiny-stamp'] > 1 ? box([.12,.002,.06],[-.45,.79,3.85],parts.labels.tiny.material) : null}
+      {state.uses.stack > 0 ? <group userData={{ bake: 'dynamic' }} position={[-2.55,1.3,6.7]} rotation={[0,0,state.variants.stack ? Math.PI : 0]}>{box([.22,.002,.28],[0,0,0],materials.boneSheet)}</group> : null}
+      <group userData={{ bake: 'dynamic' }}>{state.uses['tiny-stamp'] > 1 ? box([.12,.002,.06],[-.45,.79,3.85],parts.labels.tiny.material) : null}</group>
       <group position={[...officeAssetSlot('clock').position]} rotation={[Math.PI/2,0,0]} userData={{officeObjectId:'clock'}}>
         <mesh geometry={parts.cylinder} material={materials.boneSheet} scale={[.19,.035,.19]} />
         {box([.3,.002,.10],[0,-.02,.09],parts.labels.clock.material)}
-        <group rotation={[0,state.uses.clock ? .55 : 0,0]}>{box([.007,.005,.15],[0,-.025,-.06],materials.frame)}</group>
+        <group userData={{ bake: 'dynamic' }} rotation={[0,state.uses.clock ? .55 : 0,0]}>{box([.007,.005,.15],[0,-.025,-.06],materials.frame)}</group>
         {box([.01,.005,.08],[.04,-.022,0],materials.brass)}
       </group>
       <group {...officeAssetPose('conduit')} userData={{officeObjectId:'conduit'}}>
         {box([.22,.12,.04],[0,0,0],materials.iron)}
-        {box([.22,.12,.01],[state.toggles.conduit ? .24 : 0,0,-.035],materials.steelPanel)}
-        {state.uses.conduit ? box([.006,.07,.08],[.17,-.015,-.01],materials.frame) : null}
+        <group userData={{ bake: 'dynamic' }}>{box([.22,.12,.01],[state.toggles.conduit ? .24 : 0,0,-.035],materials.steelPanel)}</group>
+        <group userData={{ bake: 'dynamic' }}>{state.uses.conduit ? box([.006,.07,.08],[.17,-.015,-.01],materials.frame) : null}</group>
       </group>
       <group {...officeAssetPose('routing-tray')}>
         {box([.34,.016,.26],[0,0,0],materials.frame)}
@@ -151,9 +151,9 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
       </group>
       <group {...officeAssetPose('coat-hook')}>
         <mesh geometry={parts.hook} material={materials.brass} />
-        {box([.22,.008,.008],[0,state.variants['coat-hook'] ? .07 : -.06,-.04],materials.frame)}
+        <group userData={{ bake: 'dynamic' }}>{box([.22,.008,.008],[0,state.variants['coat-hook'] ? .07 : -.06,-.04],materials.frame)}</group>
       </group>
-      {shadow ? box([1.4,.004,.035],[3.42,.009,1.8],parts.shadowMaterial) : null}
+      <group userData={{ bake: 'dynamic' }}>{shadow ? box([1.4,.004,.035],[3.42,.009,1.8],parts.shadowMaterial) : null}</group>
       {OFFICE_OBJECTS.filter(object=>object.id!=='press').map(object=> (
         <group key={object.id} position={[officeInteractionAnchor(object.id)[0], officeInteractionAnchor(object.id)[1] + (object.id === 'chair' ? .15 : 0), officeInteractionAnchor(object.id)[2]]}>
           <mesh geometry={parts.cube} material={parts.hit} scale={object.id==='machine' ? [1.25,1.35,.75] : object.id==='service-panel' ? [1.1,2.3,.2] : object.id==='bell' ? [.7,.7,.7] : object.id==='chair' ? [.55,1.1,.6] : object.id==='coat-hook' ? [.8,.48,.48] : [.48,.48,.48]}

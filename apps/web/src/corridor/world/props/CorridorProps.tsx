@@ -8,6 +8,7 @@ import { startTouches, type Touches } from './ambientTouches.ts';
 import { makePropAtlas } from './atlas.ts';
 import { buildProps } from './build.ts';
 import { hitBoxes, pointerHandlers } from './hit.ts';
+import { Gramophone } from './gramophone/Gramophone.tsx';
 import { createPropMaterials, findDonors, type PropMaterials } from './materials.ts';
 import { NO_AMBIENT, type AmbientDrive } from './motion.ts';
 import { createPropsRig, type PropsRig } from './rig.ts';
@@ -118,6 +119,8 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
 
   return (
     <group ref={group} dispose={null}>
+      {/* The thirteenth thing in the lobby, apart from the twelve: it has its own behaviour, words and sound (see gramophone/). */}
+      <Gramophone reducedMotion={reducedMotion} />
       {hits.map((h) => (
         <mesh
           key={h.id}

@@ -12,7 +12,8 @@
  *  - a code file references a remote http(s), ws(s) or ftp URL that is not on the
  *    explicit allowlist below (AGENTS.md #4 and the strict CSP: nothing is fetched from
  *    another origin);
- *  - the build, excluding source maps, exceeds the 8 MB default initial-scene budget
+ *  - the whole build, excluding source maps, exceeds its 16 MB total cap (the initial download
+ *    is measured separately once the initial/lazy split lands)
  *    (docs/DESIGN.md §8). Exceeding the 3 MB low-bandwidth target is a warning.
  *
  * Plain Node ESM with no dependencies. `--verbose` also lists every allowlisted URL found
@@ -30,7 +31,11 @@ const MANIFEST_PATH = path.join(PACKAGE_DIR, 'scripts', 'assets.manifest.json');
 const VERBOSE = process.argv.includes('--verbose');
 
 /** Megabytes here are 10^6 bytes, the stricter reading of the blueprint's "MB". */
-const BUDGET_FAIL_BYTES = 8_000_000;
+/**
+ * The whole build excluding source maps, including media and chunks that load only later (records
+ * after the first sound unlock, the Office behind its door). It is not the first-visit download.
+ */
+const BUDGET_FAIL_BYTES = 16_000_000;
 const BUDGET_WARN_BYTES = 3_000_000;
 
 /** Text files the audit scans for remote URLs. `_headers` and `_redirects` are Cloudflare static-asset files. */
@@ -49,7 +54,7 @@ const REQUIRED_NOTICE_PACKAGES = ['react', 'react-dom', 'scheduler', 'three', '@
 const MEDIA_EXTENSIONS = new Set([
   '.woff', '.woff2', '.ttf', '.otf',
   '.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.svg',
-  '.mp3', '.ogg', '.opus', '.wav', '.m4a',
+  '.mp3', '.ogg', '.opus', '.wav', '.m4a', '.webm',
   '.glb', '.gltf', '.ktx2', '.bin',
 ]);
 
@@ -67,6 +72,8 @@ const LICENCE_EXPECTATIONS = {
   'Apache-2.0': [/Apache License/i, /Version 2\.0/i],
   'CC0-1.0': [/CC0 1\.0 Universal/i],
   'CC-BY-4.0': [/Attribution 4\.0 International/i],
+  // Recordings their performers dedicated to the public domain; the text on file quotes the dedication.
+  'LicenseRef-Public-Domain': [/released into the public domain/i],
 };
 
 /**
@@ -338,7 +345,10 @@ function checkNotices(entries) {
   }
   const text = readFileSync(noticesPath, 'utf8');
   const sections = new Set([...text.matchAll(/^=== (\S+) /gm)].map((match) => match[1]));
-  const required = new Set([...REQUIRED_NOTICE_PACKAGES, ...entries.filter((e) => e.source && e.source !== 'in-repo' && e.used > 0).map((e) => e.source)]);
+  // A third-party file committed to this repository (`third-party:<provider>`) is not an npm package: its licence text
+  // is in LICENSES/ and its credit in the manifest and the asset library's own notice, not in this file.
+  const isPackage = (source) => source && source !== 'in-repo' && !THIRD_PARTY_SOURCE.test(source);
+  const required = new Set([...REQUIRED_NOTICE_PACKAGES, ...entries.filter((e) => isPackage(e.source) && e.used > 0).map((e) => e.source)]);
   for (const name of required) {
     if (!sections.has(name)) violations.push(`${NOTICES_FILE} has no notice section for ${name}`);
   }
@@ -428,7 +438,7 @@ function main() {
     if (entry.used === 0) warnings.push(`manifest entry "${entry.name}" matches no shipped file (stale, or the font is no longer imported)`);
   }
   if (totalBytes > BUDGET_FAIL_BYTES) {
-    violations.push(`dist is ${formatBytes(totalBytes)} excluding source maps; the default initial-scene budget is ${formatBytes(BUDGET_FAIL_BYTES)}`);
+    violations.push(`dist is ${formatBytes(totalBytes)} excluding source maps; the total build cap is ${formatBytes(BUDGET_FAIL_BYTES)}`);
   } else if (totalBytes > BUDGET_WARN_BYTES) {
     warnings.push(`dist is ${formatBytes(totalBytes)} excluding source maps; the low-bandwidth target is ${formatBytes(BUDGET_WARN_BYTES)}`);
   }

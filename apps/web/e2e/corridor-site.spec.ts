@@ -80,7 +80,10 @@ async function engage(page: Page): Promise<void> {
 async function hero(page: Page): Promise<void> {
   await page.goto('/');
   await expectSpine(page, 'entrance');
-  await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
+  // Baked geometry and its first visible draw gate pose telemetry; wait for the scene before
+  // measuring or sending input so the assertions begin from a rendered camera state.
+  await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveAttribute('data-world', 'ready', { timeout: 60_000 });
+  await expect(canvas(page)).toHaveAttribute('data-pose', /,/, { timeout: 60_000 });
 }
 
 test.describe('hero drift', () => {

@@ -50,7 +50,7 @@ export function Wear({ inkPadOpen = false }: { inkPadOpen?: boolean } = {}) {
 
   return (
     <group dispose={null}>
-      <mesh geometry={geometry.lid} material={materials.tinWorn} receiveShadow />
+      <mesh userData={{ bake: 'dynamic' }} geometry={geometry.lid} material={materials.tinWorn} receiveShadow />
       <mesh geometry={geometry.sleeve} material={materials.brassWorn} receiveShadow />
       <mesh geometry={geometry.coffee} material={materials.wood} receiveShadow />
       <mesh geometry={geometry.concrete} material={materials.concreteFrame} receiveShadow />

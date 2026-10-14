@@ -1,0 +1,220 @@
+{
+  "$comment": [
+    "The records the lobby gramophone plays: what each is, where it came from, under which licence, and what was done to it. Hand-authored except `outputs` and `measured`, which build-records.mjs writes after it encodes. records/THIRD_PARTY.md is generated from this file; edit this file and rebuild, never the table.",
+    "Licence rules (the founder's, binding): the composition must be public domain worldwide (composer died before 1955 and the work was first published before 1931); the recording must be CC0 or public domain on its own source page, or CC BY 4.0 with its attribution recorded. ShareAlike, NonCommercial, NoDerivatives, 'free to use' without a licence, YouTube, stock-music terms, unclear provenance, AI-generated music and Internet Archive 78s without a clear licence are rejected. music.test.ts holds every record to this.",
+    "Each recording was verified on its own Wikimedia Commons file page (the second of the three sources in order: Musopen, Commons, European Open Music Archive): `source.revision` is the page revision read on the retrieval date, `licence.statement` quotes the licence line on that page, and `original.sha1` is the SHA-1 Commons publishes for the file, which matches the downloaded bytes. Musopen's own site answered the retrieval with a bot challenge (HTTP 403), so its pages could not be read; the Commons page names Musopen as the origin.",
+    "transforms: the same chain for every record. Trim to startS..endS, mix to mono (0.5 L + 0.5 R), high-pass 60 Hz and low-pass 7 kHz (the gramophone's own band is 250 Hz to 5 kHz and is applied at runtime, so nothing outside it is worth bits), gain by `gainDb` (measured so the record reaches `loudnessTargetLufs` integrated), a 5 ms-attack peak limiter at -1 dBFS, a short fade in and a longer fade out. No dynamic-range compression. Then two encodes of the same signal.",
+    "Bytes: all shipped files together stay under 3,000,000 bytes (`budgetBytes`). A visitor downloads one format, about half of that, and only after the first sound unlock."
+  ],
+  "retrieved": "2026-10-14",
+  "budgetBytes": 3000000,
+  "loudnessTargetLufs": -20,
+  "encoders": {
+    "ffmpeg": "8.1.2",
+    "opus": "libopus, 24 kb/s VBR, application audio, 60 ms frames, in WebM",
+    "aac": "ffmpeg native AAC-LC, 32 kb/s, 24 kHz, in MP4 with the index first"
+  },
+  "records": [
+    {
+      "id": "satie-gymnopedie-1",
+      "title": "Gymnopédie No. 1",
+      "composer": {
+        "name": "Erik Satie",
+        "born": 1866,
+        "died": 1925
+      },
+      "composition": {
+        "year": 1888,
+        "firstPublished": 1888,
+        "evidence": "Published in the magazine La Musique des familles in summer 1888 (https://en.wikipedia.org/wiki/Gymnop%C3%A9dies); composer's dates as given on the recording's Commons page."
+      },
+      "performer": "Robin Alciatore, for Musopen",
+      "source": {
+        "provider": "Wikimedia Commons",
+        "page": "https://commons.wikimedia.org/wiki/File:Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+        "revision": 1232019273,
+        "origin": "Musopen (http://www.musopen.com), uploaded to Commons on 2008-01-21"
+      },
+      "licence": {
+        "id": "LicenseRef-Public-Domain",
+        "name": "Public domain (performer's dedication)",
+        "url": "https://commons.wikimedia.org/wiki/Template:PD-author",
+        "statement": "{{PD-author|Robin Alciatore}}; Permission: \"Public domain music from musopen.com ... The music on this site is given a public domain license, therefore, there are technically no restrictions on what you do with it.\"",
+        "covers": "recording"
+      },
+      "attribution": "Gymnopédie No. 1 by Erik Satie (1888), performed by Robin Alciatore, recording from Musopen (musopen.org), public domain.",
+      "original": {
+        "file": "Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg",
+        "bytes": 3696351,
+        "sha256": "419e37656856224227086df32d6d481a00a738961e08fca9f6147e472beea53e",
+        "sha1": "96b2343c81047abd9723488d8540b5a2af688233"
+      },
+      "transforms": {
+        "startS": 2,
+        "endS": 181,
+        "fadeInS": 0.25,
+        "fadeOutS": 1.2
+      },
+      "outputs": [
+        {
+          "format": "opus-webm",
+          "codec": "opus",
+          "mime": "audio/webm; codecs=\"opus\"",
+          "path": "satie-gymnopedie-1.webm",
+          "bytes": 552946,
+          "sha256": "57639d8ead5c1630b876955c54c0920ab19c3ddbd7a74fbbda1f0f800be5f2ea",
+          "durationS": 179.01
+        },
+        {
+          "format": "aac-mp4",
+          "codec": "mp4a.40.2",
+          "mime": "audio/mp4; codecs=\"mp4a.40.2\"",
+          "path": "satie-gymnopedie-1.m4a",
+          "bytes": 738836,
+          "sha256": "f68c2cbd290c89c8323305d223c7e923734f6783d10ce15913ece4813d96b669",
+          "durationS": 179
+        }
+      ],
+      "measured": {
+        "sourceLufs": -30.3,
+        "sourcePeakDb": -11.1,
+        "gainDb": 10.3
+      }
+    },
+    {
+      "id": "chopin-waltz-a-minor",
+      "title": "Waltz in A minor, B. 150",
+      "composer": {
+        "name": "Frédéric Chopin",
+        "born": 1810,
+        "died": 1849
+      },
+      "composition": {
+        "year": 1848,
+        "firstPublished": 1860,
+        "evidence": "First published in 1860 by Jacques Maho, under Charlotte de Rothschild's name, and reattributed to Chopin in 1955 (https://en.wikipedia.org/wiki/Waltz_in_A_minor,_Op._posth._(Chopin)); composed 1843 to 1848 per the recording's Commons page."
+      },
+      "performer": "Aya Higuchi",
+      "source": {
+        "provider": "Wikimedia Commons",
+        "page": "https://commons.wikimedia.org/wiki/File:Chopin_-_Waltz_in_A_minor,_B_150.ogg",
+        "revision": 1123916601,
+        "origin": "Musopen (https://musopen.org/music/2617/frederic-chopin/waltz-in-am-b-150/), uploaded to Commons on 2015-01-18"
+      },
+      "licence": {
+        "id": "CC0-1.0",
+        "name": "CC0 1.0 Universal",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "statement": "Performance: {{Cc-zero}}; Music: {{PD-old-100}}",
+        "covers": "recording"
+      },
+      "attribution": "Waltz in A minor, B. 150 by Frédéric Chopin, performed by Aya Higuchi, recording from Musopen (musopen.org), CC0 1.0 Universal.",
+      "original": {
+        "file": "Chopin_-_Waltz_in_A_minor,_B_150.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f9/Chopin_-_Waltz_in_A_minor%2C_B_150.ogg",
+        "bytes": 3399788,
+        "sha256": "3baf37dc60162f5654e9748504a04a0169a2047663a64cda5d1960a64fc44451",
+        "sha1": "ff626662a42dc6f38eec168a07e4be0adc08b89c"
+      },
+      "transforms": {
+        "startS": 0.1,
+        "endS": 128.4,
+        "fadeInS": 0.25,
+        "fadeOutS": 1.2
+      },
+      "outputs": [
+        {
+          "format": "opus-webm",
+          "codec": "opus",
+          "mime": "audio/webm; codecs=\"opus\"",
+          "path": "chopin-waltz-a-minor.webm",
+          "bytes": 395593,
+          "sha256": "e41eb28a798fda3f7954a5c4141dde9dd994715acc72ee3d27a950b377a9c9b2",
+          "durationS": 128.31
+        },
+        {
+          "format": "aac-mp4",
+          "codec": "mp4a.40.2",
+          "mime": "audio/mp4; codecs=\"mp4a.40.2\"",
+          "path": "chopin-waltz-a-minor.m4a",
+          "bytes": 531021,
+          "sha256": "cf161e525cfa3fda93d5c44dc44e7003e60bd3f6e7a696ac71b5d8668a54065f",
+          "durationS": 128.3
+        }
+      ],
+      "measured": {
+        "sourceLufs": -25.5,
+        "sourcePeakDb": -4.5,
+        "gainDb": 5.5
+      }
+    },
+    {
+      "id": "schumann-at-the-fireside",
+      "title": "At the Fireside (Kinderszenen, Op. 15, No. 8)",
+      "composer": {
+        "name": "Robert Schumann",
+        "born": 1810,
+        "died": 1856
+      },
+      "composition": {
+        "year": 1838,
+        "firstPublished": 1838,
+        "evidence": "First edition Leipzig, Breitkopf und Härtel, plate 6016, 1838 (https://imslp.org/wiki/Kinderszenen,_Op.15_(Schumann,_Robert)); composer's dates as given on the recording's Commons page."
+      },
+      "performer": "Donald Betts, for Musopen (named in the file's own tags; the Commons page does not name the performer)",
+      "source": {
+        "provider": "Wikimedia Commons",
+        "page": "https://commons.wikimedia.org/wiki/File:Robert_Schumann_-_scenes_from_childhood,_op._15_-_viii._at_the_fireside.ogg",
+        "revision": 1227004738,
+        "origin": "Musopen (http://www.musopen.com), uploaded to Commons on 2008-01-22 under permission ticket 2008012110017088"
+      },
+      "licence": {
+        "id": "LicenseRef-Public-Domain",
+        "name": "Public domain (Musopen's dedication)",
+        "url": "https://commons.wikimedia.org/wiki/Template:PD-author",
+        "statement": "Music: {{PD-old-100}}; Recording: {{PD-author|[http://musopen.com Musopen]}}; Permission: \"Public domain music from musopen.com ... The music on this site is given a public domain license, therefore, there are technically no restrictions on what you do with it.\"",
+        "covers": "recording"
+      },
+      "attribution": "At the Fireside (Kinderszenen, Op. 15, No. 8) by Robert Schumann (1838), performed by Donald Betts, recording from Musopen (musopen.org), public domain.",
+      "original": {
+        "file": "Robert_Schumann_-_scenes_from_childhood,_op._15_-_viii._at_the_fireside.ogg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Robert_Schumann_-_scenes_from_childhood%2C_op._15_-_viii._at_the_fireside.ogg",
+        "bytes": 1104064,
+        "sha256": "46a0452af1350ed5beadcb8908cfee1cb4a901ef24b819ce13ef9f612c509c96",
+        "sha1": "80420579c3a2e184dbfab5eb53667a0716df5a75"
+      },
+      "transforms": {
+        "startS": 0.7,
+        "endS": 72.2,
+        "fadeInS": 0.25,
+        "fadeOutS": 1.2
+      },
+      "outputs": [
+        {
+          "format": "opus-webm",
+          "codec": "opus",
+          "mime": "audio/webm; codecs=\"opus\"",
+          "path": "schumann-at-the-fireside.webm",
+          "bytes": 222130,
+          "sha256": "4547cf841888b48646d8c52698fbfaa4142942a371d67feaf116458421ddf93b",
+          "durationS": 71.51
+        },
+        {
+          "format": "aac-mp4",
+          "codec": "mp4a.40.2",
+          "mime": "audio/mp4; codecs=\"mp4a.40.2\"",
+          "path": "schumann-at-the-fireside.m4a",
+          "bytes": 295372,
+          "sha256": "531226f80988248d7bd48002a9466a2bad35adbcd7d8d5d37ebc33b5abeb8038",
+          "durationS": 71.5
+        }
+      ],
+      "measured": {
+        "sourceLufs": -27.9,
+        "sourcePeakDb": -9.6,
+        "gainDb": 7.9
+      }
+    }
+  ]
+}
