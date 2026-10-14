@@ -40,7 +40,7 @@ test.describe('the corridor props', () => {
       await page.goto(url);
       await expectSpine(page, 'entrance');
       await propsReady(page);
-      await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+      await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
       await expectSpine(page, 'corridor');
       // Let the first frames of the corridor draw with the props in them.
       await page.waitForTimeout(2500);
@@ -52,7 +52,7 @@ test.describe('the corridor props', () => {
     test.setTimeout(150_000);
     const noise = listen(page);
     await page.goto('/');
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await propsReady(page);
     await door(page, 'The Certification Office', 'open').focus();

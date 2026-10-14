@@ -78,7 +78,8 @@ describe('Office navigation', () => {
     for (const pose of Object.values(VIEWPOINTS)) expect(isWalkable(pose.x, pose.z)).toBe(true);
   });
 
-  it('routes every named viewpoint pair through walkable segments', () => {
+  // Plans every viewpoint pair: about 2 s on a quiet machine, more on a loaded one or a CI runner.
+  it('routes every named viewpoint pair through walkable segments', { timeout: 30_000 }, () => {
     for (const from of names) for (const to of names) {
       let previous = VIEWPOINTS[from];
       const route = routeBetween(previous, VIEWPOINTS[to]);

@@ -22,6 +22,7 @@ test.describe('3D office', () => {
     await page.goto(OFFICE);
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
     await roomReady(page);
+    await approachDesk(page);
   });
 
   test('Space and Enter on the stamp button drive the same stamp', async ({ page }) => {

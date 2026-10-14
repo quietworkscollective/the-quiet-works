@@ -66,7 +66,10 @@ describe('baked lighting contract', () => {
   });
   it('fingerprints canvas textures from their source inputs, not rasterized pixels', async () => {
     const texture = new Texture();
-    texture.image = { width: 32, height: 16 };
+    texture.image = {
+      get width() { throw new Error('Rendered width must not enter a fingerprint'); },
+      get height() { throw new Error('Rendered height must not enter a fingerprint'); },
+    };
     const material = new MeshStandardMaterial({ map: texture });
     const createElement = vi.fn(() => ({
       width: 0,

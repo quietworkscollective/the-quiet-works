@@ -21,6 +21,7 @@ export async function roomReady(page: Page): Promise<void> {
 /** One full stamp through the keyboard path: Space down (contact), Space up (lift). */
 export async function stampWithKeyboard(page: Page, key: 'Space' | 'Enter' = 'Space'): Promise<void> {
   await roomReady(page);
+  await approachDesk(page);
   const before = Number(await app(page).getAttribute('data-stamps'));
   await stampButton(page).focus();
   await page.keyboard.down(key);
@@ -122,6 +123,12 @@ export async function closeMenu(page: Page): Promise<void> {
 
 /** The Office station is reached before pointer/touch press tests operate the physical handle. */
 export async function approachDesk(page: Page): Promise<void> {
+  const places = page.locator('.tqw-places');
+  const wasOpen = await places.evaluate((node: HTMLDetailsElement) => node.open);
+  if (!wasOpen) {
+    await places.locator('summary').click();
+  }
   await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
   await expect(app(page)).toHaveAttribute('data-station', 'desk');
+  if (!wasOpen) await places.locator('summary').click();
 }

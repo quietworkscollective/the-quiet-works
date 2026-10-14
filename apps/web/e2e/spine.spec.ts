@@ -155,7 +155,7 @@ test.describe('deep links and pages', () => {
     await (await openMenu(page)).getByRole('link', { name: 'About' }).click();
     await expect(page).toHaveURL(/\/about$/);
     const about = page.getByRole('dialog', { name: 'About UNHELD' });
-    await expect(about).toContainText('It is an artwork.');
+    await expect(about).toContainText('It is an artwork, not a support service.');
     await about.getByRole('link', { name: 'Privacy' }).click();
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByRole('dialog', { name: 'Privacy' })).toContainText('no cookies');

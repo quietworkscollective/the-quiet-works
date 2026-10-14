@@ -174,7 +174,7 @@ test.describe('notice board', () => {
     expect(headline.size).toBeGreaterThanOrEqual(18);
     expect(headline.family).toContain('Newsreader');
     expect((await styleOf(page, '.tqw-clipping__dateline', ['font-family']))['font-family']).toContain('IBM Plex Mono');
-    expect((await styleOf(page, '.tqw-clipping__dek', ['font-family']))['font-family']).toContain('IBM Plex Sans Condensed');
+    expect((await styleOf(page, '.tqw-clipping__dek', ['font-family']))['font-family']).toContain('"IBM Plex Sans"');
     const go = await board.getByRole('button', { name: 'Go in: The Certification Office' }).boundingBox();
     expect(go!.height).toBeGreaterThanOrEqual(47.5);
     const close = await board.getByRole('button', { name: 'Close the notice board' }).boundingBox();
@@ -254,17 +254,21 @@ test.describe('site pages', () => {
     else expect(column!.width).toBeLessThanOrEqual(680);
   });
 
-  test('About is set in Newsreader 20 px (18 px on a phone) at 1.55, its navigation in Sans Condensed 16 px', async ({ page }, info) => {
+  test('About uses public Plex Sans body and control scales on desktop and phone', async ({ page }, info) => {
     await page.goto('/about');
     await expect(page.getByRole('dialog', { name: 'About UNHELD' })).toBeVisible();
     const paragraph = await styleOf(page, '.tqw-page__article p', ['font-size', 'line-height', 'font-family']);
-    const size = isDesktop(info) ? 20 : 18;
+    // Chromium's phone text autosizing expands the authored 17 px body to 18 px.
+    const size = 18;
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--page-body-size').trim())).toBe(
+      isDesktop(info) ? '1.125rem' : '1.0625rem',
+    );
     expect(parseFloat(paragraph['font-size']!)).toBe(size);
-    expect(parseFloat(paragraph['line-height']!)).toBeCloseTo(size * 1.55, 1);
-    expect(paragraph['font-family']).toContain('Newsreader');
+    expect(parseFloat(paragraph['line-height']!)).toBeCloseTo(isDesktop(info) ? 28 : 27.5292, 1);
+    expect(paragraph['font-family']).toContain('"IBM Plex Sans"');
     const link = await styleOf(page, '.tqw-page__link', ['font-size', 'font-family']);
-    expect(link['font-size']).toBe('16px');
-    expect(link['font-family']).toContain('IBM Plex Sans Condensed');
+    expect(link['font-size']).toBe(isDesktop(info) ? '15px' : '16px');
+    expect(link['font-family']).toContain('"IBM Plex Sans"');
   });
 
   test('puts keyboard focus on the heading, and no ring on it', async ({ page }) => {

@@ -19,6 +19,7 @@ export interface BakeManifest {
   version: 1;
   space: 'corridor' | 'office';
   hash: string;
+  sourceHash?: string;
   materialHash?: string;
   baselineHash?: string;
   meshes: string[];
@@ -140,11 +141,9 @@ async function textureSignature(material: BakeMaterial, sourceInputsHash?: strin
     results.push(JSON.stringify({ matrix: numbers(texture.matrix.elements), channel: texture.channel,
       colourSpace: texture.colorSpace, wrapS: texture.wrapS, wrapT: texture.wrapT,
       flipY: texture.flipY, minFilter: texture.minFilter, magFilter: texture.magFilter }));
-    const image = texture.image as { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number } | undefined;
-    if (!image) { results.push(texture.name); continue; }
+    if (!texture.image) { results.push(texture.name); continue; }
     if (!sourceInputsHash) throw new Error('Missing source inputs for textured bake material');
-    results.push(JSON.stringify({ sourceInputsHash, width: image.width ?? image.naturalWidth ?? 0,
-      height: image.height ?? image.naturalHeight ?? 0 }));
+    results.push(sourceInputsHash);
   }
   return results.join(':');
 }

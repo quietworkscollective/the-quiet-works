@@ -106,7 +106,7 @@ function handoverYaw(page: Page): number {
  * captures input: until this, the wheel and the walking keys belong to the page.
  */
 async function engage(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
   await settle(page);
 }
@@ -718,7 +718,7 @@ test.describe('gestures', () => {
     await page.keyboard.press('KeyW');
     await page.waitForTimeout(300);
     expect(await audioContexts(page)).toBe(0);
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).focus();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).focus();
     await page.keyboard.press('Enter');
     await expect.poll(() => audioContexts(page)).toBeGreaterThan(0);
     await expect(site(page)).toHaveAttribute('data-engaged', 'true');

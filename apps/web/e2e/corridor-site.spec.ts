@@ -73,7 +73,7 @@ function handoverYaw(page: Page): number {
  * the wheel and the keys are the window's only once it is engaged, which the page shell owns.
  */
 async function engage(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
 }
 

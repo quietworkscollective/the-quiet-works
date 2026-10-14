@@ -2,8 +2,8 @@
   "version": 1,
   "space": "corridor",
   "hash": "f91c1ca1275de38aee29604d4a4ba5484188296bdc346538cc4bda6c5a929fc0",
-  "materialHash": "56eab4f3cffa161684d392e0d7e30f4f56c46bcb76abef304518828485723622",
-  "baselineHash": "1945794a85b72222028911c421ea1a6bc33e3859baeccd5c84da0585b8bc7724",
+  "materialHash": "4604b665246f5645b10f46d5dc21cff65a91c6c14a6c1dcf327b93085f43e951",
+  "baselineHash": "75ca7f632751b3dadd98cb1fd3fa646d38da059cf6aba4ae5eef1692e42e2998",
   "meshes": [
     "0d358b9d667c0ce1db7cbc85d5cf7b40d315ee10283c4c05c8ec83d3238ba266",
     "2a028691ab027b831ea3299ac6404f06d1a45a30976bccfc2b98543669502895",
@@ -626,9 +626,9 @@
       "file": "corridor-0.webp",
       "width": 1856,
       "height": 928,
-      "scale": 18.81387710571289,
+      "scale": 18.813858032226562,
       "encoding": "srgb-scale",
-      "bytes": 327588,
+      "bytes": 327506,
       "density": {
         "near": {
           "min": 17.19186137691144,
@@ -638,5 +638,6 @@
         }
       }
     }
-  ]
+  ],
+  "sourceHash": "c97fd4e83356dbaae068c15c46a8efc844391d33c02ae33e6afe840c8d4c7dfb"
 }

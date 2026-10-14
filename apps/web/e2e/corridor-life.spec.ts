@@ -55,7 +55,7 @@ test.describe('the lobby board', () => {
     await page.goto('/');
     await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-office-hours', 'open');
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await expect(canvas(page)).toHaveAttribute('data-office-hours', 'open');
   });

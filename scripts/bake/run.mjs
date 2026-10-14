@@ -1,15 +1,13 @@
 import { splitGeometry } from './split.mjs';
 import { measureEncoding } from './measure-encoding.mjs';
 import { webpArgs } from './webp.mjs';
-import { createHash } from 'node:crypto';
+import { sourceInputs, assertSourceFresh } from './inputs.mjs';
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile, stat, cp, readdir } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, stat, cp } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
-const { chromium } = require('@playwright/test');
 const ansiEscape = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
 const checking = process.argv.includes('--check');
 const requested = process.argv.find(s => ['corridor','office'].includes(s));
@@ -17,44 +15,23 @@ const spaces = checking ? (requested ? [requested] : ['corridor', 'office']) : [
 if (spaces.some(s => !['corridor','office'].includes(s))) throw new Error('Usage: pnpm bake corridor|office');
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const cache = path.join(root, '.bake-cache');
-async function collectFiles(directory, include) {
-  const files = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const file = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...await collectFiles(file, include));
-    else if (entry.isFile() && include(file)) files.push(file);
+// Freshness uses only authored bytes; checks need neither a browser nor Blender.
+await mkdir(cache, { recursive: true });
+const inputs = new Map();
+for (const space of spaces) {
+  const input = await sourceInputs(root, space);
+  inputs.set(space, input.hash);
+  await writeFile(path.join(cache, `${space}-inputs.json`), JSON.stringify(input, null, 2)+'\n');
+  if (checking) {
+    const manifest = JSON.parse(await readFile(path.join(root, `apps/web/src/baked/assets/${space}.manifest.json`), 'utf8'));
+    assertSourceFresh(space, manifest, input.hash);
+    console.log(`${space}: source fingerprint matches ${input.hash} (${input.files.length} files)`);
   }
-  return files;
 }
-async function sourceInputsHash(space) {
-  // Canvas pixels vary by host, so fingerprints use authored source files and static assets.
-  const roomRoot = space === 'corridor' ? 'apps/web/src/corridor/world' : 'apps/web/src/chambers/certification-office/scene';
-  const authoredAsset = file => /\.(css|woff2?|ttf|otf|png|jpe?g|webp|svg|avif)$/i.test(file);
-  // Keep generated manifests and lightmaps out of their own input digest.
-  const bakedAssets = `${path.join(root, 'apps/web/src/baked/assets')}${path.sep}`;
-  const roots = [
-    { directory: path.join(root, roomRoot), include: () => true },
-    { directory: path.join(root, 'packages/engine/src'), include: () => true },
-    { directory: path.join(root, 'apps/web/src'), include: file => authoredAsset(file) && !file.startsWith(bakedAssets) },
-    { directory: path.join(root, 'apps/web/public'), include: authoredAsset },
-  ].filter(source => existsSync(source.directory));
-  const manifests = ['package.json', 'pnpm-lock.yaml', 'apps/web/package.json', 'packages/engine/package.json', 'packages/ui/package.json', 'apps/web/src/main.tsx']
-    .map(file => path.join(root, file)).filter(existsSync);
-  const files = [...new Set([...manifests, ...(await Promise.all(roots.map(source => collectFiles(source.directory, source.include)))).flat()])]
-    .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-  if (files.length === 0) throw new Error(`No source inputs found for ${space} bake`);
-  const hash = createHash('sha256');
-  for (const file of files) {
-    hash.update(path.relative(root, file).split(path.sep).join('/'));
-    hash.update('\0');
-    hash.update(await readFile(file));
-    hash.update('\0');
-  }
-  return hash.digest('hex');
-}
+if (checking) process.exit(0);
+const { chromium } = require('@playwright/test');
 const port = Number(process.env.BAKE_PORT ?? 5186);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('BAKE_PORT must be a valid TCP port');
-await mkdir(cache, { recursive: true });
 const server = spawn('pnpm', ['--filter','@tqw/web','dev','--config','../../scripts/bake/vite.config.ts','--port',String(port),'--strictPort'], { cwd: root, detached: true, stdio: ['ignore','pipe','pipe'] });
 let serverLog = '';
 server.stdout.on('data', d => { serverLog += d; }); server.stderr.on('data', d => { serverLog += d; });
@@ -67,11 +44,11 @@ await new Promise((resolve, reject) => {
 });
  const angle = process.env.BAKE_BROWSER_ANGLE ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader');
  if (!['metal','swiftshader'].includes(angle)) throw new Error('BAKE_BROWSER_ANGLE must be metal or swiftshader');
- // The material fingerprints include canvas artwork; keep its raster path independent of ANGLE.
+ // Canvas export is only for Blender; rendered pixels never enter freshness checks.
  browser = await chromium.launch({ args: [`--use-angle=${angle}`, '--ignore-gpu-blocklist', '--disable-accelerated-2d-canvas', ...(angle === 'swiftshader' ? ['--enable-unsafe-swiftshader'] : [])] });
   for (const space of spaces) {
     const started = performance.now();
-    const sourceHash = await sourceInputsHash(space);
+    const sourceHash = inputs.get(space);
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce', timezoneId: 'Etc/UTC' });
     // The corridor clock hands read local time each frame; use a stable pose across build hosts.
     await page.clock.setFixedTime(new Date('2026-10-14T12:00:00.000Z'));
@@ -95,13 +72,7 @@ await new Promise((resolve, reject) => {
       }
     }
     const result = await page.evaluate(hash => window.__bake.export(hash), sourceHash);
-    if (checking) {
-      await writeFile(path.join(cache, `${space}-checked.json`), JSON.stringify(result.manifest, null, 2));
-      const manifest = JSON.parse(await readFile(path.join(root,`apps/web/src/baked/assets/${space}.manifest.json`), 'utf8'));
-      if (manifest.hash !== result.manifest.hash || manifest.materialHash !== result.manifest.materialHash || manifest.baselineHash !== result.manifest.baselineHash || manifest.atlases.some(a=>a.encoding!=='srgb-scale')) throw new Error(`Stale ${space} bake; run pnpm bake ${space}`);
-      console.log(`${space}: static fingerprint matches ${manifest.hash}`);
-      await page.close(); continue;
-    }
+    result.manifest.sourceHash = sourceHash;
     const dir = path.join(cache, space); await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, 'source.glb'), Buffer.from(result.glb, 'base64'));
     await writeFile(path.join(dir, 'source.json'), JSON.stringify(result.manifest, null, 2));

@@ -48,7 +48,7 @@ async function toHandOver(page: Page): Promise<void> {
 
 /** Arriving by scroll captures nothing (ADR 0003); a visitor who means to walk presses Enter. */
 async function engage(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(page.locator('.tqw-site')).toHaveAttribute('data-engaged', 'true');
   await settle(page);
 }
