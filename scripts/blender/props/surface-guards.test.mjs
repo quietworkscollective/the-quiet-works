@@ -70,9 +70,11 @@ test('box-file cloth stays dark without broad mottling', () => {
   assert.match(source, /spine_spots = \(\[dict\(at=\(0\.0, -D \/ 2, 0\.05\), radius=\(0\.013, 0\.006, 0\.016\)/);
 });
 
-test('box-file front cloth has no nearly coplanar marbled backing', { timeout: 30_000 }, () => {
-  const blender = process.env['BLENDER'] ?? '/Applications/Blender.app/Contents/MacOS/Blender';
-  assert.ok(existsSync(blender), `Blender executable not found: ${blender}`);
+const blender = process.env['BLENDER'] ?? '/Applications/Blender.app/Contents/MacOS/Blender';
+
+// An authoring guard: it runs Blender, so it runs where props are built and is skipped, with this
+// reason, on machines without Blender (CI). The props' committed files are checked by other tests.
+test('box-file front cloth has no nearly coplanar marbled backing', { timeout: 30_000, skip: existsSync(blender) ? false : `Blender is not installed (${blender})` }, () => {
   const scriptPath = mkdtempSync(join(tmpdir(), 'tqw-box-file-guard-'));
   const script = join(scriptPath, 'inspect.py');
   const python = `
