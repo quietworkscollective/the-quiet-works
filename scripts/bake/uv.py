@@ -32,6 +32,13 @@ def charts(objects, width, height, space):
             if space == 'corridor':
                 region = 'near' if max(zs) > -24 else 'distant'
                 target = 24 if region == 'near' else 12
+            elif space == 'exchange':
+                if min(zs) < -5:
+                    region, target = 'switchboard', 28
+                elif all(-1.4 < v.x < 1.4 and 0.8 < v.y < 2.5 and v.z < 1.45 for v in world):
+                    region, target = 'desk', 48
+                else:
+                    region, target = 'foreground', 32
             elif min(zs) > 8:
                 region, target = 'archive', 12
             elif all(-2.4 < v.x < .6 and 3.1 < -v.y < 4.9 and v.z < 1.3 for v in world):
@@ -98,7 +105,7 @@ def allocate(objects, width, height, space):
         raise RuntimeError('No measurable lightmap charts')
     print('MEASURED DENSITY', report, flush=True)
     for region, values in report.items():
-        minimum = 16 if space == 'corridor' and region == 'near' else 8 if region in ('archive','distant') else values['target']
+        minimum = 16 if (space == 'corridor' and region == 'near') or space == 'exchange' else 8 if region in ('archive','distant') else values['target']
         if values['min'] < minimum * .99:
             raise RuntimeError(f'Atlas density shortfall: {region} {values["min"]:.2f} < {minimum} texels/m')
     return report

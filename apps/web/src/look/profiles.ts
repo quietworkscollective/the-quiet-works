@@ -36,6 +36,8 @@ export interface LookProfile {
   readonly bloom: {
     readonly strength: number;
     readonly radius: number;
+    /** Number of successive mip levels used to spread a lamp's glow. */
+    readonly levels: number;
     /** HDR luminance (linear, before tone mapping) above which a pixel blooms. */
     readonly threshold: number;
     /** The mobile tier may bloom at reduced resolution; off unless a space asks for it. */
@@ -83,7 +85,7 @@ export interface LookProfile {
 export const CORRIDOR_LOOK: LookProfile = {
   space: 'corridor',
   ao: { radius: 0.25, intensity: 0.4, quality: 'Low', distanceFalloff: 1, tint: '#7A5A3A' },
-  bloom: { strength: 0.15, radius: 0.2, threshold: 1.1, mobile: { enabled: false, scale: 0.5 } },
+  bloom: { strength: 0.15, radius: 0.2, levels: 2, threshold: 1.1, mobile: { enabled: false, scale: 0.5 } },
   lut: { intensity: 0.3, mobileIntensity: 0.3 },
   vignette: { amount: 0.05, inner: 0.5 },
   grain: { amount: 0.03 },
@@ -95,7 +97,7 @@ export const CORRIDOR_LOOK: LookProfile = {
 export const LANDING_LOOK: LookProfile = {
   space: 'landing',
   ao: { radius: 0.25, intensity: 0.38, quality: 'Low', distanceFalloff: 1, tint: '#7A5A3A' },
-  bloom: { strength: 0.14, radius: 0.2, threshold: 1.1, mobile: { enabled: false, scale: 0.5 } },
+  bloom: { strength: 0.14, radius: 0.2, levels: 6, threshold: 1.1, mobile: { enabled: false, scale: 0.5 } },
   lut: { intensity: 0.3, mobileIntensity: 0.3 },
   vignette: { amount: 0, inner: 0.5 },
   grain: { amount: 0.03 },
@@ -107,17 +109,32 @@ export const LANDING_LOOK: LookProfile = {
 export const OFFICE_LOOK: LookProfile = {
   space: 'office',
   ao: { radius: 0.3, intensity: 0.45, quality: 'Low', distanceFalloff: 1, tint: '#7A5A3A' },
-  bloom: { strength: 0.16, radius: 0.2, threshold: 1.3, mobile: { enabled: false, scale: 0.5 } },
+  bloom: { strength: 0.16, radius: 0.2, levels: 6, threshold: 1.3, mobile: { enabled: false, scale: 0.5 } },
   lut: { intensity: 0.3, mobileIntensity: 0.7 },
   vignette: { amount: 0.05, inner: 0.5 },
   grain: { amount: 0.035 },
   exposure: EXPOSURE,
   environment: { intensity: 0.15, ceilingKelvin: 3000, windowKelvin: 6500, windowWeight: 0.55, floorBounceWeight: 0.08 },
-  atmosphere: ATMOSPHERES.office,
+  atmosphere: {
+    ...ATMOSPHERES.office,
+    heightFog: ATMOSPHERES.office.heightFog.map(layer => ({...layer, density: layer.density * .35})),
+    cones: {...ATMOSPHERES.office.cones, specs: ATMOSPHERES.office.cones.specs.map(spec => spec.lamp === 'window' ? {
+      ...spec, kelvin: 3100, halfAngleDeg: 20, length: 8, opacity: .008, patch: .25,
+      gobo: {columns: 11, rows: 3, bar: .1, soft: .08},
+    } : {...spec, opacity: spec.lamp === 'desk-lamp' ? .015 : .005, patch: spec.lamp === 'desk-lamp' ? .18 : .02})},
+  },
+};
+
+export const EXCHANGE_LOOK: LookProfile = {
+  ...OFFICE_LOOK,
+  space: 'exchange',
+  bloom: { ...OFFICE_LOOK.bloom, strength: 0.14, threshold: 1.15 },
+  atmosphere: ATMOSPHERES.exchange,
 };
 
 export const LOOK_PROFILES: Readonly<Record<SpaceId, LookProfile>> = {
   corridor: CORRIDOR_LOOK,
   landing: LANDING_LOOK,
   office: OFFICE_LOOK,
+  exchange: EXCHANGE_LOOK,
 };

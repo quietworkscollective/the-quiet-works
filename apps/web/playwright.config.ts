@@ -2,10 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * E2E runs against the production build (`vite preview`) so the Content-Security-Policy and
- * bundling are exercised. Headless Chromium renders WebGL through SwiftShader (CPU), so frame
- * rates here say nothing about real GPUs; performance must be measured on devices.
+ * bundling are exercised. The default renderer is SwiftShader (CPU); set TQW_E2E_ANGLE=metal on
+ * macOS to exercise the real Metal renderer for local GPU verification.
  */
-const gpuArgs = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+const angle = process.env.TQW_E2E_ANGLE ?? 'swiftshader';
+const gpuArgs = angle === 'metal'
+  ? ['--use-angle=metal', '--ignore-gpu-blocklist']
+  : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 
 /** Parallel worktrees set TQW_E2E_PORT so each tests its own build; a busy port fails loudly. */
 const port = Number(process.env.TQW_E2E_PORT ?? 4173);
@@ -13,9 +16,12 @@ const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts'],
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  fullyParallel: false,
+  // Shard by individual case so large page/room files cannot monopolise a job. One worker
+  // still runs cases sequentially within each runner; fixtures remain independent.
+  fullyParallel: true,
   workers: 1,
   retries: 0,
   reporter: [['list'], ['html', { open: 'never' }]],

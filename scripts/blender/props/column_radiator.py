@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from propkit import Built, geo, kit, mats  # noqa: E402
 
 PROPS = [
-    dict(id='column-radiator-6', title='Column radiator, six sections', tier='hero', texture=1024, columns=6, ao_distance=0.08),
-    dict(id='column-radiator-10', title='Column radiator, ten sections', tier='hero', texture=1024, columns=10, ao_distance=0.08),
+    dict(id='column-radiator-6', title='Column radiator, six sections', tier='hero', texture=1024, columns=6, ao_distance=0.08, finish='cream'),
+    dict(id='column-radiator-10', title='Column radiator, ten sections', tier='hero', texture=1024, columns=10, ao_distance=0.08, finish='dark'),
 ]
 
 PITCH = 0.0475
@@ -43,10 +43,17 @@ def leg_profile():
 def build(spec, root):
     n = spec['columns']
     width = n * PITCH
-    paint = mats.painted('teal paint', color='#2F6A63', age=0.85, seed=31.0, roughness=0.52, edge_radius=0.003, chip_amount=0.8,
-                         substrate='#34302D', cav_dist=0.05, rub_color=(0.36, 0.42, 0.38, 1.0), dust=0.6, streaks=0.5, scuffs=0.7, smudge=0.5,
-                         floor_grime=(0.16, 0.75), heat=(0.35, 0.7, 0.55), yellowing=0.3,
-                         spots=[dict(at=(0.0, 0.0, Z_HEAD1), radius=(0.3, 0.06, 0.012), strength=0.6)])
+    spots = [dict(at=(0.0, 0.0, Z_HEAD1), radius=(0.3, 0.06, 0.012), strength=0.6)]
+    if spec['finish'] == 'cream':
+        # the Office's radiators: oil-based cream gloss over iron, even and a little tired, yellowed at the head
+        paint = mats.enamel('cream enamel', color='#ABA38C', chip_metal='#3A3632', age=0.8, seed=31.0, roughness=0.44, edge_radius=0.0021,
+                            chip_amount=0.75, chip_radius=0.008, rust=0.4, cav_dist=0.05, rub_color=(0.44, 0.40, 0.31, 1.0), dust=0.7, streaks=0.35, scuffs=0.35,
+                            smudge=0.4, floor_grime=(0.16, 0.75), heat=(0.40, 0.70, 0.35), yellowing=0.35, variation=0.08, spots=spots)
+    else:
+        # the corridor's: dark bottle-green enamel, hard and glossy, chipped at the edges to rusty iron
+        paint = mats.enamel('dark enamel', color='#2A3A30', chip_metal='#3F3732', age=0.8, seed=31.0, roughness=0.38, edge_radius=0.0021,
+                            chip_amount=0.75, chip_radius=0.008, rust=0.55, cav_dist=0.05, rub_color=(0.27, 0.32, 0.28, 1.0), dust=0.75, streaks=0.35, scuffs=0.35,
+                            smudge=0.45, floor_grime=(0.16, 0.6), heat=(0.40, 0.70, 0.35), yellowing=0.2, variation=0.06, spots=spots)
     brass = mats.brass('brass valve', age=0.55, seed=32.0, rough_lo=0.34, rough_hi=0.55, cav_dist=0.008, edge_radius=0.0012,
                        spots=[dict(at=(width / 2 + 0.034, 0.0, WHEEL_Z + 0.003), radius=(0.026, 0.026, 0.008))])
     pipe = mats.worn_metal('copper', bright='#DB9068', mid='#B06A45', dull='#6E3E27', deep='#2F1A12', age=0.6, seed=33.0,
@@ -118,7 +125,7 @@ def build(spec, root):
     w = kit.add_part(root, 'valve_wheel', wheel, [brass], location=(width / 2 + 0.034, 0.0, WHEEL_Z))
     return Built(root, [rad, w], moving=['valve_wheel'], stage='floor',
                  view=dict(target=(0, 0, 0.35), distance=2.2, azimuth=30),
-                 detail=dict(target=(width / 2 - 0.05, 0.0, 0.12), distance=0.55, azimuth=-28, elevation=14),
+                 detail=dict(target=(width / 2 - 0.05, 0.0, 0.12), distance=0.4, azimuth=-28, elevation=14),
                  notes={'valve_wheel': 'rotates about its own vertical (Y after export) axis'})
 
 

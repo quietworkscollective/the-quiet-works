@@ -3,8 +3,14 @@ import { Mesh, type Scene, type WebGLRenderer } from 'three';
 import { exportSpace } from './export.ts';
 
 if (!import.meta.env.DEV) throw new Error('The lighting workbench is development-only');
-const space = new URLSearchParams(location.search).get('space') === 'office' ? 'office' : 'corridor';
-history.replaceState(null, '', `${space === 'office' ? '/certification-office' : '/'}?quality=high&bake=off`);
+const requestedSpace = new URLSearchParams(location.search).get('space');
+const space = requestedSpace === 'office' ? 'office'
+  : requestedSpace === 'codex-room' ? 'codex-room'
+    : requestedSpace === 'exchange' ? 'exchange' : 'corridor';
+const route = space === 'office' ? '/certification-office'
+  : space === 'codex-room' ? '/outline-room'
+    : space === 'exchange' ? '/the-exchange' : '/';
+history.replaceState(null, '', `${route}?quality=high&bake=off`);
 await import('../main.tsx');
 const dev = window as unknown as {
   __tqwA1?: { scene: Scene; freeze(): void; render(): { calls: number } };

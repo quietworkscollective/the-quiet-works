@@ -10,12 +10,12 @@ export function InspectionLamp({ understood }: { understood: boolean }) {
   const spot = useRef<SpotLight>(null);
   const shade = useRef<Group>(null);
   const at = useRef(0);
-  const fixture = useMemo(() => new Vector3(3, 3.7, 1.8), []);
+  const fixture = useMemo(() => new Vector3(3, 3.7, 6.7), []);
   const down = useMemo(() => new Vector3(0, -1, 0), []);
-  const initial = useMemo(() => new Vector3(3.35, .45, 3.3), []);
-  const understoodAim = useMemo(() => new Vector3(4.12, .01, 1.8), []);
+  const initial = useMemo(() => new Vector3(3.35, .45, 5.4), []);
+  const understoodAim = useMemo(() => new Vector3(4.12, .01, 6.7), []);
   const start = useMemo(() => new Vector3(), []);
-  const aim = useMemo(() => new Vector3(3.35, .45, 3.3), []);
+  const aim = useMemo(() => new Vector3(3.35, .45, 5.4), []);
   const target = useMemo(() => new Object3D(), []);
   const geometry = useMemo(() => new CylinderGeometry(.085,.12,.16,16), []);
   const direction = useMemo(() => new Vector3(), []);
@@ -39,7 +39,7 @@ export function InspectionLamp({ understood }: { understood: boolean }) {
   });
   return <>
     <primitive object={target} />
-    <group ref={shade} position={[3,3.7,1.8]}>
+    <group ref={shade} position={[3,3.7,6.7]}>
       <mesh geometry={geometry} material={materials.enamelDark} />
       <spotLight ref={spot} color="#dfc59d" intensity={2.8} distance={5} angle={.52} penumbra={.8} />
     </group>

@@ -1,102 +1,57 @@
 {
   "version": 1,
   "space": "office",
-  "hash": "0b8c2940be38c14f8880aafd2b9104fd233d69b27b88f50d7471f3e988d6472b",
-  "materialHash": "2e8221e698561b231068113691b16038ca245bf1c542abfefcc3f6c4afdc5f5e",
-  "baselineHash": "9e8c7edcdfdde63b4cab22567596b87e3811678576a16b25d6866839964958f4",
+  "hash": "60bf146ccb0d4ef0c56feef49c05ea45a23d09394e0e6d7f836568108983e182",
+  "materialHash": "bb3356c150ad1a98c3d2097d25d4e0a9cc4ff673e2a62324e0de27bbec1d239c",
+  "baselineHash": "24bfb5ca1eee0d6a6e6b0008123cc598e158bf33fe4f927234e8479941b1004c",
   "meshes": [
     "056184693e05ebf0b836c3444bec9a0fa9b44de44e607254a8c41078e1bb4026",
-    "065d0013ca73a3da4559dcde27031217de232131919a18d5342b12328cd1c231",
     "08bd7927cc424ea441e326a353c901c3029c061513bd62b6b93980e2e52ab696",
+    "0a4ba43da80ad9b66d3d85ea319d3d26fa09ca4e76311d7232cc7c02b57faa71",
+    "0aeb2edf7f18f330f21c689c2cbd767eea02f6068744697738a8ede331b98677",
     "0eaa5ea53bf28afeea45b2d06d75dd3c0b3422d945c2129eba706c64dd9ad898",
-    "115b7af79a0c9a34248e2b915a9bdc498475958c57bfc75791cbd16f7f68e518",
-    "158ed15f25e7b575b985075417d1e0cf12cf1ec4e0644604440038deafae48bc",
-    "1666bac75aa83e47ad4f9a75b85a4a07448a08d7116874b7b4686c1d55a7f63c",
-    "1ca7a697a183ea988d21f6ae9fd3b4d92e79e38b2d70432b96645dcb5313e241",
-    "2cf50fa0103bfa196ea9f32ad0f79d8fac8e2a06009eaeb821a7696483979805",
-    "2f7f6266d6ba33e4d48449bee98a1fa0a5b1adb15d1aaeac9d75371a82e209a9",
-    "304b49356333cfb9db1276e3a73cc6a1c74a9109cf98e0e629cc77f01d078ca0",
-    "30b44bd37842a19a7e160ad0ff8d870b76244e3bd6c5e328635ff5ecd7befc7e",
-    "33e397a9850bcbc93f1be6242bbb9571aeda468e0604cae7a5549e2650b25de6",
-    "3567bc34af228dd40da51b1b812ed06c9e8eb4b6dbd076a809217b9dd7e7273e",
+    "182147f12468249452c749b61c4a0fb27fad5824c95783bd4914a4c21d583236",
+    "18c2f0b706428c5b4b644d2516334e7d84e4b06ec384e1353ef5986adebff5e8",
+    "2f1454dfd059c35bfa125f7f0ece7c03f0605102400acb169b0ec399fb5f8bae",
+    "3264e870f3789cbd8fd23fa9e64a04f1b77fe2ed705cb0ec6aab3a0e3e8bfa2d",
     "36af5b992993a59b0ff71dbf7b5e0168bc7d56b9cb85004e21126e2c6ee4e5be",
-    "394f82346bb493dcc657807cf72f3924d2cb1256c8a52528a1b1558536ef01d4",
-    "3cd7845289b39eed8bd5b5c4d3593a1be7258dd1fb7ad220e5bcb3d225138f7d",
-    "42858e23a0810f355b07d57c92ea1cd965a7ae1be08d47c800142b1dc827aa6e",
-    "451f18f769c984ecc0e06d5e50d3e7fd7eb8912e7ef3156ffe005f4fcca0d116",
-    "4c7a1a4d3f4fe4ec99a3e767dfc8ca545ae83bd8720aff88809569ac4804f564",
-    "510e9f3f0afcb36bf31cb0ec79b74ad2b62c4bc956b765e5e1e00d7e6e657a78",
+    "40d214314646eb985aed8dfc09569a7af4c39e26c18390f387980770b0240fdf",
+    "46e1cb1ad9ebd817709a18ef22a22f3114ef6190111d04150297f14d19535b0d",
+    "4bf31e366976f1857a506b28f926722c612ea6ca1af3df7c9b154b9116a42731",
     "52466a4ae9995302eeb12040a31f6c8a6d6a7395b325ac491af7177d7a4b0503",
     "5381e614942dc6630ee8bc188a74bd09be39f1764a69ab3866ecd9c24cf26718",
-    "57bcb87d65fb757b3ef18ba29be90654b1d468a19c5de1dcd034bdbd76501291",
-    "589cbbf2e75cd4244d988ad479b385e27d99c2a568f66410fb945324aa3112c0",
-    "597a336a3ab399767457e7f230abd8a52681dc3707f3d2982ca2345e1de96f64",
-    "5b1d0dc3f6717b937c83fc75e4f037294d1eeae7914cd451dfdb1eab4e0f8e7e",
-    "5e75cd22cb28c22d7ba91c3be70fed0cff82d6a59aca8798b362011bddabace8",
-    "629a4489883e61a6118b95c2fc5e4a46b9119e66006318cc677ef261a00bd3c5",
-    "641e7c3075d1f7e92c11e2ed90c914143e25fd4b42f1c0bb03c7824e2ade3aab",
-    "6909b4bc1fe8db879a88cc9ce0feec966c4c3dcef0010060404751804fb54251",
+    "53dcf38aee2dd4f38832215399b39611bbc0c2551a66bff96086172ed1d9ff2a",
+    "582323e0833ac6a5f653686474c3fb7d9f527030a30d1a7df6944fc9b38974b7",
+    "5e9d0e35f8407f590dea24ad7d4180a52042b3400806e7638a7a42e0227e00fa",
     "6fc4af6151d01472311c593599152a5caa3f2c7069bed49e44c2e50bb9349dce",
-    "701d04e5d6009b27ee5bb02322297ec328393d4ad1a4cc906a12e7ca537ea291",
-    "713e69ecb7e65852e89ee03627c7896f22f5e79883ca447d5cc994e1abe630e4",
-    "724506238124cada0ddb1effab3573db68a12012463e8ea7d665aa3d0815f8ba",
-    "725eebcb81759f86aa16241c41c0a640577e470b39dcf3b922b192998f2d9f77",
-    "79c2366f3fb32269063b52413404c7057dbd64bffe6c62c074cc91417f941989",
-    "7dec2d9973e69d798736a737fe4cf647458d1f1b95e14181bd2bbfcc48f30e21",
-    "7e2d1b7f0ceaf8ddb07fabe34f1c824300cacb75ec18a66e29048af714eca0a2",
+    "7285635a90a8134864274db82dd64312948dfcdafe20a3c09dbe57abe75a85fa",
+    "7f9843a236823d65835561ca260b06da5a4f0b1326fa78a8e2ad74b01e4c6cb7",
     "80ec316b153c7aae6ece60ead23d22cbdfbc28a985982e710bbeecc0d65656d7",
-    "832e6076c2c34078223cbe8867153d7fe74c9dce588fa625e4a6ac8f4fa735ba",
-    "86e7269e167fa69de4196316d90866803d24fe31b90a1832125e73d37c43925b",
-    "8b2ca84c4d9321b668b5cc02e783e3ec24bf874d7a236a71c09b19befee38449",
-    "9118ea7cf200e05ea94f16adfd30895e128440ded1a07447f43cb6ea9bd8ae79",
-    "97c5cf0e18d5ac3e353a3f75fe0aa107fc358e295a95b2a269cb9e42cb85931b",
-    "9867307bd77af5fb16b25e963be7a4deb15b46e37b36034dcfcfa3a25238d9c1",
-    "9d8f516bb22b344707fc7e4f185865cead9f0ff41d9be7001f04ef334b568648",
-    "9e1c652a2f713c8ba2e89aacaf80806c117127059024dbf301682b11623a06a7",
-    "a8478ba17839dadfdde46f85f61681a439b925b27301b75d1466cc9a86d5b90f",
-    "aba8291bfc17ae750d6cca1256e84423fd5d81d4ab83a0ec1ed87b56c8da0fde",
-    "ae9b0b9b11b7663177d0664c6c9eca9ec07368fd27d47c7559be9d70eb35d081",
-    "af26a08ed0cb4707cca228381a822d0bec93a371d923493610507fb67fe8833b",
-    "b9c13a25897bd904ffd7607683188063a83ef4fd7d29eb131f8711106ac678ad",
+    "8c78869ffe3700978d3d84cd8cfedbd4419d7f389505f66cdde8065479dc6fab",
+    "8ddc962c1a8ed9cf54cc992452d369056979de94ed579b0e0dc1ebe5e6bce45a",
+    "8e02a9b41700f379dc18cb6434cd3168f603ddf705ded2f7546338500d9ab733",
+    "a5469349659cc3097050b398b5594f7fa97078321edaca8225c8eba100c75064",
+    "a55354b395621a496de088c74b0cfdba0eb3dcb9b18bf7497f812c0e1a79ca04",
+    "a6b703f90c0838269a89d444e41f8ce43f82211a2d5695a97b0b5cd866bfad79",
+    "adf8f46d5f64d67c2838400c90ea1e598c9d26481316e8e5713fe3e7025c0d05",
     "ba9e3c04f4e6d63178175205e8211e0f9396f9f3d33570396e42e1a8f9d9c9d3",
-    "bb0a91596f5f4acbf4c634db2235f28e0f48bd914b2bc5c463310a7db73a8b66",
-    "bc4d0c6daa043cb550ff263c166165e2d3747150a23a0ed2b18805f298177b92",
+    "bfd63aa19e81c0d35e45e0cf82e5ba5e31915ab6e7333d4650139af28f0a79e9",
     "c6948e88219dc4a0b428f1e47718dd85b5e48a5ad17d1a6659f1aba0ba209a3b",
-    "c6c3aad03efbd1107848d2fa16483fef4e636bbadd876c578e8a8499a6cd08c9",
-    "c817e1d1b3d1807ca1c6a47835c83c3c65816f789abb44c3f604844d78df7832",
-    "c9f9f6859b4dd5f9808718e73ef1127b0dee6bed5c3db952d8252fbd314455a4",
+    "c901058f18b3e447acfd5226166ee6089faff38ef61022b21eb8f36f188e808c",
+    "cfd7975a498de10dde2fa68b3f01d18301651479921742c0c84e36198764f672",
     "d216da6a451869f58c46a08032607f6c2e70f812d5257f2e0365b7844a3f5589",
-    "dcefa48412b10bb8d779bc043af1a7325349c53c007092637e151ed1f3aa4c6e",
-    "e152d2d5624cef58b469aa450693f305d2ca87abc7bcb8a64a26502c26e6fe4d",
-    "e21f52439cf58d8acaef42d51a1d760ae990372a93447ddc9e1385db82e387af",
+    "d649b23e8fc6e7d4e54abea0574571800eddea24b27b6597a5f25fe183966c37",
+    "d68928e3478a1cab63ff943afef075f6d75c04b3a4b7e6ee138251ffe9180609",
+    "e38e03251241f390318cd8988daab7e63b7fe064655b4f83f43ff2aa719973d8",
     "e3b90b0e2d4f22583439a45a371b9e32c49e3c5b206e452976bd6cce2805b4db",
-    "e55baa92106825153d75e93a8ed08f2f1c596f7f6627703a474af183984e921b",
-    "e997dccb5be08911676591f8a2e4775d4619ebcc00e50e4c04f177aa6716f04e",
-    "feb41e2bcb06e80897d342718833073c69343604cea5b531debc772eae05adb7",
-    "ff797e7a95cfd74226fff0dc54c37f58985ae9200180662019b587956bc5625c"
+    "e57c70a4318482b8e2c4e64cb8ffe8c9b9c889a0c6840e52e0a631eb30138c5d",
+    "e951bed620ef81377aefa18872cfb38b0fe655cf316474d19f4f2ade0cc76cd3",
+    "f5d1cc47b2e2010ddfd444716baa56e0cce626fe319478482eef5672e932892b",
+    "fc127a632a2c2ad38923bce4f52d78d16840097efd653d871397ba0ebf27e2c4",
+    "feb41e2bcb06e80897d342718833073c69343604cea5b531debc772eae05adb7"
   ],
+  "lazyMeshes": [],
   "lights": [
-    {
-      "type": "DirectionalLight",
-      "position": [
-        -2,
-        4.8,
-        2
-      ],
-      "colour": [
-        0.5457244613615395,
-        0.6307571363387763,
-        0.6307571363387763
-      ],
-      "intensity": 1.5,
-      "distance": 0,
-      "decay": 2,
-      "direction": [
-        0.3589790793088691,
-        -0.8615497903412858,
-        -0.3589790793088691
-      ]
-    },
     {
       "type": "HemisphereLight",
       "position": [
@@ -105,11 +60,11 @@
         0
       ],
       "colour": [
-        0.27224131785744976,
-        0.30994592551793937,
-        0.2888102472144568
+        0.40416730353658553,
+        0.4129368547391229,
+        0.378114504725138
       ],
-      "intensity": 1.15,
+      "intensity": 0.4,
       "distance": 0,
       "decay": 2
     },
@@ -121,62 +76,86 @@
         8.8
       ],
       "colour": [
-        0.6375968739867731,
-        0.7156935005005721,
-        0.5711248294565854
+        1,
+        0.7454042095350284,
+        0.46207699964472876
       ],
-      "intensity": 8,
+      "intensity": 3,
       "distance": 7,
       "decay": 2,
-      "power": 100.53096491487338
+      "power": 37.69911184307752
     },
     {
       "type": "PointLight",
       "position": [
-        0,
-        4.8,
-        6
+        -3.45,
+        2.15,
+        6.75
       ],
       "colour": [
         0.8962693533719567,
         0.623960391667596,
         0.3049873140591091
       ],
-      "intensity": 24,
-      "distance": 13,
+      "intensity": 5,
+      "distance": 7,
       "decay": 2,
-      "power": 301.59289474462014
+      "power": 62.83185307179586
     },
     {
       "type": "SpotLight",
       "position": [
-        -2.2460668121937317,
-        1.3764146021016432,
-        4.26838362108788
+        -0.65,
+        1.17,
+        4.45
       ],
       "colour": [
         1,
-        0.6795424696265424,
-        0.3515325994898463
+        0.42233927375528035,
+        0.13511156659148987
       ],
-      "intensity": 4.2,
-      "distance": 0,
+      "intensity": 5.5,
+      "distance": 4,
       "decay": 2,
-      "power": 13.194689145077131,
+      "power": 17.27875959474386,
       "direction": [
-        0.8988864634378125,
-        -0.3930899649726126,
-        -0.19360631520198981
+        -0.7435603259455312,
+        -0.49279096111684234,
+        -0.45196804126101003
       ],
-      "angle": 0.62,
-      "penumbra": 0.75
+      "angle": 0.8,
+      "penumbra": 0.55
     },
     {
       "type": "SpotLight",
       "position": [
-        2.9026838704611664,
-        4.603649774289169,
-        1.3829308734049996
+        -2.25,
+        3.3,
+        7.9
+      ],
+      "colour": [
+        1,
+        0.775822218312646,
+        0.55201140150344
+      ],
+      "intensity": 32,
+      "distance": 14,
+      "decay": 2,
+      "power": 100.53096491487338,
+      "direction": [
+        0.22189154887278323,
+        -0.5591667031594137,
+        -0.7988095759420196
+      ],
+      "angle": 0.5,
+      "penumbra": 0.3
+    },
+    {
+      "type": "SpotLight",
+      "position": [
+        2.9005063323673816,
+        4.623869770874312,
+        7.069547908349725
       ],
       "colour": [
         0.7379104087672317,
@@ -188,9 +167,9 @@
       "decay": 2,
       "power": 8.79645943005142,
       "direction": [
-        0.0973161295388335,
-        -0.9036497742891679,
-        0.41706912659500045
+        0.09949366763261826,
+        -0.9238697708743119,
+        -0.3695479083497248
       ],
       "angle": 0.52,
       "penumbra": 0.8
@@ -201,46 +180,46 @@
       "file": "office-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 2.816494941711426,
+      "scale": 1.5697933435440063,
       "encoding": "srgb-scale",
-      "bytes": 347882,
+      "bytes": 286436,
       "density": {
         "foreground": {
-          "min": 31.998104244399347,
-          "max": 32.00304279240492,
-          "area": 2046.8436271498724,
+          "min": 31.99524701136264,
+          "max": 32.00351441136862,
+          "area": 510.61998343409897,
           "target": 32
         },
         "archive": {
-          "min": 11.9999712857244,
-          "max": 12.000018748824536,
-          "area": 177.29562759076975,
+          "min": 11.999914814714328,
+          "max": 12.000023294472616,
+          "area": 226.03684815360683,
           "target": 12
         },
         "desk": {
-          "min": 63.994728456022614,
-          "max": 64.00205414603239,
-          "area": 13.671343311303813,
+          "min": 63.99817370485948,
+          "max": 64.0030685573079,
+          "area": 28.379759887363388,
           "target": 64
         }
       }
     },
     {
       "file": "office-1.webp",
-      "width": 1024,
-      "height": 1024,
-      "scale": 0.2910827696323395,
+      "width": 1152,
+      "height": 1152,
+      "scale": 0.11269363015890121,
       "encoding": "srgb-scale",
-      "bytes": 80872,
+      "bytes": 40774,
       "density": {
         "archive": {
-          "min": 11.999722903139363,
-          "max": 12.00024337263115,
-          "area": 267.1252439506631,
+          "min": 11.999980813470431,
+          "max": 12.000000481287808,
+          "area": 624.3144500602401,
           "target": 12
         }
       }
     }
   ],
-  "sourceHash": "9ed09c9134753692027dd6e1b011e80cb1e7f793664dab5b06e31b73edcfec0c"
+  "sourceHash": "f73f3b947319b8dbc46e0bda5037df496981851a7b6067ed0cf8873f1a50655e"
 }

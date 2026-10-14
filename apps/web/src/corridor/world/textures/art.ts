@@ -1,5 +1,5 @@
 import type { CanvasTexture } from 'three';
-import { CHAMBERS } from '@tqw/engine';
+import { VISIBLE_CHAMBERS } from '../../../chambers/registry.ts';
 import { ART, ART_ATLAS, NUMERAL_4, NUMERAL_ATLAS, PLAQUE_ATLAS, type PlaqueLayout, type Rect } from '../artLayout.ts';
 import { mulberry32 } from '../math.ts';
 import { context2d, createCanvas, makeTexture } from './canvas.ts';
@@ -355,13 +355,13 @@ function drawDirectory(ctx: CanvasRenderingContext2D, r: Rect, rng: () => number
   ctx.fillRect(34, 76, r.w - 68, 2);
   // Rows: department name left, code right.
   const rowH = 70;
-  const rows = CHAMBERS.length + 3;
+  const rows = VISIBLE_CHAMBERS.length + 3;
   for (let i = 0; i < rows; i += 1) {
     const y = 96 + i * rowH;
     // The channel the letters slide into.
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(28, y, r.w - 56, rowH - 14);
-    const entry = CHAMBERS[i];
+    const entry = VISIBLE_CHAMBERS[i];
     if (!entry) continue;
     ctx.fillStyle = '#e3dac8';
     ctx.font = `600 25px ${FONTS.cond}`;

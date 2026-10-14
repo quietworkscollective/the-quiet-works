@@ -162,12 +162,13 @@ describe('a little bit of smoke', () => {
       expect(veil, 'no more than a 20% veil').toBeLessThan(0.2);
     });
 
-    it(`${space}: makes the smoke warm and luminous like sunlit dust, never grey or green`, () => {
+    it(`${space}: keeps the smoke luminous without turning it cold or green`, () => {
       for (const layer of atmosphere.heightFog) {
         const [r, g, b] = hexToSrgb(layer.colour);
         expect(r, layer.id).toBeGreaterThanOrEqual(g);
         expect(g, `${layer.id} is not green`).toBeGreaterThanOrEqual(b);
-        expect((r - b) / r, `${layer.id} is warm enough to read as gold`).toBeGreaterThan(0.2);
+        if (space === 'exchange') expect((r - b) / r, `${layer.id} stays pale white-grey`).toBeLessThanOrEqual(0.2);
+        else expect((r - b) / r, `${layer.id} is warm enough to read as gold`).toBeGreaterThan(0.2);
         expect(displayLuma(layer.colour), `${layer.id} adds light`).toBeGreaterThan(0.3);
       }
     });

@@ -19,6 +19,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { readGlb as readCatalogueGlb } from '../../../apps/web/src/assets/glbInfo.ts';
 import { readGlb } from '../../../apps/web/src/assets/original/glb.ts';
 import { optimise, pngToWebp } from './optimise.ts';
 
@@ -76,6 +77,10 @@ interface Entry {
   triangles: number;
   textureBytes: number;
   compressedBytes: number;
+  /** Decoded GPU memory with mipmaps (RGBA8): what the catalogue's budget() adds up. */
+  textureMemoryBytes: number;
+  /** Primitives, one draw call each. */
+  drawCalls: number;
   sha256: string;
   dimensions: { x: number; y: number; z: number };
   movingNodes: string[];
@@ -141,6 +146,7 @@ async function main(): Promise<void> {
       }
       const bytes = new Uint8Array(readFileSync(file));
       const stats = readGlb(bytes);
+      const catalogue = readCatalogueGlb(bytes);
       const previews: string[] = [];
       if (values.render) {
         mkdirSync(values.render, { recursive: true });
@@ -169,6 +175,8 @@ async function main(): Promise<void> {
         triangles: stats.triangles,
         textureBytes: stats.textureBytes,
         compressedBytes: stats.fileBytes,
+        textureMemoryBytes: catalogue.images.reduce((sum, image) => sum + Math.round(image.width * image.height * 4 * (4 / 3)), 0),
+        drawCalls: catalogue.drawCalls,
         sha256: createHash('sha256').update(bytes).digest('hex'),
         dimensions: { x: round3(stats.size.x), y: round3(stats.size.y), z: round3(stats.size.z) },
         movingNodes: meta.moving,

@@ -1,30 +1,32 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect, useSyncExternalStore } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect, useSyncExternalStore } from 'react';
 import { Canvas, useThree, type RootState } from '@react-three/fiber';
-import { ACESFilmicToneMapping } from 'three';
+import { ACESFilmicToneMapping, NoToneMapping } from 'three';
 import { DESK, type Navigation } from './navigation.ts';
-import { OfficeAsset } from './OfficeAsset.tsx';
 import { officeAssetPose } from './assetSlots.ts';
 import { Application } from './Application.tsx';
 import { ContextualCue } from './ContextualCue.tsx';
 import { OfficeCamera } from './OfficeCamera.tsx';
 import { createCursorControl, createView, SceneContext, useFontsReady, type SceneContextValue } from './context.ts';
-import { Desk } from './Desk.tsx';
+import { OfficeFurniture } from './OfficeFurniture.tsx';
+import { useOfficeAssets, type OfficeResources } from './assets.ts';
 import { Director } from './director.ts';
-import { Lamp } from './Lamp.tsx';
+import { BankerLight } from './BankerLight.tsx';
+import { Sunlight } from './Sunlight.tsx';
 import { Wear } from './Wear.tsx';
 import { bindAfterFirstFrame } from './firstFrame.ts';
 import { InspectionLamp } from './InspectionLamp.tsx';
 import { Machine } from './Machine.tsx';
 import { createMaterials } from './materials.ts';
-import { PALETTE } from './palette.ts';
 import { Room } from './Room.tsx';
 import { RoomObjects } from './RoomObjects.tsx';
 import { StampPress } from './StampPress.tsx';
 import { areFontsLoaded, loadFonts } from './textures.ts';
 import { whenOfficeReady } from './ready.ts';
 import type { OfficeSceneProps } from './types.ts';
+import { chooseQuality, rendererName } from '../../../corridor/world/quality.ts';
 import { BakedSpace } from '../../../baked/BakedSpace.tsx';
-import { LookStack, OFFICE_LOOK, type AtmosphereLamp } from '../../../look/index.ts';
+import { OFFICE_FINISH } from './officeLook.ts';
+import { LookStack, type AtmosphereLamp } from '../../../look/index.ts';
 
 // Start fetching the canvas fonts as soon as the scene chunk loads.
 void loadFonts();
@@ -45,10 +47,10 @@ const COARSE_QUERY = '(pointer: coarse)';
 
 /** The lamps that carry a shaft of light: the desk lamp, the ceiling fittings and the window. */
 const OFFICE_LAMPS: readonly AtmosphereLamp[] = [
-  { id: 'desk-lamp', kind: 'desk-lamp', position: [-2.3, 1.4, 4.28], direction: [1.3, -0.57, -0.28] },
-  { id: 'ceiling-centre', kind: 'ceiling-fitting', position: [0, 5.6, 6], direction: [0, -1, 0] },
-  { id: 'inspection', kind: 'ceiling-fitting', position: [3, 3.6, 1.8], direction: [0.35, -3.15, 1.5] },
-  { id: 'speaking-window', kind: 'window', position: [-2.25, 1.55, 7.9], direction: [0.12, -0.2, -1] },
+  { id: 'desk-lamp', kind: 'desk-lamp', position: [-.65, 1.17, 4.45], direction: [-.51, -.34, -.31] },
+  { id: 'ceiling-centre', kind: 'ceiling-fitting', position: [-3.45, 2.15, 6.75], direction: [0, -1, 0] },
+  { id: 'inspection', kind: 'ceiling-fitting', position: [3, 3.6, 6.7], direction: [0.35, -3.15, -.9] },
+  { id: 'speaking-window', kind: 'window', position: [-2.25, 3.3, 7.9], direction: [1.1, -3.2, -5.7] },
 ];
 
 // Module-level so a parent re-render never hands fiber a "new" configuration, which would reset
@@ -60,9 +62,10 @@ const GL_PROPS = { antialias: true, powerPreference: 'high-performance' } as con
  * The Certification Office. Everything animates from store state and cues (never from its own
  * pointer handlers), and the render loop is on demand: with nothing moving, no frames are drawn.
  */
-export default function OfficeScene(props: OfficeSceneProps) {
+function OfficeScene(props: OfficeSceneProps) {
   const { store, reducedMotion } = props;
   const fontsReady = useFontsReady();
+  const assets = useOfficeAssets(props.onContextLost);
   const [prepared, setPrepared] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -109,10 +112,26 @@ export default function OfficeScene(props: OfficeSceneProps) {
         if (mounted.current) handlers.current.onContextLost();
       };
       gl.domElement.addEventListener('webglcontextlost', onLost);
+      const previous = state.scene.onAfterRender;
+      const metrics: typeof previous = (...args) => {
+        previous.apply(state.scene, args);
+        if (args[1] !== state.scene || args[2] !== state.camera) return;
+        queueMicrotask(() => {
+          if (!mounted.current || !containerRef.current) return;
+          let lights = 0; state.scene.traverse(object => { if ('isLight' in object && object.isLight) lights++; });
+          const data = containerRef.current.dataset;
+          data['drawCalls'] = String(gl.info.render.calls);
+          data['triangles'] = String(gl.info.render.triangles);
+          data['lights'] = String(lights);
+          data['frame'] = String(gl.info.render.frame);
+        });
+      };
+      state.scene.onAfterRender = metrics;
       director.setInvalidate(state.invalidate);
       const cancelLog = import.meta.env.DEV ? logFirstFrame(state) : () => {};
       loseCleanup.current = () => {
         gl.domElement.removeEventListener('webglcontextlost', onLost);
+        if (state.scene.onAfterRender === metrics) state.scene.onAfterRender = previous;
         cancelLog();
       };
     },
@@ -150,7 +169,7 @@ export default function OfficeScene(props: OfficeSceneProps) {
       }}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {fontsReady ? (
+      {fontsReady && assets ? (
         <Canvas
           frameloop="demand"
           dpr={dpr}
@@ -161,6 +180,7 @@ export default function OfficeScene(props: OfficeSceneProps) {
           style={{ opacity: prepared ? 1 : 0, pointerEvents: prepared ? 'auto' : 'none' }}
         >
           <Scene
+            assets={assets}
             store={store}
             director={director}
             motion={motion}
@@ -184,7 +204,7 @@ export default function OfficeScene(props: OfficeSceneProps) {
             onPrepared={onPrepared}
             overlay={overlayRef}
           />
-          <LookStack profile={OFFICE_LOOK} reducedMotion={reducedMotion} lamps={OFFICE_LAMPS} />
+          <LookStack profile={OFFICE_FINISH} reducedMotion={reducedMotion} lamps={OFFICE_LAMPS} />
         </Canvas>
       ) : null}
       {!prepared ? <div className="tqw-office-preparing" /> : null}
@@ -193,7 +213,11 @@ export default function OfficeScene(props: OfficeSceneProps) {
   );
 }
 
+// Caption expiry changes the DOM without changing the resting room.
+export default memo(OfficeScene);
+
 interface SceneProps {
+  assets: OfficeResources;
   store: OfficeSceneProps['store'];
   director: Director;
   motion: { reduced: boolean };
@@ -231,7 +255,9 @@ function pressHandlers(handlers: React.RefObject<OfficeSceneProps>): Pick<SceneC
   };
 }
 
-function Scene({ store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
+function Scene({ assets, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
+  const mountedScene=useRef(false);
+  useLayoutEffect(()=>{mountedScene.current=true;return ()=>{mountedScene.current=false;};},[]);
   const certification = useSyncExternalStore(store.subscribe, store.getState);
   const objects = useSyncExternalStore(office.subscribe, office.getState);
   const gl = useThree((s) => s.gl);
@@ -239,11 +265,19 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
   const invalidate = useThree((s) => s.invalidate);
   const camera = useThree(s => s.camera);
 
-  const materials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), coarse), [gl, coarse]);
+  const baseMaterials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), coarse), [gl, coarse]);
+  const materials = useMemo(() => ({...baseMaterials,
+    floor: assets.surfaces.get('linoleum') ?? baseMaterials.floor,
+    concreteFrame: assets.surfaces.get('concrete') ?? baseMaterials.concreteFrame,
+    pillar: assets.surfaces.get('concrete') ?? baseMaterials.pillar,
+    frame: assets.surfaces.get('enamel-steel') ?? baseMaterials.frame,
+    brass: assets.surfaces.get('brass') ?? baseMaterials.brass,
+  }), [baseMaterials, assets]);
   const [resourcesReady, setResourcesReady] = useState(false);
+  const bakeReadyRef = useRef(false);
   const [bakeReady, setBakeReady] = useState(false);
   const onResourcesReady = useCallback(() => setResourcesReady(true), []);
-  const onBakeReady = useCallback(() => setBakeReady(true), []);
+  const onBakeReady = useCallback(() => { bakeReadyRef.current = true; setBakeReady(true); }, []);
   useEffect(() => {
     if (resourcesReady && bakeReady) onPrepared();
   }, [resourcesReady, bakeReady, onPrepared]);
@@ -254,6 +288,8 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
         const unbind = materials.bindEnvironment(gl);
         cancelReady = whenOfficeReady(gl, onResourcesReady, {
           scene: room, camera, fontsReady: areFontsLoaded, invalidate,
+          renderReady: () => bakeReadyRef.current && (chooseQuality(rendererName(gl.getContext())) === 'lite' || gl.toneMapping === NoToneMapping),
+          afterFrame: complete => queueMicrotask(() => { if (mountedScene.current) complete(); }),
           onError: () => handlers.current.onContextLost(),
         });
         return unbind;
@@ -263,8 +299,8 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
       }
     });
     return () => { cancelReady(); cancelBind(); };
-  }, [materials, gl, room, camera, invalidate, onResourcesReady, handlers]);
-  useEffect(() => () => materials.dispose(), [materials]);
+  }, [materials, baseMaterials, gl, room, camera, invalidate, onResourcesReady, handlers]);
+  useEffect(() => () => baseMaterials.dispose(), [baseMaterials]);
 
   const cursor = useMemo(() => {
     const el = container.current ?? gl.domElement.parentElement ?? gl.domElement;
@@ -274,6 +310,7 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
 
   const context = useMemo<SceneContextValue>(
     () => ({
+      assets,
       store,
       director,
       materials,
@@ -286,35 +323,32 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
         if (!navigation.wasDrag() && navigation.station !== 'desk') navigation.approach('desk', motion.reduced);
       },
     }),
-    [store, director, materials, motion, cursor, view, handlers, navigation],
+    [assets, store, director, materials, motion, cursor, view, handlers, navigation],
   );
 
   return (
     <SceneContext.Provider value={context}>
-      <color attach="background" args={[PALETTE.coal]} />
-      <fog attach="fog" args={[PALETTE.coal, 8, 28]} />
-      <hemisphereLight args={['#bdc8c3', '#353a32', 1.15]} />
-      <directionalLight position={[-2, 4.8, 2]} color="#c3d0d0" intensity={1.5} />
-      <pointLight position={[0, 4.8, 6]} color="#f3cf96" intensity={24} distance={13} decay={2} />
+      <color attach="background" args={['#514f47']} />
+      <fog attach="fog" args={['#514f47', 13, 38]} />
+      <hemisphereLight args={['#d4dad5', '#6c6355', .40]} />
+      <pointLight position={[-3.45,2.15,6.75]} color="#f3cf96" intensity={5} distance={7} decay={2} />
 
       <group dispose={null}>
-        <Room materials={materials} />
+        <Room materials={materials} heroWindow={assets.models.has('office-hero-employee-window')} />
         <BakedSpace space="office" onReady={onBakeReady} />
         <Application />
+        <Sunlight />
+        <OfficeFurniture resources={assets} />
         <Wear inkPadOpen={objects.toggles['ink-pad']} />
         <group userData={{ bake: 'dynamic' }}>
           <InspectionLamp understood={shadow || certification.memo.revealed || objects.uses.sign > 0 || objects.uses.conduit > 0} />
         </group>
         <RoomObjects office={office} archive={archive} overloaded={certification.phase === 'overloaded'} shadow={shadow} onInspect={id => { if (!navigation.wasDrag()) onInspect(id); }} onFocus={onFocusObject} onEntrance={() => { if (!navigation.wasDrag()) onEntrance(); }} />
-        <OfficeAsset id="desk" fittings={['drawer']}>
-          <Desk materials={materials} showStationery={false} />
-        </OfficeAsset>
+
         <group {...officeAssetPose('press-rig')} userData={{officeObjectId:'press'}}>
           <StampPress freshInk={freshInk} selectedPosition={selectedPosition} windowClipWorld={[-2.25, 1.08, 7.85]} channelDirection={[-2, -0.9]} />
         </group>
-        <group {...officeAssetPose('lamp-rig')} userData={{officeObjectId:'lamp', bake:'dynamic'}}>
-          <Lamp materials={materials} towardWall={objects.toggles.lamp} deskTarget={[-1.68, .0115, -.04]} />
-        </group>
+        <group userData={{ bake: 'dynamic' }}><BankerLight towardWall={objects.toggles.lamp} /></group>
         <group {...officeAssetPose('machine-rig')} userData={{officeObjectId:'machine'}} scale={[1.7, 2.9, 1.9]}>
           <Machine />
         </group>
@@ -327,6 +361,7 @@ function Scene({ store, director, motion, view, coarse, selectedPosition, naviga
 
 /** Dev only: report draw calls and triangles once the first frame has been rendered. */
 function logFirstFrame(state: RootState): () => void {
+  if (!import.meta.env.DEV) return () => undefined;
   const { gl } = state;
   let tries = 0;
   let frame = 0;

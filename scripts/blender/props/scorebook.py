@@ -87,7 +87,7 @@ def build(spec, root):
 
     return Built(root, [body, cover], moving=['cover'], stage='desk',
                  view=dict(target=(0, 0, 0.01), distance=1.35, azimuth=24, lens=70),
-                 detail=dict(target=(W / 2 - 0.03, -D / 2 + 0.03, 0.02), distance=0.42, azimuth=-24, elevation=24),
+                 detail=dict(target=(W / 2 - 0.03, -D / 2 + 0.03, 0.02), distance=0.4, azimuth=-24, elevation=24),
                  notes={'cover': 'rotates about its own Y axis (Z after export) at the spine; about 170 degrees to open'})
 
 

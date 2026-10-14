@@ -36,12 +36,14 @@ async function framesOver(page: Page, ms: number): Promise<number> {
   return (await frames(page)) - a;
 }
 
-/** Scrolls the page to `progress` of the walk-in run (2.5 viewport heights). */
+/** Scrolls to `progress` of the authored journey, ending with the game window at the viewport top. */
 async function scrollToProgress(page: Page, progress: number): Promise<void> {
-  await page.evaluate(
-    ([p, run]) => window.scrollTo(0, window.innerHeight * run! * p!),
-    [progress, SITE_SCROLL.runViewports],
-  );
+  await page.evaluate((p) => {
+    const section = document.getElementById('game')!;
+    const window_ = section.querySelector<HTMLElement>('.tqw-game__window')!;
+    const top = section.offsetTop + section.offsetHeight - window_.offsetHeight;
+    window.scrollTo(0, Math.round(top * p));
+  }, progress);
 }
 
 async function recordPoses(page: Page): Promise<void> {
@@ -87,7 +89,7 @@ async function hero(page: Page): Promise<void> {
 }
 
 test.describe('hero drift', () => {
-  test('is one shallow lateral arc of 4 cm over 40 s: sinusoidal, no forward creep, no rise, yaw within 0.3 degrees', async ({
+  test('is one shallow lateral arc of 4 cm over 40 s: sinusoidal, no forward creep, no rise, yaw within 0.3 degrees', { tag: '@extended' }, async ({
     page,
   }) => {
     await hero(page);
@@ -120,7 +122,7 @@ test.describe('hero drift', () => {
     expect(await canvas(page).getAttribute('data-pitch')).toBe('0.0');
   });
 
-  test('is drawn at about 15 frames a second, not every display frame', async ({ page }) => {
+  test('is drawn at about 15 frames a second, not every display frame', { tag: '@extended' }, async ({ page }) => {
     await hero(page);
     await page.waitForTimeout(1000);
     const drawn = await framesOver(page, 3000);
@@ -128,7 +130,7 @@ test.describe('hero drift', () => {
     expect(drawn).toBeLessThanOrEqual(55);
   });
 
-  test('blends out over the first 10% of scroll: half the arc at 5%, none from 10%, and then no frames at all', async ({
+  test('blends out over the first 10% of scroll: half the arc at 5%, none from 10%, and then no frames at all', { tag: '@extended' }, async ({
     page,
   }) => {
     await hero(page);
@@ -146,7 +148,7 @@ test.describe('hero drift', () => {
     expect(await framesOver(page, 1000)).toBe(0);
   });
 
-  test('stops with the first scroll and never starts under reduced motion', async ({ browser }) => {
+  test('stops with the first scroll and never starts under reduced motion', { tag: '@extended' }, async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     const page = await context.newPage();
     await hero(page);
@@ -158,7 +160,7 @@ test.describe('hero drift', () => {
 });
 
 test.describe('the walk-in over the page scroll', () => {
-  test('reaches the hand-over at 65% of the run, still in the entrance, and holds it behind the veil', async ({
+  test('reaches the hand-over at 65% of the run, still in the entrance, and holds it behind the veil', { tag: '@extended' }, async ({
     page,
   }) => {
     await hero(page);
@@ -232,7 +234,7 @@ test.describe('who owns the page input', () => {
 });
 
 test.describe('drawing only while on screen', () => {
-  test('a hidden tab draws nothing and the arc picks up where it was left', async ({ page }) => {
+  test('a hidden tab draws nothing and the arc picks up where it was left', { tag: '@extended' }, async ({ page }) => {
     await hero(page);
     await page.waitForTimeout(3000);
     const before = (await pose(page)).x;
@@ -259,7 +261,7 @@ test.describe('drawing only while on screen', () => {
     expect(Math.abs((await pose(page)).x - before)).toBeLessThan(0.004);
   });
 
-  test('scrolled past the game window the renderer draws nothing, even with a key held, and returns as it was left', async ({
+  test('scrolled past the game window the renderer draws nothing, even with a key held, and returns as it was left', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -280,7 +282,10 @@ test.describe('drawing only while on screen', () => {
     await expect.poll(async () => HANDOVER.z - (await pose(page)).z, { timeout: 10_000 }).toBeGreaterThan(0.4);
     expect(await framesOver(page, 400)).toBeGreaterThan(3);
 
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 3.6));
+    await page.evaluate(() => {
+      const section = document.getElementById('game')!;
+      window.scrollTo(0, section.offsetTop + section.offsetHeight + window.innerHeight * 0.1);
+    });
     await page.waitForTimeout(600);
     const left = await pose(page);
     expect(await framesOver(page, 1500)).toBe(0);

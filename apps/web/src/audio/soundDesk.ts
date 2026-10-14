@@ -26,6 +26,7 @@ import { RECORDS } from './music/catalogue.ts';
 import { gramophone } from './music/index.ts';
 import { MusicSound } from './music/musicSound.ts';
 import { createNoiseBuffers, createPrng, type NoiseBuffers } from './noise.ts';
+import { AIR } from './spineDoors.ts';
 import { crossfade, ROOM_FADE_S, SpineSound } from './spineSound.ts';
 import type { SoundDesk, SoundRoom } from './types.ts';
 import * as voices from './voices.ts';
@@ -58,9 +59,10 @@ const HATCH_LATCH_LEAD_S = TIMING.overloadLatchLeadMs / 1000;
 const STILLNESS_GLASS_DELAY_S = 0.45;
 const STILLNESS_MEMO_DELAY_S = 0.9;
 
-/** The rooms that have a tone of their own. Every other room id, sealed chambers included, is the corridor. */
-type ToneRoom = 'corridor' | 'certification-office';
-const toneRoom = (room: SoundRoom): ToneRoom => (room === 'certification-office' ? room : 'corridor');
+/** Open rooms have their own bed; sealed rooms continue to use the corridor. */
+type ToneRoom = 'corridor' | 'certification-office' | 'exchange' | 'outline-room';
+const toneRoom = (room: SoundRoom): ToneRoom =>
+  room === 'certification-office' || room === 'exchange' || room === 'outline-room' ? room : 'corridor';
 
 const seconds = (ms: number): number => ms / 1000;
 
@@ -96,9 +98,13 @@ class Engine {
   private readonly limiter: DynamicsCompressorNode;
   private readonly buses: Record<BusName | 'ambience', GainNode>;
   private readonly ambienceFade: GainNode;
-  /** The Office's ventilation and drones play only while the Office is the room: this gates them. */
+  /** Each room's own bed plays only while that chamber is the room. */
   private readonly officeGate: GainNode;
+  private readonly exchangeGate: GainNode;
+  private readonly outlineGate: GainNode;
   private ambience: voices.Ambience | null = null;
+  private exchangeAmbience: voices.Ambience | null = null;
+  private outlineAir: voices.QuietAir | null = null;
   private ambienceLevel = 1;
   private room: ToneRoom;
   /** The corridor: built the first time it is needed, so an Office-only session never pays for it. */
@@ -152,8 +158,18 @@ class Engine {
     this.officeGate = ctx.createGain();
     this.officeGate.gain.value = this.room === 'certification-office' ? 1 : 0;
     this.officeGate.connect(this.ambienceFade);
+    this.exchangeGate = ctx.createGain();
+    this.exchangeGate.gain.value = this.room === 'exchange' ? 1 : 0;
+    this.exchangeGate.connect(this.ambienceFade);
+    this.outlineGate = ctx.createGain();
+    this.outlineGate.gain.value = this.room === 'outline-room' ? 1 : 0;
+    this.outlineGate.connect(this.ambienceFade);
     if (this.room === 'certification-office') {
       this.ambience = voices.startAmbience(ctx, this.noise, this.officeGate, now);
+    } else if (this.room === 'exchange') {
+      this.exchangeAmbience = voices.startExchangeAmbience(ctx, this.noise, this.exchangeGate, now);
+    } else if (this.room === 'outline-room') {
+      this.outlineAir = voices.startQuietAir(ctx, this.noise, this.outlineGate, now, AIR['outline-room']);
     } else {
       this.spine = this.createSpine(true, AMBIENCE_FADE_IN_S);
     }
@@ -198,9 +214,19 @@ class Engine {
         // Not started, or already stopped.
       }
     }
+    for (const source of this.exchangeAmbience?.sources ?? []) {
+      try { source.stop(); } catch { /* Not started, or already stopped. */ }
+    }
+    for (const source of this.outlineAir?.sources ?? []) {
+      try { source.stop(); } catch { /* Not started, or already stopped. */ }
+    }
     const nodes: AudioNode[] = [
       ...(this.ambience?.nodes ?? []),
+      ...(this.exchangeAmbience?.nodes ?? []),
+      ...(this.outlineAir?.nodes ?? []),
       this.officeGate,
+      this.exchangeGate,
+      this.outlineGate,
       this.ambienceFade,
       this.epoch.interaction,
       this.epoch.music,
@@ -224,19 +250,25 @@ class Engine {
 
   // Rooms and the corridor ----------------------------------------------------------------------
 
-  /** Crossfade to `next`'s tone. The Office's ventilation belongs to the Office; everywhere else is the corridor. */
+  /** Crossfade to `next`'s tone; each open chamber has its own authored bed. */
   setRoom(next: SoundRoom): void {
-    // The music is the corridor's alone: every chamber, sealed or open, has a soundscape of its own.
+    // The music is the corridor's alone; each open chamber has a soundscape of its own.
     this.music?.setCorridor(next === 'corridor');
     const room = toneRoom(next);
     if (room === this.room) return;
     this.room = room;
     const now = this.ctx.currentTime;
     const inOffice = room === 'certification-office';
+    const inExchange = room === 'exchange';
+    const inOutline = room === 'outline-room';
     if (inOffice) this.ambience ??= voices.startAmbience(this.ctx, this.noise, this.officeGate, now);
+    if (inExchange) this.exchangeAmbience ??= voices.startExchangeAmbience(this.ctx, this.noise, this.exchangeGate, now);
+    if (inOutline) this.outlineAir ??= voices.startQuietAir(this.ctx, this.noise, this.outlineGate, now, AIR['outline-room']);
     crossfade(this.officeGate.gain, inOffice ? 1 : 0, now, ROOM_FADE_S);
-    if (inOffice) this.spine?.setCorridor(false);
-    else (this.spine ?? this.createSpine(true, ROOM_FADE_S))?.setCorridor(true);
+    crossfade(this.exchangeGate.gain, inExchange ? 1 : 0, now, ROOM_FADE_S);
+    crossfade(this.outlineGate.gain, inOutline ? 1 : 0, now, ROOM_FADE_S);
+    if (room === 'corridor') (this.spine ?? this.createSpine(true, ROOM_FADE_S))?.setCorridor(true);
+    else this.spine?.setCorridor(false);
   }
 
   playSpine(cue: SpineCue): void {

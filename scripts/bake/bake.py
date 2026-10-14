@@ -71,12 +71,24 @@ for index, light in enumerate(manifest['lights']):
         obj.rotation_euler = point(light['direction']).to_track_quat('-Z', 'Y').to_euler()
 
 space = manifest['space']
+if space == 'office':
+    # Bound rare indirect-path fireflies before encoding the foreground's shared HDR scale.
+    # Direct illumination is live; legitimate indirect pools are below this per-sample ceiling.
+    scene.cycles.sample_clamp_indirect = 1
+    scene.cycles.samples = 128
 # Corridor uses a single rectangular image equivalent to two 1K tiles: no extra draws.
-groups = [(meshes, 1856, 928)] if space == 'corridor' else [([], 2048, 2048), ([], 1024, 1024)]
+groups = ([(meshes, 1760, 880)] if space == 'corridor' else
+          [(meshes, 2048, 2048)] if space == 'codex-room' else
+          [([], 2048, 2048), ([], 1152 if space == 'office' else 1024, 1152 if space == 'office' else 1024)])
 if space == 'office':
     for obj in meshes:
         z = min(-(obj.matrix_world @ vertex.co).y for vertex in obj.data.vertices)
         groups[1 if z > 8 else 0][0].append(obj)
+elif space == 'exchange':
+    # Keep the board and upper galleries in the large map; the desk and threshold use the compact map.
+    for obj in meshes:
+        depth = min(-(obj.matrix_world @ vertex.co).y for vertex in obj.data.vertices)
+        groups[0 if depth < -4.5 else 1][0].append(obj)
 manifest['atlases'] = []
 for atlas_index, (objects, width, height) in enumerate(groups):
     if not objects:

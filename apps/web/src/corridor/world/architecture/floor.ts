@@ -2,6 +2,7 @@ import { breaks, grid, quad, type Style } from '../builder.ts';
 import type { Buckets } from '../buckets.ts';
 import type { Rgb } from '../colour.ts';
 import { CORRIDOR } from '../../layout.ts';
+import { END_Z } from '../stage.ts';
 import { BRASS_TINT } from '../palette.ts';
 
 /**
@@ -33,6 +34,7 @@ function floorRect(
   shade: Style['shade'],
   zStep: number,
   nearEdges: readonly number[],
+  bucket: 'terrazzo' | 'terrazzoWalk' = 'terrazzo',
 ): void {
   const colour: Rgb = [tone * FLOOR_WARMTH[0], tone * FLOOR_WARMTH[1], tone * FLOOR_WARMTH[2]];
   const zLo = Math.min(z[0], z[1]);
@@ -41,7 +43,7 @@ function floorRect(
   const zs = breaks(zLo, zHi, zStep);
   const style: Style = { colour, ...(shade ? { shade } : {}) };
   // Axes chosen so the normal is +y: x then z gives x cross z = -y, so run z then x.
-  grid(b.terrazzo, [0, 0, 0], [0, 0, 1], [1, 0, 0], zs, xs, style);
+  grid(b[bucket], [0, 0, 0], [0, 0, 1], [1, 0, 0], zs, xs, style);
 }
 
 function brassStrip(b: Buckets, x: readonly [number, number], z: readonly [number, number]): void {
@@ -57,11 +59,16 @@ export interface FloorOptions {
 export function buildCorridorFloor(b: Buckets, o: FloorOptions): void {
   const hw = CORRIDOR.width / 2;
   const zNear = CORRIDOR.innerDoorZ;
-  const zFar = CORRIDOR.farZ;
+  const zFar = END_Z;
   const edge = [-hw + 0.06, -hw + 0.15, -hw + 0.26, hw - 0.26, hw - 0.15, hw - 0.06];
   floorRect(b, [-hw, -hw + BORDER_WIDTH], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
   floorRect(b, [hw - BORDER_WIDTH, hw], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
-  floorRect(b, [-hw + BORDER_WIDTH, hw - BORDER_WIDTH], [zNear, zFar], 1, o.shade, 1.8, []);
+  const fieldLeft = -hw + BORDER_WIDTH;
+  const fieldRight = hw - BORDER_WIDTH;
+  const walkHalf = 0.58;
+  floorRect(b, [fieldLeft, -walkHalf], [zNear, zFar], 1, o.shade, 1.8, []);
+  floorRect(b, [-walkHalf, walkHalf], [zNear, zFar], 1, o.shade, 1.8, [], 'terrazzoWalk');
+  floorRect(b, [walkHalf, fieldRight], [zNear, zFar], 1, o.shade, 1.8, []);
   // The inlay between band and field, and a joint across every bay boundary.
   brassStrip(b, [-hw + BORDER_WIDTH - INLAY / 2, -hw + BORDER_WIDTH + INLAY / 2], [zNear, zFar]);
   brassStrip(b, [hw - BORDER_WIDTH - INLAY / 2, hw - BORDER_WIDTH + INLAY / 2], [zNear, zFar]);

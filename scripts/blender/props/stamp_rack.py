@@ -9,6 +9,7 @@ Run: blender -b --factory-startup --python stamp_rack.py -- --work <dir> [--only
 """
 import math
 import os
+import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -86,7 +87,7 @@ def build(spec, root):
     walnut = mats.wood('walnut', light='#6A4429', dark='#2C1B0F', axis='X', ring_freq=120.0, warp=4.0, wander=0.05, roughness=0.58, age=0.6,
                        seed=81.0, relief=0.03, polish=0.1, edge_lift=0.1, contrast=0.9,
                        spots=[dict(at=(0.0, -0.043, 0.015), radius=(0.12, 0.02, 0.012))])
-    beech = mats.wood('beech', light='#D6AE74', dark='#A57B45', axis='Z', ring_freq=190.0, warp=3.0, wander=0.02, roughness=0.42, age=0.7,
+    beech = mats.wood('beech', light='#C7A474', dark='#97754A', axis='Z', ring_freq=190.0, warp=3.0, wander=0.02, roughness=0.42, age=0.7,
                       seed=82.0, relief=0.04, polish=0.18, edge_lift=0.1,
                       decals=[dict(at=(-0.078, -0.012, 0.062), radius=(0.012, 0.012, 0.016), color='#2C2A68', strength=0.5),
                               dict(at=(0.0, 0.0, 0.035), radius=(0.03, 0.03, 0.01), color='#8A6A3C', strength=0.3)])
@@ -112,6 +113,7 @@ def build(spec, root):
     rack = kit.add_part(root, 'rack', bar, [walnut, beech, rubber, plate], sharp_deg=55)
 
     nodes = [rack]
+    lean = random.Random(9)
     for i, (cx, kind, pw, pd) in enumerate(slots):
         _, w, d = STAMPS[i]
         parts = []
@@ -127,12 +129,14 @@ def build(spec, root):
         handle = geo.set_material(geo.lathe(geo.fillet_profile(handle_profile(i), step_deg=35), segments=24, seg_tol=0.00025, seg_floor=14), 1)
         mk = geo.set_material(marks(i, w, d), 2)
         geo.merge(wood_block, rub, handle, mk)
+        # each stamp stands a degree off true in its pocket, as if put back in a hurry
+        geo.rotate(wood_block, (lean.uniform(-1.1, 1.1), lean.uniform(-1.1, 1.1), lean.uniform(-4.0, 4.0)))
         node = kit.add_part(root, f'stamp_{i + 1}', wood_block, [walnut, beech, rubber, plate], sharp_deg=80,
                             location=(cx, 0.0, Z_FLOOR + RELIEF))
         nodes.append(node)
     return Built(root, nodes, moving=[f'stamp_{i + 1}' for i in range(4)], stage='desk',
                  view=dict(target=(0, 0, 0.04), distance=1.05, azimuth=28, lens=80),
-                 detail=dict(target=(-0.04, 0.0, 0.06), distance=0.36, azimuth=24, elevation=20),
+                 detail=dict(target=(-0.04, 0.0, 0.06), distance=0.4, azimuth=24, elevation=20),
                  notes={'stamps': 'each lifts out along its own Z axis (Y after export); origin at the rubber face'})
 
 

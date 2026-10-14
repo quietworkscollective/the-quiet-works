@@ -2,13 +2,14 @@ import type { ChamberId } from '@tqw/engine';
 import { CHAMBER_MODULES } from '../../chambers/registry.ts';
 import type { DoorSpec } from '../doorKit.ts';
 import { BLANK_DOORS, blankDoorAt, CHAMBER_SLOTS, CORRIDOR } from '../layout.ts';
+import { STAGE } from './stage.ts';
 import { FRAME } from './doorKit/frame.ts';
 import { holeFor } from './doorKit/plan.ts';
 
 export { FRAME };
 
 /**
- * Where every door sits along the corridor: the four chamber doors, the authored blank doors in
+ * Where every door sits along the corridor: each chamber door, the authored blank doors in
  * the walkable bays, and the blank doors that recede past them to the fog. One list feeds the
  * wall builder (which leaves a gap for each), the door kit, the lamps and the layout tests.
  */
@@ -40,8 +41,7 @@ export function placements(): Placement[] {
   }
   for (const door of BLANK_DOORS) out.push({ key: door.key, side: door.side, z: door.z, spec: door.spec, chamber: null, far: false });
   // Whole bays only: a door whose opening would run past the far wall is not built.
-  const bays = Math.floor((CORRIDOR.innerDoorZ - CORRIDOR.farZ) / CORRIDOR.bay);
-  for (let bay = CORRIDOR.walkableBays; bay < bays; bay += 1) {
+  for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
     for (const side of ['left', 'right'] as const) {
       const spec = blankDoorAt(bay, side);
       if (!spec) continue;

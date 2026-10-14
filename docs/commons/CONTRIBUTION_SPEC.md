@@ -143,8 +143,16 @@ pairing, captions for audio (one to seven words each), no contact details in nam
 per-template parameters and bounds, `fiction: true`, a named grantor for agent-made work, and
 asset paths that cannot climb out of the folder. `examples/invalid/check.py` proves it now.
 
-**The package validator** (Phase B) runs on a contributor's machine and in CI and checks what a
-schema cannot:
+**The current read-only CI preflight** checks the reference sample and every negative schema
+fixture, then checks any `commons/<id>/` package for the current text-only pilot. It validates
+scope, folder/id match, symlinks, unlisted files, asset path containment, byte sizes, SHA-256,
+UTF-8, the plain-text subset, word limit, web-address and email rejection, and mechanical
+prohibited-framing patterns. It parses only JSON and text; no submitted file is executed.
+
+The preflight does not decide whether a licence claim is true, whether content is emotionally or
+editorially suitable, or whether a fictional voice could be mistaken for testimony. Human review
+is required for every proposal. Media parsing and the complete package validator are not part of
+this pilot. Later validation must also cover:
 
 1. **The pilot allowlist (Phase B).** The schema is wider than the pilot on purpose, so the format
    does not change as later stages open. Until the founder opens a stage, the validator rejects

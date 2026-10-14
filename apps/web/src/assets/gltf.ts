@@ -38,6 +38,13 @@ export function bytesFromDataUrl(dataUrl: string): ArrayBuffer {
   return bytes.buffer;
 }
 
+/** Gzip-packaged room GLBs stay inline without paying base64 for every binary vertex buffer. */
+export async function bytesFromPackedDataUrl(dataUrl: string): Promise<ArrayBuffer> {
+  const bytes = bytesFromDataUrl(dataUrl);
+  if (!dataUrl.startsWith('data:application/gzip;')) return bytes;
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+}
+
 export async function decodeGlb(buffer: ArrayBuffer): Promise<Group> {
   const gltf = await createGlbLoader().parseAsync(buffer, '');
   return gltf.scene;

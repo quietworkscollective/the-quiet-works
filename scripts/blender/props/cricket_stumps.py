@@ -8,6 +8,7 @@ Run: blender -b --factory-startup --python cricket_stumps.py -- --work <dir> [--
 """
 import math
 import os
+import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,7 +37,7 @@ def bail_profile():
 
 
 def build(spec, root):
-    ash = mats.wood('ash', light='#DCC596', dark='#B28F5D', axis='Z', ring_freq=300.0, warp=2.0, wander=0.01, roughness=0.55, age=0.7,
+    ash = mats.wood('ash', light='#CDB382', dark='#A07D4E', axis='Z', ring_freq=300.0, warp=2.0, wander=0.01, roughness=0.55, age=0.7,
                     seed=61.0, pore=0.3, relief=0.04, contrast=0.7, edge_lift=0.05, polish=0.1,
                     spots=[dict(at=(0.0, 0.0, 0.58), radius=(0.14, 0.04, 0.06), strength=0.5)],
                     decals=[dict(at=(0.0, 0.0, 0.05), radius=(0.2, 0.06, 0.09), color='#5B4630', strength=0.45),
@@ -50,12 +51,15 @@ def build(spec, root):
 
     stand = geo.set_material(geo.box((0.292, 0.088, 0.016), center=(0.0, 0.0, 0.008), bevel=0.0050, segs=2), 2)
     parts = [stand]
+    play = random.Random(7)
     for i in (-1, 0, 1):
         x = i * PITCH
         collar = geo.lathe(geo.fillet_profile([(0.0, 0.016), (0.0275, 0.016, 0.0020), (0.0275, 0.0200), (0.0220, 0.0230, 0.0020), (0.0, 0.0230)]),
                            segments=20, seg_tol=0.0004)
         parts.append(geo.translate(geo.set_material(collar, 2), (x, 0.0, 0.0)))
         st = geo.lathe(geo.fillet_profile(stump_profile(), step_deg=35), segments=16, seg_tol=0.0005, seg_floor=12)
+        # a stump sits loose in its collar: a few tenths of a degree off true
+        geo.rotate(st, (play.uniform(-0.25, 0.25), play.uniform(-0.25, 0.25), play.uniform(0.0, 360.0)), pivot=(0.0, 0.0, 0.016))
         parts.append(geo.translate(geo.set_material(st, 0), (x, 0.0, 0.0)))
     base = parts[0]
     geo.merge(base, *parts[1:])
@@ -76,7 +80,7 @@ def build(spec, root):
         nodes.append(node)
     return Built(root, nodes, moving=['bail_1', 'bail_2'], stage='floor',
                  view=dict(target=(0, 0, 0.36), distance=2.4, azimuth=28),
-                 detail=dict(target=(0.0, 0.0, 0.69), distance=0.65, azimuth=22, elevation=12),
+                 detail=dict(target=(0.0, 0.0, 0.69), distance=0.4, azimuth=22, elevation=12),
                  notes={'bails': 'each lifts off the stump tops; pivot at the bail centre'})
 
 

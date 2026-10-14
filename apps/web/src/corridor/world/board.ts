@@ -27,7 +27,7 @@ export const BOARD_DEPTH = { back: 0, felt: 0.014, clipping: 0.0158, frontOfFram
 /** The back of the board stands this far off the lobby wall at its hinged end (the dado cap is 50 mm). */
 export const HINGE_CLEARANCE = 0.056;
 
-export const CLIPPING_SIZE = 0.3;
+export const CLIPPING_SIZE = 0.22;
 
 export interface ClippingPlacement {
   /** Index into CHAMBERS. */
@@ -39,10 +39,12 @@ export interface ClippingPlacement {
 }
 
 export const CLIPPINGS: readonly ClippingPlacement[] = [
-  { chamberIndex: 0, u: -0.385, v: 0.165, tiltDeg: 1.4 },
-  { chamberIndex: 1, u: -0.045, v: 0.152, tiltDeg: -1.1 },
-  { chamberIndex: 2, u: -0.36, v: -0.205, tiltDeg: -1.7 },
-  { chamberIndex: 3, u: -0.02, v: -0.19, tiltDeg: 1.9 },
+  { chamberIndex: 0, u: -0.43, v: 0.25, tiltDeg: 1.4 },
+  { chamberIndex: 1, u: -0.17, v: 0.25, tiltDeg: -1.1 },
+  { chamberIndex: 2, u: -0.43, v: 0, tiltDeg: -1.7 },
+  { chamberIndex: 3, u: -0.17, v: 0, tiltDeg: 1.9 },
+  { chamberIndex: 4, u: -0.43, v: -0.25, tiltDeg: -0.8 },
+  { chamberIndex: 5, u: -0.17, v: -0.25, tiltDeg: 0.9 },
 ];
 
 /** The glazed archival sleeve holding a plan, on the right of the board. */

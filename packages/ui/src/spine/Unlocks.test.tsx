@@ -7,7 +7,9 @@ import { Unlocks } from './Unlocks.tsx';
 import type { UnlocksProps } from './types.ts';
 
 const OFFICE = 'certification-office';
-const PAPERS = CHAMBERS.find((chamber) => chamber.id === OFFICE)?.findings.papers ?? 0;
+const OFFICE_PAPERS = CHAMBERS.find((chamber) => chamber.id === OFFICE)?.findings.papers ?? 0;
+const EXCHANGE_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'exchange')?.findings.papers ?? 0;
+const PAPERS = CHAMBERS.filter((chamber) => chamber.status === 'open').reduce((total, chamber) => total + chamber.findings.papers, 0);
 
 function setup(over: Partial<UnlocksProps> = {}, store: DiscoveryStore = createMemoryDiscoveryStore()) {
   const view = render(<Unlocks store={store} chambers={CHAMBERS} {...over} />);
@@ -66,12 +68,14 @@ describe('Unlocks: the archive section', () => {
   it('groups by room, and shows only rooms that have something to find', () => {
     const { section } = setup();
     const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((h) => h.textContent)).toEqual(['The Certification Office']);
+    expect(rooms.map((h) => h.textContent)).toEqual(['The Certification Office', 'The Exchange']);
+    expect(within(section).getByText(`0 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
   });
 
   it('says, with nothing found, "0 of 7 papers found." in plain words', () => {
     setup();
-    expect(screen.getByText(`0 of ${PAPERS} papers found.`).className).toContain('tqw-archive__room-count');
+    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found.`).className).toContain('tqw-archive__room-count');
   });
 });
 
@@ -81,11 +85,10 @@ describe('Unlocks: sealed papers (nothing about an unfound item is in the page)'
     store.record(OFFICE, { id: 'memo-3', kind: 'memo' });
     const { section } = setup({}, store);
     const documents = section.querySelector('.tqw-archive__items') as HTMLElement;
-    const sealed = section.querySelector('.tqw-archive__sealed') as HTMLElement;
     expect(documents.querySelectorAll('.tqw-paper')).toHaveLength(1);
     expect(sealedRowsOf(section)).toHaveLength(PAPERS - 1);
     expect(sealedRowsOf(section).every((row) => row.textContent === 'Sealed')).toBe(true);
-    expect(sealedRowsOf(section).every((row) => row.parentElement === sealed)).toBe(true);
+    expect(sealedRowsOf(section).every((row) => row.parentElement?.classList.contains('tqw-archive__sealed'))).toBe(true);
   });
 
   it('shows one identical neutral row for every unfound paper, each saying only "Sealed"', () => {
@@ -127,7 +130,7 @@ describe('Unlocks: sealed papers (nothing about an unfound item is in the page)'
     expect(papers).toHaveLength(1);
     expect(papers.filter((p) => p.dataset['state'] === 'found')).toHaveLength(1);
     expect(sealedRowsOf(section)).toHaveLength(PAPERS - 1);
-    expect(screen.getByText(`1 of ${PAPERS} papers found.`)).toBeTruthy();
+    expect(screen.getByText(`1 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
   });
 });
 
@@ -176,10 +179,10 @@ describe('Unlocks: found papers', () => {
     const store = createMemoryDiscoveryStore();
     store.record(OFFICE, found('secret-1', 'secret'));
     const { view, section } = setup({}, store);
-    expect(screen.getByText(`0 of ${PAPERS} papers found. 1 secret found.`)).toBeTruthy();
+    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 1 secret found.`)).toBeTruthy();
     expect(section.textContent).not.toMatch(/of 5/);
     act(() => store.record(OFFICE, found('secret-2', 'secret')));
-    expect(screen.getByText(`0 of ${PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
+    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
     expect(view.container.textContent).not.toMatch(/of 5|\/ ?5/);
   });
 
@@ -339,7 +342,7 @@ describe('Unlocks: import', () => {
     await waitFor(() => expect(message().textContent).toBe(ARCHIVE_COPY.imported));
     expect(store.has(OFFICE, 'memo-1')).toBe(true);
     expect(onReplaced).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(`1 of ${PAPERS} papers found.`)).toBeTruthy();
+    expect(screen.getByText(`1 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
   });
 
   it('changes nothing for a file it cannot read, and says so', async () => {
@@ -429,7 +432,7 @@ describe('Unlocks: forget everything', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(message().textContent).toBe(ARCHIVE_COPY.forgotten);
     expect(onReplaced).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(`0 of ${PAPERS} papers found.`)).toBeTruthy();
+    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
     expect(papersOf(section)).toHaveLength(0);
     expect(sealedRowsOf(section)).toHaveLength(PAPERS);
   });

@@ -40,6 +40,7 @@ export function Footer({ onOpenPage }: FooterProps) {
               {PAGE_NAV[id]}
             </a>
           ))}
+          <a className="tqw-footer__link" href="/agents">Agents</a>
           <a className="tqw-footer__link" href="/third-party-notices.txt">
             {FOOTER_COPY.licences}
           </a>

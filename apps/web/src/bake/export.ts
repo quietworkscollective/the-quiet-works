@@ -13,6 +13,7 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space'], so
   const exported = new Scene();
   const meshes: Mesh[] = [];
   const occluders: Mesh[] = [];
+  const lazyMeshes: string[] = [];
   scene.traverse(o => {
     if (!(o instanceof Mesh)) return;
     const material = bakeMaterial(o);
@@ -28,6 +29,7 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space'], so
   for (const mesh of [...meshes,...occluders]) {
     const copy = new Mesh(sourceGeometry(mesh), (bakeMaterial(mesh) as BakeMaterial).clone());
     copy.userData['bakeRole'] = occluders.includes(mesh) ? 'occluder' : 'receiver';
+    copy.userData['bakeLazy'] = meshes.includes(mesh) && hasLazyBakeAncestor(mesh);
     copy.matrix.copy(mesh.matrixWorld);
     copy.matrixWorld.copy(mesh.matrixWorld);
     copy.matrixAutoUpdate = false;
@@ -41,7 +43,10 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space'], so
       const occluder = copy.userData['bakeRole'] === 'occluder';
       const id = await meshId(copy, copy.geometry);
       if (!occluder && ids.includes(id)) throw new Error(`Duplicate static mesh ${id}`);
-      if (!occluder) ids.push(id);
+      if (!occluder) {
+        ids.push(id);
+        if (copy.userData['bakeLazy'] === true) lazyMeshes.push(id);
+      }
       const material = copy.material as BakeMaterial;
       (occluder ? baseline : reflectance).push(id+':'+await materialSignature(material, sourceInputsHash));
       material.lightMap = null; material.aoMap = null; material.envMap = null;
@@ -56,7 +61,7 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space'], so
       copy.matrix.identity(); copy.matrixWorld.identity();
     }
     const hash = await digest(JSON.stringify({ meshes: [...ids].sort(), lights: staticLights }));
-    const manifest: BakeManifest = { version: 1, space, hash, materialHash: await digest(reflectance.sort().join('\n')), baselineHash: await digest(JSON.stringify({ occluders: baseline.sort(), lights })), meshes: ids.sort(), lights, atlases: [] };
+    const manifest: BakeManifest = { version: 1, space, hash, materialHash: await digest(reflectance.sort().join('\n')), baselineHash: await digest(JSON.stringify({ occluders: baseline.sort(), lights })), meshes: ids.sort(), lazyMeshes: lazyMeshes.sort(), lights, atlases: [] };
     const glb = await new GLTFExporter().parseAsync(exported, { binary: true, onlyVisible: true });
     if (!(glb instanceof ArrayBuffer)) throw new Error('Expected binary glTF');
     // Small chunks avoid overflowing the call stack on the corridor's merged geometry.
@@ -67,4 +72,9 @@ export async function exportSpace(scene: Scene, space: BakeManifest['space'], so
   } finally {
     for (const mesh of exported.children as Mesh[]) { mesh.geometry.dispose(); (mesh.material as BakeMaterial).dispose(); }
   }
+}
+
+function hasLazyBakeAncestor(mesh: Mesh): boolean {
+  for (let parent = mesh.parent; parent; parent = parent.parent) if (parent.userData['bake'] === 'lazy') return true;
+  return false;
 }

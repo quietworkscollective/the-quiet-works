@@ -22,7 +22,7 @@ import random
 import sys
 
 import bmesh
-from mathutils import Vector
+from mathutils import Vector, noise
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +58,9 @@ def tag(bm, bk, T, H, stack_axis='x'):
 def standing_book(bk, T, H, D, rng):
     """A block with a rounded spine (the two front vertical edges) and softened head and tail at the front."""
     bm = geo.box((T, D, H), center=(0.0, 0.0, H / 2))
+    # boards are never dead flat: give the block a few vertices to bend, and bend it a hair
+    geo.refine(bm, 0.07)
+    geo.wobble(bm, 0.0006, 0.16, seed=bk * 41.0, axes='xy')
     on_front = lambda e: all(abs(v.co.y + D / 2) < 1e-5 for v in e.verts)
     vertical = [e for e in bm.edges if on_front(e) and abs(e.verts[0].co.z - e.verts[1].co.z) > H * 0.5]
     bmesh.ops.bevel(bm, geom=vertical, offset=min(T * 0.32, 0.007), offset_type='OFFSET', segments=3, profile=0.5, affect='EDGES',
@@ -160,6 +163,20 @@ def build_stack(spec, root, slots):
     return [kit.add_part(root, 'stack', merged, slots, sharp_deg=55, weighted=False)]
 
 
+def page_curl(bm, rng):
+    """An open book's leaves are not flat: they sag toward the gutter, and the fore-edge corners lift and flutter."""
+    geo.refine(bm, 0.025)
+    seed = rng.random() * 50.0
+    for v in bm.verts:
+        if v.co.z < 0.0045:
+            continue
+        u = min(1.0, abs(v.co.x) / 0.2)
+        w = min(1.0, abs(v.co.y) / 0.128)
+        lift = 0.0032 * (u ** 1.5) * (w ** 2.4) + 0.0011 * noise.noise(v.co * 21.0 + Vector((seed, 0.0, 0.0))) * u * (0.4 + w)
+        v.co.z += lift
+    return bm
+
+
 def build_open(spec, root, slots):
     rng = random.Random(spec['seed'])
     bk = 0.42
@@ -186,6 +203,7 @@ def build_open(spec, root, slots):
     parts.append(ribbon)
     merged = parts[0]
     geo.merge(merged, *parts[1:])
+    page_curl(merged, rng)
     bkL = merged.faces.layers.float.get('bk') or merged.faces.layers.float.new('bk')
     btL = merged.faces.layers.float.get('bt') or merged.faces.layers.float.new('bt')
     bzL = merged.verts.layers.float.get('bz') or merged.verts.layers.float.new('bz')
@@ -215,11 +233,11 @@ def build(spec, root):
     if spec['kind'] == 'row':
         objs = build_row(spec, root, slots)
         view = dict(target=(0, 0, 0.15), distance=2.0, azimuth=16)
-        detail = dict(target=(spec['length'] * 0.18, -0.1, 0.18), distance=0.55, azimuth=10, elevation=6)
+        detail = dict(target=(spec['length'] * 0.18, -0.1, 0.18), distance=0.4, azimuth=10, elevation=6)
     elif spec['kind'] == 'stack':
         objs = build_stack(spec, root, slots)
         view = dict(target=(0, 0, 0.08), distance=1.2, azimuth=-26)
-        detail = dict(target=(0.0, -0.1, 0.1), distance=0.5, azimuth=-22, elevation=16)
+        detail = dict(target=(0.0, -0.1, 0.1), distance=0.4, azimuth=-22, elevation=16)
     else:
         objs = build_open(spec, root, slots)
         view = dict(target=(0, 0, 0.01), distance=1.15, azimuth=14)

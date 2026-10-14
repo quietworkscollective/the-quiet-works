@@ -199,7 +199,7 @@ describe('Office navigation', () => {
 
   it('frames low props and the bell within the accepted pitch limit', () => {
     for (const pose of Object.values(VIEWPOINTS)) expect(Math.abs(pose.pitchDeg)).toBeLessThanOrEqual(25);
-    expect(VIEWPOINTS.records.yawDeg).toBe(270); expect(VIEWPOINTS.exit.yawDeg).toBe(90);
+    expect(VIEWPOINTS.records.yawDeg).toBe(211); expect(VIEWPOINTS.exit.yawDeg).toBe(147);
     for (const [pose, y, z] of [[VIEWPOINTS.drawer, 0.68, 3.38], [VIEWPOINTS.underside, 0.75, 4]] as const) {
       expect(Math.atan2(EYE_HEIGHT - y, z - pose.z) * 180 / Math.PI).toBeLessThanOrEqual(25);
     }

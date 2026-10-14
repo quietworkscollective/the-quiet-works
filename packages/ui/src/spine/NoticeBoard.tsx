@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId } from 'react';
 import { BOARD } from '@tqw/engine';
 import type { NoticeBoardProps } from './types.ts';
 import { useModalDialog } from './useModalDialog.ts';
@@ -15,6 +15,11 @@ const STOCKS = ['bone', 'buff', 'grey-green'] as const;
 export function NoticeBoard({ open, chambers, onChoose, onClose }: NoticeBoardProps) {
   const ref = useModalDialog(open, onClose);
   const titleId = useId();
+  useEffect(() => {
+    if (!open) return;
+    // Native dialog focus can select the scroller; start at its first room action instead.
+    ref.current?.querySelector<HTMLButtonElement>('.tqw-clipping__go, .tqw-board__close')?.focus();
+  }, [open, ref]);
   return (
     <dialog ref={ref} className="tqw-board" aria-labelledby={titleId}>
       <div className="tqw-board__sheet">

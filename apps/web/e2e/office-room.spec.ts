@@ -4,7 +4,7 @@ import { app, audioContexts, closeMenu, countAudioContexts, expectStamps, openMe
 
 test('R-8: a distant 3D press approaches before it can stamp', async ({ page }, info) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   const target = await stampTarget(page);
   if (info.project.name === 'mobile') await page.touchscreen.tap(target.x, target.y);
   else await page.mouse.click(target.x, target.y);
@@ -18,7 +18,7 @@ test('R-8: a distant 3D press approaches before it can stamp', async ({ page }, 
 
 test('R-8: a keyboard stamp acts from arrival and frames the desk', async ({ page }) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await toggleOfficePlaces(page);
   await stampWithKeyboard(page);
   await expectStamps(page, 1);
@@ -29,7 +29,7 @@ test('R-8: a keyboard stamp acts from arrival and frames the desk', async ({ pag
 
 test('movement keys release the desk while its DOM control has focus', async ({ page }) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await toggleOfficePlaces(page);
   const approach = page.getByRole('button', { name: 'Approach the desk', exact: true });
   await approach.click();
@@ -42,7 +42,7 @@ test('movement keys release the desk while its DOM control has focus', async ({ 
 
 test('dragging from the distant physical press looks without approaching or stamping', async ({ page }, info) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 });
   const target = await stampTarget(page);
   const canvas = page.locator('.tqw-canvas');
@@ -69,7 +69,7 @@ test('dragging from the distant physical press looks without approaching or stam
 test('wheel travel stays silent and scrolling the DOM inspection leaves the camera alone', async ({ page }) => {
   await countAudioContexts(page);
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 }); await stampTarget(page);
   const canvas = page.locator('.tqw-canvas');
   const before = await canvas.getAttribute('data-position');
@@ -92,7 +92,7 @@ test('wheel travel stays silent and scrolling the DOM inspection leaves the came
 
 test('a reduced-motion station captures the outgoing image and cuts to a stationary view', async ({ page }) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 }); await stampTarget(page);
   await roomReady(page);
   // Settings live in the Menu (ADR 0003).
@@ -131,7 +131,7 @@ test('a reduced-motion station captures the outgoing image and cuts to a station
 
 test('a nearby free view holds the press without reclaiming camera framing', async ({ page }, info) => {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await roomReady(page);
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 });
   await toggleOfficePlaces(page);
   await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();

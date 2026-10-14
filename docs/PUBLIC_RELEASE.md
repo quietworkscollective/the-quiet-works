@@ -17,7 +17,7 @@ changing its security settings and rewriting history are release decisions (AGEN
 | Dependabot, monthly and grouped | `.github/dependabot.yml` | Stale dependencies and actions, at one CI run per ecosystem a month. |
 | Issue templates without blank issues; a private security route | `.github/ISSUE_TEMPLATE/` | Personal crises or security reports in public issues. |
 | Pull request template | `.github/PULL_REQUEST_TEMPLATE.md` | Descriptions without objective, decisions or verification. |
-| Site privacy: no network, storage, cookies or analytics | CSP `connect-src 'none'`; e2e privacy tests | The artwork collecting anything. |
+| Site privacy: no third-party requests, cookies or analytics; one local archive after a discovery | CSP `connect-src 'none'`; e2e privacy tests | The artwork collecting anything. |
 
 ## Controls applied at the moment of going public
 
@@ -43,6 +43,37 @@ applies them; run it without arguments first (a dry run that also runs `check:pu
 
 Public repositories get standard GitHub Actions minutes free, so the budget pressure on CI ends
 at this point; the once-per-pull-request design stays because it is also faster.
+
+## Required browser gate and extended diagnostics
+
+The required status is still named exactly `checks`. It means the `unit` job and every `core`
+browser shard succeeded. It runs with `if: always()` and rejects failed, cancelled or skipped
+dependencies. The four core shards cover desktop Chromium and Pixel 7 against the production
+build, with the existing browser cache and a 90-minute job limit for software rendering and setup.
+Cases are distributed individually across shards; each runner retains one sequential worker.
+The limit leaves headroom above the previous slowest local shard of 52 minutes, including browser
+installation and cold scene preparation; it does not increase any assertion's deadline.
+
+Core includes every spec by default: full-tier rendering, Office budget/context/exploration/room
+and interaction specs, brand, page, spine, discoveries, robustness, gramophone music, Exchange,
+and the Outline Room cases in `full-tier.spec.ts`. Corridor clock, rendering warnings, remount,
+pointer, page-input, gesture/audio-consent and accessible touch-control checks also remain core.
+New ordinary specs enter this gate automatically. A failing spec is repaired or reviewed; failure
+alone is never a reason to remove it from core.
+
+Only tests marked `@extended` sit outside that required status. They measure corridor camera
+trajectories and frame throughput: hero drift, scroll walk-in, off-screen/hidden-tab frame counts,
+camera pose/FOV/collision geometry, camera frame-loop budgets, reduced-motion camera cuts and
+the corridor idle draw count. Mixed cases that also check keyboard, pointer, touch, native scroll
+ownership, door routing or settings controls remain required in core. The metadata marks
+measurements without changing their assertions. These selected cases are in
+`corridor-site.spec.ts`, `corridor-walk.spec.ts` and `corridor-world.spec.ts`.
+
+Every pull request runs four `extended` shards as well. Their failures remain visible as failed
+jobs, and each job summary lists every failed test and its error. Neither tier cancels its other
+shards on a test failure. The extended job is intentionally absent from the `checks` dependency
+set; its diagnostics still require triage, and do not replace device/performance or editorial
+release review. See ADR 0011. The maintainer reviews this split with the release changes.
 
 ## Founder decisions (14 October 2026)
 

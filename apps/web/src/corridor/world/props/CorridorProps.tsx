@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { BoxGeometry, MeshBasicMaterial, MeshLambertMaterial, type Group } from 'three';
 import { useAmbient } from '../../ambient.ts';
@@ -10,7 +10,10 @@ import { buildProps } from './build.ts';
 import { hitBoxes, pointerHandlers } from './hit.ts';
 import { Gramophone } from './gramophone/Gramophone.tsx';
 import { createPropMaterials, findDonors, type PropMaterials } from './materials.ts';
+import { loadModelKit, type PropModelKit } from './modelKit.ts';
+import { PROP_MODEL_IDS, propModelSource } from './modelSources.ts';
 import { NO_AMBIENT, type AmbientDrive } from './motion.ts';
+import type { Assembly } from './parts.ts';
 import { createPropsRig, type PropsRig } from './rig.ts';
 import { MODELS } from './models/index.ts';
 import { placementOf } from './placement.ts';
@@ -43,8 +46,16 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
 
   // The procedural visuals unless a provider supplies others (see visuals.ts).
   const visuals = useContext(PropVisualsContext);
-  const assembly = useMemo(() => buildProps(visuals), [visuals]);
+  const [modelsRequested, setModelsRequested] = useState(false);
+  const [modelKit, setModelKit] = useState<PropModelKit | null>(null);
+  const assembly = useMemo(() => buildProps(visuals, modelKit ?? undefined), [visuals, modelKit]);
   const hits = useMemo(() => hitBoxes(assembly), [assembly]);
+  const handlePointer = useCallback((id: PropId, kind: 'over' | 'out' | 'click') => {
+    onPointer(id, kind);
+    // The ready-made models are a local enhancement. Load them only after a visitor acts on a
+    // prop, so no model payload joins the landing/corridor's first-visit download.
+    if (kind === 'click') setModelsRequested(true);
+  }, [onPointer]);
   const hitGeometry = useMemo(() => new BoxGeometry(1, 1, 1), []);
   // Invisible: raycast by the pointer, never drawn.
   const hitMaterial = useMemo(() => new MeshBasicMaterial({ visible: false }), []);
@@ -71,6 +82,31 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
     };
   }, [ambient, reducedMotion]);
 
+  // Model modules contain the props' ready-made GLBs. Do not ask Vite for them until a prop is
+  // actually activated; the procedural assembly remains complete while they load.
+  useEffect(() => {
+    if (!modelsRequested) return;
+    let alive = true;
+    let loaded: PropModelKit | null = null;
+    const lite = findDonors(scene)?.oak instanceof MeshLambertMaterial;
+    void loadModelKit(PROP_MODEL_IDS, propModelSource, {
+      lite,
+      anisotropy: Math.min(8, gl.capabilities.getMaxAnisotropy()),
+    }).then((kit) => {
+      if (!alive) {
+        kit.dispose();
+        return;
+      }
+      loaded = kit;
+      setModelKit(kit);
+      invalidate();
+    });
+    return () => {
+      alive = false;
+      loaded?.dispose();
+    };
+  }, [modelsRequested, scene, gl, invalidate]);
+
   // The props borrow the world's shader and grain, so they are made once the world's meshes exist,
   // and their lettering is drawn once the fonts are ready.
   useEffect(() => {
@@ -83,7 +119,7 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
       const donors = findDonors(scene);
       const lite = donors?.oak instanceof MeshLambertMaterial;
       const atlas = makePropAtlas(lite ? 1 : Math.min(8, gl.capabilities.getMaxAnisotropy()));
-      const materials = createPropMaterials(donors, atlas);
+      const materials = createPropMaterials(donors, atlas, modelKit?.textures ?? null);
       const externals: Partial<Record<PropId, ExternalInstance>> = {};
       for (const model of MODELS) {
         const make = visuals.external?.[model.id];
@@ -94,7 +130,7 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
       built.current = { rig, materials };
       gl.domElement.dataset['props'] = String(PROPS.length);
       invalidate();
-      const hook = import.meta.env.DEV ? installDevHook({ animation, rig, materials, pinned, reduced }) : undefined;
+      const hook = import.meta.env.DEV ? installDevHook({ animation, rig, materials, kit: modelKit, assembly, pinned, reduced }) : undefined;
       teardown = () => {
         hook?.();
         built.current = null;
@@ -107,7 +143,7 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
       alive = false;
       teardown?.();
     };
-  }, [assembly, visuals, scene, gl, invalidate, animation]);
+  }, [assembly, visuals, scene, gl, invalidate, animation, modelKit]);
 
   useFrame(() => {
     const current = built.current;
@@ -129,7 +165,7 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
           scale={h.size}
           geometry={hitGeometry}
           material={hitMaterial}
-          {...pointerHandlers(h.id, onPointer)}
+          {...pointerHandlers(h.id, handlePointer)}
         />
       ))}
     </group>
@@ -140,6 +176,8 @@ interface DevHookArgs {
   animation: PropAnimation;
   rig: PropsRig;
   materials: PropMaterials;
+  kit: PropModelKit | null;
+  assembly: Assembly;
   pinned: { current: AmbientDrive | null };
   reduced: { current: boolean };
 }
@@ -149,10 +187,12 @@ interface DevHookArgs {
  * canvas draws on demand, so a script sets the motion, then asks for a frame). Stripped from
  * production builds.
  */
-function installDevHook({ animation, rig, materials, pinned, reduced }: DevHookArgs): () => void {
+function installDevHook({ animation, rig, materials, kit, assembly, pinned, reduced }: DevHookArgs): () => void {
   const hook = {
     animation,
     rig,
+    kit,
+    assembly,
     /** Pose the props from `animation` now, so the next draw shows them. */
     apply() {
       materials.syncEnvironment();

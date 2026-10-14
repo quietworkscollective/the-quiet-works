@@ -1,4 +1,4 @@
-import type { CanvasTexture } from 'three';
+import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RGBAFormat, UnsignedByteType, type CanvasTexture } from 'three';
 import { context2d, createCanvas, makeTexture } from './canvas.ts';
 
 /** Soft-edged gradients: contact shadows, light pools and the faint sheen on glass. */
@@ -87,4 +87,57 @@ export function drawWedge(): CanvasTexture {
   }
   ctx.putImageData(img, 0, 0);
   return makeTexture(canvas, { mipmaps: false });
+}
+
+/** Four soft, slightly slanted bars of low sun, brightest at the window and fading along the floor. */
+export function windowBarPixels(size = 256): Uint8Array {
+  const pixels = new Uint8Array(size * size * 4);
+  const bars = [
+    { centre: 0.14, width: 0.055 },
+    { centre: 0.36, width: 0.038 },
+    { centre: 0.63, width: 0.045 },
+    { centre: 0.86, width: 0.06 },
+  ];
+  const smooth = (a: number, b: number, value: number): number => {
+    const t = Math.max(0, Math.min(1, (value - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+  for (let y = 0; y < size; y += 1) {
+    // DataTexture v=1 is the source at the window; v=0 is the end of the patch.
+    const v = y / Math.max(1, size - 1);
+    const distance = 1 - v;
+    const falloff = Math.pow(v, 1.5);
+    const drift = distance * 0.16;
+    for (let x = 0; x < size; x += 1) {
+      const u = x / Math.max(1, size - 1);
+      let intensity = 0;
+      for (const bar of bars) {
+        const half = bar.width / 2;
+        const edge = Math.abs(u - (bar.centre + drift));
+        const coverage = 1 - smooth(half - 0.012, half + 0.012, edge);
+        intensity = Math.max(intensity, coverage);
+      }
+      const value = Math.round(255 * intensity * falloff);
+      const i = (y * size + x) * 4;
+      pixels[i] = value;
+      pixels[i + 1] = value;
+      pixels[i + 2] = value;
+      pixels[i + 3] = 255;
+    }
+  }
+  return pixels;
+}
+
+/** A linear mask used by the additive sun patches; no image file or network request is needed. */
+export function drawWindowBars(): DataTexture {
+  const size = 256;
+  const texture = new DataTexture(windowBarPixels(size), size, size, RGBAFormat, UnsignedByteType);
+  texture.colorSpace = NoColorSpace;
+  texture.wrapS = ClampToEdgeWrapping;
+  texture.wrapT = ClampToEdgeWrapping;
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
 }

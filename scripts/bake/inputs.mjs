@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 // Conservative source scopes: additions and removals participate, generated bakes never do.
@@ -14,6 +14,7 @@ const sharedDirectories = [
 ];
 const sharedFiles = [
   'pnpm-lock.yaml',
+  'apps/web/bake.html',
   'apps/web/src/baked/contract.ts',
   'apps/web/src/baked/lights.ts',
   'apps/web/src/main.tsx',
@@ -26,9 +27,20 @@ const sharedFiles = [
   'apps/web/src/chambers/registry.ts',
   'packages/ui/src/contextualCues.ts',
 ];
-const roomDirectories = {
-  corridor: 'apps/web/src/corridor',
-  office: 'apps/web/src/chambers/certification-office',
+const roomInputs = {
+  corridor: ['apps/web/src/corridor'],
+  office: ['apps/web/src/chambers/certification-office'],
+  'codex-room': [
+    'apps/web/src/chambers/annex-codex',
+    'scripts/blender/rooms/codex-room',
+    'apps/web/src/assets/outline-room.glb.gz',
+  ],
+  exchange: [
+    'apps/web/src/chambers/exchange',
+    'scripts/blender/rooms/exchange',
+    'apps/web/src/chambers/exchange/assets/exchange.glb',
+    'apps/web/src/chambers/exchange/assets/exchange.glb.gz',
+  ],
 };
 const productionInput = name => /\.(?:[cm]?[jt]sx?|py|json|css|glb|gltf|bin|gz|png|jpe?g|webp|svg|avif|woff2?|ttf|otf)$/i.test(name) && !name.startsWith('.') && !/\.(test|spec|integration)\.[^.]+$/.test(name) && !['testUtils.ts', 'testSetup.ts', 'domStub.ts', 'README.md'].includes(name);
 async function collect(root, directory) {
@@ -39,6 +51,13 @@ async function collect(root, directory) {
     else if (entry.isFile() && productionInput(entry.name)) files.push(file);
   }
   return files;
+}
+async function collectInput(root, input) {
+  const inputPath = path.join(root, input);
+  const info = await stat(inputPath);
+  if (info.isDirectory()) return collect(root, input);
+  if (info.isFile() && productionInput(path.basename(input))) return [input];
+  return [];
 }
 
 export async function hashInputs(root, files) {
@@ -54,9 +73,10 @@ export async function hashInputs(root, files) {
 }
 
 export async function sourceInputs(root, space) {
-  if (!(space in roomDirectories)) throw new Error(`Unknown bake space: ${space}`);
+  if (!(space in roomInputs)) throw new Error(`Unknown bake space: ${space}`);
   const files = [...sharedFiles];
-  for (const directory of [...sharedDirectories, roomDirectories[space]]) files.push(...await collect(root, directory));
+  for (const directory of sharedDirectories) files.push(...await collect(root, directory));
+  for (const input of roomInputs[space]) files.push(...await collectInput(root, input));
   const chambers = 'apps/web/src/chambers';
   for (const entry of await readdir(path.join(root, chambers), { withFileTypes: true })) {
     if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '__pycache__') files.push(`${chambers}/${entry.name}/door.ts`);

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { BakedSpace } from '../baked/BakedSpace.tsx';
 import { CorridorProps } from './world/props/CorridorProps.tsx';
 import { AmbientDirector, AmbientLife } from './world/ambient/AmbientLife.tsx';
@@ -8,6 +8,7 @@ import { useThree } from '@react-three/fiber';
 import { ACESFilmicToneMapping, Color, Fog, PerspectiveCamera, Vector3, type BufferGeometry, type HemisphereLight } from 'three';
 import { CORRIDOR } from './layout.ts';
 import type { CorridorWorldProps } from './types.ts';
+import type { CorridorDressingProps } from './world/decor/types.ts';
 import { Board } from './world/Board.tsx';
 import { bucketGeometries, type BucketKey } from './world/buckets.ts';
 import { buildWorld } from './world/build.ts';
@@ -22,6 +23,7 @@ import { FILL_KELVIN, GROUND_KELVIN } from './world/palette.ts';
 import { loadFonts } from './world/textures/canvas.ts';
 import { FOG_COLOUR } from './world/fog.ts';
 import { Beacon } from './world/Beacon.tsx';
+import { renderWithLook } from '../look/render.ts';
 import { makeArt } from './world/textures/index.ts';
 
 /**
@@ -76,7 +78,7 @@ function useFontsReady(): boolean {
   return ready;
 }
 
-export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipping, propAnimation, onPropPointer }: CorridorWorldProps) {
+export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPointer, onClipping, propAnimation, onPropPointer }: CorridorWorldProps) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const invalidate = useThree((s) => s.invalidate);
@@ -84,15 +86,43 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
 
   const world = useMemo(() => buildWorld(), []);
   const geometries = useMemo(() => bucketGeometries(world.buckets), [world]);
-  const quality = useMemo(() => chooseQuality(rendererName(gl.getContext()), window.location.search), [gl]);
-  const [bakeReady, setBakeReady] = useState(() => new URLSearchParams(window.location.search).get('bake') === 'off');
+  const quality = useMemo(() => chooseQuality(rendererName(gl.getContext())), [gl]);
+  const [bakeReady, setBakeReady] = useState(() => import.meta.env.DEV && new URLSearchParams(window.location.search).get('bake') === 'off');
   const markBakeReady = useCallback(() => setBakeReady(true), []);
+  const [Dressing, setDressing] = useState<ComponentType<CorridorDressingProps> | null>(null);
+  const [decorReady, setDecorReady] = useState(false);
+  const markDecorReady = useCallback(() => {
+    setBakeReady(false);
+    setDecorReady(true);
+  }, []);
+  useEffect(() => {
+    if (!decorActive || Dressing) return;
+    let alive = true;
+    void import('./world/decor/Dressing.tsx').then((module) => {
+      if (alive) setDressing(() => module.CorridorDressing);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [decorActive, Dressing]);
   const materials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), window.matchMedia('(pointer: coarse)').matches, quality), [gl, quality]);
   // A software rasteriser draws a frame in about a second: render fewer pixels of it.
   const setDpr = useThree((s) => s.setDpr);
   useLayoutEffect(() => {
     if (quality === 'lite') setDpr(LITE_PIXEL_RATIO);
   }, [quality, setDpr]);
+  // The scanned surfaces (plaster, terrazzo, oak, paint, enamel, brass) wait for their maps. `scans` is
+  // null until they are on their materials, then the ids that failed to load (none, normally).
+  const [scans, setScans] = useState<readonly string[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void materials.ready.then((failed) => {
+      if (alive) setScans(failed);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [materials]);
   // Lettered art waits for the fonts; the canvases are drawn once and owned by the materials.
   const art = useMemo(() => {
     if (!fontsReady) return null;
@@ -165,19 +195,21 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
     if (t.ground) h.groundColor.set(t.ground);
   });
 
-  // Readiness waits for the baked receiver's first completed on-screen draw.
+  // Readiness waits for the scanned materials, lettering, first baked draw and activated dressing.
   useEffect(() => {
-    if (!art || !bakeReady) return;
+    if (!art || !bakeReady || scans === null || (decorActive && !decorReady)) return;
     const canvas = gl.domElement;
     canvas.dataset['world'] = 'ready';
+    canvas.dataset['scans'] = scans.length === 0 ? 'ok' : `failed:${scans.join(',')}`;
     invalidate();
     return () => {
       delete canvas.dataset['world'];
+      delete canvas.dataset['scans'];
     };
-  }, [art, bakeReady, gl, invalidate]);
+  }, [art, bakeReady, scans, decorActive, decorReady, gl, invalidate]);
 
-  // Nothing is drawn until the lettering can be: the DOM landing covers the short wait.
-  if (!art) return null;
+  // Nothing is drawn until the lettering and the scanned surfaces can be: the DOM landing covers the short wait.
+  if (!art || scans === null) return null;
 
   const entries = Object.entries(geometries) as [BucketKey, BufferGeometry][];
   return (
@@ -186,7 +218,8 @@ export function CorridorWorld({ animation, reducedMotion, onDoorPointer, onClipp
       {entries.map(([key, geometry]) => (
         <mesh key={key} name={key} geometry={geometry} material={materials.byKey[key]} renderOrder={RENDER_ORDER[key] ?? 0} />
       ))}
-      <BakedSpace space="corridor" onReady={markBakeReady} />
+      <BakedSpace key={decorReady ? 'decorated' : 'landing'} space="corridor" onReady={markBakeReady} allowLazyMissing={!decorReady} />
+      {Dressing ? <Dressing onReady={markDecorReady} /> : null}
       <Fixtures materials={materials} />
       <Beacon materials={materials} />
       {world.chamberDoors.map((door) => (
@@ -252,6 +285,43 @@ function useDevHook(triangles: number, animation: CorridorWorldProps['animation'
       materials,
       /** Draw one frame now, applying the posed door animation first, and return the counters. */
       render,
+      /**
+       * Decoded texture memory of every texture the scene's materials reference, RGBA8 with mip chains
+       * (the figure the asset budgets use), by texture name or by the material that holds it.
+       */
+      memory() {
+        const seen = new Set<unknown>();
+        const rows: Record<string, number> = {};
+        let total = 0;
+        scene.traverse((o) => {
+          const mats = (o as { material?: unknown }).material;
+          for (const m of Array.isArray(mats) ? mats : mats ? [mats] : []) {
+            for (const value of Object.values(m as object)) {
+              const tex = value as { isTexture?: boolean; image?: { width?: number; height?: number }; uuid?: string; name?: string } | null;
+              if (!tex || !tex.isTexture || seen.has(tex)) continue;
+              seen.add(tex);
+              const w = tex.image?.width ?? 1;
+              const h = tex.image?.height ?? 1;
+              const bytes = Math.round(w * h * 4 * (4 / 3));
+              total += bytes;
+              const key = `${(m as { name?: string }).name || (o as { name?: string }).name || 'material'} ${w}x${h}`;
+              rows[key] = (rows[key] ?? 0) + bytes;
+            }
+          }
+        });
+        return { totalMB: Math.round(total / 1e5) / 10, rows: Object.fromEntries(Object.entries(rows).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, Math.round(v / 1e4) / 100])) };
+      },
+      /** Draw one frame through the finishing stack when it is mounted (what a visitor sees); the counters are `render`'s. */
+      finish() {
+        for (const update of DOOR_UPDATERS) update();
+        for (const update of WORLD_UPDATERS) update();
+        renderWithLook(gl, scene, camera);
+        return {
+          calls: gl.info.render.calls,
+          triangles: gl.info.render.triangles,
+          worldTriangles: triangles,
+        };
+      },
       /** Place the camera (yaw and pitch in degrees) and draw: the stub camera is bypassed. */
       setCam(x: number, y: number, z: number, yawDeg = 0, pitchDeg = 0, fov?: number) {
         const cam = camera as PerspectiveCamera;

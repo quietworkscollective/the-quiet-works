@@ -97,7 +97,7 @@ def build(spec, root):
     obj.rotation_euler = (math.radians(26.0), math.radians(14.0), math.radians(10.0))
     return Built(root, [obj], moving=[], stage='desk',
                  view=dict(target=(0, 0, 0.036), distance=1.0, azimuth=28, lens=120),
-                 detail=dict(target=(0.0, 0.0, 0.036), distance=0.26, azimuth=22, elevation=22))
+                 detail=dict(target=(0.0, 0.0, 0.036), distance=0.4, azimuth=22, elevation=22))
 
 
 if __name__ == '__main__':

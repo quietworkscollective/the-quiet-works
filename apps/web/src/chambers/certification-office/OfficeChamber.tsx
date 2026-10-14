@@ -29,6 +29,7 @@ import { VIEWPOINTS, type Viewpoint, createNavigation } from './scene/navigation
 import sealedOffice from '../../../../../packages/engine/src/sealed/certification-office.sealed.json';
 
 const OfficeScene = lazy(() => import('./scene/OfficeScene.tsx'));
+const ignoreSceneFocus = () => {};
 
 /**
  * The office keeps its state for the whole visit: leaving through the door and coming back finds
@@ -87,6 +88,7 @@ export default function OfficeChamber(props: ChamberProps) {
   const approach = useCallback(() => {
     if (navigation.station !== 'desk') navigation.approach('desk', text !== null || settings.reducedMotion);
   }, [navigation, text, settings.reducedMotion]);
+  const unlockSound = useCallback(() => sound.unlock(), [sound]);
   const textMode = text !== null;
   const appRef = useRef<HTMLDivElement>(null);
   useEffect(() => { navigation.setReducedMotion(textMode || settings.reducedMotion); }, [navigation, settings.reducedMotion, textMode]);
@@ -287,13 +289,13 @@ export default function OfficeChamber(props: ChamberProps) {
                 shadow={shadow}
                 freshInk={freshForPress}
                 onInspect={inspect}
-                onFocusObject={() => {}}
+                onFocusObject={ignoreSceneFocus}
                 focusedObject={focused}
                 framedObject={framed}
                 onCue={setCue}
                 onEntrance={entrance}
                 reducedMotion={settings.reducedMotion}
-                onGesture={() => sound.unlock()}
+                onGesture={unlockSound}
                 onPressStart={physicalPressStart}
                 onPressEnd={pressEnd}
                 onContextLost={lost}

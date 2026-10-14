@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
-import { audioContexts, countAudioContexts, expectSpine, site } from './helpers.ts';
+import { audioContexts, countAudioContexts, expectSpine, openMenu, closeMenu, site } from './helpers.ts';
 
 /**
  * The lobby gramophone under the production build's Content-Security-Policy (`connect-src 'none'`,
@@ -82,7 +82,13 @@ const media = (urls: string[]): string[] => urls.filter((u) => /\.(webm|m4a)(\?|
 async function toCorridor(page: Page): Promise<void> {
   await page.goto('/');
   await expectSpine(page, 'entrance');
-  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+  // The sticky game window rests at the end of its section; overshooting can clip Menu,
+  // whose native scroll-into-view would then return the resting visitor to the entrance.
+  await page.evaluate(() => {
+    const game = document.getElementById('game')!;
+    const window_ = game.querySelector<HTMLElement>('.tqw-game__window')!;
+    window.scrollTo(0, game.offsetTop + game.offsetHeight - window_.offsetHeight);
+  });
   await expectSpine(page, 'corridor');
   await expect(page.locator('canvas[data-gramophone="ready"]')).toHaveCount(1, { timeout: 60_000 });
 }
@@ -211,8 +217,14 @@ test.describe('the gramophone under the built policy', () => {
     await tapDestination(page);
     await toCorridor(page);
     await expect(reading(page)).not.toContainText('The sound is off.');
-    await page.getByRole('button', { name: /sound/i }).first().click();
+    const sound = (await openMenu(page)).getByRole('button', { name: 'Sound', exact: true });
+    await expect(sound).toHaveAttribute('aria-pressed', 'true');
+    await sound.click();
+    await expect(sound).toHaveAttribute('aria-pressed', 'false');
+    await closeMenu(page);
     await expect(reading(page)).toContainText('The sound is off.');
+    // Opening Settings and muting do not unlock audio before a deliberate play gesture.
+    expect(await page.evaluate(() => (window as unknown as { __ctx?: unknown }).__ctx)).toBeUndefined();
     // Muted first: no desk is built by a press, and the verbs still move the needle.
     await gramophoneControl(page, 'Play').evaluate((el) => (el as HTMLButtonElement).click());
     await expect(reading(page)).toContainText('The needle has come down');

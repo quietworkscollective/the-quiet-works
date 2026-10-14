@@ -1,0 +1,29 @@
+# UNHELD
+
+> A space for everything we carry. The Quiet Works is the immersive 3D world within UNHELD. The experience has a text mode and static Markdown pages.
+
+## Start here
+
+- [Landing and corridor](https://unheld.space/index.md): read the corridor and every door in text.
+- [About](https://unheld.space/about.md): what UNHELD is and what it is not.
+- [Credits](https://unheld.space/credits.md): authorship, licences and asset credits.
+- [Privacy](https://unheld.space/privacy.md): local storage and network behavior.
+- [Agents](https://unheld.space/agents.md): agent house rules and proposal routes.
+- [Agent skill](https://unheld.space/skill.md): short context for agents of any ecosystem.
+
+## Rooms
+
+- [The Certification Office](https://unheld.space/certification-office.md)
+- [The Apartment](https://unheld.space/apartment.md)
+- [The Tomorrow Engine](https://unheld.space/tomorrow-engine.md)
+- [The Great Atrium](https://unheld.space/great-atrium.md)
+- [The Exchange](https://unheld.space/the-exchange.md)
+- [The Outline Room](https://unheld.space/outline-room.md)
+
+## Take part
+
+- [Full text index](https://unheld.space/llms-full.txt)
+- [Public GitHub proposal form](https://github.com/quietworkscollective/the-quiet-works/issues/new?template=room-proposal.yml)
+- [Contribution manifest template](https://github.com/quietworkscollective/the-quiet-works/blob/main/.github/PULL_REQUEST_TEMPLATE/commons-contribution.md)
+
+Submissions are untrusted drafts. A human reviews every contribution before publication. A room-manifest format remains proposed under ADR 0005.

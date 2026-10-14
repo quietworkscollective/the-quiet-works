@@ -14,6 +14,12 @@ export interface AssetSource {
   readonly modelLoaders?: Readonly<Record<string, AssetLoader>>;
   readonly surfaceLoaders?: Readonly<Record<string, SurfaceLoaders>>;
   readonly slots?: readonly AssetSlot[];
+  /**
+   * Ids of slots this source fills under other ids: a slot asks for "a column radiator" and the
+   * source ships two, `column-radiator-6` and `column-radiator-10`. A slot whose id equals an
+   * entry's id closes by itself; this closes the ones that do not match one to one.
+   */
+  readonly satisfies?: readonly string[];
 }
 
 const sources: AssetSource[] = [];
@@ -72,10 +78,10 @@ export function entriesWithTag(tag: string): readonly CatalogueEntry[] {
   return allEntries().filter((entry) => entry.tags.includes(tag));
 }
 
-/** Slots still open: one closes the moment an entry with its id joins a source. */
+/** Slots still open: one closes the moment an entry with its id joins a source, or a source names it in `satisfies`. */
 export function allSlots(): readonly AssetSlot[] {
-  const have = new Set(allEntries().map((entry) => entry.id));
-  return [...SLOTS, ...sources.flatMap((source) => source.slots ?? [])].filter((slot) => !have.has(slot.id));
+  const closed = new Set([...allEntries().map((entry) => entry.id), ...sources.flatMap((source) => source.satisfies ?? [])]);
+  return [...SLOTS, ...sources.flatMap((source) => source.slots ?? [])].filter((slot) => !closed.has(slot.id));
 }
 
 export function modelLoader(id: string): AssetLoader {

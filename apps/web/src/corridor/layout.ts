@@ -19,8 +19,8 @@ export const CORRIDOR = {
   eyeHeight: 1.62,
   /** The inner doors between lobby and corridor. */
   innerDoorZ: 1,
-  /** Walkable bays (about 22 m); beyond them the corridor is perspective only. */
-  walkableBays: 6,
+  /** Walkable bays (about 25 m), including the Annex at bay 6; beyond them the corridor is perspective only. */
+  walkableBays: 7,
   /** The visitor keeps this far from the walls. */
   wallMargin: 0.35,
   /** Walking slows to a stop over this distance before the far limit. */
@@ -87,11 +87,7 @@ export const START_VIEW = {
   portrait: { x: 0.45, z: 9.4, yawDeg: -9, pitchDeg: -1 },
 } as const;
 
-/**
- * The Annex (ADR 0004): rooms made by AI agents, at the far end of the walkable corridor, under a
- * small enamel sign marking them as machine-made. Slots are reserved here; their doors and rooms
- * arrive with their own designs.
- */
+/** The Annex (ADR 0004): commissioned rooms share bay six beneath its small enamel sign. */
 export const ANNEX = { bay: 6, sign: { y: 2.75 } } as const;
 
 export function bayCentreZ(bay: number): number {
@@ -122,6 +118,8 @@ export const CHAMBER_SLOTS: readonly DoorSlot[] = [
   { key: 'apartment', chamber: 'apartment', side: 'left', z: bayCentreZ(2) },
   { key: 'tomorrow-engine', chamber: 'tomorrow-engine', side: 'left', z: bayCentreZ(3.5) },
   { key: 'great-atrium', chamber: 'great-atrium', side: 'right', z: bayCentreZ(5) },
+  { key: 'exchange', chamber: 'exchange', side: 'right', z: bayCentreZ(ANNEX.bay) },
+  { key: 'outline-room', chamber: 'outline-room', side: 'left', z: bayCentreZ(ANNEX.bay) },
 ];
 
 /**

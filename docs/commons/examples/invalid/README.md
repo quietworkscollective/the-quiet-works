@@ -10,32 +10,20 @@ ends with `Rejected at: <JSON pointer> by: <keyword>`.
 `"$comment"` is an annotation for this check. A real manifest may not carry it, and the check
 removes it before validating.
 
-## Prove it
+## CI check
 
-This is a Phase A check, not part of CI. It needs Python 3 and the `jsonschema` package.
-
-```sh
-pip install jsonschema
-python3 -I docs/commons/examples/invalid/check.py
-```
-
-It exits 0 only when:
+The read-only repository workflow runs this checker with its pinned Python dependency. It passes
+only when:
 - the example validates, and its asset's hash and size match the file;
 - a set of valid variants validates (audio with captions, an organisation as grantor, each
   interaction template at its bounds), so the conditional rules do not over-reject;
 - every fixture is rejected with **exactly** the one location and keyword its `"$comment"` names.
   A fixture that fails for another reason, or for several, is reported as broken.
 
-## What the schema cannot check
+## What the schema and current preflight do not decide
 
-These stay with the package validator ([`CONTRIBUTION_SPEC.md`](../../CONTRIBUTION_SPEC.md)) and
-have no fixture here:
-- duplicate asset paths;
-- file existence, SHA-256 and byte size;
-- media type read from the bytes, and media budgets;
-- the text subset and the content rules;
-- `revealAt` not exceeding `stops`;
-- path containment, symlinks and the one-folder pull request rule;
-- the Phase B pilot allowlist (tier 1, four text categories, the `text` role, `corridor-alcove`,
-  the `read` template). The schema is wider on purpose; the pilot fixtures are listed in the
-  specification and built with the validator.
+Schema fixtures do not establish whether a contribution's stated licence is real, whether the text
+is suitable, or whether a fictional voice could be mistaken for testimony. Human review remains
+required. The preflight checks current text-package hashes, paths, pilot scope and text rules; media
+format parsing and limits wait for an independently reviewed sandbox. See
+[`CONTRIBUTION_SPEC.md`](../../CONTRIBUTION_SPEC.md).

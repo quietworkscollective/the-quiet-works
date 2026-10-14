@@ -17,12 +17,14 @@ export interface BakeLight {
 }
 export interface BakeManifest {
   version: 1;
-  space: 'corridor' | 'office';
+  space: 'corridor' | 'office' | 'codex-room' | 'exchange';
   hash: string;
   sourceHash?: string;
   materialHash?: string;
   baselineHash?: string;
   meshes: string[];
+  /** Baked static meshes that may be absent until their lazy scene assets are mounted. */
+  lazyMeshes?: string[];
   lights: BakeLight[];
   atlases: { file: string; width: number; height: number; scale: number; encoding?: 'srgb-scale'; bytes: number }[];
 }

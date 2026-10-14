@@ -16,8 +16,8 @@ from propkit import Built, geo, kit, mats  # noqa: E402
 
 PROPS = [dict(id='trophy-cup-tall', title='Tall two-handled cup', tier='hero', texture=1024, ao_distance=0.1)]
 
-SEGMENTS = 36
-SEG_TOL = 0.0005
+SEGMENTS = 56
+SEG_TOL = 0.00028
 BAND = (0.1475, 0.1925)  # z range of the blank engraving band
 
 
@@ -102,6 +102,9 @@ def build(spec, root):
 
     body = geo.lathe(bp, segments=SEGMENTS, seg_tol=SEG_TOL, radial=dent)
     cover = geo.lathe(cp, segments=SEGMENTS, seg_tol=SEG_TOL)
+    # hand-spun silver is never quite round: a swell of a third of a millimetre across a few centimetres
+    geo.wobble(body, 0.00035, 0.04, seed=2.0)
+    geo.wobble(cover, 0.0003, 0.05, seed=3.0)
     geo.merge(body, cover)
     parts = [handle(+1), handle(-1)]
     for side in (+1, -1):
@@ -112,7 +115,7 @@ def build(spec, root):
     print(f'  rings body/cover {len(bp)}/{len(cp)}')
     return Built(root, [cup], moving=[], stage='shelf',
                  view=dict(target=(0, 0, 0.16), distance=0.95, azimuth=32),
-                 detail=dict(target=(0.0, 0.0, 0.17), distance=0.42, azimuth=28, elevation=7))
+                 detail=dict(target=(0.0, 0.0, 0.17), distance=0.4, azimuth=28, elevation=7))
 
 
 if __name__ == '__main__':

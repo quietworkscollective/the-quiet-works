@@ -75,3 +75,14 @@ it('disposes a completed binding if cleanup precedes the awaiting continuation',
   expect(state.root.invalidate).not.toHaveBeenCalled();
   expect(state.root.gl.domElement.dataset['baked']).toBeUndefined();
 });
+
+it('passes the lazy-mesh allowance to the corridor binding', async () => {
+  vi.stubGlobal('window', { location: { search: '' } });
+  vi.stubGlobal('location', { search: '' });
+  state.bind.mockResolvedValue({ dispose: vi.fn() });
+  BakedSpace({ space: 'corridor', allowLazyMissing: true });
+  const cleanup = state.effect?.();
+  await vi.waitFor(() => expect(state.bind).toHaveBeenCalledTimes(1));
+  expect(state.bind).toHaveBeenCalledWith(state.root.scene, expect.anything(), expect.any(Function), { allowLazyMissing: true });
+  if (typeof cleanup === 'function') cleanup();
+});

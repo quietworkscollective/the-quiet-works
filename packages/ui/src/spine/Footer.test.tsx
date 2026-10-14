@@ -34,7 +34,7 @@ describe('Footer', () => {
     expect(footer.querySelector('.tqw-footer__menu, .tqw-footer__trivia')).toBeNull();
   });
 
-  it('renders About, Credits, Privacy and Licences exactly once, at the footer', () => {
+  it('renders About, Credits, Privacy, Agents and Licences exactly once, at the footer', () => {
     const onOpenPage = vi.fn();
     render(
       <>
@@ -44,22 +44,23 @@ describe('Footer', () => {
       </>,
     );
     const footer = screen.getByRole('contentinfo', { name: FOOTER_COPY.label });
-    for (const name of ['About', 'Credits', 'Privacy', 'Licences']) {
+    for (const name of ['About', 'Credits', 'Privacy', 'Agents', 'Licences']) {
       const links = screen.getAllByRole('link', { name });
       expect(links).toHaveLength(1);
       expect(links[0]?.closest('footer')).toBe(footer);
     }
   });
 
-  it('links About, Credits and Privacy as pages, and the licences as the notices file', () => {
+  it('opens About, Credits and Privacy in the app and follows the Agents and licences links', () => {
     const { onOpenPage } = setup();
     const links = within(screen.getByRole('navigation', { name: 'Footer links' })).getAllByRole('link');
-    expect(links.map((a) => a.textContent)).toEqual(['About', 'Credits', 'Privacy', FOOTER_COPY.licences]);
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/about', '/credits', '/privacy', '/third-party-notices.txt']);
+    expect(links.map((a) => a.textContent)).toEqual(['About', 'Credits', 'Privacy', 'Agents', FOOTER_COPY.licences]);
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/about', '/credits', '/privacy', '/agents', '/third-party-notices.txt']);
     expect(fireEvent.click(links[0] as HTMLElement)).toBe(false);
     expect(onOpenPage).toHaveBeenCalledWith('about');
-    // The licences link is a plain link to a file, not an app page.
+    // Agents is a standalone static page; the licences link is a plain file link.
     expect(fireEvent.click(links[3] as HTMLElement)).toBe(true);
+    expect(fireEvent.click(links[4] as HTMLElement)).toBe(true);
     expect(onOpenPage).toHaveBeenCalledTimes(1);
   });
 

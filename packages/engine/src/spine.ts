@@ -86,19 +86,24 @@ const BASE: SpineState = {
   boardOpen: false,
 };
 
+export type ChamberAvailability = (id: ChamberId) => boolean;
+
+/** Default availability for engine consumers without a build-specific release registry. */
+export const authoredChamberOpen: ChamberAvailability = (id) => chamberById(id).status === 'open';
+
 /**
  * The state for a fresh page load at `route`. The landing plays only for the home URL; a deep
  * link to a chamber goes straight through its threshold, and a deep link to a sealed chamber
  * stands the visitor in the corridor in front of its door.
  */
-export function spineInitial(route: Route): SpineState {
+export function spineInitial(route: Route, isOpen: ChamberAvailability = authoredChamberOpen): SpineState {
   switch (route.kind) {
     case 'home':
       return BASE;
     case 'page':
       return { ...BASE, page: route.page };
     case 'chamber':
-      return chamberById(route.id).status === 'open'
+      return isOpen(route.id)
         ? { ...BASE, phase: 'threshold', chamber: route.id, focus: route.id, via: 'link' }
         : { ...BASE, phase: 'corridor', focus: route.id };
   }
@@ -123,11 +128,11 @@ export function sameRoute(a: Route, b: Route): boolean {
 const unchanged = (state: SpineState): SpineResult => ({ state, cues: [] });
 
 /** Opening a door from anywhere: the shared path for doors, the board and URLs. */
-function openDoor(state: SpineState, id: ChamberId, via: ThresholdVia): SpineResult {
+function openDoor(state: SpineState, id: ChamberId, via: ThresholdVia, isOpen: ChamberAvailability): SpineResult {
   if (state.phase === 'threshold') return unchanged(state);
   const cues: SpineCue[] = [];
 
-  if (chamberById(id).status === 'sealed') {
+  if (!isOpen(id)) {
     // Trying the handle means standing at the door; a clipping on the board moves nobody.
     const focus = via === 'door' ? id : state.focus;
     return { state: focus === state.focus ? state : { ...state, focus }, cues: [{ type: 'door-sealed', id }] };
@@ -158,7 +163,7 @@ function leaveChamber(state: SpineState): SpineResult {
   };
 }
 
-export function spineTransition(state: SpineState, event: SpineEvent): SpineResult {
+export function spineTransition(state: SpineState, event: SpineEvent, isOpen: ChamberAvailability = authoredChamberOpen): SpineResult {
   switch (event.type) {
     case 'ENTRANCE_DONE':
       return state.phase === 'entrance' ? { state: { ...state, phase: 'corridor' }, cues: [] } : unchanged(state);
@@ -177,7 +182,7 @@ export function spineTransition(state: SpineState, event: SpineEvent): SpineResu
     case 'OPEN_DOOR':
       // Doors are only within reach in the corridor; the board reaches every chamber from anywhere.
       if (event.via === 'door' && state.phase !== 'corridor') return unchanged(state);
-      return openDoor(state, event.id, event.via);
+      return openDoor(state, event.id, event.via, isOpen);
 
     case 'THRESHOLD_DONE':
       if (state.phase !== 'threshold' || !state.chamber) return unchanged(state);
@@ -203,13 +208,13 @@ export function spineTransition(state: SpineState, event: SpineEvent): SpineResu
 
     case 'ROUTE': {
       const { route } = event;
-      if (route.kind === 'page') return spineTransition(state, { type: 'OPEN_PAGE', page: route.page });
+      if (route.kind === 'page') return spineTransition(state, { type: 'OPEN_PAGE', page: route.page }, isOpen);
       const base = state.page ? { ...state, page: null } : state;
       if (route.kind === 'home') {
         const left = leaveChamber(base);
         return left.state === base && base !== state ? { state: base, cues: [] } : left;
       }
-      const opened = openDoor(base, route.id, 'link');
+      const opened = openDoor(base, route.id, 'link', isOpen);
       return opened.state === base && base !== state ? { state: base, cues: opened.cues } : opened;
     }
   }

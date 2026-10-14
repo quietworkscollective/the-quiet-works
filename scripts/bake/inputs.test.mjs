@@ -40,6 +40,7 @@ test('room source lists exclude generated files and detect added modules', async
   const root = await mkdtemp(path.join(tmpdir(), 'bake-source-list-'));
   const files = [
     'pnpm-lock.yaml', 'apps/web/src/main.tsx', 'apps/web/src/App.tsx',
+    'apps/web/bake.html',
     'apps/web/src/environment.ts', 'apps/web/src/routes.ts', 'apps/web/src/pageScroll.ts',
     'apps/web/src/sceneFrame.ts', 'apps/web/src/timing.ts', 'apps/web/src/chambers/registry.ts',
     'apps/web/src/chambers/certification-office/door.ts', 'packages/ui/src/contextualCues.ts',
@@ -48,6 +49,15 @@ test('room source lists exclude generated files and detect added modules', async
     'apps/web/src/bake/export.ts', 'apps/web/src/firstPerson/three.ts',
     'apps/web/src/look/index.ts', 'packages/engine/src/index.ts',
     'scripts/bake/bake.py', 'apps/web/src/corridor/world/wall.ts',
+    'apps/web/src/chambers/annex-codex/room.tsx',
+    'apps/web/src/chambers/annex-codex/door.ts',
+    'scripts/blender/rooms/codex-room/build.py',
+    'apps/web/src/assets/outline-room.glb.gz',
+    'apps/web/src/chambers/exchange/door.ts',
+    'apps/web/src/chambers/exchange/scene/ExchangeScene.tsx',
+    'scripts/blender/rooms/exchange/build.py',
+    'apps/web/src/chambers/exchange/assets/exchange.glb',
+    'apps/web/src/chambers/exchange/assets/exchange.glb.gz',
     'apps/web/node_modules/@fontsource/test/latin.css',
     'apps/web/node_modules/@fontsource/test/files/sign.woff2',
   ];
@@ -57,9 +67,34 @@ test('room source lists exclude generated files and detect added modules', async
   };
   try {
     for (const file of files) await put(file);
+    await put('apps/web/bake.html');
     await put('apps/web/src/main.tsx', "import '@fontsource/test/latin.css';");
     await put('apps/web/node_modules/@fontsource/test/latin.css', "src: url('./files/sign.woff2');");
     const before = await sourceInputs(root, 'corridor');
+    const office = await sourceInputs(root, 'office');
+    const codex = await sourceInputs(root, 'codex-room');
+    const exchange = await sourceInputs(root, 'exchange');
+    for (const [space, input] of [['corridor', before], ['office', office], ['codex-room', codex], ['exchange', exchange]]) {
+      assert.ok(input.files.includes('apps/web/bake.html'), `${space} includes the bake entry in its freshness inputs`);
+    }
+    for (const file of [
+      'apps/web/src/chambers/annex-codex/room.tsx',
+      'scripts/blender/rooms/codex-room/build.py',
+      'apps/web/src/assets/outline-room.glb.gz',
+    ]) assert.ok(codex.files.includes(file), file);
+    for (const file of [
+      'apps/web/src/chambers/exchange/scene/ExchangeScene.tsx',
+      'scripts/blender/rooms/exchange/build.py',
+      'apps/web/src/chambers/exchange/assets/exchange.glb',
+      'apps/web/src/chambers/exchange/assets/exchange.glb.gz',
+    ]) assert.ok(exchange.files.includes(file), file);
+    await put('scripts/blender/rooms/exchange/build.py', 'changed authored source');
+    const exchangeChanged = await sourceInputs(root, 'exchange');
+    assert.notEqual(exchangeChanged.hash, exchange.hash);
+    for (const [space, original] of [['corridor', before], ['office', office], ['codex-room', codex]])
+      assert.equal((await sourceInputs(root, space)).hash, original.hash, `${space} should not include the Exchange Blender source`);
+    await put('scripts/blender/rooms/exchange/build.py');
+    assert.deepEqual(await sourceInputs(root, 'exchange'), exchange);
     for (const file of ['scripts/bake/__pycache__/cached.pyc', 'scripts/bake/__pycache__/generated.py', 'scripts/bake/compiled.pyc', 'apps/web/src/corridor/.DS_Store', 'apps/web/src/corridor/world/wall.test.ts']) await put(file);
     assert.deepEqual(await sourceInputs(root, 'corridor'), before);
     await put('apps/web/src/corridor/world/new-wall.ts');

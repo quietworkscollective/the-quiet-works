@@ -4,19 +4,26 @@ import { chooseQuality, rendererName } from '../corridor/world/quality.ts';
 import { isOnScreenSceneTarget } from '../look/render.ts';
 import { bindBake, usesLightmaps, type BakeBinding } from './runtime.ts';
 
-export function BakedSpace({ space, onReady }: { space: 'corridor' | 'office'; onReady?: () => void }) {
+export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space: 'corridor' | 'office' | 'codex-room' | 'exchange'; onReady?: () => void; allowLazyMissing?: boolean }) {
   const { scene, gl, invalidate } = useThree();
   useEffect(() => {
-    if (!usesLightmaps(chooseQuality(rendererName(gl.getContext()), window.location.search)) || new URLSearchParams(location.search).get('bake') === 'off') { onReady?.(); return; }
+    const disabledForReview = import.meta.env.DEV && new URLSearchParams(location.search).get('bake') === 'off';
+    if (!usesLightmaps(chooseQuality(rendererName(gl.getContext()))) || disabledForReview) { onReady?.(); return; }
     let cancelled = false;
     let binding: BakeBinding | undefined;
     let restoreAfterRender: (() => void) | undefined;
-    const load = space === 'corridor' ? import('./assets/corridor.ts') : import('./assets/office.ts');
+    const load = space === 'corridor'
+      ? import('./assets/corridor.ts')
+      : space === 'office'
+        ? import('./assets/office.ts')
+        : space === 'codex-room'
+          ? import('./assets/codex-room.ts')
+          : import('./assets/exchange.ts');
     void load.then(async ({ default: assets }) => {
       if (cancelled) return;
       if (!assets) throw new Error('Missing baked assets');
       const bindingStarted = performance.now();
-      binding = await bindBake(scene, assets, () => cancelled);
+      binding = await bindBake(scene, assets, () => cancelled, { allowLazyMissing });
       if (cancelled) binding.dispose();
       else {
         gl.domElement.dataset['baked'] = space;
@@ -38,6 +45,6 @@ export function BakedSpace({ space, onReady }: { space: 'corridor' | 'office'; o
       }
     }).catch((error: unknown) => { if (!cancelled) { console.error('Baked lighting could not be applied', error); onReady?.(); } });
     return () => { cancelled = true; restoreAfterRender?.(); binding?.dispose(); if (gl.domElement.dataset['baked'] === space) { delete gl.domElement.dataset['baked']; delete gl.domElement.dataset['bakeBindMs']; } };
-  }, [scene, gl, invalidate, space, onReady]);
+  }, [scene, gl, invalidate, space, onReady, allowLazyMissing]);
   return null;
 }

@@ -81,8 +81,9 @@ export const site = (page: Page): Locator => page.locator('.tqw-site');
  * software WebGL in CI renders slowly; that phase gets a longer wait than the others.
  */
 export async function expectSpine(page: Page, phase: 'entrance' | 'corridor' | 'threshold' | 'chamber'): Promise<void> {
-  // Arriving takes frames (a hand-over, a walk through a door); a busy machine draws them seconds apart.
-  await expect(site(page)).toHaveAttribute('data-spine', phase, phase === 'chamber' || phase === 'corridor' ? { timeout: 25_000 } : {});
+  // Chamber entry can include both the door fallback and the room's readiness fallback on software WebGL.
+  const timeout = phase === 'chamber' ? 60_000 : phase === 'corridor' ? 25_000 : undefined;
+  await expect(site(page)).toHaveAttribute('data-spine', phase, timeout ? { timeout } : {});
 }
 
 /** A door's DOM equivalent, by chamber title. */

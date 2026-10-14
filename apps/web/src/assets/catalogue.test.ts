@@ -135,4 +135,16 @@ describe('lookups and budget', () => {
     expect(allSlots().length).toBe(before - 1);
     expect(() => registerAssetSource({ entries: [entry] })).toThrow(/already in the catalogue/);
   });
+
+  it('closes a slot that a source names in `satisfies`, though none of its ids match', () => {
+    const slot = allSlots()[0];
+    expect(slot).toBeDefined();
+    if (!slot) return;
+    const before = allSlots().map((open) => open.id);
+    registerAssetSource({ entries: [], satisfies: [slot.id] });
+    const after = allSlots().map((open) => open.id);
+    expect(before).toContain(slot.id);
+    expect(after).not.toContain(slot.id);
+    expect(after.length).toBe(before.length - 1);
+  });
 });

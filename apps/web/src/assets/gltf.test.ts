@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
 import { ImageBitmapLoader, type Mesh, type MeshStandardMaterial, TextureLoader } from 'three';
 import { afterEach, describe, expect, it } from 'vitest';
 import { collectResources } from './dispose.ts';
 import { type DomStub, FakeImage, installDomStub } from './domStub.ts';
-import { bytesFromDataUrl, createGlbLoader, decodeGlb, imageElementTextures } from './gltf.ts';
+import { bytesFromDataUrl, bytesFromPackedDataUrl, createGlbLoader, decodeGlb, imageElementTextures } from './gltf.ts';
 import { loadModel } from './modelStore.ts';
 
 const glb = (): ArrayBuffer => {
@@ -78,6 +79,12 @@ describe('data URLs', () => {
     const bytes = new Uint8Array([0, 1, 2, 253, 254, 255]);
     const url = `data:model/gltf-binary;base64,${Buffer.from(bytes).toString('base64')}`;
     expect(new Uint8Array(bytesFromDataUrl(url))).toEqual(bytes);
+  });
+
+  it('unpacks a gzip data URL in memory without fetching a model', async () => {
+    const bytes = new Uint8Array([0, 1, 2, 253, 254, 255]);
+    const url = `data:application/gzip;base64,${gzipSync(bytes).toString('base64')}`;
+    expect(new Uint8Array(await bytesFromPackedDataUrl(url))).toEqual(bytes);
   });
 
   it('rejects anything that is not a data: URL, so a fetched path can never slip through', () => {

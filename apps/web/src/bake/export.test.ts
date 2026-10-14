@@ -36,3 +36,17 @@ for(const sign of [1,-1])it('flattens affine '+sign+' poses before Blender can d
  });
  try{await exportSpace(scene,'office');}finally{parser.mockRestore();mesh.geometry.dispose();mesh.material.dispose();}
 });
+
+it('records baked geometry under a lazy dressing root as optional until the models mount',async()=>{
+ const scene=new Scene(),lazy=new Scene();
+ lazy.userData['bake']='lazy';
+ const mesh=new Mesh(new BoxGeometry(),new MeshStandardMaterial());
+ lazy.add(mesh);scene.add(lazy);scene.updateMatrixWorld(true);
+ const expected=await meshId(mesh,mesh.geometry);
+ const parser=vi.spyOn(GLTFExporter.prototype,'parseAsync').mockResolvedValue(new ArrayBuffer(1));
+ try{
+  const result=await exportSpace(scene,'corridor');
+  expect(result.manifest.meshes).toEqual([expected]);
+  expect(result.manifest.lazyMeshes).toEqual([expected]);
+ }finally{parser.mockRestore();mesh.geometry.dispose();mesh.material.dispose();}
+});

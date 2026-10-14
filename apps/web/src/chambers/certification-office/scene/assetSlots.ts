@@ -12,6 +12,11 @@ export interface OfficeAssetSlot {
   readonly catalogueId: string | null;
   readonly placeholder: 'present' | 'pending';
   readonly variant?: string;
+  readonly modelScale?: Triple;
+  readonly modelOffset?: Triple;
+  readonly modelRotation?: Triple;
+  readonly modelValue?: number;
+  readonly fittings?: readonly OfficeObjectId[];
 }
 const slot = (id: string, zone: OfficeZone, position: Triple, footprint: readonly [number, number],
   rotation: Triple = [0,0,0], placeholder: OfficeAssetSlot['placeholder'] = 'pending', variant?: string): OfficeAssetSlot => ({
@@ -24,7 +29,7 @@ export const OFFICE_BOX_SIZES = [[.25,.22,.32],[.32,.25,.4],[.45,.32,.55]] as co
 export const OFFICE_LABEL_VARIANTS = ['a','b','c','d'] as const;
 export const OFFICE_SCALE_ANCHORS = { handle: .9, desk: .74, seat: .45, paper: [.21,.297] } as const;
 
-export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = [
+const OFFICE_PLACEMENTS: readonly OfficeAssetSlot[] = [
   slot('floor-surface','floor',[0,0,15],[8.4,30],[0,0,0],'present'),
   slot('floor-perimeter','floor',[0,.001,15],[8.2,29.8]),
   slot('entrance-mat','floor',[0,.006,1.1],[1.1,.65]),
@@ -39,20 +44,21 @@ export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = [
   ...[-1,1].map((side,i)=>slot(`institutional-notice-${i+1}`,'walls',[side*4.13,1.65,3.0],[.025,.42],[0,side*Math.PI/2,0])),
   slot('conduit','walls',[3.7,1.05,5.4],[.22,.12],[0,-Math.PI/2,0],'present'),
   ...Array.from({length:6},(_,i)=>slot(`conduit-clip-${i+1}`,'walls',[4.11,2.35,2.5+i*.6],[.04,.03])),
-  slot('coat-hook','walls',[-4.1,1.55,2],[.025,.09],[0,Math.PI/2,0],'present'),
-  slot('side-door','walls',[4.11,1.11,1.8],[.06,1.03],[0,-Math.PI/2,0],'present'),
-  slot('side-handle','walls',[4.015,1.06,2.1],[.07,.12],[0,0,0],'present'),
+  slot('coat-hook','walls',[-4.1,1.55,4],[.025,.09],[0,Math.PI/2,0],'present'),
+  slot('side-door','walls',[4.11,1.11,6.7],[.06,1.03],[0,-Math.PI/2,0],'present'),
+  slot('side-handle','walls',[4.015,1.06,7],[.07,.12],[0,0,0],'present'),
   slot('entrance-frame','walls',[0,1.1,0],[1.05,.18],[0,0,0],'present'),
   ...[2,5,8].map((z,i)=>slot(`ceiling-bay-${i+1}`,'ceiling',[0,5.57,z],[8.4,.32],[0,0,0],'present')),
   slot('desk-practical','ceiling',[0,4.8,6],[.55,.18],[0,0,0],'present'),
   slot('exit-practical','ceiling',[3,3.7,1.8],[.24,.24],[0,0,0],'present'),
   slot('ventilation-grille','ceiling',[2.6,5.65,5.6],[.6,.38]),
   slot('ceiling-service-run','ceiling',[-3.7,5.65,4],[.05,6]),
+  slot('visitor-chair','desk',[-1.25,0,1.7],[.64,.67]),
   slot('desk','desk',[-1,.82,4],[2.2,1.1],[0,Math.PI,0],'present'),
   slot('press-rig','desk',[-1.16,.82,4.14],[.36,.48],[0,Math.PI,0],'present'),
-  slot('lamp-rig','desk',[-2.68,.82,3.96],[.36,.36],[0,Math.PI,0],'present'),
+  slot('lamp-rig','desk',[-.65,.82,4.45],[.36,.36],[0,Math.PI,0],'present'),
   slot('ink-pad','desk',[-1.8,.85,3.9],[.16,.1],[0,0,0],'present'),
-  slot('drawer','desk',[-1.5,.62,3.7],[.42,.4],[0,0,0],'present'),
+  slot('drawer','desk',[-1.8,.62,3.7],[.42,.4],[0,0,0],'present'),
   slot('underside-fitting','desk',[-.45,.75,4],[.045,.025],[0,0,0],'present'),
   slot('blotter','desk',[-1,.823,4],[.65,.5]),
   slot('squared-paper-stack','desk',[-1.95,.86,4.35],[.21,.297]),
@@ -60,12 +66,12 @@ export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = [
   slot('pencil-cup','desk',[-1.95,.87,3.85],[.075,.075]),
   ...Array.from({length:3},(_,i)=>slot(`pencil-${i+1}`,'desk',[-1.98+i*.02,.93,3.85],[.007,.007])),
   slot('closed-ledger','desk',[-.25,.86,4.3],[.23,.31]),
-  slot('register','archive',[-3.5,1.29,5.9],[.32,.24],[0,Math.PI/2,0],'present'),
+  slot('register','archive',[-3.5,1.345,5.74],[.32,.24],[0,Math.PI/2,0],'present'),
   slot('records-cabinet','archive',[-3.5,.625,5.9],[.9,.45],[0,0,0],'present'),
   slot('routing-tray','archive',[-2.7,.95,5.8],[.34,.26],[0,0,0],'present'),
-  slot('attended-stack','archive',[-3.1,1.1,7],[.7,.8],[0,0,0],'present'),
+  slot('attended-stack','archive',[-3.1,1.55,7],[.7,.8],[0,0,0],'present'),
   slot('service-bell','machine',[.9,1.4,4.9],[.13,.13],[0,0,0],'present'),
-  slot('office-sign','walls',[3.65,1.55,1.8],[.35,.012],[0,-Math.PI/2,0],'present'),
+  slot('office-sign','walls',[4.07,1.55,6.7],[.35,.012],[0,-Math.PI/2,0],'present'),
   slot('drawer-object','desk',[-1.5,.67,3.7],[.09,.11],[0,0,0],'present'),
   ...Array.from({length:16},(_,i)=>slot(`archive-stack-${i+1}`,'archive',[[-3.15,-1.05,1.1,3.1][i%4]??0,0,10+Math.floor(i/4)*4.8],[.7,.8],[0,0,0],'present')),
   slot('machine-casing','machine',[1,.6,4.9],[1.25,1.2],[0,Math.PI-.22,0],'present'),
@@ -81,7 +87,7 @@ export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = [
   slot('certificate-sign','window',[-2,2.4,7.83],[1.6,.01],[0,Math.PI,0],'present'),
   slot('blank-certificate','window',[-1.86,1.65,7.89],[.64,.01],[0,Math.PI,0],'present'),
   slot('certificate-easel','window',[-1.86,1.24,7.95],[.42,.18],[0,0,0],'present'),
-  slot('officer-nameplate','window',[-1.65,.93,7.76],[1,.01],[0,Math.PI,0],'present'),
+  slot('officer-nameplate','window',[-1.65,1.12,7.76],[1,.01],[0,Math.PI,0],'present'),
   slot('window-frame','window',[-2.25,1.55,7.87],[1.66,.2],[0,0,0],'present'),
   slot('window-sill','window',[-2.25,.97,7.87],[1.66,.2],[0,0,0],'present'),
   slot('speaking-flap','window',[-2.25,1.15,7.85],[.35,.015],[0,0,0],'present'),
@@ -89,14 +95,71 @@ export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = [
   ...[-1,1].map((side,i)=>slot(`window-hinge-${i+1}`,'window',[-2.25+side*.14,1.22,7.82],[.022,.018])),
   slot('window-latch','window',[-2.09,1.15,7.82],[.025,.028]),
   ...[-1,1].map((side,i)=>slot(`window-wipe-${i+1}`,'window',[-2.25+side*.45,1.6,7.93],[.3,.002])),
-  slot('clerk-chair','window',[-2.25,.5,8.8],[.5,.5],[0,0,0],'present'),
+  slot('clerk-chair','window',[-2.25,0,8.8],[.5,.5],[0,0,0],'present'),
   ...Array.from({length:10},(_,i)=>slot(`archive-bay-${i+1}`,'archive',[i%2 ? 3.7 : -3.7,0,10+Math.floor(i/2)*3],[.6,3],[0,i%2 ? -Math.PI/2 : Math.PI/2,0])),
   ...Array.from({length:40},(_,i)=>{
     const bay=Math.floor(i/4),size=OFFICE_BOX_SIZES[i%3]??OFFICE_BOX_SIZES[1];
-    return slot(`archive-box-${i+1}`,'archive',[bay%2?3.65:-3.65,.15+Math.floor((i%4)/2)*.5,9.4+Math.floor(bay/2)*3+(i%2)*.7],[size[0],size[2]],[0,0,(i%3-1)*.01],'pending',`${i%3}/${OFFICE_LABEL_VARIANTS[i%4]}`);
+    return slot(`archive-box-${i+1}`,'archive',[bay%2?3.65:-3.65,.23+Math.floor((i%4)/2)*1.64,9.4+Math.floor(bay/2)*3+(i%2)*.7],[size[0],size[2]],[0,0,(i%3-1)*.01],'pending',`${i%3}/${OFFICE_LABEL_VARIANTS[i%4]}`);
   }),
-  slot('parked-trolley','archive',[3.25,0,9.2],[.6,.85]),
+  ...[-1,1].flatMap((side,i)=>[
+    slot(`stage-bookcase-${i+1}`,'archive',[side*3.7,0,2.4],[.6,1.7],[0,-side*Math.PI/2,0]),
+    ...Array.from({length:8},(_,row)=>slot(`stage-books-${i+1}-${row+1}`,'archive',[side*3.52,.18+Math.floor(row/2)*.52,1.97+(row%2)*.85],[.8,.25],[0,-side*Math.PI/2,0])),
+  ]),
+  slot('parked-trolley','archive',[2.6,0,9],[.6,.85]),
+  slot('banker-lamp','desk',[-.65,.82,4.45],[.3,.18],[0,Math.PI,0]),
+  slot('desk-stapler','desk',[-.4,.82,3.75],[.21,.05],[0,.2,0]),
+  slot('desk-telephone','desk',[-1.85,.82,4.3],[.27,.19],[0,Math.PI,0]),
+  slot('stamp-rack','desk',[-1.75,.82,4.38],[.25,.086],[0,Math.PI,0]),
+  slot('attended-cabinet','archive',[-3.1,0,7],[.9,.45],[0,Math.PI,0]),
+  slot('window-radiator','window',[-3.35,0,7.72],[.59,.11],[0,Math.PI,0]),
+  slot('clerk-typewriter','window',[-2.2,1.01,8.5],[.43,.38],[0,0,0]),
+  slot('window-plant','window',[-2.92,1,7.85],[.17,.19]),
+  slot('archive-kettle','archive',[-3.65,1.325,5.97],[.33,.25]),
+  slot('archive-anglepoise','window',[-1.58,1,7.96],[.21,.62]),
+  ...Array.from({length:80},(_,i)=>slot(`archive-books-${i+1}`,'archive',[i%16<8?-3.52:3.52,.23+Math.floor((i%8)/2)*.82,9.4+Math.floor(i/16)*3+(i%2)*.85],[.88,.26],[0,i%16<8?Math.PI/2:-Math.PI/2,0])),
+  ...['a','b','c'].map((variant,i)=>slot(`desk-ledger-${variant}`,'desk',[-2.02+i*.085,.82,4.18],[.08,.3],[0,Math.PI,0])),
+  ...['a','b'].map((variant,i)=>slot(`archive-file-${variant}`,'archive',[-3.35+i*.12,1.325,6.02],[.09,.3])),
 ];
+type Visual = Pick<OfficeAssetSlot,'catalogueId'|'modelScale'|'modelOffset'|'modelRotation'|'modelValue'|'fittings'>;
+const VISUALS: Readonly<Record<string,Visual>> = {
+  'visitor-chair': {catalogueId:'chair-painted-wood'},
+  desk: {catalogueId:'office-hero-desk',fittings:['drawer','tiny-stamp']},
+  'press-rig': {catalogueId:'office-hero-press',fittings:['press']},
+  'machine-rig': {catalogueId:'office-hero-machine',fittings:['machine']},
+  'application-board': {catalogueId:'office-hero-application-board'},
+  'window-frame': {catalogueId:'office-hero-employee-window',fittings:['window']},
+  'certificate-sign': {catalogueId:'office-hero-certificate-sign'},
+  'clerk-chair': {catalogueId:'chair-painted-wood',modelRotation:[0,Math.PI,0],modelScale:[.8,.8,.8],fittings:['chair']},
+  'parked-trolley': {catalogueId:'cart-tool-green',modelScale:[.6,.8,.8]},
+  clock: {catalogueId:'clock-wall',modelRotation:[0,Math.PI,0],fittings:['clock']},
+  'records-cabinet': {catalogueId:'filing-cabinet-4',modelOffset:[0,-.625,0],modelRotation:[0,Math.PI/2,0],fittings:['register']},
+  'attended-cabinet': {catalogueId:'filing-cabinet-4',fittings:['stack']},
+  'banker-lamp': {catalogueId:'banker-lamp',fittings:['lamp']},
+  'desk-stapler': {catalogueId:'stapler-teal'},
+  'desk-telephone': {catalogueId:'rotary-telephone'},
+  'stamp-rack': {catalogueId:'stamp-rack'},
+  'window-radiator': {catalogueId:'column-radiator-10'},
+  'clerk-typewriter': {catalogueId:'typewriter'},
+  'window-plant': {catalogueId:'plant-succulent'},
+  'archive-kettle': {catalogueId:'kettle-vintage'},
+  'archive-anglepoise': {catalogueId:'lamp-anglepoise'},
+  'pencil-cup': {catalogueId:'stationery-set',modelOffset:[0,-.05,0],modelScale:[.8,.8,.8]},
+  'squared-paper-stack': {catalogueId:'notepads',modelScale:[.25,1,.4]},
+  'closed-ledger': {catalogueId:'ledger-binders',modelScale:[.5,1,1]},
+  'service-bell': {catalogueId:'service-bell',modelScale:[1.3,1.3,1.3],fittings:['bell']},
+  ...Object.fromEntries(['a','b','c'].map(variant=>[`desk-ledger-${variant}`,{catalogueId:`ledger-${variant}`} ])),
+  ...Object.fromEntries(['a','b'].map(variant=>[`archive-file-${variant}`,{catalogueId:`box-file-${variant}`} ])),
+};
+export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = OFFICE_PLACEMENTS.map(item=>{
+  let visual=VISUALS[item.id];
+  if(item.id.startsWith('archive-box-')) visual={catalogueId:null};
+  if(item.id.startsWith('stage-bookcase-'))visual={catalogueId:'office-hero-archive-bay',modelScale:[.6,1.1,1]};
+  if(item.id.startsWith('stage-books-'))visual={catalogueId:null};
+  if(item.id.startsWith('archive-bay-'))visual={catalogueId:'office-hero-archive-bay-distant',modelRotation:item.rotation};
+  if(item.id.startsWith('archive-books-'))visual={catalogueId:Number(item.id.split('-').at(-1))%2?'book-row-60':'book-row-90'};
+  const depth=item.zone==='archive' && item.position[2]>=9 ? (item.position[2]<15 ? .45 : .2) : 1;
+  return {...item,...visual,modelValue:depth};
+});
 const slots = new Map(OFFICE_ASSET_SLOTS.map(item => [item.id,item]));
 export function officeAssetSlot(id: string): OfficeAssetSlot {
   const item=slots.get(id);
@@ -110,6 +173,9 @@ export function officeAssetPose(id: string) {
 
 /** Physical targets can follow a catalogue placement without changing its discovery action. */
 export function officeInteractionAnchor(id: OfficeObjectId): Triple {
+  if (id === 'lamp') {const [x,y,z]=officeAssetSlot('banker-lamp').position;return [x,y+.3,z];}
+  if (id === 'coat-hook') return officeAssetSlot('coat-hook').position;
+  if (id === 'sign') return officeAssetSlot('office-sign').position;
   if (id === 'stack') return officeAssetSlot('attended-stack').position;
   if (id === 'side-door') return officeAssetSlot('side-door').position;
   if (id === 'clock') return officeAssetSlot('clock').position;

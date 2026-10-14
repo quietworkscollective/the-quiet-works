@@ -1,5 +1,5 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { activateDoor, door, expectSpine, openMenu, site } from './helpers.ts';
+import { activateDoor, door, expectSpine, openMenu, roomReady, site } from './helpers.ts';
 import { decodePng } from './png.ts';
 
 /**
@@ -9,6 +9,12 @@ import { decodePng } from './png.ts';
  */
 
 const isDesktop = (info: TestInfo) => info.project.name === 'desktop';
+
+/** The host has a timer fallback; only the Office scene publishes completed resource preparation. */
+async function officePrepared(page: Page): Promise<void> {
+  await expect(page.locator('.tqw-chamber-host .tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
+  await roomReady(page);
+}
 
 async function styleOf(page: Page, selector: string, properties: readonly string[]): Promise<Record<string, string>> {
   return page
@@ -126,6 +132,7 @@ test.describe('door plaque', () => {
     await door(page, 'The Certification Office', 'open').focus();
     await expect(page.locator('.tqw-door:focus .tqw-door__status')).toHaveText('open the door');
     await page.keyboard.press('Enter');
+    await officePrepared(page);
     await expectSpine(page, 'chamber');
   });
 
@@ -147,10 +154,10 @@ test.describe('notice board', () => {
     return board;
   }
 
-  test('pins four clippings within 2 degrees of true, on three stocks, in an olive felt field', async ({ page }) => {
+  test('pins six clippings within 2 degrees of true, on three stocks, in an olive felt field', async ({ page }) => {
     const board = await open(page);
     const clippings = board.locator('.tqw-clipping');
-    await expect(clippings).toHaveCount(4);
+    await expect(clippings).toHaveCount(6);
     const detail = await clippings.evaluateAll((els) =>
       els.map((el) => {
         const m = new DOMMatrix(getComputedStyle(el).transform);
@@ -159,8 +166,8 @@ test.describe('notice board', () => {
     );
     for (const { angle } of detail) expect(Math.abs(angle)).toBeLessThanOrEqual(2);
     expect(detail.some(({ angle }) => Math.abs(angle) > 0.2), 'at least one clipping is visibly off true').toBe(true);
-    expect(detail.map((d) => d.stock)).toEqual(['bone', 'buff', 'grey-green', 'bone']);
-    expect(detail.map((d) => d.background)).toEqual(['rgb(226, 218, 203)', 'rgb(214, 195, 155)', 'rgb(185, 192, 171)', 'rgb(226, 218, 203)']);
+    expect(detail.map((d) => d.stock)).toEqual(['bone', 'buff', 'grey-green', 'bone', 'buff', 'grey-green']);
+    expect(detail.map((d) => d.background)).toEqual(['rgb(226, 218, 203)', 'rgb(214, 195, 155)', 'rgb(185, 192, 171)', 'rgb(226, 218, 203)', 'rgb(214, 195, 155)', 'rgb(185, 192, 171)']);
     const felt = await board.locator('.tqw-board__clippings').evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(felt).toContain('rgb(80, 82, 71)');
   });
@@ -199,7 +206,10 @@ test.describe('notice board', () => {
     const board = await open(page);
     await expect(board.locator('.tqw-clipping[data-status="sealed"]')).toHaveCount(3);
     for (const stamp of await board.locator('.tqw-clipping__stamp').all()) await expect(stamp).toHaveText('Not yet open');
-    await expect(board.getByRole('button', { name: /^Go in:/ })).toHaveCount(1);
+    await expect(board.getByRole('button', { name: /^Go in:/ })).toHaveCount(3);
+    for (const title of ['The Certification Office', 'The Exchange', 'The Outline Room']) {
+      await expect(board.getByRole('button', { name: `Go in: ${title}`, exact: true })).toBeVisible();
+    }
   });
 
   test('is a quiet face-up board in reduced motion: no tilt at all', async ({ page }) => {
@@ -211,7 +221,7 @@ test.describe('notice board', () => {
         return Math.abs((Math.atan2(m.b, m.a) * 180) / Math.PI);
       }),
     );
-    expect(angles).toEqual([0, 0, 0, 0]);
+    expect(angles).toEqual([0, 0, 0, 0, 0, 0]);
   });
 
   test('rings Go in in ink on the paper, not in amber', async ({ page }) => {
@@ -233,6 +243,7 @@ test.describe('notice board', () => {
 
   test('is reachable from the corridor and from inside the Office, and returns the visitor where they were', async ({ page }) => {
     await page.goto('/certification-office');
+    await officePrepared(page);
     await expectSpine(page, 'chamber');
     // The game window's strip has no board button of its own; the Menu lists it (ADR 0003).
     await (await openMenu(page)).getByRole('button', { name: 'Notice board' }).click();
@@ -318,7 +329,8 @@ test.describe('text mode', () => {
       const brand = page.getByRole('heading', { level: 1, name: 'UNHELD' });
       const corridor = page.getByRole('heading', { level: 1, name: 'The corridor' });
       await expect(brand).toBeVisible();
-      await expect(page.getByText('A space for everything we carry.')).toBeVisible();
+      await expect(page.locator('.tqw-hero').getByText('A space for everything we carry.', { exact: true })).toBeVisible();
+      await expect(page.getByRole('contentinfo', { name: 'Site footer' }).getByText('A space for everything we carry.', { exact: true })).toBeVisible();
       await expect(corridor).toBeAttached();
       const [brandTop, corridorTop] = await Promise.all([
         brand.evaluate((el) => el.getBoundingClientRect().top + window.scrollY),
@@ -329,11 +341,11 @@ test.describe('text mode', () => {
     });
   }
 
-  test('lists every door with its description, the open one marked in text and in amber', async ({ page }) => {
+  test('lists every door with its description, the open ones marked in text and in amber', async ({ page }) => {
     await page.goto('/?mode=text');
     const list = page.getByRole('navigation', { name: 'Doors' });
-    await expect(list.locator('.tqw-door__description')).toHaveCount(4);
-    await expect(list.locator('[data-status="open"] .tqw-door__status')).toHaveText('open the door');
+    await expect(list.locator('.tqw-door__description')).toHaveCount(6);
+    await expect(list.locator('[data-status="open"] .tqw-door__status')).toHaveText(['open the door', 'open the door', 'open the door']);
     expect((await styleOf(page, '[data-status="open"] .tqw-door__status', ['color']))['color']).toBe('rgb(213, 155, 74)');
     await expect(list.locator('[data-status="sealed"] .tqw-door__status').first()).toHaveText('not yet open');
   });

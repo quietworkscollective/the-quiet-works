@@ -239,6 +239,7 @@ describe('rendering on demand', () => {
     driver.composer.render = vi.fn(() => {
       for (let i = 0; i < 20; i += 1) {
         spy.info.render.calls += 1;
+        spy.info.render.triangles += 3;
         spy.info.render.frame += 1;
       }
     });
@@ -246,6 +247,7 @@ describe('rendering on demand', () => {
     driver.frame(scene, camera, 0.016);
     expect(spy.info.render.frame).toBe(2);
     expect(spy.info.autoReset, 'the renderer’s own reset is back on').toBe(true);
+    expect(driver.lastStats.total).toEqual({ calls: 20, triangles: 60 });
   });
 
   it('falls back to a direct render, and stays there, if the stack throws', () => {
@@ -356,7 +358,7 @@ describe('the profile’s numbers reach the effects', () => {
   type Internals = {
     finish: {
       pass: { dithering: boolean };
-      bloom: { intensity: number; blendMode: { blendFunction: number }; luminanceMaterial: { threshold: number }; mipmapBlurPass: { radius: number } };
+      bloom: { intensity: number; blendMode: { blendFunction: number }; luminanceMaterial: { threshold: number }; mipmapBlurPass: { radius: number; levels: number } };
       lut: { blendMode: { opacity: { value: number } } };
       vignette: { amount: number; inner: number };
       grain: { amount: number };
@@ -370,6 +372,7 @@ describe('the profile’s numbers reach the effects', () => {
     expect(bloom.luminanceMaterial.threshold).toBe(CORRIDOR_LOOK.bloom.threshold);
     expect(bloom.intensity).toBeCloseTo(CORRIDOR_LOOK.bloom.strength * BLOOM_GAIN, 9);
     expect(bloom.mipmapBlurPass.radius).toBeCloseTo(bloomRadius(CORRIDOR_LOOK.bloom.radius), 9);
+    expect(bloom.mipmapBlurPass.levels).toBe(CORRIDOR_LOOK.bloom.levels);
     // HDR values above 1 break a screen blend; the glow is added.
     expect(bloom.blendMode.blendFunction).toBe(BlendFunction.ADD);
   });

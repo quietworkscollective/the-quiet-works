@@ -1,6 +1,8 @@
+import { Matrix4, Vector3 } from 'three';
 import { atlasUvs } from '../atlasLayout.ts';
-import { hash2 } from '../../math.ts';
+import { hash2, type Vec3 } from '../../math.ts';
 import { IVORY, linear, METAL, wood } from '../colours.ts';
+import { fitMatrix, placeModel, type Fit } from '../modelKit.ts';
 import type { PropModel } from '../model.ts';
 import { ramp, rad, turned, X, Y, type PoseSet } from '../motion.ts';
 
@@ -9,14 +11,27 @@ import { ramp, rad, turned, X, Y, type PoseSet } from '../motion.ts';
  * from: a sewing tin whose lid opens, a reel of thread to turn on its spindle, a saucer of
  * buttons, scissors, a tape measure, and a tomato stuck with pins. "Repairs department. Buttons
  * accepted without appointment." The tin's lid has the small ivory tab to lift it by.
+ *
+ * The tin is the asset library's metal toolbox, scaled down to a shelf, where that model loaded: its
+ * lid is closed at rest (the model is authored open) and swings up when the kit is opened. The
+ * procedural tin is built to hinge at the same place, so the same pose opens either.
  */
 
 const TOP = 0.835;
-const TIN = { x: -0.165, z: 0.155, w: 0.17, d: 0.11, h: 0.05, lid: 0.012 } as const;
-const HINGE_Z = TIN.z - TIN.d / 2;
-const HINGE_Y = TOP + TIN.h;
+/** The toolbox on the shelf: its origin, and the scale that brings a 0.4 m toolbox down to a 0.26 m one. */
+const BOX: Fit = { at: [-0.18, TOP, 0.12], scale: 0.65 };
+/** Where the toolbox's lid hinges, in the model's own space, and how far open the model is authored. */
+const MODEL_HINGE: Vec3 = [0, 0.12, -0.103];
+const MODEL_OPEN = (53.7 * Math.PI) / 180;
+const HINGE = ((): Vec3 => {
+  const v = new Vector3(...MODEL_HINGE).applyMatrix4(fitMatrix(BOX));
+  return [v.x, v.y, v.z];
+})();
+const TIN = { x: HINGE[0], z: HINGE[2] + 0.0575, w: 0.17, d: 0.115, h: HINGE[1] - TOP, lid: 0.012 } as const;
+const HINGE_Z = HINGE[2];
+const HINGE_Y = HINGE[1];
 const REEL = { x: 0.02, z: 0.12 } as const;
-export const LID_OPEN = rad(-106);
+export const LID_OPEN = rad(-100);
 
 const BUTTONS = ['#C9BFA0', '#2F4A6B', '#7A3B2E', '#4E6B4A', '#B9954E', '#2A2A2C', '#8E4E6B', '#D8D0BA'].map(linear);
 
@@ -28,7 +43,7 @@ export const repairKit: PropModel = {
     { name: 'reel', pivot: [REEL.x, TOP + 0.02, REEL.z] },
   ],
 
-  build(a) {
+  build(a, _placement, kit) {
     const lid = a.part('lid');
     const reel = a.part('reel');
 
@@ -43,38 +58,62 @@ export const repairKit: PropModel = {
       for (const y of [TOP - 0.19, TOP - 0.075]) a.cyl('brass', { at: [x, y, 0.0075], rot: [Math.PI / 2, 0, 0] }, 0.005, 0.005, 0.003, 8, METAL.brass);
     }
 
-    // The sewing tin: teal enamel, hollow, lined in red, with buttons loose in it.
-    const tin = linear('#4A8782');
-    const lining = linear('#5A2A2A');
-    const { x: tx, z: tz, w, d, h } = TIN;
-    a.box('enamel', [tx, TOP + 0.002, tz], [w, 0.004, d], 0, tin);
-    a.box('enamel', [tx, TOP + h / 2, tz - d / 2 + 0.002], [w, h, 0.004], 0, tin);
-    a.box('enamel', [tx, TOP + h / 2, tz + d / 2 - 0.002], [w, h, 0.004], 0.0012, tin);
-    a.box('enamel', [tx - w / 2 + 0.002, TOP + h / 2, tz], [0.004, h, d - 0.008], 0, tin);
-    a.box('enamel', [tx + w / 2 - 0.002, TOP + h / 2, tz], [0.004, h, d - 0.008], 0, tin);
-    a.quad('matte', [tx - w / 2 + 0.004, TOP + 0.0045, tz + d / 2 - 0.004], [tx + w / 2 - 0.004, TOP + 0.0045, tz + d / 2 - 0.004], [tx + w / 2 - 0.004, TOP + 0.0045, tz - d / 2 + 0.004], [tx - w / 2 + 0.004, TOP + 0.0045, tz - d / 2 + 0.004], [0, 1, 0], lining);
-    for (let i = 0; i < 7; i += 1) {
-      const px = tx - w / 2 + 0.02 + hash2(i, 3) * (w - 0.04);
-      const pz = tz - d / 2 + 0.018 + hash2(i, 7) * (d - 0.036);
-      const r = 0.0055 + hash2(i, 11) * 0.0035;
-      a.cyl('enamel', { at: [px, TOP + 0.0063 + (i % 3) * 0.0022, pz], rot: [(hash2(i, 5) - 0.5) * 0.25, 0, (hash2(i, 9) - 0.5) * 0.25] }, r, r, 0.0024, 8, BUTTONS[i % BUTTONS.length]);
-    }
-    // The tin's lid, hinged at the back, with its label and the ivory tab.
-    a.on(lid, () => {
-      const lw = w + 0.004;
-      const ld = d + 0.004;
-      a.box('enamel', [tx, HINGE_Y + TIN.lid / 2, tz], [lw, TIN.lid, ld], 0.0025, linear('#D9CDAE'));
-      a.span('enamel', [tx - lw / 2, tx + lw / 2], [HINGE_Y - 0.004, HINGE_Y + 0.002], [tz + ld / 2 - 0.003, tz + ld / 2], 0.0008, tin);
-      const lh = 0.052;
-      const lwid = lh * (448 / 152);
-      const ly = HINGE_Y + TIN.lid + 0.0004;
-      a.quad('print', [tx - lwid / 2, ly, tz + lh / 2], [tx + lwid / 2, ly, tz + lh / 2], [tx + lwid / 2, ly, tz - lh / 2], [tx - lwid / 2, ly, tz - lh / 2], [0, 1, 0], undefined, atlasUvs('kitLabel'));
-      a.ivory(() => {
-        a.box('enamel', [tx, HINGE_Y + 0.0065, tz + ld / 2 + 0.003], [0.034, 0.006, 0.012], 0.0016, IVORY);
+    const toolbox = kit?.get('toolbox-metal');
+    if (toolbox) {
+      // The body and its tray stay; the lid, its handle and its latches are closed about the hinge at rest
+      // (the model is authored open) and turn with the lid bone.
+      placeModel(a, toolbox, BOX, { only: (m) => !m.ancestors.includes('metal_toolbox_lid') });
+      a.on(lid, () => {
+        const closed = new Matrix4().makeTranslation(MODEL_HINGE[0], MODEL_HINGE[1], MODEL_HINGE[2]).multiply(new Matrix4().makeRotationX(MODEL_OPEN)).multiply(new Matrix4().makeTranslation(-MODEL_HINGE[0], -MODEL_HINGE[1], -MODEL_HINGE[2]));
+        placeModel(a, toolbox, { ...BOX, pre: closed }, { only: (m) => m.ancestors.includes('metal_toolbox_lid') });
+        // The ivory tab, on the lid's front edge (model y 0.12, z 0.118 once closed), where the hand lifts it.
+        const front = new Vector3(0, 0.124, 0.124).applyMatrix4(fitMatrix(BOX));
+        a.ivory(() => {
+          a.box('enamel', [front.x, front.y, front.z], [0.034, 0.008, 0.012], 0.0016, IVORY);
+        });
       });
-      a.cyl('steel', { at: [tx - 0.05, HINGE_Y, HINGE_Z - 0.001], rot: [0, 0, Math.PI / 2] }, 0.0028, 0.0028, 0.03, 6, METAL.steel);
-      a.cyl('steel', { at: [tx + 0.05, HINGE_Y, HINGE_Z - 0.001], rot: [0, 0, Math.PI / 2] }, 0.0028, 0.0028, 0.03, 6, METAL.steel);
-    });
+      // The label, pasted on the toolbox's front, beside its lock.
+      const face = fitMatrix(BOX);
+      const point = (x: number, y: number): Vec3 => {
+        const v = new Vector3(x, y, 0.1363).applyMatrix4(face);
+        return [v.x, v.y, v.z];
+      };
+      a.quad('print', point(-0.175, 0.04), point(-0.065, 0.04), point(-0.065, 0.0773), point(-0.175, 0.0773), [0, 0, 1], undefined, atlasUvs('kitLabel'));
+    } else {
+      // The sewing tin: teal enamel, hollow, lined in red, with buttons loose in it.
+      const tin = linear('#4A8782');
+      const lining = linear('#5A2A2A');
+      const { x: tx, z: tz, w, d, h } = TIN;
+      a.box('enamel', [tx, TOP + 0.002, tz], [w, 0.004, d], 0, tin);
+      a.box('enamel', [tx, TOP + h / 2, tz - d / 2 + 0.002], [w, h, 0.004], 0, tin);
+      a.box('enamel', [tx, TOP + h / 2, tz + d / 2 - 0.002], [w, h, 0.004], 0.0012, tin);
+      a.box('enamel', [tx - w / 2 + 0.002, TOP + h / 2, tz], [0.004, h, d - 0.008], 0, tin);
+      a.box('enamel', [tx + w / 2 - 0.002, TOP + h / 2, tz], [0.004, h, d - 0.008], 0, tin);
+      a.quad('matte', [tx - w / 2 + 0.004, TOP + 0.0045, tz + d / 2 - 0.004], [tx + w / 2 - 0.004, TOP + 0.0045, tz + d / 2 - 0.004], [tx + w / 2 - 0.004, TOP + 0.0045, tz - d / 2 + 0.004], [tx - w / 2 + 0.004, TOP + 0.0045, tz - d / 2 + 0.004], [0, 1, 0], lining);
+      for (let i = 0; i < 7; i += 1) {
+        const px = tx - w / 2 + 0.02 + hash2(i, 3) * (w - 0.04);
+        const pz = tz - d / 2 + 0.018 + hash2(i, 7) * (d - 0.036);
+        const r = 0.0055 + hash2(i, 11) * 0.0035;
+        a.cyl('enamel', { at: [px, TOP + 0.0063 + (i % 3) * 0.0022, pz], rot: [(hash2(i, 5) - 0.5) * 0.25, 0, (hash2(i, 9) - 0.5) * 0.25] }, r, r, 0.0024, 8, BUTTONS[i % BUTTONS.length]);
+      }
+      // The tin's lid, hinged at the back, with its label and the ivory tab.
+      a.on(lid, () => {
+        const lw = w + 0.004;
+        const ld = d + 0.004;
+        a.box('enamel', [tx, HINGE_Y + TIN.lid / 2, tz], [lw, TIN.lid, ld], 0.0025, linear('#D9CDAE'));
+        a.span('enamel', [tx - lw / 2, tx + lw / 2], [HINGE_Y - 0.004, HINGE_Y + 0.002], [tz + ld / 2 - 0.003, tz + ld / 2], 0.0008, tin);
+        const lh = 0.052;
+        const lwid = lh * (448 / 152);
+        const ly = HINGE_Y + TIN.lid + 0.0004;
+        a.quad('print', [tx - lwid / 2, ly, tz + lh / 2], [tx + lwid / 2, ly, tz + lh / 2], [tx + lwid / 2, ly, tz - lh / 2], [tx - lwid / 2, ly, tz - lh / 2], [0, 1, 0], undefined, atlasUvs('kitLabel'));
+        a.ivory(() => {
+          a.box('enamel', [tx, HINGE_Y + 0.0065, tz + ld / 2 + 0.003], [0.034, 0.006, 0.012], 0.0016, IVORY);
+        });
+        a.cyl('steel', { at: [tx - 0.05, HINGE_Y, HINGE_Z - 0.001], rot: [0, 0, Math.PI / 2] }, 0.0028, 0.0028, 0.03, 6, METAL.steel);
+        a.cyl('steel', { at: [tx + 0.05, HINGE_Y, HINGE_Z - 0.001], rot: [0, 0, Math.PI / 2] }, 0.0028, 0.0028, 0.03, 6, METAL.steel);
+      });
+
+    }
 
     // The reel on its spindle: a wooden base, a pin, the reel itself.
     a.box('wood', [REEL.x, TOP + 0.005, REEL.z], [0.048, 0.01, 0.048], 0.003, wood('#7C5C3A'));
@@ -116,13 +155,13 @@ export const repairKit: PropModel = {
     a.cyl('brass', { at: [cx, TOP + 0.0082, cz] }, 0.0034, 0.0034, 0.0016, 8, METAL.brass);
 
     // A tape measure, boxed in yellow.
-    a.cyl('enamel', { at: [-0.04, TOP + 0.0075, 0.225] }, 0.031, 0.031, 0.015, 16, linear('#C9A22E'));
-    a.cyl('brass', { at: [-0.04, TOP + 0.0158, 0.225] }, 0.012, 0.012, 0.0014, 10, METAL.polished);
-    a.box('enamel', [-0.04, TOP + 0.0045, 0.254], [0.022, 0.009, 0.012], 0, linear('#B08C1E'));
+    a.cyl('enamel', { at: [-0.04, TOP + 0.0075, 0.255] }, 0.031, 0.031, 0.015, 16, linear('#C9A22E'));
+    a.cyl('brass', { at: [-0.04, TOP + 0.0158, 0.255] }, 0.012, 0.012, 0.0014, 10, METAL.polished);
+    a.box('enamel', [-0.04, TOP + 0.0045, 0.284], [0.022, 0.009, 0.012], 0, linear('#B08C1E'));
 
     // The pin cushion: a tomato, with a green star and a few pins.
-    const px = -0.292;
-    const pz = 0.14;
+    const px = -0.27;
+    const pz = 0.255;
     a.sphere('matte', { at: [px, TOP + 0.0215, pz], scale: [1, 0.82, 1] }, 0.026, 10, 7, linear('#9B2D27'));
     for (let k = 0; k < 6; k += 1) {
       const ang = (k / 6) * Math.PI * 2;

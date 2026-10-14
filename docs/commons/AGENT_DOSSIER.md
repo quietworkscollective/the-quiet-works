@@ -1,7 +1,7 @@
 # UNHELD Commons — agent dossier
 
-**Status:** Phase A (documentation and design). Contribution pull requests are not open yet; see
-section 5.
+**Status:** Agent-facing discovery pages and a read-only manifest preflight are available. A green
+validator means only that a draft is ready for human review; the Commons phase gates still apply.
 
 This is the entry point for an autonomous agent, or a person, who has just found UNHELD and
 wants to add to it. It needs no codebase exploration. The files in this repository are the
@@ -19,9 +19,10 @@ of doors. Each door opens a chamber built around one physical action, which work
 it works as a metaphor. The emotion is shown by how the world behaves, not explained. *HE'S
 FINE.* is the opening chapter.
 
-The site is static: no accounts, no tracking, no network calls after load. Contributors use their
-own tools and compute. UNHELD is the curator and publisher: it reviews, integrates and preserves,
-generates nothing for contributors and runs none of their code.
+The site is static: no accounts or tracking. As visitors enter rooms, it may load its own room code,
+models and written records from the same origin; the artwork does not connect to other servers.
+Contributors use their own tools and compute. UNHELD is the curator and publisher: it reviews,
+integrates and preserves, generates nothing for contributors and runs none of their code.
 
 ## 2. What you may contribute
 
@@ -55,8 +56,8 @@ a private intake is designed and approved.
 | 1 | Discover | Read the rules, guidelines and format. | read [`AGENTS.md`](../../AGENTS.md), this file, [`CREATIVE_GUIDELINES.md`](CREATIVE_GUIDELINES.md), [`CONTRIBUTION_SPEC.md`](CONTRIBUTION_SPEC.md) |
 | 2 | Create | Choose a tier and one verb: what the visitor does. | read [`CREATIVE_GUIDELINES.md`](CREATIVE_GUIDELINES.md) |
 | 3 | Package | Write the manifest, listing every asset with its SHA-256 and byte size. | produce `commons/<id>/manifest.json`; read [`examples/lost-property-umbrella/manifest.json`](examples/lost-property-umbrella/manifest.json) and [`schema/contribution-0.1.schema.json`](schema/contribution-0.1.schema.json) |
-| 4 | Validate | Check schema, hashes, sizes, limits and content rules by hand; the Phase B validator will automate this. | read "What validation will check" in [`CONTRIBUTION_SPEC.md`](CONTRIBUTION_SPEC.md); compare [`examples/invalid/`](examples/invalid/) |
-| 5 | Submit | Phase A: a proposal issue. Phase B: a pull request. See section 5. | produce an issue from [`proposal.yml`](../../.github/ISSUE_TEMPLATE/proposal.yml); later `commons/<id>/` |
+| 4 | Validate | The read-only CI validator checks the manifest, listed text files, hashes, paths and pilot rules. | read "What validation will check" in [`CONTRIBUTION_SPEC.md`](CONTRIBUTION_SPEC.md); compare [`examples/invalid/`](examples/invalid/) |
+| 5 | Submit | Use a public GitHub issue for a room proposal or the manifest pull-request template for a contribution draft. | [`room-proposal.yml`](../../.github/ISSUE_TEMPLATE/room-proposal.yml) or [`commons-contribution.md`](../../.github/PULL_REQUEST_TEMPLATE/commons-contribution.md) |
 | 6 | Review | Maintainers read it and may ask for changes. Only they record the outcome, in `commons/catalogue.json` (Phase B). | nothing to produce |
 | 7 | Publish | A maintainer places an accepted contribution in a reviewed release. Placement is theirs. | nothing to produce |
 | 8 | Archive | Accepted work stays in git history and the catalogue. You may ask for withdrawal. | read [`SECURITY.md`](SECURITY.md), "Withdrawal" |
@@ -96,8 +97,17 @@ a private intake is designed and approved.
 
 ## 5. How to submit
 
-**Today (Phase A).** Open an issue using the **Proposal** template
-(`https://github.com/quietworkscollective/the-quiet-works/issues/new/choose`).
+**Room or complete-experience proposal.** Open a public issue using the
+[Room proposal form](../../.github/ISSUE_TEMPLATE/room-proposal.yml). The room-manifest format in
+[ADR 0005](../ADR/0005-room-kit.md) is proposed and is not a validator-supported submission format.
+
+**Contribution manifest.** A draft pull request uses the
+[Commons contribution template](../../.github/PULL_REQUEST_TEMPLATE/commons-contribution.md),
+the [`contribution-0.1` schema](schema/contribution-0.1.schema.json), and one `commons/<id>/`
+folder. The read-only CI validator checks the draft; a pass is not acceptance or publication.
+Every proposal remains subject to human review and the Commons phase gates.
+
+**Other proposals.** Open an issue using the [Proposal template](../../.github/ISSUE_TEMPLATE/proposal.yml).
 - State the tier and category, what the visitor does, how the world responds, and who grants the
   licence. Declare provenance: whether a human, an agent or a supervised agent made it, and the
   named person or organisation behind it. This is required, and it is the Commons provenance the
@@ -110,11 +120,9 @@ a private intake is designed and approved.
 - One idea per issue. A maintainer keeps accepted proposals for Phase B; a proposal commits no
   one.
 
-**Later (Phase B).** Fork the repository and add one folder, `commons/<id>/`, holding
-`manifest.json` and its text asset, and change nothing else. Run the validator locally, then open
-one pull request using the template. CI runs the same validator after a maintainer approves the
-fork's workflow run. A human decides. Later phases may add a discovery file and read-only adapters, but the pull
-request stays the route.
+The current validator accepts the Phase B text-only pilot shape as a preflight. It reads JSON and
+plain text only; it does not run contributor files, publish content, or replace the editorial,
+safety, provenance, and licence review. No local code or installation is required to submit a draft.
 
 **Licence and credit.** Art and writing are CC BY 4.0 ([`LICENSING.md`](../../LICENSING.md)); you
 must have the right to grant it. Visitors see creator names, and an agent-made piece carries a
@@ -146,6 +154,7 @@ small machine-made mark that the engine adds, so machine-made work never passes 
 - [`examples/invalid/`](examples/invalid/): manifests that must be rejected, and the check.
 - [`ARCHITECTURE.md`](ARCHITECTURE.md): principles, pipeline, tiers, founder decisions.
 - [`SECURITY.md`](SECURITY.md): the Commons threat model and controls.
+- [`REVIEW_LABELS.md`](REVIEW_LABELS.md): the labels reserved for human review and validation triage.
 - [`ROADMAP.md`](ROADMAP.md): phases A to E, the proposed discovery file.
 - [`AGENTS.md`](../../AGENTS.md) and [`CONTRIBUTING.md`](../../CONTRIBUTING.md): repository rules.
 - [`docs/DESIGN.md`](../DESIGN.md): public design laws and art direction.

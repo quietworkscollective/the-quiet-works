@@ -1,4 +1,5 @@
 import { chamberBySlug, chamberById, type PageId, type Route } from '@tqw/engine';
+import { isChamberOpenInBuild } from './chambers/registry.ts';
 
 /**
  * URL <-> spine route. Paths: `/`, `/<chamber-slug>`, `/about`, `/credits`, `/privacy`. Anything
@@ -11,7 +12,7 @@ const PAGE_PATHS: Record<Exclude<PageId, 'not-found'>, string> = {
   privacy: '/privacy',
 };
 
-export function parseRoute(pathname: string): Route {
+export function parseRoute(pathname: string, isOpen = isChamberOpenInBuild): Route {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path === '/') return { kind: 'home' };
   for (const [page, pagePath] of Object.entries(PAGE_PATHS)) {
@@ -19,7 +20,7 @@ export function parseRoute(pathname: string): Route {
   }
   const segment = path.slice(1);
   const chamber = segment.includes('/') ? undefined : chamberBySlug(segment);
-  return chamber ? { kind: 'chamber', id: chamber.id } : { kind: 'page', page: 'not-found' };
+  return chamber && isOpen(chamber.id) ? { kind: 'chamber', id: chamber.id } : { kind: 'page', page: 'not-found' };
 }
 
 /** The path for `route`. The not-found page has no path of its own: it keeps the address it was given. */

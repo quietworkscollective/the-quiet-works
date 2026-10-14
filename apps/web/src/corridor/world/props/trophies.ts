@@ -64,6 +64,30 @@ export function plinth(a: Assembly, x: number, y: number, z: number, width: numb
   return y + h + 0.008;
 }
 
+/**
+ * An engraved brass plate lying on the shelf in front of a trophy, tilted up toward a visitor who
+ * stands and looks down at the shelf: the ready-made trophies carry no inscription of their own,
+ * so the plate is where the drafted engraving is. `z` is the plate's front edge.
+ */
+export function labelPlate(a: Assembly, x: number, shelfTop: number, z: number, plate: AtlasId): void {
+  const wide = plate === 'plateRunner';
+  const pw = wide ? 0.104 : 0.082;
+  const ph = pw * (96 / (wide ? 520 : 400));
+  const tilt = (32 * Math.PI) / 180;
+  // From the front edge, the plate rises as it goes back.
+  const run = ph * Math.cos(tilt);
+  const rise = ph * Math.sin(tilt);
+  const lift = 0.0016;
+  const corner = (u: number, v: number, off = 0): Vec3 => [x + u, shelfTop + lift + rise * v + Math.cos(tilt) * off, z - run * v + Math.sin(tilt) * off];
+  const facing: Vec3 = [0, Math.cos(tilt), Math.sin(tilt)];
+  const m = 0.0025;
+  // The brass blank, a little larger, then the engraving on it.
+  a.quad('brass', corner(-pw / 2 - m, -m / ph), corner(pw / 2 + m, -m / ph), corner(pw / 2 + m, 1 + m / ph), corner(-pw / 2 - m, 1 + m / ph), facing, METAL.polished);
+  a.quad('print', corner(-pw / 2, 0, 0.0005), corner(pw / 2, 0, 0.0005), corner(pw / 2, 1, 0.0005), corner(-pw / 2, 1, 0.0005), facing, undefined, atlasUvs(plate));
+  // A wedge under the back edge keeps the plate from floating: a dark block the plate rests on.
+  a.span('wood', [x - pw / 2, x + pw / 2], [shelfTop, shelfTop + lift + rise], [z - run, z - run + 0.004], 0, wood('#4A2F1F'));
+}
+
 /** The ordinary team mug: white enamel with a maroon band, a worn rim, one handle. */
 export function teamMug(a: Assembly, at: Vec3): void {
   const cream = linear('#E2DCCB');
@@ -85,8 +109,8 @@ export function teamMug(a: Assembly, at: Vec3): void {
  * The kept space on the lowest shelf: a disc of clean polish in the dust of the rest, where
  * something will stand, and a small brass-footed tent card saying so.
  */
-export function reservedSpace(a: Assembly, x: number, shelfTop: number, zRing: number, zCard: number): void {
-  a.cyl('enamel', { at: [x, shelfTop + 0.0004, zRing] }, 0.05, 0.05, 0.0008, 20, linear('#24150E'));
+export function reservedSpace(a: Assembly, x: number, shelfTop: number, zRing: number, zCard: number, ring = true): void {
+  if (ring) a.cyl('enamel', { at: [x, shelfTop + 0.0004, zRing] }, 0.05, 0.05, 0.0008, 20, linear('#24150E'));
   const w = 0.058;
   const h = 0.0326;
   const cy = shelfTop + 0.0215;

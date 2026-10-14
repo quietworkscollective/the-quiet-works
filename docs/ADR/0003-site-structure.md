@@ -60,7 +60,7 @@ the visitor left.
   - the Privacy page states this plainly.
 
   This replaces ADR 0001's "no storage". The e2e privacy guard changes from "nothing stored" to
-  "nothing stored before a discovery, only that key after, no cookies, no network".
+  "nothing stored before a discovery, only that key after, no cookies or third-party requests".
 - **R-2 Wordmark lockup:** bold UNHELD with a small .space.
 - **R-3 Milestones include per-room counts.** No points, percentages-as-scores, streaks,
   leaderboards, timers or any "fixed" or "cured" framing (the design laws). Counts and
@@ -89,7 +89,9 @@ the visitor left.
   - after one, only the versioned key;
   - "Forget everything" empties it;
   - export then import round-trips.
-- **Privacy:** no network, before and after.
+- **Privacy:** the app may load its own room code, models and written records from the same origin
+  as visitors move between rooms. It does not connect to other servers. Discoveries stay in local
+  storage on the visitor's device.
 - **Accessibility and comfort:** reduced motion (no drift, no smoke animation; the transition becomes
   a dissolve), text mode, keyboard and screen-reader paths through every section.
 - **Screenshots** of every section at desktop, Pixel 7 and 320 px wide, for art review.

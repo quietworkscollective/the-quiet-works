@@ -18,10 +18,12 @@ import type { PropPlacement } from './placement.ts';
  * The materials the props share. `wood` is the corridor's own oak grain, tinted by vertex colour
  * to walnut, pine or ebony; `brass` and `steel` are metal; `enamel` is the glossy satin of
  * enamel, ceramic and bone (every ivory fitting lives here); `matte` is cloth, leather, rubber,
- * clay and leaf; `print` is the paper and lettering atlas; `glass` is clear and blended.
+ * clay and leaf; `print` is the paper and lettering atlas; `glass` is clear and blended; `model`
+ * is the ready-made models' repacked textures (see modelKit.ts), so every model costs one draw call
+ * between them.
  */
-export type Channel = 'wood' | 'brass' | 'steel' | 'enamel' | 'matte' | 'print' | 'glass';
-export const CHANNELS: readonly Channel[] = ['wood', 'brass', 'steel', 'enamel', 'matte', 'print', 'glass'];
+export type Channel = 'wood' | 'brass' | 'steel' | 'enamel' | 'matte' | 'print' | 'glass' | 'model';
+export const CHANNELS: readonly Channel[] = ['wood', 'brass', 'steel', 'enamel', 'matte', 'print', 'glass', 'model'];
 
 /** A colour for a shape: one linear tint, or a function of the (prop-local) vertex. */
 export type Tint = Rgb | ((position: Vec3, normal: Vec3) => Rgb);
@@ -78,7 +80,7 @@ export class Assembly {
 
   constructor() {
     const fresh = (): ChannelData => ({ bucket: new Bucket(), bone: [], owner: [] });
-    this.channels = { wood: fresh(), brass: fresh(), steel: fresh(), enamel: fresh(), matte: fresh(), print: fresh(), glass: fresh() };
+    this.channels = { wood: fresh(), brass: fresh(), steel: fresh(), enamel: fresh(), matte: fresh(), print: fresh(), glass: fresh(), model: fresh() };
   }
 
   /**
@@ -225,12 +227,20 @@ export class Assembly {
 
   /**
    * Take a ready-made geometry (a mesh from a loaded model) into a channel, placed by `matrix` in
-   * prop-local metres. Its UVs are kept as authored; its normals are kept; it follows the current
-   * bone. The channel's material draws it, so a model whose own textures matter is better mounted
-   * as an external visual (see external.ts) than merged here.
+   * prop-local metres. Its normals are kept; it follows the current bone. Its UVs are kept as
+   * authored, or, with `uv`, fitted into that rectangle of the channel's texture (the model's
+   * texture is a cell of an atlas: see modelKit.ts). The channel's material draws it.
    */
-  mesh(channel: Channel, geometry: BufferGeometry, matrix: Matrix4 = new Matrix4(), tint?: Tint): void {
-    this.emit(channel, tint, (b, style) => addGeometry(b, geometry, matrix, style, false));
+  mesh(channel: Channel, geometry: BufferGeometry, matrix: Matrix4 = new Matrix4(), tint?: Tint, uv?: readonly [number, number, number, number]): void {
+    this.emit(channel, tint, (b, style) => {
+      addGeometry(b, geometry, matrix, style, false);
+      if (!uv) return;
+      // `b` is this mesh's own bucket, so every vertex in it is the mesh's.
+      for (let i = 0; i < b.vertexCount; i += 1) {
+        b.uv[i * 2] = uv[0] + (b.uv[i * 2] ?? 0) * (uv[2] - uv[0]);
+        b.uv[i * 2 + 1] = uv[1] + (b.uv[i * 2 + 1] ?? 0) * (uv[3] - uv[1]);
+      }
+    });
   }
 
   /** A straight round rod between two prop-local points (a spoke, a wire, a cord), optionally tapering to `radiusEnd` at `to`. */

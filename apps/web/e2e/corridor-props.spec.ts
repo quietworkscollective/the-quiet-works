@@ -12,8 +12,11 @@ import { door, expectSpine, site } from './helpers.ts';
  * (corridor-world.spec.ts): the props draw only when a frame is drawn for some other reason.
  */
 
-/** Messages that are not the app's: fiber's deprecated THREE.Clock and Chromium's one GL driver hint per process. */
-const isKnownNoise = (text: string): boolean => text.includes('THREE.Clock') || text.includes('GL Driver Message');
+/** Messages that are not the app's: fiber's deprecated THREE.Clock and Chromium's GL driver hints. */
+const isKnownNoise = (text: string): boolean =>
+  text.includes('THREE.Clock') ||
+  text.includes('GL Driver Message') ||
+  text.includes('THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.');
 
 function listen(page: Page): string[] {
   const noise: string[] = [];

@@ -68,10 +68,11 @@ def handle_profile():
 
 
 def build(spec, root):
-    willow = mats.wood('willow', light='#E8D3A8', dark='#C49E66', axis='Z', ring_freq=340.0, warp=2.5, wander=0.012, roughness=0.5,
-                       age=0.6, seed=51.0, pore=0.25, relief=0.04, edge_lift=0.05, contrast=0.8, polish=0.12,
+    willow = mats.wood('willow', light='#B38E60', dark='#70492A', axis='Z', ring_freq=170.0, warp=4.5, wander=0.06, roughness=0.6,
+                       age=0.85, seed=51.0, pore=0.4, relief=0.06, edge_lift=0.08, contrast=1.0, polish=0.1, rough_range=(0.5, 0.75),
                        spots=[dict(at=(0.0, FACE_Y, 0.21), radius=(0.05, 0.02, 0.09)), dict(at=(0.0, 0.0, 0.62), radius=(0.04, 0.04, 0.04))],
-                       decals=[dict(at=(0.012, FACE_Y, 0.255), radius=(0.014, 0.01, 0.009), color='#7A3A2C', strength=0.55),
+                       decals=[dict(at=(0.0, FACE_Y, 0.285), half=(0.040, 0.01, 0.100), color='#9B6F3E', strength=0.32, rough=0.52),
+                               dict(at=(0.012, FACE_Y, 0.255), radius=(0.014, 0.01, 0.009), color='#7A3A2C', strength=0.55),
                                dict(at=(-0.022, FACE_Y, 0.30), radius=(0.011, 0.01, 0.007), color='#7A3A2C', strength=0.4),
                                dict(at=(0.0, FACE_Y, 0.37), half=(0.032, 0.01, 0.036), color='#D9CBA7', strength=0.9, rough=0.7),
                                dict(at=(0.0, FACE_Y, 0.37), half=(0.026, 0.01, 0.030), color='#A64B35', strength=0.35),
@@ -94,7 +95,7 @@ def build(spec, root):
     # centre the footprint
     return Built(root, [bat], moving=[], stage='floor',
                  view=dict(target=(0, 0, 0.42), distance=2.0, azimuth=28),
-                 detail=dict(target=(0.0, FACE_Y, 0.25), distance=0.7, azimuth=18, elevation=10))
+                 detail=dict(target=(0.0, FACE_Y, 0.25), distance=0.4, azimuth=18, elevation=10))
 
 
 if __name__ == '__main__':

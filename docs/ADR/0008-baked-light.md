@@ -12,7 +12,7 @@ Physical point-light conversion uses radiant power equal to intensity times 4π;
 
 Both full and lite tiers load and bind baked assets. The lite corridor keeps its cheaper Lambert shading while using its lightmap channel; it still bypasses the finishing stack. Every geometry, cloned material, image texture and loader-created material belongs to one mount and is disposed on unmount, including loads completing after cancellation. Pending assets leave the existing scene visible; replacement is atomic after all assets load.
 
-The corridor atlas uses 1856×928 pixels to stay below the 400,000-byte WebP ceiling while preserving the enforced near-camera density floor of 16 texels/m. Chart allocation targets 24 texels/m near the camera; the rebaked manifest records measured density.
+The corridor atlas uses 1760×880 pixels to stay below the 400,000-byte WebP ceiling after the Annex doorways were installed, while preserving the enforced near-camera density floor of 16 texels/m. Chart allocation targets 24 texels/m near the camera; the rebaked manifest records measured density.
 
 The corridor publishes visual readiness after its first completed baked draw, so initial texture upload and shader compilation cannot arrive after the world is reported idle. Camera telemetry starts after this readiness signal; camera input and movement remain unchanged. A loading failure retains the original scene as a usable fallback; `bake=off` is reserved for comparison captures.
 

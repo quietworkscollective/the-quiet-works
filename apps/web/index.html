@@ -8,24 +8,38 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/fallback.css" />
     <!-- The hero's poster, fetched before the script runs so the first paint is the corridor, not black. -->
     <link rel="preload" as="image" href="/poster-hero-1440x900.webp" type="image/webp" media="(orientation: landscape)" fetchpriority="high" />
     <link rel="preload" as="image" href="/poster-hero-412x915.webp" type="image/webp" media="(orientation: portrait)" fetchpriority="high" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="description" content="%SITE_NAME% is an interactive artwork. %SITE_TAGLINE% Walk the corridor of %SITE_WORLD%. The %SITE_ROOM% is open." />
-    <link rel="canonical" href="%SITE_URL%" />
+    <meta name="description" data-route-description content="%ROUTE_DESCRIPTION%" />
+    <link rel="canonical" data-route-canonical href="%ROUTE_CANONICAL%" />
+    <link data-route-markdown rel="alternate" type="text/markdown" href="%ROUTE_MARKDOWN%" />
+    <link rel="describedby" href="https://unheld.space/llms.txt" />
     <meta property="og:site_name" content="%SITE_NAME%" />
-    <meta property="og:title" content="%SITE_NAME% — %SITE_WORLD%" />
-    <meta property="og:description" content="%SITE_TAGLINE%" />
-    <meta property="og:url" content="%SITE_URL%" />
+    <meta property="og:title" data-route-og-title content="%ROUTE_TITLE%" />
+    <meta property="og:description" data-route-og-description content="%ROUTE_DESCRIPTION%" />
+    <meta property="og:url" data-route-og-url content="%ROUTE_CANONICAL%" />
     <meta property="og:type" content="website" />
-    <title>%SITE_NAME% — %SITE_WORLD%</title>
+    <meta property="og:image" data-route-og-image content="%ROUTE_IMAGE%" />
+    <meta property="og:image:alt" data-route-og-image-alt content="%ROUTE_IMAGE_ALT%" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" data-route-twitter-title content="%ROUTE_TITLE%" />
+    <meta name="twitter:description" data-route-twitter-description content="%ROUTE_DESCRIPTION%" />
+    <meta name="twitter:image" data-route-twitter-image content="%ROUTE_IMAGE%" />
+    <meta name="twitter:image:alt" data-route-twitter-image-alt content="%ROUTE_IMAGE_ALT%" />
+    <script type="application/ld+json" id="route-structured-data">%ROUTE_JSON_LD%</script>
+    <script type="application/json" id="route-metadata-map">%ROUTE_METADATA_MAP%</script>
+    <title data-route-title>%ROUTE_TITLE%</title>
   </head>
   <body>
+    <main id="static-content"></main>
     <div id="root"></div>
     <noscript>
-      <p>%SITE_NAME% needs JavaScript to open %SITE_WORLD%. Nothing is collected or sent anywhere.</p>
+      <p>The interactive 3D world needs JavaScript. The written page above remains available without it.</p>
     </noscript>
+    <script src="/route-metadata.js" defer></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

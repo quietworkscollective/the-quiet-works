@@ -20,7 +20,7 @@ import { hexToSrgb, luminance } from '../colour.ts';
  *  - dust: a few motes that show only inside a lamp cone.
  */
 
-export type SpaceId = 'corridor' | 'landing' | 'office';
+export type SpaceId = 'corridor' | 'landing' | 'office' | 'exchange';
 
 /** One of the three tones of the dark. Luma is sRGB-encoded, 0 black to 1 white. */
 export interface DarkBand {
@@ -236,6 +236,27 @@ export const ATMOSPHERES: Readonly<Record<SpaceId, AtmosphereProfile>> = {
     haze: { amplitude: 0.35, scale: 7, drift: 0.02 },
     dust: { count: 800, sizePx: [1, 2.4], brightness: 0.75, drift: 0.01, rise: 0.008, volume: [8, 5.4, 9] },
     budget: { drawCalls: 2, triangles: 6 * CONE_TRIANGLES },
+  },
+  // The Exchange is tall and narrow; its drifting air stays pale and close to white.
+  exchange: {
+    ceilingY: 12.6,
+    darkness: DARKNESS,
+    heightFog: [
+      { id: 'floor-mist', y: 0, thins: 'up', scaleHeight: 0.45, density: 0.024, colour: '#C4C1BA' },
+      { id: 'mid-haze', y: 0, thins: 'up', scaleHeight: 3.4, density: 0.0045, colour: '#C9C6BF' },
+      { id: 'ceiling-smoke', y: 12.6, thins: 'down', scaleHeight: 4, density: 0.014, colour: '#CBC8C1' },
+    ],
+    farGlow: { from: 6, to: 12, colour: '#D7C9AE', strength: 0.035 },
+    cones: {
+      specs: [
+        { lamp: 'desk-lamp', halfAngleDeg: 28, length: 1.7, opacity: 0.11, falloff: 1.3, edge: 0.3, kelvin: 2900, breakup: 0.15, patch: 0.35 },
+        { lamp: 'window', halfAngleDeg: 24, length: 8.5, opacity: 0.11, falloff: 0.9, edge: 0.35, kelvin: 5000, breakup: 0.25, patch: 0.6, gobo: { columns: 4, rows: 3, bar: 0.22, soft: 0.09 } },
+      ],
+      maxVisible: 2,
+    },
+    haze: { amplitude: 0.28, scale: 7, drift: 0.012 },
+    dust: { count: 700, sizePx: [1, 2.4], brightness: 0.72, drift: 0.008, rise: 0.006, volume: [4.2, 12.6, 9] },
+    budget: { drawCalls: 2, triangles: 2 * CONE_TRIANGLES },
   },
 };
 

@@ -256,6 +256,19 @@ const PAINTERS: Record<AtlasId, Painter> = {
     ctx.fillRect(130, 182, w - 190, 1.2);
   },
 
+  /** The same pasted label, on its own: for the modelled scorebook, whose cover has a blank one. */
+  scoreLabel(ctx, w, h, say) {
+    paper(ctx, w, h, '#EBE3CA', '#DDD2B3', 112);
+    ctx.strokeStyle = '#2A1C14';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(10, 10, w - 20, h - 20);
+    line(ctx, say, PROP_COPY.scorebook.cover, FONTS.cond, 700, w / 2, 100, w - 70, 50, 0.12, 'center', '#2A1C14');
+    ctx.fillStyle = '#2A1C14';
+    ctx.fillRect(40, 122, w - 80, 1.8);
+    line(ctx, say, PROP_COPY.scorebook.season, FONTS.mono, 400, 40, 166, w - 80, 28, 0.1);
+    ctx.fillRect(164, 171, w - 204, 1.4);
+  },
+
   chess(ctx, w) {
     const n = 8;
     const s = w / n;

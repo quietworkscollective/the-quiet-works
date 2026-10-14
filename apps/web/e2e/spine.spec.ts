@@ -73,6 +73,22 @@ test.describe('corridor doors', () => {
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
   });
 
+  test('entering focuses the room and leaving restores focus to the door used', async ({ page }) => {
+    const officeDoor = door(page, OFFICE, 'open');
+    await officeDoor.focus();
+    await page.keyboard.press('Enter');
+    await expectSpine(page, 'chamber');
+    await expect.poll(() => page.evaluate(() => {
+      const host = document.querySelector('.tqw-chamber-host');
+      const active = document.activeElement;
+      return Boolean(host && active && host.contains(active) && active.matches('[data-chamber-entry], h1, h2, button'));
+    })).toBe(true);
+
+    await page.getByRole('button', { name: 'Return to the corridor' }).click();
+    await expectSpine(page, 'corridor');
+    await expect.poll(() => officeDoor.evaluate((element) => element === document.activeElement)).toBe(true);
+  });
+
   test('a sealed door stays shut and the visitor stays in the corridor', async ({ page }) => {
     await activateDoor(page, 'The Tomorrow Engine', 'sealed');
     await expectSpine(page, 'corridor');

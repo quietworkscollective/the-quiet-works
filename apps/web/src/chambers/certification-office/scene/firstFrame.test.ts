@@ -27,3 +27,13 @@ it('cancels reflection work when the room leaves before the deferred setup', () 
   draw(scene); cleanup(); vi.advanceTimersByTime(1000);
   expect(bind, 'an unmounted room must not allocate another environment').not.toHaveBeenCalled();
 });
+
+it('binds once and keeps an outer completed-frame observer attached', () => {
+ vi.useFakeTimers();const scene=new Scene(),bind=vi.fn(()=>vi.fn());
+ const cleanup=bindAfterFirstFrame(scene,bind),inner=scene.onAfterRender;
+ const outer:typeof inner=(...args)=>inner.apply(scene,args);
+ scene.onAfterRender=outer;draw(scene);
+ expect(scene.onAfterRender).toBe(outer);
+ draw(scene);vi.advanceTimersByTime(300);expect(bind).toHaveBeenCalledOnce();
+ draw(scene);vi.advanceTimersByTime(1000);expect(bind).toHaveBeenCalledOnce();cleanup();
+});

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { CertificationStore } from '@tqw/engine';
 import type { Director } from './director.ts';
+import type { OfficeResources } from './assets.ts';
 import type { Materials } from './materials.ts';
 import { areFontsLoaded, loadFonts } from './textures.ts';
 
@@ -72,6 +73,7 @@ export const createView = (): ViewState => ({
 });
 
 export interface SceneContextValue {
+  assets?: OfficeResources;
   store: CertificationStore;
   director: Director;
   materials: Materials;

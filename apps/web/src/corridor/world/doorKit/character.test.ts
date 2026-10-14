@@ -24,7 +24,7 @@ const build = (spec: DoorSpec, lod: 'near' | 'far' = 'near') => buildDoor(spec, 
 
 describe('door character, rendered from data', () => {
   it('every chamber door and every authored blank door carries a character in its plan', () => {
-    expect(all).toHaveLength(13);
+    expect(all).toHaveLength(chambers.length + blanks.length);
     for (const d of all) expect(planDoor(d.spec).character, d.key).not.toBeNull();
   });
 

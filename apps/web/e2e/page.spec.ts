@@ -20,6 +20,11 @@ const heroEnter = (page: Page) => page.getByRole('link', { name: ENTER });
 const windowEnter = (page: Page) => page.getByRole('button', { name: ENTER });
 const leaveButton = (page: Page) => page.getByRole('button', { name: 'Leave', exact: true });
 
+/** Baked textures, model resources and lettering prepare before the first world frame. */
+async function worldReady(page: Page): Promise<void> {
+  await expect(canvas(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: 30_000 });
+}
+
 async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   const [x, z, yaw] = ((await canvas(page).getAttribute('data-pose')) ?? '0,0,0').split(',').map(Number);
   return { x: x!, z: z!, yaw: yaw! };
@@ -73,6 +78,7 @@ async function scrollToProgress(page: Page, progress: number): Promise<void> {
 async function arriveByScrolling(page: Page): Promise<void> {
   await page.goto('/');
   await expectSpine(page, 'entrance');
+  await worldReady(page);
   await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
   await page.evaluate((y) => window.scrollTo(0, y), await gameTop(page));
   await expectSpine(page, 'corridor');
@@ -174,13 +180,14 @@ test.describe('the hero', () => {
   test('shows one quiet line of live details, a scroll cue and a way straight in, over the live world', async ({ page }) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-hero__details')).toHaveText('3 doors open');
     await expect(page.getByRole('button', { name: 'Scroll to The Quiet Works' })).toBeVisible();
     await expect(heroEnter(page)).toBeVisible();
     // The world is the page's one renderer, behind the hero (R-4): one WebGL canvas, in the game window.
     await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveCount(1);
     await expect(page.locator('.tqw-game__window .tqw-corridor-canvas')).toHaveCount(1);
     await expect(canvas(page)).toHaveAttribute('data-phase', 'entrance');
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
   });
 
@@ -199,7 +206,7 @@ test.describe('the hero', () => {
         .map((el) => el.textContent?.replace(/\s+/g, ' ').trim()),
     );
     const menu = isDesktop(info) ? ['Notice board', 'Menu'] : ['Menu'];
-    expect(shown).toEqual([...menu, 'A space for everything we carry.', '1 door open', 'Scroll to The Quiet Works', ENTER]);
+    expect(shown).toEqual([...menu, 'A space for everything we carry.', '3 doors open', 'Scroll to The Quiet Works', ENTER]);
   });
 
   test('menu: Notice board and Menu at the top right with 44 px targets; a phone shows Menu alone', async ({ page }, info) => {
@@ -253,6 +260,7 @@ test.describe('the hero text holds its contrast over the live world', () => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     await fontsReady(page);
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await page.waitForTimeout(800);
 
@@ -763,7 +771,7 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     await page.goto('/');
     await heroEnter(page).click();
     await expectSpine(page, 'corridor');
-    await expect(canvas(page)).toHaveAttribute('data-world', 'ready', { timeout: 30_000 }).catch(() => undefined);
+    await worldReady(page);
     await page.getByRole('button', { name: 'The Certification Office, open the door' }).focus();
     await page.keyboard.press('Enter');
     await expectSpine(page, 'threshold');
@@ -937,6 +945,7 @@ test.describe('the game window: resting', () => {
   test('a real wheel scrolls the page through the window and on; the camera does not walk', async ({ page }, info) => {
     test.skip(!isDesktop(info), 'a mouse wheel');
     await page.goto('/');
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await page.mouse.move(720, 450);
     for (let i = 0; i < 40; i += 1) {
@@ -1470,9 +1479,9 @@ test.describe('the archive', () => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
-    await expect(archive.getByRole('heading', { level: 3 })).toHaveText(['The Certification Office']);
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText('0 of 7 papers found.');
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(archive.getByRole('heading', { level: 3 })).toHaveText(['The Certification Office', 'The Exchange']);
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
     await expect(papers(page, 'found')).toHaveCount(0);
     const sealed = await papers(page, 'sealed').evaluateAll((els) => els.map((el) => ({ text: el.textContent, html: el.outerHTML, attrs: el.getAttributeNames().sort() })));
     expect(new Set(sealed.map((s) => s.html)).size).toBe(1);
@@ -1482,7 +1491,7 @@ test.describe('the archive', () => {
     }
     // Counts, never scores: no bar, ring, meter or percentage, and no mention of secrets still hidden.
     expect(await archive.locator('progress, meter, [role="progressbar"], svg, canvas').count()).toBe(0);
-    const roomText = (await archive.locator('.tqw-archive__room').textContent()) ?? '';
+    const roomText = (await archive.locator('.tqw-archive__room').allTextContents()).join(' ');
     expect(roomText).not.toMatch(/%|secret/i);
   });
 
@@ -1496,9 +1505,9 @@ test.describe('the archive', () => {
       ],
     });
     const archive = page.locator('#archive');
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText('2 of 7 papers found. 1 secret found.');
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found. 1 secret found.', '0 of 23 papers found.']);
     await expect(papers(page, 'found')).toHaveCount(3);
-    await expect(papers(page, 'sealed')).toHaveCount(5);
+    await expect(papers(page, 'sealed')).toHaveCount(28);
     await expect(papers(page, 'found').first().locator('.tqw-paper__title')).toHaveText('A paper');
     // Nothing of what was imported is shown but what the visitor can already name: no ids.
     expect((await archive.textContent()) ?? '').not.toMatch(/memo-a|secret-a/);
@@ -1508,7 +1517,7 @@ test.describe('the archive', () => {
   test('importing replaces the archive, and the hero does not call it this visit\'s discovery', async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-hero__details')).toHaveText('3 doors open');
   });
 
   test('a file that is not an archive changes nothing, and says so', async ({ page }) => {
@@ -1553,15 +1562,15 @@ test.describe('the archive', () => {
     await dialog.getByRole('button', { name: 'Forget everything' }).click();
     await expect(dialog).toBeHidden();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Forgotten. This device remembers nothing.');
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText('0 of 7 papers found.');
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
   });
 
   test('the Forget dialog is a dialog: Escape closing it does not release the game window', async ({ page }) => {
     await engageWindow(page);
     // Pressed in place: scrolling the held page to the button would be the visitor leaving the window.
-    await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.tqw-archive__action')].find((b) => b.textContent === 'Forget everything')!.click());
+    await page.locator('#archive').getByRole('button', { name: 'Forget everything', exact: true }).evaluate((button) => (button as HTMLButtonElement).click());
     const dialog = page.getByRole('dialog', { name: 'Forget everything?' });
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
@@ -1721,8 +1730,8 @@ test.describe('what the page stores and sends', () => {
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'memo-b', kind: 'memo' }] });
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(2);
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText('2 of 7 papers found.');
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found.', '0 of 23 papers found.']);
+    await expect(page.locator('.tqw-hero__details')).toHaveText('3 doors open');
   });
 
   test('Forget everything removes the key: the device holds nothing again, across a reload', async ({ page }) => {
@@ -1734,14 +1743,14 @@ test.describe('what the page stores and sends', () => {
     expect(await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)])).toEqual([]);
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
   });
 
   test('a damaged key is ignored and the page still loads with an empty archive', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('unheld.v1', '{"version":9,"found":'));
     await page.goto('/');
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
   });
 
   test('a browser that refuses storage still gets a working archive for the visit', async ({ page }) => {

@@ -200,6 +200,22 @@ function fingerPlate(c: Ctx): void {
   for (const sy of [-0.11, 0.11]) stud(b.brass, [hx, hy + sy, zFace + 0.0035], 0.0036, 0.0036, 0.002, 6, metal);
 }
 
+/** A small enamel repair tab with four brass pins, fitted low on the leaf after a split was filled. */
+function enamelRepairTab(c: Ctx): void {
+  const b = nth(c.leaf, 0);
+  const cx = -c.spec.width * 0.27;
+  const cy = 0.36;
+  const w = 0.19;
+  const h = 0.12;
+  const front = surfaceUnder(c, [cx - w / 2, cx + w / 2], [cy - h / 2, cy + h / 2]);
+  span(b.enamel, [cx - w / 2, cx + w / 2], [cy - h / 2, cy + h / 2], [front + 0.0004, front + 0.0032], bevelOf(c, 0.002), { colour: c.tints.secondary });
+  c.relief.push({ x: [cx - w / 2, cx + w / 2], y: [cy - h / 2, cy + h / 2], z: front + 0.0032 });
+  const brass = { colour: c.tints.metal };
+  for (const sx of [-1, 1] as const) for (const sy of [-1, 1] as const) {
+    stud(b.brass, [cx + sx * (w / 2 - 0.018), cy + sy * (h / 2 - 0.018), front + 0.0042], 0.0055, 0.0055, 0.002, 8, brass);
+  }
+}
+
 /** Build the signature the door's look names. */
 export function buildSignature(c: Ctx): void {
   if (c.lod !== 'near') return;
@@ -228,6 +244,8 @@ export function buildSignature(c: Ctx): void {
       return fleurons(c);
     case 'finger-plate':
       return fingerPlate(c);
+    case 'enamel-repair-tab':
+      return enamelRepairTab(c);
     default:
       // The leather grip is part of the handwheel (handles.ts), the fanlight part of the transom.
       return undefined;

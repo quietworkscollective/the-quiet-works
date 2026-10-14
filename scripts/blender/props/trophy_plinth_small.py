@@ -72,7 +72,7 @@ def build(spec, root):
     obj = kit.add_part(root, 'trophy', base, [ebony, brass, plate])
     return Built(root, [obj], moving=[], stage='shelf',
                  view=dict(target=(0, 0, 0.12), distance=0.85, azimuth=30),
-                 detail=dict(target=(0.0, 0.0, 0.15), distance=0.38, azimuth=26, elevation=8))
+                 detail=dict(target=(0.0, 0.0, 0.15), distance=0.4, azimuth=26, elevation=8))
 
 
 if __name__ == '__main__':

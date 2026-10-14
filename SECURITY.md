@@ -1,8 +1,9 @@
 # Security
 
-UNHELD is a static, client-side artwork. It has no accounts, no server-side code in this
-repository, no cookies, no analytics and no network requests after the page loads. Its
-Content-Security-Policy sets `connect-src 'none'`.
+UNHELD is a static, client-side artwork. It has no accounts, server-side code in this repository,
+cookies, analytics or third-party trackers. As visitors enter rooms, the site may load its own room
+code, models and written records from the same origin. The artwork does not connect to other
+servers. Its Content-Security-Policy keeps `connect-src 'none'`.
 
 ## Reporting a vulnerability
 

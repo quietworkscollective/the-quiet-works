@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
   app,
   approachDesk,
@@ -17,12 +17,24 @@ import {
 /** The Certification Office's own URL: TQW-001's behaviour, now behind its corridor door. */
 const OFFICE = '/certification-office';
 
+/** Open the contextual controls and reach their desk interaction state before stamping. */
+async function prepareDesk(page: Page): Promise<void> {
+  await roomReady(page);
+  const places = page.getByText('Places and actions', { exact: true });
+  if (!await places.locator('..').evaluate(element => element.hasAttribute('open'))) {
+    await places.focus();
+    await places.click();
+  }
+  await approachDesk(page);
+}
+
 test.describe('3D office', () => {
+  test.use({ reducedMotion: 'reduce' });
   test.beforeEach(async ({ page }) => {
     await page.goto(OFFICE);
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
     await roomReady(page);
-    await approachDesk(page);
+    await prepareDesk(page);
   });
 
   test('Space and Enter on the stamp button drive the same stamp', async ({ page }) => {
@@ -43,6 +55,7 @@ test.describe('3D office', () => {
   test('mouse press on the 3D stamp holds, release stamps', async ({ page }, info) => {
     test.skip(info.project.name !== 'desktop', 'mouse path');
     await approachDesk(page);
+    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.mouse.move(x, y);
     await page.mouse.down();
@@ -54,6 +67,7 @@ test.describe('3D office', () => {
   test('touch on the 3D stamp and on the stamp button stamp the same form', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile', 'touch path');
     await approachDesk(page);
+    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.touchscreen.tap(x, y);
     await expectStamps(page, 1);
@@ -93,6 +107,7 @@ test.describe('3D office', () => {
   test('context loss while the 3D stamp is held lifts it exactly once', async ({ page }, info) => {
     test.skip(info.project.name !== 'desktop', 'mouse path');
     await approachDesk(page);
+    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.mouse.move(x, y);
     await page.mouse.down();
@@ -139,6 +154,7 @@ test.describe('sound', () => {
     await menu.getByRole('button', { name: 'Reduced motion' }).click();
     await menu.getByRole('button', { name: 'Captions' }).click();
     await closeMenu(page);
+    await prepareDesk(page);
     expect(await audioContexts(page)).toBe(0);
 
     await stampWithKeyboard(page);
@@ -157,6 +173,7 @@ test.describe('sound', () => {
     await expect(sound).toHaveAttribute('aria-pressed', 'false');
     await expect(app(page)).toHaveAttribute('data-muted', 'true');
     await closeMenu(page);
+    await prepareDesk(page);
     await stampWithKeyboard(page);
     expect(await audioContexts(page)).toBe(0);
   });
@@ -178,6 +195,7 @@ test.describe('comfort and accessibility settings', () => {
     const menu = await openMenu(page);
     await menu.getByRole('button', { name: 'Captions' }).click();
     await closeMenu(page);
+    await prepareDesk(page);
     await stampWithKeyboard(page);
     await expect(page.locator('.tqw-captions')).not.toBeEmpty();
   });
@@ -240,6 +258,7 @@ test.describe('privacy', () => {
       }
     });
     await page.goto(OFFICE);
+    await prepareDesk(page);
     await stampWithKeyboard(page);
     await stampWithKeyboard(page);
     expect(foreign).toEqual([]);
