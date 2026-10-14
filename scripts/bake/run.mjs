@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
 const { chromium } = require('@playwright/test');
+const ansiEscape = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
 const checking = process.argv.includes('--check');
 const requested = process.argv.find(s => ['corridor','office'].includes(s));
 const spaces = checking ? (requested ? [requested] : ['corridor', 'office']) : [process.argv[2]];
@@ -25,15 +26,17 @@ try {
 await new Promise((resolve, reject) => {
   const timeout = setTimeout(() => reject(new Error('Dev server did not start: '+serverLog)), 15000);
   server.on('exit', code => { clearTimeout(timeout); reject(new Error('Dev server exited: '+code+' '+serverLog)); });
-  server.stdout.on('data', () => { if (serverLog.includes('Local:')) { clearTimeout(timeout); resolve(); } });
+  server.stdout.on('data', () => { if (serverLog.replace(ansiEscape, '').includes('Local:')) { clearTimeout(timeout); resolve(); } });
 });
  const angle = process.env.BAKE_BROWSER_ANGLE ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader');
  if (!['metal','swiftshader'].includes(angle)) throw new Error('BAKE_BROWSER_ANGLE must be metal or swiftshader');
- browser = await chromium.launch({ args: [`--use-angle=${angle}`, '--ignore-gpu-blocklist', ...(angle === 'swiftshader' ? ['--enable-unsafe-swiftshader'] : [])] });
+ // The material fingerprints include canvas artwork; keep its raster path independent of ANGLE.
+ browser = await chromium.launch({ args: [`--use-angle=${angle}`, '--ignore-gpu-blocklist', '--disable-accelerated-2d-canvas', ...(angle === 'swiftshader' ? ['--enable-unsafe-swiftshader'] : [])] });
   for (const space of spaces) {
     const started = performance.now();
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-    await page.clock.install({ time: new Date('2026-10-14T12:00:00.000Z') });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce', timezoneId: 'Etc/UTC' });
+    // The corridor clock hands read local time each frame; use a stable pose across build hosts.
+    await page.clock.setFixedTime(new Date('2026-10-14T12:00:00.000Z'));
     page.on('pageerror', e => console.error(e.message));
     for (let attempt = 0; ; attempt++) {
     try { await page.goto(`http://127.0.0.1:${port}/bake.html?space=${space}`); break; }

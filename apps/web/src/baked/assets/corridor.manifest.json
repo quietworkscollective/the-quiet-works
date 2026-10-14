@@ -3,7 +3,7 @@
   "space": "corridor",
   "hash": "f91c1ca1275de38aee29604d4a4ba5484188296bdc346538cc4bda6c5a929fc0",
   "materialHash": "26fcbe6d319d6e45fede78d99e37688ee0326653bf17565cdcc182cd08c07278",
-  "baselineHash": "94f25d40294f738fe29af50b49c91da6a1c3038df48a2b76b07278df456d559d",
+  "baselineHash": "082e4fa32972f16b9e35e5c57c1a95312fa570caa5203c5599b500ba539dbc92",
   "meshes": [
     "0d358b9d667c0ce1db7cbc85d5cf7b40d315ee10283c4c05c8ec83d3238ba266",
     "2a028691ab027b831ea3299ac6404f06d1a45a30976bccfc2b98543669502895",
@@ -626,9 +626,9 @@
       "file": "corridor-0.webp",
       "width": 1856,
       "height": 928,
-      "scale": 18.814632415771484,
+      "scale": 18.81387710571289,
       "encoding": "srgb-scale",
-      "bytes": 327328,
+      "bytes": 327588,
       "density": {
         "near": {
           "min": 17.19186137691144,
