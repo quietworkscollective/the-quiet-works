@@ -76,6 +76,14 @@
       "attribution": "UNHELD hero posters (poster-hero-1440x900.webp, poster-hero-412x915.webp): stills of the corridor scene captured from the build by scripts/capture-poster.mjs, (c) 2026 Asiri Dalugoda, CC BY 4.0 (LICENSING.md); re-captured whenever the corridor's art changes."
     },
     {
+      "name": "UNHELD share card",
+      "pattern": "^share-unheld-1200x630\\.png$",
+      "source": "in-repo",
+      "licence": "CC-BY-4.0",
+      "licenceFile": "../../LICENSES/CC-BY-4.0.txt",
+      "attribution": "UNHELD share card, derived from the hero poster by scripts/share-card.mjs, (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md)."
+    },
+    {
       "name": "Surface: plaster-clean",
       "pattern": "^plaster-clean-(?:albedo|normal|orm)-[\\w-]+\\.webp$",
       "source": "third-party:ambientCG",

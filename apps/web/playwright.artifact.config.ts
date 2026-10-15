@@ -5,13 +5,14 @@ import production from './playwright.config.ts';
 // This bundle retains DEV room access/probes for full-tier; it is never the shipping bundle.
 const port = Number(process.env.TQW_AUTHORED_PORT ?? 5398);
 const baseURL = `http://127.0.0.1:${port}`;
-if (!existsSync(new URL('./dist-authored/index.html', import.meta.url))) {
+if (!process.argv.includes('--list') && !existsSync(new URL('./dist-authored/index.html', import.meta.url))) {
   throw new Error('Missing authored artifact; run pnpm build:e2e-fixture first');
 }
 
-export default defineConfig(production, {
+export default defineConfig({ ...production, webServer: [], projects: [] }, {
   testIgnore: [],
   testMatch: ['**/full-tier.spec.ts'],
+  projects: (production.projects ?? []).filter(project => project.name !== 'reading-no-js'),
   use: { baseURL },
   webServer: {
     command: `pnpm exec vite preview --outDir dist-authored --port ${port} --strictPort`,

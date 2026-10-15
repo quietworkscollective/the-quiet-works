@@ -8,6 +8,7 @@ const PAGE_ROUTES = [
   '/credits/',
   '/privacy/',
   '/agents/',
+  '/licences/',
 ] as const;
 const CHAMBERS = chambersForBuild(REPO_ROOT, false);
 const PUBLIC_ROUTES = [...PAGE_ROUTES, ...CHAMBERS.map((room) => `/${room.slug}/`)];
@@ -28,7 +29,7 @@ test('every public route has server HTML, canonical metadata and structured data
     expect(html, route).toContain('property="og:image"');
     expect(html, route).toContain('name="twitter:card"');
     expect(html, route).toContain('application/ld+json');
-    expect(html, route).toContain('https://unheld.space/poster-hero-1440x900.webp');
+    expect(html, route).toContain('https://unheld.space/share-unheld-1200x630.png');
     expect(html.match(/<meta[^>]*property="og:url"[^>]*content="([^"]+)"/)?.[1], route).toBe(canonical);
 
     const jsonLd = html.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s)?.[1];
@@ -44,7 +45,7 @@ test('every public route has server HTML, canonical metadata and structured data
 test('Agents is a standalone static page with only public submission links', async ({ request }) => {
   const response = await request.get('/agents/');
   const html = await response.text();
-  expect(html).toContain('UNHELD is a space for people and agents');
+  expect(html).toContain('UNHELD is an interactive artwork');
   expect(html).toContain('Read the public agent skill');
   expect(html).not.toMatch(/<script\b[^>]*\btype="module"/);
   const body = html.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
@@ -118,7 +119,7 @@ test('text-only chamber fallbacks keep sealed rooms to their name and status', a
   const office = await (await request.get('/certification-office/')).text();
   const officeFallback = office.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(officeFallback).toContain('One lamp makes a pool of light on an industrial desk.');
-  expect(officeFallback).toContain("Across the floor, a clerk's window is still lit");
+  expect(officeFallback).toContain("Across the floor, a clerk&#x27;s window is still lit");
   await page.goto('/certification-office?mode=text');
   await expect(page.getByText('One lamp makes a pool of light on an industrial desk.')).toBeVisible();
   await expect(page.getByText("Across the floor, a clerk's window is still lit, with no one behind it. On the desk, a form sits under a brass press that holds a wooden-handled rubber stamp, beside a teal machine with an amber display.", { exact: true })).toBeVisible();
@@ -144,11 +145,11 @@ test('text-only chamber fallbacks keep sealed rooms to their name and status', a
   try {
     await reading.goto(new URL('/the-exchange/', page.url()).href);
     await expect(reading.getByRole('heading', { name: 'The Exchange' })).toBeVisible();
-    await expect(reading.getByText('Not yet open.', { exact: true })).toBeVisible();
+    await expect(reading.getByText('Not yet open.', { exact: true }).first()).toBeVisible();
     await expect(reading.getByText('The room is ready as a set of places and actions.', { exact: true })).toHaveCount(0);
     await reading.goto(new URL('/outline-room/', page.url()).href);
     await expect(reading.getByRole('heading', { name: 'The Outline Room' })).toBeVisible();
-    await expect(reading.getByText('Not yet open.', { exact: true })).toBeVisible();
+    await expect(reading.getByText('Not yet open.', { exact: true }).first()).toBeVisible();
     await expect(reading.getByText('A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', { exact: true })).toHaveCount(0);
     await expect(reading.getByText('The tins are fictional workshop specimens. Nothing here describes a visitor.', { exact: true })).toHaveCount(0);
   } finally {

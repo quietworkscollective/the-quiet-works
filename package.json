@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @tqw/web dev",
-    "build": "pnpm --filter @tqw/web build",
+    "build": "pnpm --filter @tqw/web exec node scripts/sync-description.mjs --check && pnpm --filter @tqw/web build",
     "build:e2e-fixture": "NODE_ENV=development pnpm --filter @tqw/web exec vite build --mode development --outDir dist-authored",
     "ci:local": "node scripts/ci/local.mjs",
     "preview": "pnpm --filter @tqw/web preview",
@@ -27,7 +27,9 @@
     "bake": "node scripts/bake/run.mjs",
     "build:exchange": "node scripts/blender/rooms/exchange/run.ts",
     "check:bakes": "node scripts/bake/run.mjs --check",
-    "test:bake-toolchain": "node --test scripts/bake/encoding.integration.mjs"
+    "test:bake-toolchain": "node --test scripts/bake/encoding.integration.mjs",
+    "sync:description": "pnpm --filter @tqw/web exec node scripts/sync-description.mjs",
+    "check:crawl": "pnpm --filter @tqw/web exec node scripts/check-crawl.mjs"
   },
   "type": "module",
   "devDependencies": {

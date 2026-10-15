@@ -101,7 +101,8 @@ const URL_ALLOWLIST = [
   { url: 'https://unheld.space/skill.md', reason: 'Public agent onboarding context linked from the Agents page and Markdown pages; navigation only.' },
   { url: 'https://unheld.space/?mode=text', reason: 'Link to the visitor-facing text mode from Markdown pages and agent onboarding; navigation only.' },
   { url: 'https://unheld.space/sitemap.xml', reason: 'Public sitemap address in robots.txt; metadata only, not fetched by the site.' },
-  { url: 'https://unheld.space/poster-hero-1440x900.webp', reason: 'Static Open Graph and X card image from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/share-unheld-1200x630.png', reason: 'Static 1200 × 630 card derived from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/third-party-notices.txt', reason: 'Bundled software licences linked from the Licences reading page; navigation only.' },
   { url: 'https://unheld.space/#website', reason: 'Schema.org JSON-LD identifier for the website; metadata only, not fetched by the site.' },
   { url: 'https://unheld.space/#the-quiet-works', reason: 'Schema.org JSON-LD identifier for the artwork; metadata only, not fetched by the site.' },
   { url: 'https://schema.org', reason: 'JSON-LD vocabulary identifier; metadata only, not fetched by the site.' },
@@ -177,23 +178,15 @@ if (existsSync(THIRD_PARTY_CATALOGUE)) {
   }
 }
 
-// Static canonical URLs and their Markdown alternatives are emitted from PUBLIC_ROUTES. The
-// sitemap is the build artifact listing those routes; keeping this allowlist derived from it
-// means the audit follows the same public route set without permitting arbitrary remote hosts.
-const SITEMAP_PATH = path.join(PACKAGE_DIR, 'public', 'sitemap.xml');
-if (existsSync(SITEMAP_PATH)) {
-  const sitemap = readFileSync(SITEMAP_PATH, 'utf8');
-  for (const [, location] of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
-    const canonical = new URL(location);
-    const pathname = canonical.pathname;
-    const markdown = pathname === '/' ? '/index.md' : `${pathname}.md`;
-    for (const url of [location, `${location}#webpage`, new URL(markdown, canonical).toString()]) {
-      URL_ALLOWLIST.push({
-        url,
-        reason: 'Per-route canonical, structured metadata, or Markdown alternative listed by the static sitemap; never fetched by the site.',
-      });
-    }
-  }
+// Canonicals remain public reading pages even while sealed rooms are omitted from the sitemap.
+const ROUTE_HTML = [path.join(DIST_DIR, 'index.html'), ...readdirSync(DIST_DIR, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => path.join(DIST_DIR, entry.name, 'index.html'))];
+for (const file of ROUTE_HTML.filter(existsSync)) {
+  const location = readFileSync(file, 'utf8').match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
+  if (!location) continue;
+  const canonical = new URL(location);
+  if (canonical.origin !== 'https://unheld.space') throw new Error('Unexpected canonical origin');
+  const markdown = canonical.pathname === '/' ? '/index.md' : `${canonical.pathname}.md`;
+  for (const url of [location, `${location}#webpage`, new URL(markdown, canonical).toString()]) URL_ALLOWLIST.push({ url, reason: 'Built public reading route; navigation only.' });
 }
 
 const ALLOWED_URLS = new Map(URL_ALLOWLIST.map(({ url, reason }) => [url, reason]));

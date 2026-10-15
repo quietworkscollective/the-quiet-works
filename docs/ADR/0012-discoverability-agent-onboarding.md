@@ -81,3 +81,56 @@ Human review is required before any change is accepted or published.
    crawler-specific training restrictions are published. No such signals are included here.
 3. A maintainer creates `commons:human-review` in GitHub repository settings and confirms whether
    the existing `proposal` label is present for the room issue form.
+
+## Amendment — readable HTML and link previews, 16 October 2026
+
+Proposed for maintainer approval with this branch. The production build renders every public
+route (including Licences and direct links to sealed rooms) with `react-dom/server`. It uses
+the app's existing About, Credits, Privacy, brand and chamber copy. The live hotfix
+`chambersForBuild` reader evaluates the registry release flags, and its `publicChambers` filter
+limits sealed room copy to the room name and “not yet open” status. Both mechanisms remain
+shared with the hotfix; no second release-state reader or copy filter is introduced. No unreleased
+room interiors, discoveries or private narrative are rendered.
+Every reading page includes the introduction, tagline, room directory, privacy promise and
+ordinary links to the site pages, `llms.txt` and the sitemap. Licences is a standalone reading
+page and links to the full bundled software notices. No new public wording is introduced.
+
+Each route ships its own title, description, canonical and Open Graph metadata, one JSON-LD
+graph, a large-image card and a plain-text alternate for `llms.txt`. The share image is a committed
+1200 × 630 PNG derived from the existing hero poster using the installed Playwright, with the
+existing wordmark and tagline. Its source and licence are included in the asset audit. Sitemap
+entries include the content revision date, rather than a new timestamp on every rebuild.
+
+A small same-origin blocking script hides the reading page before the body paints for app routes.
+The existing poster covers app startup; text mode keeps the plain page colour. The reading page
+returns if startup fails or times out.
+Agents and Licences remain written pages. The app removes the written document once its root
+mounts, avoiding duplicate text in the DOM. The hero and game window keep their existing rendering. The CSP and hosting security configuration are unchanged:
+JSON-LD and route data are inert data blocks, and all executing scripts remain external.
+
+Acceptance is guarded by no-JavaScript navigation and raw HTTP checks for every public route,
+plus desktop and Pixel 7 startup captures, layout-shift measurement below 0.05, CSP console checks,
+the asset budget and public-content gates. Rollback is a revert of this branch; no persisted
+progress format, scene contract or security policy changes.
+
+## Amendment: release-aware discovery (16 October 2026)
+
+Proposed for maintainer review. The sitemap includes site pages and released rooms only, derived
+from the same production release gate as the readable HTML. Sealed reading pages remain available
+by direct link and state that their rooms are not yet open.
+
+The existing approved opening About sentence supplies the description in metadata, structured
+data and discovery text. The README description is regenerated from that source with
+`pnpm sync:description`; build rejects stale README text. Discovery text templates receive it
+at build time. A replacement description requires founder approval.
+
+`pnpm check:crawl` checks a running built preview for readable body content, navigation and Open
+Graph tags on the entrance and Office, using seven named crawler user agents. Set `TQW_CRAWL_URL`
+to select the preview; the default is loopback port 4192. This makes no request from visitor code
+and changes no CSP directive.
+
+The required production core and `ci:local` selections include the readable, discoverability,
+text-startup and crawler guards. A dedicated no-JavaScript project reads all twelve routes.
+`discovery-coverage.test.mjs` checks the actual CI selection with a Playwright dry run. This live
+port changes no authored-room selection, scene rendering, contrast, Office idle or download
+behavior, or bake tooling. The Vite configuration remains synchronous.

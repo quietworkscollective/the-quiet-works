@@ -105,12 +105,13 @@ describe('the brand files\' licence is a decision, not a proposal', () => {
   // not the project's work, so they are never counted as in-repo.
   const thirdParty = manifest.entries.filter((entry) => entry.source.startsWith('third-party:'));
 
-  it('lists the favicon, the touch icon, the app icon, the hero posters and the baked light as the in-repo CC BY files, and nothing else', () => {
+  it('lists the favicon, the touch icon, the app icon, the hero posters, the share card and the baked light as the in-repo CC BY files, and nothing else', () => {
     expect(brand.map((entry) => entry.pattern)).toEqual([
       '^favicon\\.svg$',
       '^apple-touch-icon\\.png$',
       '^icon-512\\.png$',
       '^poster-hero-(?:1440x900|412x915)\\.webp$',
+      '^share-unheld-1200x630\\.png$',
       '^(?:corridor|office|codex-room)-[0-9]+-[\\w-]+\\.webp$',
     ]);
   });

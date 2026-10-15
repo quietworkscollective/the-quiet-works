@@ -1,10 +1,12 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import type { Plugin } from 'vite';
 import { creditGroups, type CreditGroup, type ThirdPartyData } from './src/credits/groupCredits.ts';
 import {
+  UNHELD_DESCRIPTION,
+  sitemapForChambers,
   jsonLdForPath,
   markdownForPath,
   metadataForPath,
@@ -170,7 +172,7 @@ function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType
   output = setContent(output, 'twitter-image', metadata.image);
   output = setContent(output, 'twitter-image-alt', metadata.imageAlt);
   output = output.replace(/<main id="static-content"[^>]*>.*?<\/main>/s, staticHtmlForPath(pathname, CREDIT_GROUPS, chambers, production));
-  if (pathname.replace(/\/+$/, '') === '/agents') {
+  if (['/agents', '/licences'].includes(pathname.replace(/\/+$/, ''))) {
     output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
   }
   return output;
@@ -188,12 +190,21 @@ function agentSafeMarkdown(markdown: string): string {
 function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, development: boolean): Plugin {
   return {
     name: 'tqw-static-route-pages',
+    configurePreviewServer(server) {
+      server.middlewares.use((request, _response, next) => {
+        const url = new URL(request.url ?? '/', SITE.url);
+        if (url.pathname !== '/' && publicRoutesFor(chambers, !development).some(route => route.path === url.pathname)) {
+          request.url = `${url.pathname}/index.html${url.search}`;
+        }
+        next();
+      });
+    },
     transformIndexHtml: {
       order: 'post',
       handler(html, context) {
         const pathname = new URL(context.path, SITE.url).pathname;
         let output = html.replace(/<main id="static-content"[^>]*><\/main>/, staticHtmlForPath(pathname, CREDIT_GROUPS, chambers, !development));
-        if (pathname.replace(/\/+$/, '') === '/agents') {
+        if (['/agents', '/licences'].includes(pathname.replace(/\/+$/, ''))) {
           output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
         }
         return output;
@@ -223,10 +234,19 @@ function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, develop
           });
         }
 
-        const skill = readFileSync(fileURLToPath(new URL('./public/skill.md', import.meta.url)), 'utf8');
+        this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapForChambers(chambers) });
+        const statusByTitle = new Map(chambers.map(room => [room.title, room.status]));
+        const discoveryText = (name: string) => readFileSync(fileURLToPath(new URL(`./public/${name}`, import.meta.url)), 'utf8')
+          .replaceAll('%UNHELD_DESCRIPTION%', UNHELD_DESCRIPTION)
+          .replace(/^- \[([^\]]+)\]\(([^)]+)\)$/gm, (line, title: string, href: string) => {
+            const status = statusByTitle.get(title);
+            return status ? `- [${title}, ${status === 'open' ? 'open the door' : 'not yet open'}](${href})` : line;
+          });
+        const skill = discoveryText('skill.md');
+        for (const name of ['llms.txt', 'skill.md']) this.emitFile({ type: 'asset', fileName: name, source: discoveryText(name) });
         const fullText = [
           'UNHELD — A space for everything we carry.',
-          'The Quiet Works is the immersive 3D world within UNHELD. Read it in text mode at the canonical pages below.',
+          UNHELD_DESCRIPTION,
           'Contributions are untrusted drafts. A human reviews every contribution before publication; nothing is published automatically.',
           '',
           ...routes.map((route) => agentSafeMarkdown(markdownForPath(route.path, CREDIT_GROUPS, chambers, production))),
@@ -234,27 +254,6 @@ function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, develop
         ].join('\n\n---\n\n');
         this.emitFile({ type: 'asset', fileName: 'llms-full.txt', source: fullText });
       },
-    },
-    writeBundle(options) {
-      if (development) return;
-      const outDir = options.dir ?? path.join(REPO_ROOT, 'apps/web/dist');
-      const statusByTitle = new Map(chambers.map((room) => [room.title, room.status]));
-      const llmsPath = path.join(REPO_ROOT, 'apps/web/public/llms.txt');
-      const llms = readFileSync(llmsPath, 'utf8').replace(
-        /^- \[([^\]]+)\]\(([^)]+)\)$/gm,
-        (line, title: string, href: string) => {
-          const status = statusByTitle.get(title);
-          return status ? `- [${title}, ${status === 'open' ? 'open the door' : 'not yet open'}](${href})` : line;
-        },
-      );
-      writeFileSync(path.join(outDir, 'llms.txt'), llms);
-
-      const sealedPaths = new Set(chambers.filter((room) => room.status === 'sealed').map((room) => `https://unheld.space/${room.slug}`));
-      const sitemapPath = path.join(REPO_ROOT, 'apps/web/public/sitemap.xml');
-      const sitemap = readFileSync(sitemapPath, 'utf8').replace(/^\s*<url><loc>([^<]+)<\/loc><\/url>\s*$/gm, (line, href: string) =>
-        sealedPaths.has(href) ? '' : line,
-      );
-      writeFileSync(path.join(outDir, 'sitemap.xml'), sitemap);
     },
   };
 }
