@@ -46,24 +46,65 @@ at this point; the once-per-pull-request design stays because it is also faster.
 
 ## Required browser gate and extended diagnostics
 
-The required status is still named exactly `checks`. It means the `unit` job and every `core`
-browser shard succeeded. It runs with `if: always()` and rejects failed, cancelled or skipped
-dependencies. The six core shards cover desktop Chromium and Pixel 7 against the production
-build, with the existing browser cache and a 90-minute job limit for software rendering and setup.
-Cases are distributed individually across shards; each runner retains one sequential worker.
-Six smaller shards reduce the observed 57-minute GitHub software-rendering workload. The job
-limit retains browser-installation and cold-scene headroom. Production CI defaults allow
-five minutes per test, ordinary assertions 90 seconds, and explicit scene-state waits two minutes. Local
-budgets are unchanged; no expected value, contrast threshold, distance or speed limit is relaxed.
+The required status is still named exactly `checks`. It requires successful `unit` and `build`
+jobs, then the fail-fast `smoke` matrix and all twelve `core` shards. Core starts only after
+smoke succeeds. Failed or cancelled jobs never satisfy the gate. An explicit documentation/copy
+classification permits skipped browsers; missing classification or an unexpected skip fails closed.
 
-Core includes production-compatible specs by default: Office context/exploration/room and
+Unit checks run alongside one build job. That job compiles production once, checks bake freshness,
+scans for development probes and audits shipped assets. It uploads `dist` plus a separate
+`dist-authored` test fixture for one day. The fixture is compiled with development room access
+and measurement probes because full-tier tests exercise the unreleased Annex rooms. It must
+never be deployed. Production release flags and the production probe scan remain unchanged.
+Every browser job downloads these bundles and uses preview only; missing bundles fail instead
+of triggering a rebuild. Browser binaries use the pinned Playwright-version cache.
+
+Smoke runs four jobs: desktop and Pixel 7, each against production and the authored fixture.
+Production selects the Office fifth-stamp/memo path, the landing, ordered doors, keyboard Office
+entry, and every production Annex sealed-door contract. The authored jobs run every case in
+`full-tier.spec.ts`, including its stage sweep. Smoke stops at its first failure and cancels its
+siblings. Its 15-minute timeout allows cold installation; five minutes is the warm-cache target,
+not a reason to truncate assertions.
+
+Core retains all production-compatible cases by default: Office context/exploration/room and
 interaction specs, brand, page, spine, discoveries, robustness, gramophone music and both Annex
 release contracts. Corridor clock, rendering warnings, remount, page-input, gesture/audio-consent
-and accessible touch-control checks also remain core. The production configuration currently
-excludes the development-only `full-tier.spec.ts`, `exchange.spec.ts` and `office-budget.spec.ts`;
-use `playwright.dev.config.ts` to validate those authored scenes separately before release.
-New ordinary specs enter this gate automatically. A failing spec is repaired or reviewed; failure
-alone is never a reason to remove it from core.
+and accessible touch-control checks remain core. The production configuration excludes the
+development-only `full-tier.spec.ts`, `exchange.spec.ts` and `office-budget.spec.ts`; full-tier is
+now required in smoke, while the other authored suites remain available through the development
+configuration. New ordinary specs enter core automatically. A failing case is repaired or
+reviewed; failure alone is never a reason to remove it.
+
+The twelve core shards distribute individual cases (`fullyParallel`) by count, with one worker
+per runner. Playwright does not schedule from historical durations; measure the slowest shard
+on the next public run before claiming the 15–20 minute PR target is met. Core has a 45-minute
+ceiling for cold software rendering, and its matrix cancels siblings after a failure. CI-only
+budgets retain five minutes per test, ordinary assertions 90 seconds and explicit scene-state
+waits two minutes. No expected value, contrast threshold, distance or speed limit is relaxed.
+
+A PR changing only `docs/**`, Markdown files, or string values/comments in the explicitly listed
+copy data modules (`packages/engine/src/copy.ts`, `packages/engine/src/siteCopy.ts`) skips all
+browser jobs. The classifier compares the whole PR against its base, preserving token structure,
+quoted property keys, types, imports, route/id values and numbers for copy changes. Code edits,
+unknown paths, added/deleted copy modules and missing history run browsers or fail the build. Unit, content, public, build
+and asset checks still run. Manual workflow dispatch always runs browsers.
+
+Before syncing, run `pnpm ci:local` on macOS. It runs lint, typecheck, unit, content, public and CI
+policy checks; builds and audits production; builds the authored fixture; then runs the entire
+core selection and full-tier from those artifacts using four Metal workers. It stops at a failed
+stage and prints stage/total times. Discovery-store harnesses use a separate available loopback
+port in each worker, preserving storage isolation without serialising their assertions. Override
+`TQW_LOCAL_WORKERS` for a smaller GPU/memory budget; ports default to 5397 (production) and 5398 (authored), fail if busy, and never reuse another server.
+
+The warm-cache scheduling target is 1–2 minutes for build, 2–4 for smoke and 10–14 for the
+slowest core shard (about 13–20 minutes for the required path); unit runs alongside that path.
+These are estimates until the twelve-shard public run is measured, not new timeout limits.
+The local Metal gate measured 5m 59s: 448 core cases passed with 34 existing skips, then all
+20 full-tier cases passed. Production smoke separately passed all 14 cases in 17.3 seconds;
+full-tier smoke with two local workers passed in 52.0 seconds. Hardware timings do not establish
+software-rendered GitHub timings. The packaged-artifact SwiftShader dry run of shard 3/12
+(the largest summed local case duration) passed 38 cases with one existing skip in 7m 19s.
+All 564 bundle files retained identical bytes and modification times; no preview rebuilt them.
 
 Only tests marked `@extended` sit outside that required status. They measure corridor camera
 trajectories and frame throughput: hero drift, scroll walk-in, off-screen/hidden-tab frame counts,
@@ -82,9 +123,9 @@ rattle and camera position; return-from-Office camera position; hover attention 
 touch-button walking and stopping; native landing swipe with camera travel; and touch swipe,
 drag and floor glide. These are 15 contracts, selected by camera measurement rather than result.
 
-Every pull request runs four `extended` shards as well. Their failures remain visible as failed
-jobs, and each job summary lists every failed test and its error. Neither tier cancels its other
-shards on a test failure. The extended job is intentionally absent from the `checks` dependency
+Every browser-eligible pull request runs four `extended` shards as well, directly after build. Their failures remain visible as failed
+jobs, and each job summary lists every failed test and its error. Extended keeps running its other
+shards on a test failure; required smoke and core fail fast. The extended job is intentionally absent from the `checks` dependency
 set; its diagnostics still require triage, and do not replace device/performance or editorial
 release review. See ADR 0011. The maintainer reviews this split with the release changes.
 

@@ -1,0 +1,22 @@
+import { spawnSync } from 'node:child_process';
+import { availableParallelism } from 'node:os';
+import { readdirSync } from 'node:fs';
+
+if (process.platform !== 'darwin') throw new Error('ci:local requires macOS for the Metal renderer');
+const started = performance.now();
+const workers = process.env.TQW_LOCAL_WORKERS ?? String(Math.min(4, availableParallelism()));
+const run = (args, env = {}) => {
+  const stage = performance.now();
+  const result = spawnSync('pnpm', args, { stdio: 'inherit', env: { ...process.env, ...env } });
+  console.log(`${args.join(' ')}: ${((performance.now() - stage) / 1000).toFixed(1)}s`);
+  if (result.error) throw result.error;
+  if (result.status !== 0) process.exit(result.status ?? 1);
+};
+for (const command of ['lint', 'typecheck', 'test', 'check:content', 'check:public', 'build']) run([command]);
+run(['exec', 'node', '--test', ...readdirSync('scripts/ci').filter(file => file.endsWith('.test.mjs')).map(file => `scripts/ci/${file}`)]);
+run(['--filter', '@tqw/web', 'exec', 'node', 'scripts/audit-assets.mjs']);
+run(['build:e2e-fixture']);
+const env = { TQW_E2E_ANGLE: 'metal', TQW_E2E_ARTIFACT: '1', TQW_E2E_PORT: process.env.TQW_E2E_PORT ?? '5397' };
+run(['--filter', '@tqw/web', 'exec', 'playwright', 'test', '--grep-invert', '@extended', `--workers=${workers}`], env);
+run(['--filter', '@tqw/web', 'exec', 'playwright', 'test', '--config', 'playwright.artifact.config.ts', `--workers=${workers}`], env);
+console.log(`ci:local passed in ${((performance.now() - started) / 1000).toFixed(1)}s (${workers} Metal workers).`);

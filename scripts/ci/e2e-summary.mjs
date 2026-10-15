@@ -21,7 +21,7 @@ export function extendedSummary(report) {
   visit(report.suites);
   const stats = report.stats ?? {};
   const setup = (report.errors ?? []).map(error => `- ${clean(error.message)}`);
-  return ['## Extended corridor diagnostics', '', 'This job is visible on every pull request. The required checks gate depends on unit and core; these camera/frame diagnostics remain reviewable here.', '', `Passed: ${stats.expected ?? 0}; failed: ${stats.unexpected ?? 0}; flaky: ${stats.flaky ?? 0}; skipped: ${stats.skipped ?? 0}.`, '', ...failures, ...setup, ...(!failures.length && !setup.length ? ['No failing tests were reported.'] : []), ''].join('\n');
+  return ['## Extended corridor diagnostics', '', 'This job is visible on every pull request. The required checks gate depends on unit, build, smoke and core; these camera/frame diagnostics remain reviewable here.', '', `Passed: ${stats.expected ?? 0}; failed: ${stats.unexpected ?? 0}; flaky: ${stats.flaky ?? 0}; skipped: ${stats.skipped ?? 0}.`, '', ...failures, ...setup, ...(!failures.length && !setup.length ? ['No failing tests were reported.'] : []), ''].join('\n');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

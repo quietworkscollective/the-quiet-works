@@ -12,6 +12,8 @@
   "scripts": {
     "dev": "pnpm --filter @tqw/web dev",
     "build": "pnpm --filter @tqw/web build",
+    "build:e2e-fixture": "NODE_ENV=development pnpm --filter @tqw/web exec vite build --mode development --outDir dist-authored",
+    "ci:local": "node scripts/ci/local.mjs",
     "preview": "pnpm --filter @tqw/web preview",
     "lint": "pnpm -r --parallel lint",
     "typecheck": "pnpm -r typecheck",

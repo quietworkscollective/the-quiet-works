@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
 
 /**
  * E2E runs against the production build (`vite preview`) so the Content-Security-Policy and
@@ -13,6 +14,10 @@ const gpuArgs = angle === 'metal'
 /** Parallel worktrees set TQW_E2E_PORT so each tests its own build; a busy port fails loudly. */
 const port = Number(process.env.TQW_E2E_PORT ?? 4173);
 const baseURL = `http://127.0.0.1:${port}`;
+const artifact = process.env.TQW_E2E_ARTIFACT === '1';
+if (artifact && !existsSync(new URL('./dist/index.html', import.meta.url))) {
+  throw new Error('Missing production artifact; download it or run pnpm build first');
+}
 
 export default defineConfig({
   testDir: './e2e',
@@ -43,7 +48,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm build && pnpm preview --port ${port}`,
+    command: `${artifact ? '' : 'pnpm build && '}pnpm preview --port ${port} --strictPort`,
     url: baseURL,
     // Never reuse: a server left on this port may be serving another worktree's build.
     reuseExistingServer: false,

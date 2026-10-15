@@ -5,7 +5,7 @@
 
 ## Decision
 
-The required `checks` status depends on unit gates and all six core browser shards. Core is the
+The required `checks` status depends on unit/build gates, the critical smoke matrix and all twelve core browser shards. Core is the
 default for every current and future spec, including both Annex rooms, accessibility, privacy,
 audio consent, room interaction and rendering warnings. It rejects any unsuccessful dependency.
 
@@ -15,7 +15,10 @@ failure written to the job summary. A failure alone never justifies moving a tes
 Assertions retain their intent in either tier. The subsequent corridor-camera ruling includes
 camera movement and timing cases with mixed input/door assertions in the extended tier;
 independent core routing, focus, audio-consent and accessibility contracts remain required.
-Six core shards reduce the observed 57-minute GitHub workload. CI-only test and state-wait
+Twelve core shards reuse one production build after fail-fast smoke, reducing repeated compilation
+and the observed 57-minute GitHub workload. An additional authored fixture preserves full-tier
+coverage without opening production Annex doors. Documentation/copy-only PRs may skip browsers
+only after explicit classification; other skips, failures and cancellations fail the gate. CI-only test and state-wait
 budgets allow cold software rendering to finish without changing expected behaviour; see
 PUBLIC_RELEASE.md for the budgets and the 15 newly tagged camera contracts.
 
