@@ -1,8 +1,11 @@
+import { createElement as h, type ReactNode } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import {
   ABOUT,
   AUTHOR,
   CHAMBERS,
   CREDITS,
+  FOOTER_COPY,
   PRIVACY,
   TEXT_MODE_CORRIDOR,
   TEXT_MODE_NOTICE,
@@ -17,11 +20,11 @@ import type { CreditGroup } from './credits/groupCredits.ts';
 import { SITE } from './site.ts';
 
 const REPOSITORY = 'https://github.com/quietworkscollective/the-quiet-works';
-const SHARE_IMAGE = '/poster-hero-1440x900.webp';
+const SHARE_IMAGE = '/share-unheld-1200x630.png';
 const AGENTS_PAGE = {
   title: 'Agents',
   body: [
-    'UNHELD is a space for people and agents to express themselves through fictional, reviewed rooms and contributions.',
+    ABOUT.body[0] as string,
     'The Quiet Works is its immersive 3D world. Read the landing and chamber descriptions in text mode or use the Markdown pages linked below.',
     'Contribution text must be fictional. Never present invented words as real testimony or impersonate a real person. Every contribution receives human review; nothing is published automatically.',
     'Agent-made work needs a named human or organisation to grant its licence and carries the machine-made mark. Secrets, private lore, credentials, personal testimony and executable content are not accepted.',
@@ -38,7 +41,7 @@ const OUTLINE_TEXT_MODE_COPY = {
 export interface PublicRoute {
   path: string;
   markdownPath: string;
-  key: 'home' | 'agents' | PageId | `chamber:${string}`;
+  key: 'home' | 'agents' | 'licences' | PageId | `chamber:${string}`;
   title: string;
   description: string;
 }
@@ -79,22 +82,23 @@ const chamberDescription = (chamber: ChamberEntry, production: boolean): string 
   }
 };
 
-const homeDescription = `${SITE.tagline} The Quiet Works is UNHELD’s immersive 3D world, with a text-mode route through its corridor.`;
+export const UNHELD_DESCRIPTION = ABOUT.body[0] as string;
 
 const homeRoute: PublicRoute = {
   path: '/',
   markdownPath: '/index.md',
   key: 'home',
   title: `${SITE.name} — ${SITE.tagline}`,
-  description: homeDescription,
+  description: UNHELD_DESCRIPTION,
 };
 
 const pageRoutes: readonly PublicRoute[] = [
   homeRoute,
-  { path: '/about', markdownPath: '/about.md', key: 'about', title: ABOUT.title, description: ABOUT.body[0] as string },
-  { path: '/credits', markdownPath: '/credits.md', key: 'credits', title: 'Credits — UNHELD', description: CREDITS.body[0] as string },
-  { path: '/privacy', markdownPath: '/privacy.md', key: 'privacy', title: 'Privacy — UNHELD', description: PRIVACY.body[0] as string },
-  { path: '/agents', markdownPath: '/agents.md', key: 'agents', title: 'Agents — UNHELD', description: AGENTS_PAGE.body[0] },
+  { path: '/about', markdownPath: '/about.md', key: 'about', title: ABOUT.title, description: UNHELD_DESCRIPTION },
+  { path: '/credits', markdownPath: '/credits.md', key: 'credits', title: 'Credits — UNHELD', description: UNHELD_DESCRIPTION },
+  { path: '/privacy', markdownPath: '/privacy.md', key: 'privacy', title: 'Privacy — UNHELD', description: UNHELD_DESCRIPTION },
+  { path: '/licences', markdownPath: '/licences.md', key: 'licences', title: 'Licences — UNHELD', description: UNHELD_DESCRIPTION },
+  { path: '/agents', markdownPath: '/agents.md', key: 'agents', title: 'Agents — UNHELD', description: UNHELD_DESCRIPTION },
 ];
 
 export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, production = false): readonly PublicRoute[] {
@@ -106,12 +110,17 @@ export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, pr
       markdownPath: `/${chamber.slug}.md`,
       key: `chamber:${chamber.id}`,
       title: `${chamber.title} — ${SITE.world} — ${SITE.name}`,
-      description: chamberDescription(chamber, production),
+      description: UNHELD_DESCRIPTION,
     })),
   ];
 }
 
 export const PUBLIC_ROUTES: readonly PublicRoute[] = publicRoutesFor();
+
+export function sitemapForChambers(chambers: readonly ChamberEntry[]): string {
+  const routes = PUBLIC_ROUTES.filter(route => !route.key.startsWith('chamber:') || chambers.some(room => route.key === `chamber:${room.id}` && room.status === 'open'));
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(route => `  <url><loc>${metadataForPath(route.path).canonical}</loc><lastmod>2026-10-16</lastmod></url>`).join('\n')}\n</urlset>\n`;
+}
 
 function normalizedPath(pathname: string): string {
   const pathOnly = pathname.split(/[?#]/, 1)[0] || '/';
@@ -152,7 +161,7 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
         '@id': websiteId,
         url: SITE.url,
         name: SITE.name,
-        description: SITE.tagline,
+        description: UNHELD_DESCRIPTION,
         publisher: { '@id': authorId },
       },
       {
@@ -160,7 +169,7 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
         '@id': artworkId,
         name: SITE.world,
         alternateName: SITE.chapter,
-        description: ABOUT.body[0],
+        description: UNHELD_DESCRIPTION,
         image: metadata.image,
         artform: 'Interactive browser artwork',
         creator: { '@id': authorId },
@@ -212,7 +221,7 @@ function aboutBlocks(): StaticBlock[] {
 function corridorBlocks(selectedPath?: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): StaticBlock[] {
   return [
     text(TEXT_MODE_NOTICE_CORRIDOR.chosen),
-    { kind: 'heading', level: 1, text: 'The corridor' },
+    { kind: 'heading', level: 2, text: 'The corridor' },
     ...TEXT_MODE_CORRIDOR.map(text),
     { kind: 'doors', ...(selectedPath ? { selectedPath } : {}), doors: production ? publicChambers(chambers, true) : chambers },
     link('Read The Quiet Works in text mode', '/?mode=text'),
@@ -250,6 +259,16 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
   }
   if (route.key === 'privacy') {
     return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: PRIVACY.title }, ...PRIVACY.body.map(text)] };
+  }
+  if (route.key === 'licences') {
+    return {
+      title: route.title,
+      blocks: [
+        { kind: 'heading', level: 1, text: FOOTER_COPY.licences },
+        ...CREDITS.body.slice(1).map(text),
+        link('third-party-notices.txt', '/third-party-notices.txt'),
+      ],
+    };
   }
   if (route.key === 'agents') {
     return {
@@ -311,54 +330,48 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
   return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text(chamberDescription(chamber, production))] };
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function readingDocument(pathname: string, creditGroups: readonly CreditGroup[], chambers: readonly ChamberEntry[], production: boolean): StaticDocument {
+  const document = pageBlocks(pathname, creditGroups, chambers, production);
+  const containsParagraph = (value: string) => document.blocks.some(block => block.kind === 'paragraph' && block.parts.includes(value));
+  const blocks: StaticBlock[] = [...document.blocks].filter(block => block.kind !== 'doors');
+  if (!containsParagraph(SITE.tagline)) blocks.push(text(SITE.tagline));
+  if (!containsParagraph(ABOUT.body[0] as string)) blocks.push(text(ABOUT.body[0] as string));
+  blocks.push({ kind: 'doors', selectedPath: normalizedPath(pathname), doors: production ? publicChambers(chambers, true) : chambers });
+  if (!containsParagraph(PRIVACY.body[0] as string)) blocks.push(text(PRIVACY.body[0] as string));
+  return { ...document, blocks };
 }
 
-function renderInlineHtml(parts: readonly InlinePart[]): string {
-  return parts.map((part) => typeof part === 'string'
-    ? escapeHtml(part)
-    : `<a href="${escapeHtml(part.href)}">${escapeHtml(part.text)}</a>`).join('');
+function renderInline(parts: readonly InlinePart[]): ReactNode[] {
+  return parts.map((part, index) => typeof part === 'string' ? part : h('a', { key: index, href: part.href }, part.text));
 }
 
-function renderBlockHtml(block: StaticBlock): string {
+function renderBlock(block: StaticBlock, key: number): ReactNode {
   switch (block.kind) {
-    case 'heading':
-      return `<h${block.level}>${escapeHtml(block.text)}</h${block.level}>`;
-    case 'paragraph':
-      return `<p>${renderInlineHtml(block.parts)}</p>`;
-    case 'link':
-      return `<p><a href="${escapeHtml(block.href)}">${escapeHtml(block.text)}</a></p>`;
-    case 'doors':
-      return `<nav aria-label="Doors"><ul>${block.doors.map((door) => {
-        const path = `/${door.slug}`;
-        const status = door.status === 'open' ? 'open the door' : 'not yet open';
-        const current = block.selectedPath === path ? ' aria-current="page"' : '';
-        return `<li><a href="${path}"${current}>${escapeHtml(door.title)}, ${status}</a><p>${escapeHtml(door.doorDescription)}</p></li>`;
-      }).join('')}</ul></nav>`;
-    case 'credits':
-      return block.groups.map((group) => `<section><h3>${escapeHtml(group.provider)}</h3><ul>${group.items.map((item) =>
-        `<li><a href="${escapeHtml(item.source)}">${escapeHtml(item.title)}</a>, ${escapeHtml(`by ${item.author}`)}, ${escapeHtml(item.licence)}</li>`,
-      ).join('')}</ul></section>`).join('');
+    case 'heading': return h(`h${block.level}`, { key }, block.text);
+    case 'paragraph': return h('p', { key }, ...renderInline(block.parts));
+    case 'link': return h('p', { key }, h('a', { href: block.href }, block.text));
+    case 'doors': return h('nav', { key, 'aria-label': 'Doors' }, h('ul', null, ...block.doors.map(door => {
+      const path = `/${door.slug}`;
+      return h('li', { key: door.id },
+        h('a', { href: path, 'aria-current': block.selectedPath === path ? 'page' : undefined }, `${door.title}, ${door.status === 'open' ? 'open the door' : 'not yet open'}`),
+        h('p', null, door.doorDescription));
+    })));
+    case 'credits': return block.groups.map(group => h('section', { key: group.provider },
+      h('h3', null, group.provider), h('ul', null, ...group.items.map((item, index) => h('li', { key: index },
+        h('a', { href: item.source }, item.title), `, by ${item.author}, ${item.licence}`)))));
   }
 }
 
-export function staticHtmlForPath(
-  pathname: string,
-  creditGroups: readonly CreditGroup[] = [],
-  chambers: readonly ChamberEntry[] = CHAMBERS,
-  production = false,
-): string {
+export function staticHtmlForPath(pathname: string, creditGroups: readonly CreditGroup[] = [], chambers: readonly ChamberEntry[] = CHAMBERS, production = false): string {
   const route = routeForPath(pathname, chambers, production);
-  const document = pageBlocks(pathname, creditGroups, chambers, production);
+  const document = readingDocument(pathname, creditGroups, chambers, production);
   const navigation = [
-    ['About', '/about'],
-    ['Credits', '/credits'],
-    ['Privacy', '/privacy'],
-    ['Agents', '/agents'],
-  ].map(([label, href]) => `<li><a href="${href}">${label}</a></li>`).join('');
-  const blocks = document.blocks.map(renderBlockHtml).join('\n');
-  return `<main id="static-content" class="tqw-static-content" data-static-route="${escapeHtml(route.path)}"><article>${blocks}</article><nav aria-label="Site"><ul>${navigation}</ul></nav></main>`;
+    ['UNHELD', '/'], ['About', '/about'], ['Credits', '/credits'], ['Privacy', '/privacy'],
+    ['Licences', '/licences'], ['Agents', '/agents'], ['llms.txt', '/llms.txt'], ['sitemap.xml', '/sitemap.xml'],
+  ];
+  return renderToStaticMarkup(h('main', { id: 'static-content', className: 'tqw-static-content', 'data-static-route': route.path },
+    h('article', null, ...document.blocks.map(renderBlock)),
+    h('nav', { 'aria-label': 'Site' }, h('ul', null, ...navigation.map(([label, href]) => h('li', { key: href }, h('a', { href }, label)))))));
 }
 
 function markdownInline(parts: readonly InlinePart[]): string {
@@ -391,7 +404,7 @@ export function markdownForPath(
   chambers: readonly ChamberEntry[] = CHAMBERS,
   production = false,
 ): string {
-  const page = pageBlocks(pathname, creditGroups, chambers, production);
+  const page = readingDocument(pathname, creditGroups, chambers, production);
   const route = routeForPath(pathname, chambers, production);
   const body = page.blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
   const entries = production ? publicChambers(chambers, true) : chambers;

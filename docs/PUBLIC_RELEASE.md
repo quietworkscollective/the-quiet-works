@@ -72,7 +72,10 @@ release contracts. Corridor clock, rendering warnings, remount, page-input, gest
 and accessible touch-control checks remain core. The production configuration excludes the
 development-only `full-tier.spec.ts`, `exchange.spec.ts` and `office-budget.spec.ts`; full-tier is
 now required in smoke, while the other authored suites remain available through the development
-configuration. New ordinary specs enter core automatically. A failing case is repaired or
+configuration. Discovery and readable HTML guards run in core on desktop and Pixel 7; a
+no-JavaScript project reads all twelve routes. The crawler guard runs `check:crawl` against the
+same production preview for seven user agents. A CI-selection test verifies these cases with
+Playwright `--list`. New ordinary specs enter core automatically. A failing case is repaired or
 reviewed; failure alone is never a reason to remove it.
 
 The twelve core shards distribute individual cases (`fullyParallel`) by count, with one worker

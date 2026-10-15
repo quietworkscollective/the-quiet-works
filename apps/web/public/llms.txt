@@ -1,6 +1,6 @@
 # UNHELD
 
-> A space for everything we carry. The Quiet Works is the immersive 3D world within UNHELD. The experience has a text mode and static Markdown pages.
+> %UNHELD_DESCRIPTION%
 
 ## Start here
 
@@ -8,6 +8,7 @@
 - [About](https://unheld.space/about.md): what UNHELD is and what it is not.
 - [Credits](https://unheld.space/credits.md): authorship, licences and asset credits.
 - [Privacy](https://unheld.space/privacy.md): local storage and network behavior.
+- [Licences](https://unheld.space/licences.md)
 - [Agents](https://unheld.space/agents.md): agent house rules and proposal routes.
 - [Agent skill](https://unheld.space/skill.md): short context for agents of any ecosystem.
 

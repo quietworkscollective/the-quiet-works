@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { CHAMBERS, TEXT_MODE_CORRIDOR, TEXT_MODE_SCENE } from '@tqw/engine';
 import {
   PUBLIC_ROUTES,
+  sitemapForChambers,
   jsonLdForPath,
   markdownForPath,
   metadataForPath,
@@ -12,17 +13,17 @@ import {
 describe('public route discoverability', () => {
   it('has a crawlable route for every public page and chamber', () => {
     const paths = new Set(PUBLIC_ROUTES.map((route) => route.path));
-    for (const path of ['/', '/about', '/credits', '/privacy', '/agents']) expect(paths.has(path)).toBe(true);
+    for (const path of ['/', '/about', '/credits', '/privacy', '/licences', '/agents']) expect(paths.has(path)).toBe(true);
     for (const chamber of CHAMBERS) expect(paths.has(`/${chamber.slug}`)).toBe(true);
-    expect(paths.size).toBe(5 + CHAMBERS.length);
+    expect(paths.size).toBe(6 + CHAMBERS.length);
     expect(PUBLIC_ROUTES.every((route) => route.markdownPath.startsWith('/'))).toBe(true);
   });
 
-  it('keeps every public route in the static sitemap exactly once', () => {
-    const sitemap = readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
+  it('keeps site pages and open room entries in the generated sitemap exactly once', () => {
+    const sitemap = sitemapForChambers(CHAMBERS);
     const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     expect(new Set(locations).size).toBe(locations.length);
-    expect(new Set(locations)).toEqual(new Set(PUBLIC_ROUTES.map((route) => metadataForPath(route.path).canonical)));
+    expect(new Set(locations)).toEqual(new Set(PUBLIC_ROUTES.filter(route => !route.key.startsWith('chamber:') || CHAMBERS.some(room => route.key === `chamber:${room.id}` && room.status === 'open')).map(route => metadataForPath(route.path).canonical)));
   });
 
   it('sets Cloudflare MIME types for Markdown and discovery files', () => {
@@ -46,7 +47,7 @@ describe('public route discoverability', () => {
       expect(metadata.title).toBe(route.title);
       expect(metadata.description).toBe(route.description);
       expect(metadata.canonical).toBe(`https://unheld.space${route.path === '/' ? '/' : route.path}`);
-      expect(metadata.image).toBe('https://unheld.space/poster-hero-1440x900.webp');
+      expect(metadata.image).toBe('https://unheld.space/share-unheld-1200x630.png');
 
       const document = jsonLdForPath(route.path);
       expect(document['@context']).toBe('https://schema.org');
@@ -64,14 +65,14 @@ describe('public route discoverability', () => {
     const corridor = staticHtmlForPath('/');
     const corridorMarkdown = markdownForPath('/');
     for (const paragraph of TEXT_MODE_CORRIDOR) {
-      expect(corridor).toContain(paragraph);
+      expect(corridor.replace(/&#x27;/g, "'")).toContain(paragraph);
       expect(corridorMarkdown).toContain(paragraph);
     }
 
     const office = staticHtmlForPath('/certification-office');
     const officeMarkdown = markdownForPath('/certification-office');
     for (const paragraph of TEXT_MODE_SCENE) {
-      expect(office).toContain(paragraph);
+      expect(office.replace(/&#x27;/g, "'")).toContain(paragraph);
       expect(officeMarkdown).toContain(paragraph);
     }
 

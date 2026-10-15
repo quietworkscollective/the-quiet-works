@@ -37,3 +37,35 @@ body {
 html.tqw-app-mounted #static-content {
   display: none;
 }
+
+/* The blocking same-origin bootstrap runs before the body can paint. */
+html.tqw-app-loading #static-content {
+  display: none;
+}
+
+html.tqw-app-loading body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: #151a20 url('/poster-hero-1440x900.webp') center / cover no-repeat;
+}
+
+@media (orientation: portrait) {
+  html.tqw-app-loading body::before {
+    background-image: url('/poster-hero-412x915.webp');
+  }
+}
+
+noscript {
+  display: block;
+  box-sizing: border-box;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 4rem) 2rem;
+  color: #b7b1a6;
+  font-size: 0.875rem;
+}
+
+html.tqw-app-loading.tqw-text-loading body::before {
+  background-image: none;
+}

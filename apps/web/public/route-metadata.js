@@ -70,6 +70,8 @@
     const markMounted = () => {
       if (root.childNodes.length === 0) return;
       document.documentElement.classList.add('tqw-app-mounted');
+      document.documentElement.classList.remove('tqw-app-loading', 'tqw-text-loading');
+      document.getElementById('static-content')?.remove();
       observer.disconnect();
     };
     const observer = new MutationObserver(markMounted);

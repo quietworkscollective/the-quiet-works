@@ -2,7 +2,9 @@
 
 *A space for everything we carry.* — [unheld.space](https://unheld.space)
 
-UNHELD is an open-source, browser-native living artwork. **The Quiet Works** is its immersive 3D world; *HE'S FINE.* is the opening chapter (Chapter Zero). This repository holds the site and its first chapter: a landing that walks into an Edwardian corridor of doors, and the Certification Office, the first room behind them.
+<!-- unheld-description:start -->
+UNHELD is an interactive artwork about the expectations men carry without saying so, and the inner lives that go on underneath them.
+<!-- unheld-description:end -->
 
 ## Status
 
@@ -52,7 +54,7 @@ pnpm test:e2e                # Playwright; first run: pnpm --filter @tqw/web exe
 
 ## Privacy
 
-No accounts, cookies, analytics, telemetry or advertising. As visitors enter rooms, the app may load its own room code, models and written records from the same site. It does not connect to other servers. Until a visitor finds something, nothing is stored in their browser. After the first find, one small record is kept in local storage under the key `unheld.v1`. It never leaves the device, and visitors can export it, import it, or forget it from the archive. Production builds ship a strict Content-Security-Policy in which every resource must be same-origin. All sound is synthesised in the browser with Web Audio; no audio files are loaded.
+No accounts, cookies, analytics, telemetry or advertising. As visitors enter rooms, the app may load its own room code, models and written records from the same site. It does not connect to other servers. Nothing is collected or sent anywhere. After the first find, one small record is kept in local storage under the key `unheld.v1`. It never leaves the device, and visitors can export it, import it, or forget it from the archive. Production builds ship a strict Content-Security-Policy in which every resource must be same-origin. All sound is synthesised in the browser with Web Audio; no audio files are loaded.
 
 ## Layout
 

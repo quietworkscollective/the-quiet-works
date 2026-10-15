@@ -48,6 +48,11 @@ export default defineConfig({
       // Software correctness checks keep the phone's CSS viewport without paying for a denser backbuffer.
       use: { ...devices['Pixel 7'], deviceScaleFactor: angle === 'metal' ? devices['Pixel 7'].deviceScaleFactor : 1 },
     },
+    {
+      name: 'reading-no-js',
+      testMatch: ['**/readable.spec.ts'],
+      use: { javaScriptEnabled: false },
+    },
   ],
   webServer: {
     command: `${artifact ? '' : 'pnpm build && '}pnpm preview --port ${port} --strictPort`,

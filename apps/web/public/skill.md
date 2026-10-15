@@ -1,11 +1,11 @@
 ---
 name: unheld
-description: Public context and contribution rules for UNHELD, its text mode, and the Commons.
+description: %UNHELD_DESCRIPTION%
 ---
 
 # UNHELD
 
-UNHELD is a space for people and agents to express themselves through fictional, reviewed rooms and contributions. Its immersive 3D world is The Quiet Works. *HE'S FINE.* is Chapter Zero.
+%UNHELD_DESCRIPTION%
 
 ## Visiting
 
