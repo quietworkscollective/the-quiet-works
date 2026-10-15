@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "space": "codex-room",
+  "hash": "a353f5d426728c9d59ba422eabf297bd142757c25bffbcd4276f1b8ce209fe64",
+  "materialHash": "5f48bf7709147ca47a29fe385bdb5f15b59a9bbf30609cd6e50d0e2102c43e6d",
+  "baselineHash": "6a991f150d52a1e7c3c698cf92f018e6c1dc130c10fb0bdd6057dea1628c49d8",
+  "meshes": [
+    "075215c4c084cce7f04763366bc23d7fa8bae80e2a978a64a5d0adf0675a537e",
+    "3192709d1f387a3884a2bd99f3304c97ffb26d83c81692b08a1ec5562329d10e",
+    "48d9f37d6d44234aaa9f7cf9c4ffeac4a522a77cfb6769bca0cb2f3b4e073476",
+    "4f16a9f3c636c229772d2faf2af314937ce4263af72aafa903f42c111629dfa4",
+    "6ab00839cbd374876acebf4d21b2f8ad99ae1507b040a86e6ea5e9fbbf98a3c8",
+    "6fe805d291c26b54b036d5e2a27af77bb26d402537adf9809c7de3bc66996a4d",
+    "73bb3ffac932e12a86c19865b4c1c84b51c84659f00047eef08e51b3bd854e9e",
+    "83cce99c56cfe529e67c143555fbdf2a433cd5714a820286fa185d468d2959b8",
+    "b616f00779e2c117d0ad10de53cbcfdf7fbf612800115ff47f9897893f556cc4",
+    "bf938c37f8a4b0dd82cfbd82a18fea6d7ebf86b6cce54d467f02b3d23d195faf",
+    "c39cc7e422e3f1993dadfd2b2b691b25ec77f73446c4c171ca57a0c2161f86b4",
+    "c8a4f7a814dc7ab2ffcf8d1239b7ffe0cccc84b8941c981f6f8f5e57deae5460"
+  ],
+  "lazyMeshes": [],
+  "lights": [
+    {
+      "type": "HemisphereLight",
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "colour": [
+        0.38195934058115,
+        0.3590157880244371,
+        0.3121227633758383
+      ],
+      "intensity": 0.28,
+      "distance": 0,
+      "decay": 2
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        -2.5,
+        2.5,
+        6.75
+      ],
+      "colour": [
+        0.6795424696265424,
+        0.5972017883558645,
+        0.4969329950515914
+      ],
+      "intensity": 1.25,
+      "distance": 7,
+      "decay": 2,
+      "power": 15.707963267948966
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0,
+        2.52,
+        3.85
+      ],
+      "colour": [
+        0.9046611743890203,
+        0.5840784178830671,
+        0.3139887133649649
+      ],
+      "intensity": 16,
+      "distance": 7,
+      "decay": 2,
+      "power": 201.06192982974676
+    }
+  ],
+  "atlases": [
+    {
+      "file": "codex-room-0.webp",
+      "width": 2048,
+      "height": 2048,
+      "scale": 22.830228805541992,
+      "encoding": "srgb-scale",
+      "bytes": 326620,
+      "density": {
+        "desk": {
+          "min": 63.937734189424546,
+          "max": 64.00396217638753,
+          "area": 0.9581398721785127,
+          "target": 64
+        },
+        "foreground": {
+          "min": 31.993215457457396,
+          "max": 37.329098359161215,
+          "area": 508.69943673328794,
+          "target": 32
+        }
+      }
+    }
+  ],
+  "sourceHash": "7c568c8f63e1eebed63b2901366fc128b6c05a0dca837e342650c07d264b3009"
+}

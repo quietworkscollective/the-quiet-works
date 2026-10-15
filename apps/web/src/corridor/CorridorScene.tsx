@@ -11,6 +11,7 @@ import { createPropAnimation, type PropId } from './props.ts';
 import type { CorridorSceneProps } from './types.ts';
 import { CORRIDOR_LOOK, LANDING_LOOK, LookStack, type AtmosphereLamp } from '../look/index.ts';
 import { corridorSconceSlots, LOBBY_SCONCES } from './world/lighting.ts';
+import { shouldLoadCorridorDecor } from './world/decor/activation.ts';
 
 /**
  * The lobby and corridor as a first-person view (ADR 0001, ADR 0003). The Canvas renders on
@@ -61,6 +62,13 @@ export default function CorridorScene(props: CorridorSceneProps) {
   const mounted = useRef(false);
   const cleanup = useRef<(() => void) | null>(null);
   const [touch, setTouch] = useState(coarsePointer);
+  const bakeWorkbench = import.meta.env.DEV && new URLSearchParams(window.location.search).get('bake') === 'off';
+  const subscribeDecor = useCallback((notify: () => void) => progress.subscribe(() => notify()), [progress]);
+  const getDecorActive = useCallback(
+    () => shouldLoadCorridorDecor({ progress: progress.get(), engaged: props.engaged, phase: state.phase, bakeWorkbench }),
+    [bakeWorkbench, progress, props.engaged, state.phase],
+  );
+  const decorActive = useSyncExternalStore(subscribeDecor, getDecorActive, getDecorActive);
   const onTouchSeen = useCallback(() => setTouch(true), []);
   useLayoutEffect(() => {
     mounted.current = true;
@@ -115,6 +123,7 @@ export default function CorridorScene(props: CorridorSceneProps) {
               animation={animation}
               focus={state.focus}
               reducedMotion={props.reducedMotion}
+              decorActive={decorActive}
               onDoorPointer={onDoorPointer}
               onClipping={onClipping}
               propAnimation={propAnimation}

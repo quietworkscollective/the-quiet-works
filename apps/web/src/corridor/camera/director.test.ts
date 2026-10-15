@@ -715,12 +715,12 @@ describe('reduced motion', () => {
     r.run(1000);
     expect(r.d.pose).toEqual(HANDOVER_POSE);
     const seen: (ChamberId | null)[] = [];
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < IDS.length; i += 1) {
       r.d.stepViewpoint(1);
       seen.push(r.spine.getState().focus);
     }
-    expect(seen).toEqual([OFFICE, 'apartment', 'tomorrow-engine', 'great-atrium', 'great-atrium', 'great-atrium']);
-    for (let i = 0; i < 6; i += 1) r.d.stepViewpoint(-1);
+    expect(seen).toEqual(IDS);
+    for (let i = 0; i < IDS.length; i += 1) r.d.stepViewpoint(-1);
     expect(r.spine.getState().focus).toBeNull();
     expect(r.d.pose).toEqual(HANDOVER_POSE);
   });

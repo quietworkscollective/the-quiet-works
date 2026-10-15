@@ -7,7 +7,7 @@
  * state and deep links depend on them.
  */
 
-export type ChamberId = 'certification-office' | 'apartment' | 'tomorrow-engine' | 'great-atrium';
+export type ChamberId = 'certification-office' | 'apartment' | 'tomorrow-engine' | 'great-atrium' | 'exchange' | 'outline-room';
 
 /** `open`: the door opens into a playable chamber. `sealed`: the door exists, locked, not yet built. */
 export type ChamberStatus = 'open' | 'sealed';
@@ -104,6 +104,38 @@ export const CHAMBERS: readonly ChamberEntry[] = [
     },
     doorDescription: 'Tall double doors in bronze and glass, chained shut. Cold air moves behind them.',
     findings: { papers: 0, secrets: 0 },
+  },
+  {
+    id: 'exchange',
+    slug: 'the-exchange',
+    title: 'The Exchange',
+    plaque: 'THE EXCHANGE',
+    era: 'night shift',
+    status: 'open',
+    side: 'right',
+    clipping: {
+      headline: 'ANNEX ROOM NOW OPEN',
+      dek: 'The Exchange is available from bay six.',
+      dateline: 'Notice No. 004 · Annex Records',
+    },
+    doorDescription: 'A tall black lacquer door with cream enamel bands, a small engaged lamp, and a brass push plate.',
+    findings: { papers: 23, secrets: 3 },
+  },
+  {
+    id: 'outline-room',
+    slug: 'outline-room',
+    title: 'The Outline Room',
+    plaque: 'THE OUTLINE ROOM',
+    era: 'undated',
+    status: 'open',
+    side: 'left',
+    clipping: {
+      headline: 'A SMALL ROOM FOR A VERY EXACT LINE',
+      dek: 'A brass tracing arm is ready for inspection in the Annex.',
+      dateline: 'Annex · Bay 6 · Instrument Works',
+    },
+    doorDescription: 'A repaired oxblood enamel door with ground-glass panes, a brass lever, and the plaque THE OUTLINE ROOM.',
+    findings: { papers: 0, secrets: 2 },
   },
 ];
 

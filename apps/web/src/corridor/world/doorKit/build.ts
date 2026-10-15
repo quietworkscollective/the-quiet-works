@@ -29,7 +29,7 @@ import { nth } from '../math.ts';
 /**
  * A door spec turned into geometry, in door-local space (see plan.ts). `flat` is every part at
  * rest, for doors that never move (blank doors are baked into the world with it). `leaves` holds
- * each leaf and its handle again with their origins at their pivots, for the four chamber doors
+ * each leaf and its handle again with their origins at their pivots, for chamber doors
  * whose leaf swings and whose handle turns.
  */
 export interface DoorBuild {

@@ -99,11 +99,13 @@ def pull_chain():
 
 
 def build(spec, root):
-    brass = mats.brass('brass', age=0.5, seed=131.0, cav_dist=0.01, scratches=0.4, edge_radius=0.0016, spin=0.6,
+    brass = mats.brass('brass', age=0.8, seed=131.0, cav_dist=0.012, scratches=0.5, edge_radius=0.0016, spin=0.6, contrast=2.0, tarnish_bias=0.06,
                        spots=[dict(at=(0.0, 0.0, 0.13), radius=(0.02, 0.02, 0.04), strength=0.9),
                               dict(at=(0.0, -0.088, 0.008), radius=(0.04, 0.02, 0.015), strength=0.7),
                               dict(at=(0.016, -0.0135, 0.235), radius=(0.012, 0.012, 0.03), strength=0.9)])
-    glass = mats.cased_glass('green cased glass', color='#13583A', age=0.5, seed=132.0)
+    glass = mats.cased_glass('green cased glass', color='#0F4430', age=0.5, seed=132.0,
+                             spots=[dict(at=(-0.115, -0.078, 0.262), radius=(0.04, 0.03, 0.03), strength=0.9),
+                                    dict(at=(0.115, -0.078, 0.262), radius=(0.04, 0.03, 0.03), strength=0.8)])
     glow_shade = mats.glow('shade glow', color='#FFE0A0', base='#E7EBD3')
     glow_bulb = mats.glow('bulb', color='#FFE6B0', base='#F6EED6', roughness=0.25)
 
@@ -130,7 +132,7 @@ def build(spec, root):
     return Built(root, [lamp_body, shade_obj, glow_obj, bulb_obj, chain_obj], moving=['pull_chain'], stage='desk',
                  unbaked=[glow_obj, bulb_obj],
                  view=dict(target=(0, 0, 0.19), distance=1.35, azimuth=22),
-                 detail=dict(target=(0.0, 0.0, 0.30), distance=0.6, azimuth=28, elevation=-7),
+                 detail=dict(target=(0.0, 0.0, 0.30), distance=0.4, azimuth=28, elevation=-7),
                  notes={'shade_glow': 'emissive factor warm white; the runtime scales it',
                         'bulb': 'emissive factor warm white; the runtime scales it',
                         'pull_chain': 'swings a few degrees about the vertical hang point; a tug moves it 6 mm down'})

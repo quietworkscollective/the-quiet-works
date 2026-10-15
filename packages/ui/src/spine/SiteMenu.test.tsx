@@ -19,22 +19,19 @@ describe('SiteMenu', () => {
     expect(screen.getByRole('navigation', { name: 'Footer menu' })).toBeTruthy();
   });
 
-  it('lists Notice board, About and Menu, in that order', () => {
+  it('lists Notice board and Menu, in that order', () => {
     setup();
     const nav = screen.getByRole('navigation');
     const names = [...nav.querySelectorAll('button, a')].map((el) => el.textContent);
-    expect(names).toEqual(['Notice board', 'About', 'Menu']);
+    expect(names).toEqual(['Notice board', 'Menu']);
+    expect(within(nav).queryByRole('link', { name: 'About' })).toBeNull();
   });
 
-  it('opens the notice board, the About page and the menu from the three items', () => {
+  it('opens the notice board and the menu from their two items', () => {
     const { onOpenBoard, onOpenPage, onOpenMenu } = setup();
     fireEvent.click(screen.getByRole('button', { name: 'Notice board' }));
     expect(onOpenBoard).toHaveBeenCalledTimes(1);
-    const about = screen.getByRole('link', { name: 'About' });
-    expect(about.getAttribute('href')).toBe('/about');
-    // Cancelled: the shell opens the page as a dialog, not by navigating away.
-    expect(fireEvent.click(about)).toBe(false);
-    expect(onOpenPage).toHaveBeenCalledWith('about');
+    expect(onOpenPage).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
     expect(onOpenMenu).toHaveBeenCalledTimes(1);
   });

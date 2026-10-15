@@ -12,6 +12,7 @@ import {
 import { createSpineStore } from './spineStore.ts';
 
 const OPEN: ChamberId = 'certification-office';
+const EXCHANGE: ChamberId = 'exchange';
 const SEALED: ChamberId = 'tomorrow-engine';
 
 function run(events: readonly SpineEvent[], from: SpineState = spineInitial({ kind: 'home' })) {
@@ -30,11 +31,12 @@ const inOffice = () =>
   run([{ type: 'OPEN_DOOR', id: OPEN, via: 'door' }, { type: 'THRESHOLD_DONE' }], inCorridor()).state;
 
 describe('chamber registry', () => {
-  it('has unique ids and slugs, and exactly one open chamber in this build', () => {
+  it('has unique ids and slugs, and both Annex rooms and the Office are open', () => {
     expect(new Set(CHAMBERS.map((c) => c.id)).size).toBe(CHAMBERS.length);
     expect(new Set(CHAMBERS.map((c) => c.slug)).size).toBe(CHAMBERS.length);
-    expect(CHAMBERS.filter((c) => c.status === 'open').map((c) => c.id)).toEqual([OPEN]);
+    expect(CHAMBERS.filter((c) => c.status === 'open').map((c) => c.id)).toEqual([OPEN, EXCHANGE, 'outline-room']);
     expect(chamberBySlug('certification-office')?.id).toBe(OPEN);
+    expect(chamberBySlug('the-exchange')?.id).toBe(EXCHANGE);
     expect(chamberBySlug('nowhere')).toBeUndefined();
   });
 });
@@ -56,6 +58,16 @@ describe('arrival', () => {
       focus: SEALED,
       chamber: null,
     });
+  });
+
+  it('a build-specific release rule keeps an authored-open Annex room sealed', () => {
+    const isOpen = (id: ChamberId) => id !== EXCHANGE;
+    expect(spineInitial({ kind: 'chamber', id: EXCHANGE }, isOpen)).toMatchObject({
+      phase: 'corridor', focus: EXCHANGE, chamber: null,
+    });
+    const store = createSpineStore(inCorridor(), isOpen);
+    store.dispatch({ type: 'OPEN_DOOR', id: EXCHANGE, via: 'door' });
+    expect(store.getState()).toMatchObject({ phase: 'corridor', focus: EXCHANGE, chamber: null });
   });
 
   it('a page URL shows the page over the entrance', () => {

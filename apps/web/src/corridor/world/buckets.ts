@@ -10,6 +10,7 @@ export type BucketKey =
   | 'plaster'
   | 'oak'
   | 'terrazzo'
+  | 'terrazzoWalk'
   | 'brass'
   | 'paint'
   | 'enamel'
@@ -35,6 +36,7 @@ export const BUCKET_KEYS: readonly BucketKey[] = [
   'plaster',
   'oak',
   'terrazzo',
+  'terrazzoWalk',
   'brass',
   'paint',
   'enamel',

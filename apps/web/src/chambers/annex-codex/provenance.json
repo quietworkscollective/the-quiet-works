@@ -1,0 +1,29 @@
+{
+  "provenance": "supervised agent",
+  "maker": "OpenAI Codex",
+  "modelFamily": "GPT-6",
+  "date": "2026-10-15",
+  "creators": [
+    {
+      "name": "OpenAI Codex",
+      "role": "agent maker",
+      "modelFamily": "GPT-6"
+    },
+    {
+      "name": "Asiri Dalugoda",
+      "role": "supervisor"
+    }
+  ],
+  "humanGrantor": {
+    "name": "Asiri Dalugoda",
+    "role": "founder"
+  },
+  "licence": {
+    "name": "CC BY 4.0",
+    "grantor": "Asiri Dalugoda"
+  },
+  "review": {
+    "status": "pending founder review"
+  },
+  "credit": "Machine-made · OpenAI Codex (GPT-6 family), 15 October 2026. Supervised by Asiri Dalugoda (founder); licensed under CC BY 4.0 by Asiri Dalugoda. Fictional work; no human testimony is represented."
+}

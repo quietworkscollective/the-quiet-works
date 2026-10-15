@@ -327,8 +327,9 @@ describe('scripts/seal-content.ts', { timeout: 180_000 }, () => {
      * Why one memo failed, from the nested content check's verbose output: a failed test is a `×` line
      * naming it, followed by a `→` line with the reason. Undefined if that memo's test did not fail.
      */
+    const ansiEscape = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
     const failureOf = (output: string, id: string): string | undefined => {
-      const lines = output.split('\n');
+      const lines = output.replace(ansiEscape, '').split('\n');
       const at = lines.findIndex((line) => line.trimStart().startsWith('×') && line.includes(`> ${id} follows the memo rules`));
       return at < 0 ? undefined : (lines[at + 1] ?? '').trim();
     };

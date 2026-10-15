@@ -1,0 +1,93 @@
+/*
+ * The gramophone's DOM equivalent and its verb cue (ADR 0004). The scene writes where each fitting
+ * is on the screen into --gramophone-needle-x / -y and --gramophone-records-x / -y on the island.
+ *
+ * Contextual, never a floating panel: nothing here is on the screen until the visitor is near a
+ * fitting and looking at it (the cue), or has tabbed to its control (focus). The controls are
+ * visually hidden otherwise, and still there for a screen reader.
+ */
+
+/* The pointer is a pointer only over the machine and the records (the scene sets this while one is hovered). */
+.tqw-corridor-canvas[data-over='gramophone'] {
+  cursor: pointer;
+}
+
+.tqw-gramophone-island {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  /* Only the label itself takes the pointer; the scene under it keeps everything else. */
+  pointer-events: none;
+}
+
+.tqw-gramophone__reading,
+.tqw-gramophone__action:not(:focus-visible) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tqw-gramophone__action[data-target='needle'],
+.tqw-gramophone__cue[data-target='needle'] {
+  --gx: var(--gramophone-needle-x, 50%);
+  --gy: var(--gramophone-needle-y, 50%);
+}
+.tqw-gramophone__action[data-target='records'],
+.tqw-gramophone__cue[data-target='records'] {
+  --gx: var(--gramophone-records-x, 50%);
+  --gy: var(--gramophone-records-y, 50%);
+}
+
+/* The label: 16 to 18 px type, a 44 px target, beside the fitting. The same look for the cue and a focused control. */
+.tqw-gramophone__cue,
+.tqw-gramophone__action:focus-visible {
+  position: absolute;
+  left: var(--gx);
+  top: var(--gy);
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 16px;
+  transform: translate(18px, -50%);
+  border: 1px solid color-mix(in srgb, var(--amber, #d59b4a) 55%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--coal, #151a20) 82%, transparent);
+  color: var(--bone, #ddd5c8);
+  font: 400 17px/1.2 var(--font-ui, system-ui, sans-serif);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The cue fades in and out over 120 ms, and takes the pointer only while it is there. */
+.tqw-gramophone__cue {
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity 120ms ease-out;
+}
+.tqw-gramophone__cue[data-shown='true'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* A focused control shows itself and stays while it has focus: nothing removes it on a timer. */
+.tqw-gramophone__action:focus-visible {
+  pointer-events: auto;
+  cursor: pointer;
+  outline: 2px solid var(--amber, #d59b4a);
+  outline-offset: 2px;
+}
+/* A focused control and its cue are one label: while a control has focus, no cue is drawn. */
+.tqw-gramophone__actions:has(.tqw-gramophone__action:focus-visible) ~ .tqw-gramophone__cue {
+  opacity: 0;
+  pointer-events: none;
+}

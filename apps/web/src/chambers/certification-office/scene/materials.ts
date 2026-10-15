@@ -134,12 +134,14 @@ export function createMaterials(maxAnisotropy: number, coarse: boolean): Materia
     roughness: 0.52,
     metalness: 0.7,
     envMapIntensity: 0.9,
+    lightMapIntensity: 4,
   });
   const steelPanel = new MeshStandardMaterial({
     color: '#2a3034',
     roughness: 0.5,
     metalness: 0.65,
     envMapIntensity: 0.9,
+    lightMapIntensity: 4,
   });
   const brass = new MeshStandardMaterial({
     color: PALETTE.brass,
@@ -239,6 +241,7 @@ export function createMaterials(maxAnisotropy: number, coarse: boolean): Materia
     clearcoatRoughness: 0.3,
     side: DoubleSide,
     envMapIntensity: 0.9,
+    lightMapIntensity: 4,
   });
   const iron = new MeshStandardMaterial({
     color: '#262b2e',
@@ -261,7 +264,7 @@ export function createMaterials(maxAnisotropy: number, coarse: boolean): Materia
   const floorColor = new Color(PALETTE.floor).multiplyScalar(4.6);
   const floorTex = track(drawConcrete(512, anisotropy));
   floorTex.repeat.set(14, 14);
-  const floor = new MeshStandardMaterial({ map: floorTex, color: floorColor, roughness: 0.95, metalness: 0 });
+  const floor = new MeshStandardMaterial({ map: floorTex, color: floorColor, roughness: 0.95, metalness: 0, lightMapIntensity: 64 });
 
   const pillarTex = track(drawBoardMarked(512, 1024, anisotropy));
   // Dark concrete that still reads: a trace of cool bounce light, patterned by the formwork, so
@@ -274,6 +277,7 @@ export function createMaterials(maxAnisotropy: number, coarse: boolean): Materia
     emissiveIntensity: 0.56,
     roughness: 0.92,
     metalness: 0,
+    lightMapIntensity: 64,
   });
   const concreteFrame = new MeshStandardMaterial({
     map: floorTex,

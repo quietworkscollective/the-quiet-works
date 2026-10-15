@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { expect, test } from '@playwright/test';
 import {
   activateDoor,
@@ -18,13 +19,16 @@ import {
 const OFFICE = 'The Certification Office';
 
 test.describe('landing', () => {
-  test('opens on the UNHELD brand with enter, board and about available at once', async ({ page }) => {
+  test('opens on the UNHELD brand with Enter and Menu routes to the board and About', async ({ page }) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     await expect(page.getByRole('heading', { level: 1, name: 'UNHELD' })).toBeVisible();
-    await expect(page.getByText('A space for everything we carry.').first()).toBeVisible();
+    await expect(page.locator('.tqw-hero__tagline')).toHaveText('A space for everything we carry.');
+    await expect(page.locator('.tqw-hero__tagline')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Enter The Quiet Works' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'About' }).first()).toBeVisible();
+    const menu = await openMenu(page);
+    await expect(menu.getByRole('button', { name: 'Notice board', exact: true })).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'About', exact: true })).toBeVisible();
     await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveCount(1);
   });
 
@@ -54,13 +58,15 @@ test.describe('corridor doors', () => {
     await expectSpine(page, 'corridor');
   });
 
-  test('the doors are listed in corridor order, only the Office open', async ({ page }) => {
+  test('the six doors are listed in corridor order, only the released Office open', async ({ page }) => {
     const doors = page.getByRole('navigation', { name: 'Doors' }).getByRole('button');
     await expect(doors).toHaveText([
       'The Certification Office, open the door',
       'The Apartment, not yet open',
       'The Tomorrow Engine, not yet open',
       'The Great Atrium, not yet open',
+      'The Exchange, not yet open',
+      'The Outline Room, not yet open',
     ]);
   });
 
@@ -71,6 +77,22 @@ test.describe('corridor doors', () => {
     await expect(page).toHaveURL(/\/certification-office$/);
     await expectSpine(page, 'chamber');
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
+  });
+
+  test('entering focuses the room and leaving restores focus to the door used', async ({ page }) => {
+    const officeDoor = door(page, OFFICE, 'open');
+    await officeDoor.focus();
+    await page.keyboard.press('Enter');
+    await expectSpine(page, 'chamber');
+    await expect.poll(() => page.evaluate(() => {
+      const host = document.querySelector('.tqw-chamber-host');
+      const active = document.activeElement;
+      return Boolean(host && active && host.contains(active) && active.matches('[data-chamber-entry], h1, h2, button'));
+    })).toBe(true);
+
+    await page.getByRole('button', { name: 'Return to the corridor' }).click();
+    await expectSpine(page, 'corridor');
+    await expect.poll(() => officeDoor.evaluate((element) => element === document.activeElement)).toBe(true);
   });
 
   test('a sealed door stays shut and the visitor stays in the corridor', async ({ page }) => {
@@ -102,8 +124,8 @@ test.describe('corridor doors', () => {
 
   test('context loss in the corridor falls back to the text corridor in the same place', async ({ page }) => {
     await door(page, 'The Apartment', 'sealed').focus();
-    // The scene publishes door positions once it is rendering; only then is its context its own.
-    await expect(page.locator('.tqw-corridor-canvas')).not.toHaveAttribute('data-door-targets', '{}');
+    // Wait for a completed native frame; a valid view can have no door centre on screen.
+    await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveAttribute('data-world', 'ready', { timeout: sceneTimeout(30_000) });
     await page.evaluate(() => {
       const canvas = document.querySelector<HTMLCanvasElement>('.tqw-corridor-canvas canvas');
       canvas?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();
@@ -155,7 +177,7 @@ test.describe('deep links and pages', () => {
     await (await openMenu(page)).getByRole('link', { name: 'About' }).click();
     await expect(page).toHaveURL(/\/about$/);
     const about = page.getByRole('dialog', { name: 'About UNHELD' });
-    await expect(about).toContainText('It is an artwork.');
+    await expect(about).toContainText('It is an artwork, not a support service.');
     await about.getByRole('link', { name: 'Privacy' }).click();
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByRole('dialog', { name: 'Privacy' })).toContainText('no cookies');

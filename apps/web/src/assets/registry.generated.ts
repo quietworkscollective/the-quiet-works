@@ -4,7 +4,13 @@
 // GLB; a surface map is an asset URL for an <img>-based texture load.
 import type { SurfaceLoaders } from './types.ts';
 
-export const MODEL_LOADERS: Readonly<Record<string, () => Promise<string>>> = {
+// Production emits installed models; the development workbench retains the whole library.
+export const MODEL_LOADERS: Readonly<Record<string, () => Promise<string>>> = import.meta.env.PROD ? {
+  'chair-painted-wood': async () => (await import('./models/chair-painted-wood.glb?url&inline')).default,
+  'cart-tool-green': async () => (await import('./models/cart-tool-green.glb?url&inline')).default,
+  'kettle-vintage': async () => (await import('./models/kettle-vintage.glb?url&inline')).default,
+  'lamp-anglepoise': async () => (await import('./models/lamp-anglepoise.glb?url&inline')).default,
+} : {
   'office-desk-metal': async () => (await import('./models/office-desk-metal.glb?url&inline')).default,
   'office-armchair-leather': async () => (await import('./models/office-armchair-leather.glb?url&inline')).default,
   'chair-painted-wood': async () => (await import('./models/chair-painted-wood.glb?url&inline')).default,

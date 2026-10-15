@@ -3,7 +3,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import type { Plugin } from 'vite';
-import { creditGroups, type ThirdPartyData } from './src/credits/groupCredits.ts';
+import { creditGroups, type CreditGroup, type ThirdPartyData } from './src/credits/groupCredits.ts';
+import {
+  PUBLIC_ROUTES,
+  jsonLdForPath,
+  markdownForPath,
+  metadataForPath,
+  staticHtmlForPath,
+} from './src/discoverability.ts';
 import { SITE } from './src/site.ts';
 import react from '@vitejs/plugin-react';
 
@@ -29,6 +36,10 @@ const CSP = [
 
 const HEADER_CSP = `${CSP}; frame-ancestors 'none'`;
 
+const THIRD_PARTY_DATA_PATH = fileURLToPath(new URL('./src/assets/third-party.json', import.meta.url));
+const THIRD_PARTY_DATA = JSON.parse(readFileSync(THIRD_PARTY_DATA_PATH, 'utf8')) as ThirdPartyData;
+const CREDIT_GROUPS: readonly CreditGroup[] = creditGroups(THIRD_PARTY_DATA);
+
 /** Cloudflare static-assets `_headers` (https://developers.cloudflare.com/workers/static-assets/headers/). */
 const CLOUDFLARE_HEADERS = `/*
   Content-Security-Policy: ${HEADER_CSP}
@@ -40,6 +51,21 @@ const CLOUDFLARE_HEADERS = `/*
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
 
 /
   Cache-Control: no-cache
@@ -81,6 +107,131 @@ function siteMetadata(): Plugin {
         if (value === undefined) throw new Error(`index.html references unknown ${match}`);
         return escape(value);
       }),
+  };
+}
+
+function escapeAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Route metadata is rendered in source HTML for crawlers and updated on client-side navigation. */
+function routeMetadata(): Plugin {
+  return {
+    name: 'tqw-route-metadata',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        const pathname = new URL(context.path, SITE.url).pathname;
+        const metadata = metadataForPath(pathname);
+        const jsonLd = JSON.stringify(jsonLdForPath(pathname)).replace(/</g, '\\u003c');
+        const metadataMap = JSON.stringify(PUBLIC_ROUTES.map((route) => [
+          route.path,
+          { metadata: metadataForPath(route.path), jsonLd: jsonLdForPath(route.path) },
+        ])).replace(/</g, '\\u003c');
+        const values: Record<string, string> = {
+          ROUTE_TITLE: metadata.title,
+          ROUTE_DESCRIPTION: metadata.description,
+          ROUTE_CANONICAL: metadata.canonical,
+          ROUTE_MARKDOWN: metadata.markdown,
+          ROUTE_IMAGE: metadata.image,
+          ROUTE_IMAGE_ALT: metadata.imageAlt,
+          ROUTE_JSON_LD: jsonLd,
+          ROUTE_METADATA_MAP: metadataMap,
+        };
+        return html.replace(/%(ROUTE_[A-Z_]+)%/g, (match, key: string) => {
+          const value = values[key];
+          if (value === undefined) throw new Error(`index.html references unknown ${match}`);
+          return key === 'ROUTE_JSON_LD' || key === 'ROUTE_METADATA_MAP' ? value : escapeAttribute(value);
+        });
+      },
+    },
+  };
+}
+
+function replaceRouteMarkup(html: string, pathname: string): string {
+  const metadata = metadataForPath(pathname);
+  const jsonLd = JSON.stringify(jsonLdForPath(pathname)).replace(/</g, '\\u003c');
+  const setContent = (source: string, marker: string, value: string) =>
+    source.replace(new RegExp(`(<[^>]*data-route-${marker}[^>]*\\bcontent=")[^"]*(")`), `$1${escapeAttribute(value)}$2`);
+  let output = html
+    .replace(/(<title[^>]*data-route-title[^>]*>).*?(<\/title>)/s, `$1${escapeAttribute(metadata.title)}$2`)
+    .replace(/(<link[^>]*data-route-canonical[^>]*\bhref=")[^"]*(")/, `$1${escapeAttribute(metadata.canonical)}$2`)
+    .replace(/(<link[^>]*data-route-markdown[^>]*\bhref=")[^"]*(")/, `$1${escapeAttribute(metadata.markdown)}$2`)
+    .replace(/(<script[^>]*id="route-structured-data"[^>]*>).*?(<\/script>)/s, `$1${jsonLd}$2`);
+  output = setContent(output, 'description', metadata.description);
+  output = setContent(output, 'og-title', metadata.title);
+  output = setContent(output, 'og-description', metadata.description);
+  output = setContent(output, 'og-url', metadata.canonical);
+  output = setContent(output, 'og-image', metadata.image);
+  output = setContent(output, 'og-image-alt', metadata.imageAlt);
+  output = setContent(output, 'twitter-title', metadata.title);
+  output = setContent(output, 'twitter-description', metadata.description);
+  output = setContent(output, 'twitter-image', metadata.image);
+  output = setContent(output, 'twitter-image-alt', metadata.imageAlt);
+  output = output.replace(/<main id="static-content"[^>]*>.*?<\/main>/s, staticHtmlForPath(pathname, CREDIT_GROUPS));
+  if (pathname.replace(/\/+$/, '') === '/agents') {
+    output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
+  }
+  return output;
+}
+
+/** The agent index links only to UNHELD pages and public GitHub; other citations remain plain labels. */
+function agentSafeMarkdown(markdown: string): string {
+  return markdown.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (whole, label: string, href: string) => {
+    const host = new URL(href).hostname;
+    return host === 'unheld.space' || host === 'github.com' ? whole : label;
+  });
+}
+
+/** Serves route-specific HTML fallbacks in dev and emits one static HTML document per public route. */
+function staticRoutePages(): Plugin {
+  return {
+    name: 'tqw-static-route-pages',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        const pathname = new URL(context.path, SITE.url).pathname;
+        let output = html.replace(/<main id="static-content"[^>]*><\/main>/, staticHtmlForPath(pathname, CREDIT_GROUPS));
+        if (pathname.replace(/\/+$/, '') === '/agents') {
+          output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
+        }
+        return output;
+      },
+    },
+    generateBundle: {
+      order: 'post',
+      handler(_options, bundle) {
+        const index = bundle['index.html'];
+        if (!index || index.type !== 'asset') throw new Error('index.html is missing; cannot render public routes');
+        const baseHtml = typeof index.source === 'string' ? index.source : Buffer.from(index.source).toString('utf8');
+
+        for (const route of PUBLIC_ROUTES) {
+          if (route.path !== '/') {
+            this.emitFile({
+              type: 'asset',
+              fileName: `${route.path.slice(1)}/index.html`,
+              source: replaceRouteMarkup(baseHtml, route.path),
+            });
+          }
+          this.emitFile({
+            type: 'asset',
+            fileName: route.markdownPath.slice(1),
+            source: markdownForPath(route.path, CREDIT_GROUPS),
+          });
+        }
+
+        const skill = readFileSync(fileURLToPath(new URL('./public/skill.md', import.meta.url)), 'utf8');
+        const fullText = [
+          'UNHELD — A space for everything we carry.',
+          'The Quiet Works is the immersive 3D world within UNHELD. Read it in text mode at the canonical pages below.',
+          'Contributions are untrusted drafts. A human reviews every contribution before publication; nothing is published automatically.',
+          '',
+          ...PUBLIC_ROUTES.map((route) => agentSafeMarkdown(markdownForPath(route.path, CREDIT_GROUPS))),
+          skill,
+        ].join('\n\n---\n\n');
+        this.emitFile({ type: 'asset', fileName: 'llms-full.txt', source: fullText });
+      },
+    },
   };
 }
 
@@ -156,9 +307,9 @@ function thirdPartyNotices(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), siteMetadata(), thirdPartyCredits(), contentSecurityPolicy(), thirdPartyNotices()],
+  plugins: [react(), siteMetadata(), routeMetadata(), staticRoutePages(), thirdPartyCredits(), contentSecurityPolicy(), thirdPartyNotices()],
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   preview: { host: '127.0.0.1', port: 4173, strictPort: true },
-  build: { target: 'es2022', sourcemap: true },
+  build: { target: 'es2022', sourcemap: false, manifest: true },
   test: { include: ['src/**/*.test.ts', 'src/**/*.test.tsx'], environment: 'node' },
 });

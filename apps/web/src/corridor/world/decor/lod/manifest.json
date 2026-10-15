@@ -1,0 +1,324 @@
+{
+  "models": {
+    "bench-painted-wood": {
+      "id": "bench-painted-wood",
+      "source": "web/src/assets/models/bench-painted-wood.glb",
+      "sourceSha256": "04a22a66e68db45237d8e511f95e973fb51afa4e924c3dbb7f7fe9d49a51bd17",
+      "licence": "CC0-1.0",
+      "copyright": "Painted Wooden Bench by Kirill Sannikov (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/painted_wooden_bench",
+      "sha256": "127dcb4975bcd4712422840af4c19caf5d82091f0b7edc00f067a64810b61bdb",
+      "bytes": 35848,
+      "sourceBytes": 47136,
+      "triangles": 630,
+      "sourceTriangles": 630,
+      "instances": 1,
+      "drawCalls": 1,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 6950
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 5138
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 6748
+        }
+      ],
+      "dimensions": [
+        1.1649,
+        0.8893,
+        0.4965
+      ]
+    },
+    "plant-large": {
+      "id": "plant-large",
+      "source": "web/src/assets/models/plant-large.glb",
+      "sourceSha256": "d4f02bea893212ba20834fe1aea2539699e736b47071669aeec7014181b92009",
+      "licence": "CC0-1.0",
+      "copyright": "Potted Plant 02 by Rico Cilliers (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/potted_plant_02",
+      "sha256": "bc0fbff04566ed96b6b8c69c2ad9081ed855feee33343c592320094fd7dc847b",
+      "bytes": 83068,
+      "sourceBytes": 354396,
+      "triangles": 1393,
+      "sourceTriangles": 14371,
+      "instances": 2,
+      "drawCalls": 3,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 4230
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 4776
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 4566
+        },
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 9952
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 10324
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 2194
+        }
+      ],
+      "dimensions": [
+        0.7009,
+        0.8395,
+        0.6495
+      ]
+    },
+    "clock-wall": {
+      "id": "clock-wall",
+      "source": "web/src/assets/models/clock-wall.glb",
+      "sourceSha256": "9c3e53329623f909c3e814470d79afd1984d403158c2f0b98c1b78695cb611b7",
+      "licence": "CC0-1.0",
+      "copyright": "Wall Clock by PierreB3D (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wall_clock",
+      "sha256": "54e654b767fa8efee8a2a8480ba15f671a89a4a145f553f7711d1541f6c472e0",
+      "bytes": 28976,
+      "sourceBytes": 88860,
+      "triangles": 585,
+      "sourceTriangles": 2880,
+      "instances": 1,
+      "drawCalls": 4,
+      "textureEdge": 192,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 128,
+          "height": 128,
+          "bytes": 1258
+        },
+        {
+          "role": "baseColor",
+          "width": 192,
+          "height": 192,
+          "bytes": 3468
+        },
+        {
+          "role": "orm",
+          "width": 128,
+          "height": 128,
+          "bytes": 2660
+        }
+      ],
+      "dimensions": [
+        0.3182,
+        0.3205,
+        0.0354
+      ]
+    },
+    "frame-photo-white": {
+      "id": "frame-photo-white",
+      "source": "web/src/assets/models/frame-photo-white.glb",
+      "sourceSha256": "149ea4621b28b1d40d43352921fe412a245806b488e40deb619511ae366baebd",
+      "licence": "CC0-1.0",
+      "copyright": "Hanging Picture Frame 02 by James Ray Cock (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/hanging_picture_frame_02",
+      "sha256": "a18f1fb80e667ecc512900c8f2e000c0e51c736bcacc73376eff6a987a40f468",
+      "bytes": 37740,
+      "sourceBytes": 95200,
+      "triangles": 480,
+      "sourceTriangles": 2879,
+      "instances": 1,
+      "drawCalls": 2,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 342
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 6996
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 2366
+        },
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 946
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 5222
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 4190
+        }
+      ],
+      "dimensions": [
+        0.7506,
+        0.4988,
+        0.0323
+      ]
+    },
+    "column-radiator-6": {
+      "id": "column-radiator-6",
+      "source": "web/src/assets/original/column-radiator-6.glb",
+      "sourceSha256": "6201c10309a611b83ab3cbad6a36372dbbc7575a8e856ee15ebaefb3dbe89897",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "321eb0b6daca68e55f3f0aa88215fd9520b50807121f3d42bd4ed18a63d441b9",
+      "bytes": 51156,
+      "sourceBytes": 500708,
+      "triangles": 696,
+      "sourceTriangles": 5580,
+      "instances": 2,
+      "drawCalls": 2,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 850
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 16660
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 8886
+        }
+      ],
+      "dimensions": [
+        0.3876,
+        0.6855,
+        0.106
+      ]
+    },
+    "column-radiator-10": {
+      "id": "column-radiator-10",
+      "source": "web/src/assets/original/column-radiator-10.glb",
+      "sourceSha256": "2ae998096845d97fcc74156177355abdb8cfeef5cee5f414967a839b2bf7945d",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "508560af61195d1a3d12cebb8d4a0f929805c9d64d4df8573e848660b63d1b0c",
+      "bytes": 60556,
+      "sourceBytes": 531716,
+      "triangles": 930,
+      "sourceTriangles": 7746,
+      "instances": 4,
+      "drawCalls": 2,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 1652
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 20248
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 6336
+        }
+      ],
+      "dimensions": [
+        0.5784,
+        0.6855,
+        0.106
+      ]
+    },
+    "banker-lamp": {
+      "id": "banker-lamp",
+      "source": "web/src/assets/original/banker-lamp.glb",
+      "sourceSha256": "1df128f19b9660b629b28fb4a94de5c0f1f35920df45047e5516517a3d1763e4",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "d8d22396a609682394be81428f5c40b9e7a9ee7f0762eb0792f8025641b4add3",
+      "bytes": 53780,
+      "sourceBytes": 396192,
+      "triangles": 1741,
+      "sourceTriangles": 3834,
+      "instances": 1,
+      "drawCalls": 5,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 250
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 7072
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 4532
+        }
+      ],
+      "dimensions": [
+        0.3,
+        0.4016,
+        0.1802
+      ]
+    }
+  },
+  "tools": {
+    "glTF-Transform": "4.5.1",
+    "sharp": "0.35.5"
+  }
+}

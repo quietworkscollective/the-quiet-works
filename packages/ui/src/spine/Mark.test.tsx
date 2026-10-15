@@ -99,27 +99,33 @@ describe('the brand files\' licence is a decision, not a proposal', () => {
     entries: Array<{ name: string; pattern: string; source: string; licence: string; licenceFile: string; attribution: string }>;
   };
   const inRepo = manifest.entries.filter((entry) => entry.source === 'in-repo');
-  // In-repo files are the project's own work, CC BY 4.0: the brand files and the posters.
+  // In-repo files are the project's own work, CC BY 4.0: the brand files, the posters and the baked light.
   const brand = inRepo.filter((entry) => entry.licence === 'CC-BY-4.0');
   // Third-party files kept in this repository name their provider (`third-party:ambientCG`); they are
   // not the project's work, so they are never counted as in-repo.
   const thirdParty = manifest.entries.filter((entry) => entry.source.startsWith('third-party:'));
 
-  it('lists the favicon, the touch icon, the app icon and the hero posters as the in-repo CC BY files, and nothing else under CC BY', () => {
+  it('lists the favicon, the touch icon, the app icon, the hero posters and the baked light as the in-repo CC BY files, and nothing else', () => {
     expect(brand.map((entry) => entry.pattern)).toEqual([
       '^favicon\\.svg$',
       '^apple-touch-icon\\.png$',
       '^icon-512\\.png$',
       '^poster-hero-(?:1440x900|412x915)\\.webp$',
+      '^(?:corridor|office|codex-room)-[0-9]+-[\\w-]+\\.webp$',
     ]);
   });
 
-  it('holds third-party files kept in the repository to CC0 1.0, and nothing in-repo to any licence but CC BY', () => {
+  it('holds third-party files kept in the repository to CC0 1.0 or a recorded public-domain dedication, and nothing in-repo to any licence but CC BY', () => {
+    // The reviewed licences for third-party files in the repository, each with its text on file.
+    const reviewed: Record<string, string> = {
+      'CC0-1.0': '../../LICENSES/CC0-1.0.txt',
+      'LicenseRef-Public-Domain': '../../LICENSES/Public-Domain-Recordings.txt',
+    };
     expect(inRepo.filter((entry) => entry.licence !== 'CC-BY-4.0').map((entry) => entry.name)).toEqual([]);
     expect(thirdParty.length).toBeGreaterThan(0);
     for (const entry of thirdParty) {
-      expect(entry.licence, entry.name).toBe('CC0-1.0');
-      expect(entry.licenceFile, entry.name).toBe('../../LICENSES/CC0-1.0.txt');
+      expect(Object.keys(reviewed), entry.name).toContain(entry.licence);
+      expect(entry.licenceFile, entry.name).toBe(reviewed[entry.licence]);
     }
   });
 

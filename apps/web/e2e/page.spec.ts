@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { HANDOVER } from '../src/corridor/layout.ts';
@@ -20,6 +21,11 @@ const heroEnter = (page: Page) => page.getByRole('link', { name: ENTER });
 const windowEnter = (page: Page) => page.getByRole('button', { name: ENTER });
 const leaveButton = (page: Page) => page.getByRole('button', { name: 'Leave', exact: true });
 
+/** Baked textures, model resources and lettering prepare before the first world frame. */
+async function worldReady(page: Page): Promise<void> {
+  await expect(canvas(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: sceneTimeout(30_000) });
+}
+
 async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   const [x, z, yaw] = ((await canvas(page).getAttribute('data-pose')) ?? '0,0,0').split(',').map(Number);
   return { x: x!, z: z!, yaw: yaw! };
@@ -32,7 +38,7 @@ async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> 
  */
 async function settledPose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   // The pose is published to three decimals: arrived is exactly the hand-over (0.204 is still on its way).
-  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: 30_000 }).toBe(true);
+  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
   return pose(page);
 }
 
@@ -73,6 +79,7 @@ async function scrollToProgress(page: Page, progress: number): Promise<void> {
 async function arriveByScrolling(page: Page): Promise<void> {
   await page.goto('/');
   await expectSpine(page, 'entrance');
+  await worldReady(page);
   await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
   await page.evaluate((y) => window.scrollTo(0, y), await gameTop(page));
   await expectSpine(page, 'corridor');
@@ -107,7 +114,7 @@ async function within(page: Page, selectors: readonly string[]): Promise<void> {
 // ----------------------------------------------------------------------------------- the hero
 
 test.describe('the hero', () => {
-  test('is UNHELD at the consult size, set in Sans Condensed 700, with .space small under the D and the tagline below', async ({ page }, info) => {
+  test('is UNHELD at the exhibition size, set in Plex Sans 700, with .space small under the D and the tagline below', async ({ page }, info) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     await fontsReady(page);
@@ -117,26 +124,26 @@ test.describe('the hero', () => {
       const s = getComputedStyle(word);
       return { size: parseFloat(s.fontSize), weight: s.fontWeight, family: s.fontFamily, tracking: parseFloat(s.letterSpacing), colour: s.color };
     });
-    expect(name.size).toBeCloseTo(desktop ? 144 : 76, 0);
+    expect(name.size).toBeCloseTo(desktop ? 136 : 73.340944, 0);
     expect(name.weight).toBe('700');
-    expect(name.family).toContain('IBM Plex Sans Condensed');
+    expect(name.family).toContain('"IBM Plex Sans"');
     expect(name.tracking).toBeCloseTo(-0.025 * name.size, 1);
-    expect(name.colour).toBe('rgb(221, 213, 200)');
+    expect(name.colour).toBe('rgb(238, 233, 223)');
     expect(await page.getByRole('heading', { level: 1, name: 'UNHELD' }).count()).toBe(1);
 
     const space = await page.locator('.tqw-hero__space').evaluate((el) => {
       const s = getComputedStyle(el);
       return { size: parseFloat(s.fontSize), weight: s.fontWeight, colour: s.color };
     });
-    expect(space.size).toBeCloseTo(desktop ? 30 : 18, 0);
+    expect(space.size).toBeCloseTo(desktop ? 20 : 16.08382, 0);
     expect(space.weight).toBe('400');
-    expect(space.colour).toBe('rgb(183, 177, 166)');
+    expect(space.colour).toBe('rgb(189, 189, 180)');
 
     const tagline = await page.locator('.tqw-hero__tagline').evaluate((el) => {
       const s = getComputedStyle(el);
       return { size: parseFloat(s.fontSize), family: s.fontFamily };
     });
-    expect(tagline.size).toBeCloseTo(desktop ? 26 : 20, 0);
+    expect(tagline.size).toBeCloseTo(desktop ? 28 : 22.125708, 0);
     expect(tagline.family).toContain('Newsreader');
 
     // The D's right edge and .space's right edge line up; .space sits under it; the tagline under both. Measured once
@@ -181,6 +188,7 @@ test.describe('the hero', () => {
     await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveCount(1);
     await expect(page.locator('.tqw-game__window .tqw-corridor-canvas')).toHaveCount(1);
     await expect(canvas(page)).toHaveAttribute('data-phase', 'entrance');
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
   });
 
@@ -198,11 +206,11 @@ test.describe('the hero', () => {
         })
         .map((el) => el.textContent?.replace(/\s+/g, ' ').trim()),
     );
-    const menu = isDesktop(info) ? ['Notice board', 'About', 'Menu'] : ['Menu'];
+    const menu = isDesktop(info) ? ['Notice board', 'Menu'] : ['Menu'];
     expect(shown).toEqual([...menu, 'A space for everything we carry.', '1 door open', 'Scroll to The Quiet Works', ENTER]);
   });
 
-  test('menu: Notice board, About and Menu at the top right with 44 px targets; a phone shows Menu alone', async ({ page }, info) => {
+  test('menu: Notice board and Menu at the top right with 44 px targets; a phone shows Menu alone', async ({ page }, info) => {
     await page.goto('/');
     const items = await page.locator('.tqw-hero__menu .tqw-menu__item').evaluateAll((els) =>
       els
@@ -212,10 +220,10 @@ test.describe('the hero', () => {
           return { label: el.textContent, w: r.width, h: r.height, right: r.right, top: r.top, size: parseFloat(getComputedStyle(el).fontSize) };
         }),
     );
-    expect(items.map((i) => i.label)).toEqual(isDesktop(info) ? ['Notice board', 'About', 'Menu'] : ['Menu']);
+    expect(items.map((i) => i.label)).toEqual(isDesktop(info) ? ['Notice board', 'Menu'] : ['Menu']);
     for (const item of items) {
       expect(item.h, `${item.label} is shorter than 44 px`).toBeGreaterThanOrEqual(43.5);
-      expect(item.size).toBe(16);
+      expect(item.size).toBe(isDesktop(info) ? 15 : 16);
       expect(item.top).toBeLessThan(80);
     }
     const heroRight = await page.locator('.tqw-hero').evaluate((el) => el.getBoundingClientRect().right);
@@ -253,6 +261,7 @@ test.describe('the hero text holds its contrast over the live world', () => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     await fontsReady(page);
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await page.waitForTimeout(800);
 
@@ -640,7 +649,7 @@ test.describe('the hero\'s poster', () => {
     expect(covers.dh).toBeLessThanOrEqual(1);
 
     release();
-    await expect(site(page)).toHaveAttribute('data-scene-ready', 'true', { timeout: 30_000 });
+    await expect(site(page)).toHaveAttribute('data-scene-ready', 'true', { timeout: sceneTimeout(30_000) });
     await expect(poster).toHaveAttribute('data-ready', 'true');
     // Dissolved over 400 ms, then removed.
     expect(await poster.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.4s');
@@ -694,7 +703,7 @@ test.describe('the hero\'s poster', () => {
     await expect(poster).toHaveCount(1);
     expect(await poster.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.12s');
     release();
-    await expect(poster).toHaveCount(0, { timeout: 30_000 });
+    await expect(poster).toHaveCount(0, { timeout: sceneTimeout(30_000) });
   });
 });
 
@@ -737,7 +746,7 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     expect(await host.getAttribute('inert')).not.toBeNull();
     const veil = page.locator('.tqw-seam-veil');
     await expect(veil).toHaveAttribute('data-held', 'true');
-    expect(await veil.evaluate((el) => [Number(getComputedStyle(el).opacity), getComputedStyle(el).backgroundColor])).toEqual([1, 'rgb(21, 26, 32)']);
+    expect(await veil.evaluate((el) => [Number(getComputedStyle(el).opacity), getComputedStyle(el).backgroundColor])).toEqual([1, 'rgb(23, 25, 24)']);
     await page.waitForTimeout(800);
     expect(await host.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(0);
 
@@ -763,7 +772,7 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     await page.goto('/');
     await heroEnter(page).click();
     await expectSpine(page, 'corridor');
-    await expect(canvas(page)).toHaveAttribute('data-world', 'ready', { timeout: 30_000 }).catch(() => undefined);
+    await worldReady(page);
     await page.getByRole('button', { name: 'The Certification Office, open the door' }).focus();
     await page.keyboard.press('Enter');
     await expectSpine(page, 'threshold');
@@ -789,15 +798,35 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
   });
 
   test('crosses over the seam: the room is part-way visible for a moment, not cut in', async ({ page }) => {
-    await page.goto(OFFICE);
-    await recordHost(page);
-    await expectSpine(page, 'chamber');
-    await expect.poll(async () => (await recorded(page)).some(([opacity]) => opacity === 1), FADED_IN).toBe(true);
-    const opacities = (await recorded(page)).map(([opacity]) => opacity);
-    expect(opacities.some((o) => o > 0 && o < 1), 'a crossfade, not a cut').toBe(true);
-    // Never brighter, then dimmer: a single rise.
-    const rising = opacities.filter((o) => o > 0);
-    for (let i = 1; i < rising.length; i += 1) expect(rising[i]!).toBeGreaterThanOrEqual(rising[i - 1]! - 0.001);
+    // Freeze the native CSS timeline before loading so a slow frame cannot skip the fade.
+    const animationClock = await page.context().newCDPSession(page);
+    await animationClock.send('Animation.enable');
+    await animationClock.send('Animation.setPlaybackRate', { playbackRate: 0 });
+    try {
+      await page.goto(OFFICE);
+      await recordHost(page);
+      await expectSpine(page, 'chamber');
+      const host = page.locator('.tqw-chamber-host');
+      for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+        await host.evaluate((element, fraction) => {
+          const transition = element.getAnimations().find(animation =>
+            animation instanceof CSSTransition && animation.transitionProperty === 'opacity');
+          if (!transition?.effect) return;
+          transition.pause();
+          transition.currentTime = Number(transition.effect.getComputedTiming().duration) * fraction;
+        }, progress);
+        await frames(page);
+      }
+      await expect.poll(async () => (await recorded(page)).some(([opacity]) => opacity === 1), FADED_IN).toBe(true);
+      const opacities = (await recorded(page)).map(([opacity]) => opacity);
+      expect(opacities.some((o) => o > 0 && o < 1), 'a crossfade, not a cut').toBe(true);
+      // Never brighter, then dimmer: a single rise.
+      const rising = opacities.filter((o) => o > 0);
+      for (let i = 1; i < rising.length; i += 1) expect(rising[i]!).toBeGreaterThanOrEqual(rising[i - 1]! - 0.001);
+    } finally {
+      await animationClock.send('Animation.setPlaybackRate', { playbackRate: 1 });
+      await animationClock.detach();
+    }
   });
 
   test('under reduced motion the room comes in over the short dissolve, and is still never seen early', async ({ page }) => {
@@ -806,7 +835,7 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     const host = page.locator('.tqw-chamber-host');
     await expect(host).toHaveCount(1);
     expect(await host.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.12s');
-    await expect(host).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+    await expect(host).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(30_000) });
     await expect.poll(() => host.evaluate((el) => Number(getComputedStyle(el).opacity)), FADED_IN).toBe(1);
   });
 
@@ -822,21 +851,22 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
 // ----------------------------------------------------------------------------------- sections
 
 test.describe('the page is one column of sections', () => {
-  test('the hero, the game window, the archive, the details and the footer, in that order, each at least a viewport tall', async ({ page }) => {
+  test('the hero and game fill their viewports, then content-height archive, details and footer follow in order', async ({ page }) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     const layout = await page.evaluate(() => {
       const at = (selector: string) => {
         const r = document.querySelector(selector)!.getBoundingClientRect();
-        return { top: r.top + window.scrollY, height: r.height };
+        return { top: r.top + window.scrollY, height: r.height, minHeight: getComputedStyle(document.querySelector(selector)!).minHeight };
       };
       return { hero: at('.tqw-hero'), game: at('#game'), archive: at('#archive'), details: at('#details'), footer: at('footer.tqw-footer'), vh: window.innerHeight };
     });
     const { vh } = layout;
     expect(layout.hero.height).toBeGreaterThanOrEqual(vh - 1);
-    expect(layout.archive.height).toBeGreaterThanOrEqual(vh - 1);
-    expect(layout.details.height).toBeGreaterThanOrEqual(vh - 1);
-    expect(layout.footer.height).toBeGreaterThanOrEqual(vh - 1);
+    for (const section of [layout.archive, layout.details, layout.footer]) {
+      expect(section.minHeight).toBe('0px');
+      expect(section.height).toBeGreaterThan(0);
+    }
     // The window's section spans the hero and the smoke run; every other section follows it, edge to edge.
     expect(layout.game.top).toBe(0);
     expect(Math.abs(layout.game.height - vh * 3.5)).toBeLessThanOrEqual(1);
@@ -936,6 +966,7 @@ test.describe('the game window: resting', () => {
   test('a real wheel scrolls the page through the window and on; the camera does not walk', async ({ page }, info) => {
     test.skip(!isDesktop(info), 'a mouse wheel');
     await page.goto('/');
+    await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await page.mouse.move(720, 450);
     for (let i = 0; i < 40; i += 1) {
@@ -1012,7 +1043,7 @@ test.describe('the game window: engaging', () => {
     test.skip(!isDesktop(info), 'a mouse wheel and a keyboard');
     await engageWindow(page);
     const y = await scrollY(page);
-    const start = await pose(page);
+    const start = await settledPose(page);
     await page.mouse.move(720, 450);
     await page.mouse.wheel(0, 300);
     await expect.poll(async () => start.z - (await pose(page)).z).toBeGreaterThan(0.2);
@@ -1330,7 +1361,7 @@ test.describe('reduced motion', () => {
       const s = getComputedStyle(el);
       return { duration: s.transitionDuration, property: s.transitionProperty, colour: s.backgroundColor };
     });
-    expect(backing).toEqual({ duration: '0.12s', property: 'opacity', colour: 'rgb(21, 26, 32)' });
+    expect(backing).toEqual({ duration: '0.12s', property: 'opacity', colour: 'rgb(23, 25, 24)' });
   });
 
   test('the hero has no drift and the scrim fade is gone', async ({ page }) => {
@@ -1436,7 +1467,7 @@ test.describe('small screens and zoom', () => {
   test('the archive\'s papers are three across on a desktop, two on a phone and one at 320 px', async ({ page }, info) => {
     await page.goto('/');
     const columns = async () =>
-      page.locator('.tqw-archive__items').first().evaluate((list) => {
+      page.locator('.tqw-archive__sealed').first().evaluate((list) => {
         const lefts = [...list.children].map((c) => Math.round(c.getBoundingClientRect().left));
         const first = Math.round(list.children[0]!.getBoundingClientRect().top);
         return new Set(lefts.filter((_, i) => Math.round(list.children[i]!.getBoundingClientRect().top) === first)).size;
@@ -1460,26 +1491,28 @@ async function importArchive(page: Page, found: DiscoveryFile): Promise<void> {
   await expect(page.locator('.tqw-archive__message')).toHaveText(/Imported/);
 }
 
-const papers = (page: Page, state: 'found' | 'sealed') => page.locator(`.tqw-archive .tqw-paper[data-state="${state}"]`);
+const papers = (page: Page, state: 'found' | 'sealed') => page.locator(
+  state === 'sealed' ? '.tqw-archive__sealed-row' : '.tqw-archive .tqw-paper[data-state="found"]',
+);
 
 test.describe('the archive', () => {
   test('with nothing found: every paper is the same closed silhouette that says only "Sealed", counted in plain words, with no score', async ({ page }) => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
-    await expect(archive.getByRole('heading', { level: 3 })).toHaveText(['The Certification Office']);
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText('0 of 7 papers found.');
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(archive.getByRole('heading', { level: 3 })).toHaveText(['The Certification Office', 'The Exchange']);
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
     await expect(papers(page, 'found')).toHaveCount(0);
     const sealed = await papers(page, 'sealed').evaluateAll((els) => els.map((el) => ({ text: el.textContent, html: el.outerHTML, attrs: el.getAttributeNames().sort() })));
     expect(new Set(sealed.map((s) => s.html)).size).toBe(1);
     for (const paper of sealed) {
       expect(paper.text).toBe('Sealed');
-      expect(paper.attrs).toEqual(['class', 'data-state']);
+      expect(paper.attrs).toEqual(['class']);
     }
     // Counts, never scores: no bar, ring, meter or percentage, and no mention of secrets still hidden.
     expect(await archive.locator('progress, meter, [role="progressbar"], svg, canvas').count()).toBe(0);
-    const roomText = (await archive.locator('.tqw-archive__room').textContent()) ?? '';
+    const roomText = (await archive.locator('.tqw-archive__room').allTextContents()).join(' ');
     expect(roomText).not.toMatch(/%|secret/i);
   });
 
@@ -1493,9 +1526,9 @@ test.describe('the archive', () => {
       ],
     });
     const archive = page.locator('#archive');
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText('2 of 7 papers found. 1 secret found.');
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found. 1 secret found.', '0 of 23 papers found.']);
     await expect(papers(page, 'found')).toHaveCount(3);
-    await expect(papers(page, 'sealed')).toHaveCount(5);
+    await expect(papers(page, 'sealed')).toHaveCount(28);
     await expect(papers(page, 'found').first().locator('.tqw-paper__title')).toHaveText('A paper');
     // Nothing of what was imported is shown but what the visitor can already name: no ids.
     expect((await archive.textContent()) ?? '').not.toMatch(/memo-a|secret-a/);
@@ -1550,15 +1583,15 @@ test.describe('the archive', () => {
     await dialog.getByRole('button', { name: 'Forget everything' }).click();
     await expect(dialog).toBeHidden();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Forgotten. This device remembers nothing.');
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText('0 of 7 papers found.');
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
   });
 
   test('the Forget dialog is a dialog: Escape closing it does not release the game window', async ({ page }) => {
     await engageWindow(page);
     // Pressed in place: scrolling the held page to the button would be the visitor leaving the window.
-    await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('.tqw-archive__action')].find((b) => b.textContent === 'Forget everything')!.click());
+    await page.locator('#archive').getByRole('button', { name: 'Forget everything', exact: true }).evaluate((button) => (button as HTMLButtonElement).click());
     const dialog = page.getByRole('dialog', { name: 'Forget everything?' });
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
@@ -1570,23 +1603,24 @@ test.describe('the archive', () => {
 // ----------------------------------------------------------------------------------- details and footer
 
 test.describe('the details and the footer', () => {
-  test('the details say what UNHELD is, how it grows, how to contribute and what stays on the device, and link the pages', async ({ page }) => {
+  test('the details say what UNHELD is, how it grows, how to contribute and what stays on the device, and link the contribution guide', async ({ page }) => {
     await page.goto('/');
     const details = page.locator('#details');
     await expect(details.getByRole('heading', { level: 2 })).toHaveText('What UNHELD is, and how it grows');
     await expect(details.getByRole('heading', { level: 3 })).toHaveText(['How it grows', 'How to contribute', 'What stays on your device']);
-    await details.getByRole('link', { name: 'Privacy' }).click();
+    await expect(details.getByRole('link', { name: 'Read the contribution guide' })).toHaveAttribute('href',
+      'https://github.com/quietworkscollective/the-quiet-works/blob/main/docs/commons/AGENT_DOSSIER.md');
+    await expect(details.getByRole('link')).toHaveCount(1);
+    await page.locator('footer.tqw-footer').getByRole('link', { name: 'Privacy' }).click();
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByRole('dialog', { name: 'Privacy' })).toBeVisible();
   });
 
-  test('the footer repeats the menu, links About, Credits, Privacy and Licences, and signs the copyright', async ({ page }, info) => {
+  test('the footer is a colophon without a detached menu, links About, Credits, Privacy and Licences, and signs the copyright', async ({ page }) => {
     await page.goto('/');
     const footer = page.locator('footer.tqw-footer');
-    await expect(footer.getByRole('navigation', { name: 'Footer menu' }).locator('.tqw-menu__item:visible')).toHaveText(
-      isDesktop(info) ? ['Notice board', 'About', 'Menu'] : ['Menu'],
-    );
-    await expect(footer.getByRole('navigation', { name: 'Footer links' }).getByRole('link')).toHaveText(['About', 'Credits', 'Privacy', 'Licences']);
+    await expect(footer.getByRole('navigation', { name: 'Footer menu' })).toHaveCount(0);
+    await expect(footer.getByRole('navigation', { name: 'Footer links' }).getByRole('link')).toHaveText(['About', 'Credits', 'Privacy', 'Agents', 'Licences']);
     await expect(footer.getByRole('link', { name: 'Licences' })).toHaveAttribute('href', '/third-party-notices.txt');
     await expect(footer).toContainText('© 2026 Siri (Asiri) Dalugoda');
     expect(await footer.locator('.tqw-footer__trivia').count()).toBe(0);
@@ -1717,7 +1751,7 @@ test.describe('what the page stores and sends', () => {
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'memo-b', kind: 'memo' }] });
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(2);
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText('2 of 7 papers found.');
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found.', '0 of 23 papers found.']);
     await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
   });
 
@@ -1730,14 +1764,14 @@ test.describe('what the page stores and sends', () => {
     expect(await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)])).toEqual([]);
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
   });
 
   test('a damaged key is ignored and the page still loads with an empty archive', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('unheld.v1', '{"version":9,"found":'));
     await page.goto('/');
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(30);
   });
 
   test('a browser that refuses storage still gets a working archive for the visit', async ({ page }) => {

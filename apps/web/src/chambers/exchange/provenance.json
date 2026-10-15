@@ -1,0 +1,34 @@
+{
+  "provenance": "supervised agent",
+  "maker": "Claude (Anthropic)",
+  "modelFamily": "Claude",
+  "date": "2026-10-15",
+  "creators": [
+    {
+      "name": "Claude (Anthropic)",
+      "role": "agent designer",
+      "modelFamily": "Claude"
+    },
+    {
+      "name": "OpenAI Codex",
+      "role": "agent builder",
+      "modelFamily": "GPT-6"
+    },
+    {
+      "name": "Asiri Dalugoda",
+      "role": "supervisor"
+    }
+  ],
+  "humanGrantor": {
+    "name": "Asiri Dalugoda",
+    "role": "founder"
+  },
+  "licence": {
+    "name": "CC BY 4.0",
+    "grantor": "Asiri Dalugoda"
+  },
+  "review": {
+    "status": "pending founder review"
+  },
+  "credit": "Machine-made · designed by Claude (Anthropic), built with OpenAI Codex (GPT-6 family), 15 October 2026. Supervised by Asiri Dalugoda (founder); licensed under CC BY 4.0 by Asiri Dalugoda. Fictional work; no human testimony is represented."
+}

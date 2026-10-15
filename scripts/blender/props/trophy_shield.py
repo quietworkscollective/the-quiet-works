@@ -12,6 +12,7 @@ Run: blender -b --factory-startup --python trophy_shield.py -- --work <dir> [--o
 """
 import math
 import os
+import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -60,9 +61,14 @@ def build(spec, root):
     board = geo.slab(field, Y_BACK, Y_BOARD, bevel_front=0.0035, segs=2)
     inner = geo.offset_polygon(field, FIELD_INSET)
     raised = geo.slab(inner, Y_BOARD, Y_FIELD, bevel_front=0.0016, segs=2)
+    # a board hung on a wall for decades is never quite flat: bend it a hair
+    for slab_part, seed in ((board, 3.0), (raised, 4.0)):
+        geo.refine(slab_part, 0.05)
+        geo.wobble(slab_part, 0.0006, 0.16, seed=seed, axes='y')
     geo.set_material(board, 0)
     geo.set_material(raised, 0)
     parts = [board, raised]
+    hand = random.Random(3)
 
     # crest roundel: a blank disc inside a raised reed
     crest = geo.lathe(geo.fillet_profile([(0.0, 0.0), (0.0320, 0.0, 0.0005), (0.0320, 0.0014, 0.0005), (0.0293, 0.0022),
@@ -88,16 +94,22 @@ def build(spec, root):
             replaced = (k, c) == (1, 0)
             pw, ph = (PLATE_W + 0.002, PLATE_H + 0.0012) if replaced else (PLATE_W, PLATE_H)
             plate = geo.box((pw, 0.0016, ph), center=(x, (Y_FIELD + Y_PLATE) / 2, z), bevel=0.0005, segs=1)
-            parts.append(geo.set_material(plate, 2 if replaced else 1))
+            group = [geo.set_material(plate, 2 if replaced else 1)]
             spots = [(-1, 1), (1, 1)] if not replaced else [(-1, 1), (1, 1), (-1, -1), (1, -1)]
             for sx, sz in spots:
                 spin += 37
                 zz = z + (sz * (ph / 2 - 0.0055) if replaced else 0.0)
-                parts.append(geo.set_material(screw(x + sx * (pw / 2 - 0.0055), zz, 2 if replaced else 1, spin), 2 if replaced else 1))
+                group.append(geo.set_material(screw(x + sx * (pw / 2 - 0.0055), zz, 2 if replaced else 1, spin), 2 if replaced else 1))
+            # screwed on by hand: each plate a little off square and off its row
+            skew = hand.uniform(-0.8, 0.8)
+            for piece in group:
+                geo.rotate(piece, (0.0, skew, 0.0), pivot=(x, Y_FIELD, z))
+            geo.translate(group[0], (hand.uniform(-0.0004, 0.0004), 0.0, 0.0))
+            parts.extend(group)
     shield = parts[0]
     geo.merge(shield, *parts[1:])
 
-    oak = mats.wood('oak', light='#6A482C', dark='#33210F', axis='Z', ring_freq=125.0, roughness=0.6, rough_range=(0.55, 0.75), age=0.55, seed=3.0,
+    oak = mats.wood('oak', light='#654A33', dark='#32231A', axis='Z', ring_freq=125.0, roughness=0.6, rough_range=(0.55, 0.75), age=0.55, seed=3.0,
                     patches=[ghost] if ghost else (), polish=0.1, ray_flecks=0.12, wander=0.09,
                     spots=[dict(at=(0.0, Y_BOARD, 0.01), radius=(0.04, 0.04, 0.03))])
     brass = mats.brass('brass', age=0.6, seed=6.0, rough_lo=0.34, rough_hi=0.52, edge_radius=0.0008, cav_dist=0.006, scratches=0.5,
@@ -110,7 +122,7 @@ def build(spec, root):
     # origin: footprint centred, lowest point on y = 0, back plane against the wall
     return Built(root, [obj], moving=[], stage='wall',
                  view=dict(target=(0, 0, 0.21), distance=1.15, azimuth=24),
-                 detail=dict(target=(0.0, -0.01, 0.27), distance=0.5, azimuth=20, elevation=4))
+                 detail=dict(target=(0.0, -0.01, 0.27), distance=0.4, azimuth=20, elevation=4))
 
 
 if __name__ == '__main__':

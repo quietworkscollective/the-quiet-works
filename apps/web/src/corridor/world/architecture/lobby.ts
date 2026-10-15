@@ -1,5 +1,5 @@
 import { Matrix4 } from 'three';
-import { box, breaks, grid, quad, type Style } from '../builder.ts';
+import { box, breaks, grid, type Style } from '../builder.ts';
 import { placeLocal, type Buckets } from '../buckets.ts';
 import { CORRIDOR, LOBBY } from '../../layout.ts';
 import { darkness, type DarknessOptions } from '../darkness.ts';
@@ -7,10 +7,9 @@ import { LOBBY_SCONCES } from '../lighting.ts';
 import { bayOffset, cornerShade } from '../shading.ts';
 import { TILE } from '../tiles.ts';
 import { buildOpeningFrame, type OpeningStyles } from '../doorKit/opening.ts';
-import { ENTRANCE_DOORS, INNER_DOORS } from '../doorKit/lobbyDoors.ts';
-import { holeFor } from '../doorKit/plan.ts';
+import { INNER_DOORS } from '../doorKit/lobbyDoors.ts';
 import { FRAME } from '../openings.ts';
-import { CEILING_TINT, CORRIDOR_START_Z, END_WALL_THICKNESS } from './corridor.ts';
+import { CEILING_TINT, END_WALL_THICKNESS } from './corridor.ts';
 import { buildLobbyFloor } from './floor.ts';
 import { buildWallRun } from './run.ts';
 import { LOBBY_BEAMS, LOBBY_WINDOW, PENDANTS } from './lobbyPlan.ts';
@@ -19,8 +18,8 @@ import { cornice, wallGrid, type WallFrame } from './wall.ts';
 /**
  * The entrance lobby (5 m wide, 4.2 m high, from z = 7.2 to the inner doors at z = 1): the same
  * building as the corridor, with the same oak and plaster, at a more formal scale. The end wall
- * carries the open inner doors and the lettering over them; the back wall carries the entrance
- * doors, closed, behind the visitor.
+ * carries the open inner doors and the lettering over them. The rear wall and entrance doors sit
+ * behind the visitor, outside the 180-degree stage.
  */
 
 export const LOBBY_ZONE = {
@@ -30,9 +29,8 @@ export const LOBBY_ZONE = {
   zFar: LOBBY.startZ,
 } as const;
 
-/** The opening in the end wall that frames the corridor, and the entrance in the back wall. */
+/** The opening in the end wall that frames the corridor. */
 export const INNER_OPENING = { width: INNER_DOORS.width, height: INNER_DOORS.height } as const;
-export const ENTRANCE_OPENING = holeFor(ENTRANCE_DOORS);
 
 export const LOBBY_CORNICE = { projection: 0.2, height: 0.36 } as const;
 
@@ -42,12 +40,10 @@ export const LOBBY_FRAMES = {
   left: { normal: [1, 0, 0], along: [0, 0, 1], origin: [-HW, 0, 0] },
   right: { normal: [-1, 0, 0], along: [0, 0, 1], origin: [HW, 0, 0] },
   end: { normal: [0, 0, 1], along: [1, 0, 0], origin: [0, 0, LOBBY_ZONE.zNear] },
-  back: { normal: [0, 0, -1], along: [1, 0, 0], origin: [0, 0, LOBBY_ZONE.zFar] },
 } as const satisfies Record<string, WallFrame>;
 
-/** Door-local to world for the end wall (the inner doors) and the back wall (the entrance). */
+/** Door-local to world for the end wall (the inner doors). */
 export const END_WALL_MATRIX = new Matrix4().makeTranslation(0, 0, LOBBY_ZONE.zNear);
-export const BACK_WALL_MATRIX = new Matrix4().makeRotationY(Math.PI).setPosition(0, 0, LOBBY_ZONE.zFar);
 
 /** How far the lobby's corners and upper walls fall into the dark (darkness.ts): gentler than the corridor's. */
 export const LOBBY_DARKNESS = { radius: 2.7, floor: 0.42, fallFrom: 2.7, ceilingValue: 0.48 } as const;
@@ -111,26 +107,11 @@ export function buildLobby(b: Buckets, styles: OpeningStyles): void {
   const lintelYs = [headY, headY + 0.25, LOBBY_ZONE.height - 0.8, LOBBY_ZONE.height - 0.5, LOBBY_ZONE.height - 0.2, LOBBY_ZONE.height];
   wallGrid(b.plaster, LOBBY_FRAMES.end, 0, [-innerGap, innerGap], lintelYs, { shade: wallShade, uv: { du: 0.4, dv: 0.2 } });
 
-  // Back wall: a run each side of the entrance, plaster over it.
-  const entranceGap = ENTRANCE_OPENING.width / 2 + FRAME.architrave;
-  runFor('back', -HW, -entranceGap, 4);
-  runFor('back', entranceGap, HW, 5);
-  const entranceHead = ENTRANCE_OPENING.height + FRAME.architrave;
-  wallGrid(
-    b.plaster,
-    LOBBY_FRAMES.back,
-    0,
-    [-entranceGap, entranceGap],
-    [entranceHead, entranceHead + 0.25, LOBBY_ZONE.height - 0.6, LOBBY_ZONE.height],
-    { shade: wallShade, uv: { du: 0.9, dv: 0.5 } },
-  );
-
   // Cornice all round.
   const corniceStyle: Style = { colour: CEILING_TINT, shade: wallShade };
   cornice(b.plaster, LOBBY_FRAMES.left, [LOBBY_ZONE.zNear, LOBBY_ZONE.zFar], LOBBY_ZONE.height, LOBBY_CORNICE, corniceStyle, 12);
   cornice(b.plaster, LOBBY_FRAMES.right, [LOBBY_ZONE.zNear, LOBBY_ZONE.zFar], LOBBY_ZONE.height, LOBBY_CORNICE, corniceStyle, 12);
   cornice(b.plaster, LOBBY_FRAMES.end, [-HW, HW], LOBBY_ZONE.height, LOBBY_CORNICE, corniceStyle, 12);
-  cornice(b.plaster, LOBBY_FRAMES.back, [-HW, HW], LOBBY_ZONE.height, LOBBY_CORNICE, corniceStyle, 12);
 
   // Ceiling with two shallow beams across it.
   const ceilStyle: Style = { colour: CEILING_TINT, shade: wallShade, uv: { du: 0.3, dv: 0.6 } };
@@ -142,23 +123,8 @@ export function buildLobby(b: Buckets, styles: OpeningStyles): void {
     box(b.plaster, [0, LOBBY_ZONE.height - 0.11, z], [2 * HW - 0.02, 0.22, 0.36], 0.005, { colour: CEILING_TINT, shade: wallShade, uv: { du: 0.2, dv: 0.9 } }, ['+y']);
   }
 
-  // The inner opening's reveal (the end wall's thickness) and its architrave on the lobby face;
-  // the entrance's lining and architrave on the back wall.
+  // The inner opening's reveal (the end wall's thickness) and its architrave on the lobby face.
   placeLocal(b, END_WALL_MATRIX, (local) =>
     buildOpeningFrame(local, INNER_OPENING, { reveal: END_WALL_THICKNESS, plasterReveal: true, lining: 0, backed: false }, styles),
   );
-  placeLocal(b, BACK_WALL_MATRIX, (local) =>
-    buildOpeningFrame(local, ENTRANCE_OPENING, { reveal: 0.3, plasterReveal: false, lining: 0.035, backed: true }, styles),
-  );
-
-  // The end wall's corridor face, seen when the visitor looks back from inside the corridor:
-  // a return either side of the opening and a bulkhead over it, down to the lobby's lower head.
-  const zc = CORRIDOR_START_Z;
-  const ch = CORRIDOR.height;
-  const cw = CORRIDOR.width / 2;
-  const jamb = INNER_OPENING.width / 2;
-  const face: Style = { uv: { du: 0.2, dv: 0.4 } };
-  quad(b.plaster, [-cw, 0, zc], [-jamb, 0, zc], [-jamb, ch, zc], [-cw, ch, zc], face, [0, 0, -1]);
-  quad(b.plaster, [jamb, 0, zc], [cw, 0, zc], [cw, ch, zc], [jamb, ch, zc], face, [0, 0, -1]);
-  quad(b.plaster, [-jamb, INNER_OPENING.height, zc], [jamb, INNER_OPENING.height, zc], [jamb, ch, zc], [-jamb, ch, zc], face, [0, 0, -1]);
 }

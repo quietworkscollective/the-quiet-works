@@ -46,7 +46,7 @@ def build(spec, root):
     obj = kit.add_part(root, 'plinth', body, [wood, baize, plate], sharp_deg=30)
     return Built(root, [obj], moving=[], stage='shelf',
                  view=dict(target=(0, 0, 0.03), distance=0.8, azimuth=28),
-                 detail=dict(target=(0.0, 0.0, 0.035), distance=0.3, azimuth=20, elevation=22))
+                 detail=dict(target=(0.0, 0.0, 0.035), distance=0.4, azimuth=20, elevation=22))
 
 
 if __name__ == '__main__':

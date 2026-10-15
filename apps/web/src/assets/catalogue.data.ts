@@ -896,16 +896,16 @@ export const CATALOGUE_DATA: readonly CatalogueEntry[] = [
       "wood",
       "initial-corridor"
     ],
-    "texelsPerMetre": 560,
+    "texelsPerMetre": 280,
     "tileMetres": 1.83,
     "maps": {
       "albedo": true,
       "normal": true,
       "orm": true
     },
-    "textureBytes": 83462,
-    "textureMemoryBytes": 7340031,
-    "compressedBytes": 83462
+    "textureBytes": 42514,
+    "textureMemoryBytes": 3145727,
+    "compressedBytes": 42514
   },
   {
     "id": "terrazzo",
@@ -918,16 +918,16 @@ export const CATALOGUE_DATA: readonly CatalogueEntry[] = [
       "stone",
       "initial-corridor"
     ],
-    "texelsPerMetre": 853,
+    "texelsPerMetre": 427,
     "tileMetres": 1.2,
     "maps": {
       "albedo": true,
       "normal": true,
       "orm": true
     },
-    "textureBytes": 261534,
-    "textureMemoryBytes": 7340031,
-    "compressedBytes": 261534
+    "textureBytes": 112878,
+    "textureMemoryBytes": 3145727,
+    "compressedBytes": 112878
   },
   {
     "id": "concrete",
@@ -1031,16 +1031,16 @@ export const CATALOGUE_DATA: readonly CatalogueEntry[] = [
       "office",
       "wood"
     ],
-    "texelsPerMetre": 1024,
+    "texelsPerMetre": 512,
     "tileMetres": 1,
     "maps": {
       "albedo": true,
       "normal": true,
       "orm": true
     },
-    "textureBytes": 130066,
-    "textureMemoryBytes": 7340031,
-    "compressedBytes": 130066
+    "textureBytes": 63766,
+    "textureMemoryBytes": 3145727,
+    "compressedBytes": 63766
   },
   {
     "id": "felt",

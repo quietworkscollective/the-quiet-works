@@ -1,4 +1,5 @@
 import { OFFICE_PRESS_TIMING, type CertificationStore, type Cue, type MachineLine, type MemoSource } from '@tqw/engine';
+import { beatDuration } from './beatMotion.ts';
 import { TIMING } from '../../../timing.ts';
 
 /**
@@ -68,6 +69,10 @@ export class Director {
   private printEnd = 0;
   private overloadAt = 0;
   private invalidateFn: (() => void) | null = null;
+  private response: { step: number; readyAt: number; generation: number } | null = null;
+  private responseWake: ReturnType<typeof setTimeout> | null = null;
+  private generation = 0;
+  private frameStartedAt = 0;
 
   constructor(private readonly store: CertificationStore) {}
 
@@ -79,12 +84,41 @@ export class Director {
   /** Start listening to the store. Returns the cleanup. */
   attach(): () => void {
     this.detach?.();
+    const state = this.store.getState();
+    if (state.processing && !state.pressing) this.response = { step: state.stamps, readyAt: 0, generation: this.generation };
     const off = this.store.onCue((cue) => this.handle(cue, performance.now()));
     this.detach = () => {
       off();
+      this.cancelResponse();
       this.detach = null;
     };
     return this.detach;
+  }
+
+  /** A clock deadline requests a frame; only the completed draw may release the idle clock. */
+  beginFrame(now: number): void { this.frameStartedAt = now; }
+
+  afterFrame(): void {
+    const response = this.response;
+    if (!response || this.frameStartedAt < response.readyAt) return;
+    this.response = null;
+    if (this.responseWake !== null) clearTimeout(this.responseWake);
+    this.responseWake = null;
+    queueMicrotask(() => {
+      if (response.generation === this.generation) this.store.dispatch({ type: 'RESPONSE_SETTLED', step: response.step });
+    });
+  }
+
+  private cancelResponse(): void {
+    this.generation++;
+    this.response = null;
+    if (this.responseWake !== null) clearTimeout(this.responseWake);
+    this.responseWake = null;
+  }
+
+  private wakeForResponse(now: number): void {
+    if (this.responseWake !== null) clearTimeout(this.responseWake);
+    if (this.response) this.responseWake = setTimeout(() => { this.responseWake = null; this.invalidateFn?.(); }, Math.max(0, this.response.readyAt - now));
   }
 
   subscribe(listener: DirectorListener): () => void {
@@ -102,6 +136,7 @@ export class Director {
   private handle(cue: Cue, now: number): void {
     switch (cue.type) {
       case 'contact': {
+        this.cancelResponse();
         this.contactCueAt = now;
         this.emit({ type: 'contact', at: now, touchAt: now + OFFICE_PRESS_TIMING.contactMs });
         return;
@@ -115,11 +150,15 @@ export class Director {
       case 'reply': {
         const printAt = this.liftAt + TIMING.replyDelayMs;
         this.printEnd = printAt + TIMING.printMs;
+        this.response = { step: cue.step, readyAt: Math.max(this.printEnd, printAt + beatDuration(cue.step)), generation: this.generation };
+        this.wakeForResponse(now);
         this.emit({ type: 'reply', step: cue.step, line: cue.line, printAt, printEnd: this.printEnd });
         return;
       }
       case 'overload': {
         this.overloadAt = this.printEnd;
+        if (this.response) this.response.readyAt = Math.max(this.response.readyAt, this.overloadAt + TIMING.overloadMs - TIMING.printMs + TIMING.memoAfterLandMs + TIMING.memoSlideMs);
+        this.wakeForResponse(now);
         this.emit({ type: 'overload', at: this.overloadAt });
         return;
       }
@@ -147,6 +186,7 @@ export class Director {
         return;
       }
       case 'reset': {
+        this.cancelResponse();
         this.contactCueAt = Number.NEGATIVE_INFINITY;
         this.liftAt = Number.NEGATIVE_INFINITY;
         this.printEnd = 0;

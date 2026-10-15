@@ -12,8 +12,9 @@
  *  - a code file references a remote http(s), ws(s) or ftp URL that is not on the
  *    explicit allowlist below (AGENTS.md #4 and the strict CSP: nothing is fetched from
  *    another origin);
- *  - the build, excluding source maps, exceeds the 8 MB default initial-scene budget
- *    (docs/DESIGN.md §8). Exceeding the 3 MB low-bandwidth target is a warning.
+ *  - the first-visit graph exceeds 3 MB compressed, gramophone records exceed their dedicated
+ *    raw-byte cap, or the whole build exceeds its 36 MB backstop (docs/DESIGN.md §8).
+ *  - expanded room routes above 3 MB compressed are reported as warnings pending the lead's ruling.
  *
  * Plain Node ESM with no dependencies. `--verbose` also lists every allowlisted URL found
  * and every distinct host referenced from source maps.
@@ -22,6 +23,15 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import {
+  INITIAL_DOWNLOAD_BUDGET_BYTES,
+  ROOM_ROUTE_BUDGET_BYTES,
+  SHARED_MEDIA_BUDGET_BYTES,
+  WHOLE_BUILD_BUDGET_BYTES,
+  budgetWarnings,
+  budgetViolations,
+  measureAssetBudgets,
+} from './asset-budgets.mjs';
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = path.resolve(PACKAGE_DIR, '..', '..');
@@ -29,12 +39,8 @@ const DIST_DIR = path.join(PACKAGE_DIR, 'dist');
 const MANIFEST_PATH = path.join(PACKAGE_DIR, 'scripts', 'assets.manifest.json');
 const VERBOSE = process.argv.includes('--verbose');
 
-/** Megabytes here are 10^6 bytes, the stricter reading of the blueprint's "MB". */
-const BUDGET_FAIL_BYTES = 8_000_000;
-const BUDGET_WARN_BYTES = 3_000_000;
-
 /** Text files the audit scans for remote URLs. `_headers` and `_redirects` are Cloudflare static-asset files. */
-const CODE_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.css', '.html', '.htm', '.json', '.webmanifest', '.txt', '.xml']);
+const CODE_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.css', '.html', '.htm', '.json', '.webmanifest', '.txt', '.xml', '.md']);
 const CODE_FILE_NAMES = new Set(['_headers', '_redirects']);
 const SOURCE_MAP_EXTENSION = '.map';
 
@@ -49,7 +55,7 @@ const REQUIRED_NOTICE_PACKAGES = ['react', 'react-dom', 'scheduler', 'three', '@
 const MEDIA_EXTENSIONS = new Set([
   '.woff', '.woff2', '.ttf', '.otf',
   '.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.svg',
-  '.mp3', '.ogg', '.opus', '.wav', '.m4a',
+  '.mp3', '.ogg', '.opus', '.wav', '.m4a', '.webm',
   '.glb', '.gltf', '.ktx2', '.bin',
 ]);
 
@@ -67,6 +73,8 @@ const LICENCE_EXPECTATIONS = {
   'Apache-2.0': [/Apache License/i, /Version 2\.0/i],
   'CC0-1.0': [/CC0 1\.0 Universal/i],
   'CC-BY-4.0': [/Attribution 4\.0 International/i],
+  // Recordings their performers dedicated to the public domain; the text on file quotes the dedication.
+  'LicenseRef-Public-Domain': [/released into the public domain/i],
 };
 
 /**
@@ -77,6 +85,10 @@ const LICENCE_EXPECTATIONS = {
  */
 const URL_ALLOWLIST = [
   {
+    url: 'https://github.com/quietworkscollective/the-quiet-works/blob/main/docs/commons/AGENT_DOSSIER.md',
+    reason: 'Contribution guidance link in Details; navigation only, never fetched.',
+  },
+  {
     url: 'https://dalugoda.com/',
     reason: 'author link; navigation only, never fetched',
   },
@@ -84,6 +96,18 @@ const URL_ALLOWLIST = [
     url: 'https://unheld.space/',
     reason: 'Canonical site URL: <link rel="canonical"> and og:url in index.html, and the SITE constant in the app bundle. Metadata and display text, never fetched.',
   },
+  { url: 'https://unheld.space/llms.txt', reason: 'Link to the static language-model index from route metadata; not fetched by the site.' },
+  { url: 'https://unheld.space/llms-full.txt', reason: 'Link to the combined static Markdown text index; navigation only, never fetched by the site.' },
+  { url: 'https://unheld.space/skill.md', reason: 'Public agent onboarding context linked from the Agents page and Markdown pages; navigation only.' },
+  { url: 'https://unheld.space/?mode=text', reason: 'Link to the visitor-facing text mode from Markdown pages and agent onboarding; navigation only.' },
+  { url: 'https://unheld.space/sitemap.xml', reason: 'Public sitemap address in robots.txt; metadata only, not fetched by the site.' },
+  { url: 'https://unheld.space/poster-hero-1440x900.webp', reason: 'Static Open Graph and X card image from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/#website', reason: 'Schema.org JSON-LD identifier for the website; metadata only, not fetched by the site.' },
+  { url: 'https://unheld.space/#the-quiet-works', reason: 'Schema.org JSON-LD identifier for the artwork; metadata only, not fetched by the site.' },
+  { url: 'https://schema.org', reason: 'JSON-LD vocabulary identifier; metadata only, not fetched by the site.' },
+  { url: 'http://www.sitemaps.org/schemas/sitemap/0.9', reason: 'XML namespace identifier in the sitemap; metadata only, never fetched by the site.' },
+  { url: 'https://github.com/quietworkscollective/the-quiet-works/issues/new?template=room-proposal.yml', reason: 'Public GitHub room-proposal route linked from the Agents page and agent skill.' },
+  { url: 'https://github.com/quietworkscollective/the-quiet-works/blob/main/.github/PULL_REQUEST_TEMPLATE/commons-contribution.md', reason: 'Public GitHub manifest template linked from the Agents page and agent skill.' },
   {
     url: 'http://www.w3.org/2000/svg',
     reason: 'SVG namespace identifier passed to createElementNS by React DOM. An identifier, never fetched.',
@@ -150,6 +174,25 @@ if (existsSync(THIRD_PARTY_CATALOGUE)) {
       url: asset.source,
       reason: `Source page of the third-party asset "${asset.id}" (${asset.title}), linked from the Credits page. Navigation only, never fetched.`,
     });
+  }
+}
+
+// Static canonical URLs and their Markdown alternatives are emitted from PUBLIC_ROUTES. The
+// sitemap is the build artifact listing those routes; keeping this allowlist derived from it
+// means the audit follows the same public route set without permitting arbitrary remote hosts.
+const SITEMAP_PATH = path.join(PACKAGE_DIR, 'public', 'sitemap.xml');
+if (existsSync(SITEMAP_PATH)) {
+  const sitemap = readFileSync(SITEMAP_PATH, 'utf8');
+  for (const [, location] of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    const canonical = new URL(location);
+    const pathname = canonical.pathname;
+    const markdown = pathname === '/' ? '/index.md' : `${pathname}.md`;
+    for (const url of [location, `${location}#webpage`, new URL(markdown, canonical).toString()]) {
+      URL_ALLOWLIST.push({
+        url,
+        reason: 'Per-route canonical, structured metadata, or Markdown alternative listed by the static sitemap; never fetched by the site.',
+      });
+    }
   }
 }
 
@@ -338,7 +381,10 @@ function checkNotices(entries) {
   }
   const text = readFileSync(noticesPath, 'utf8');
   const sections = new Set([...text.matchAll(/^=== (\S+) /gm)].map((match) => match[1]));
-  const required = new Set([...REQUIRED_NOTICE_PACKAGES, ...entries.filter((e) => e.source && e.source !== 'in-repo' && e.used > 0).map((e) => e.source)]);
+  // A third-party file committed to this repository (`third-party:<provider>`) is not an npm package: its licence text
+  // is in LICENSES/ and its credit in the manifest and the asset library's own notice, not in this file.
+  const isPackage = (source) => source && source !== 'in-repo' && !THIRD_PARTY_SOURCE.test(source);
+  const required = new Set([...REQUIRED_NOTICE_PACKAGES, ...entries.filter((e) => isPackage(e.source) && e.used > 0).map((e) => e.source)]);
   for (const name of required) {
     if (!sections.has(name)) violations.push(`${NOTICES_FILE} has no notice section for ${name}`);
   }
@@ -427,13 +473,16 @@ function main() {
   for (const entry of entries) {
     if (entry.used === 0) warnings.push(`manifest entry "${entry.name}" matches no shipped file (stale, or the font is no longer imported)`);
   }
-  if (totalBytes > BUDGET_FAIL_BYTES) {
-    violations.push(`dist is ${formatBytes(totalBytes)} excluding source maps; the default initial-scene budget is ${formatBytes(BUDGET_FAIL_BYTES)}`);
-  } else if (totalBytes > BUDGET_WARN_BYTES) {
-    warnings.push(`dist is ${formatBytes(totalBytes)} excluding source maps; the low-bandwidth target is ${formatBytes(BUDGET_WARN_BYTES)}`);
+  let budgets;
+  try {
+    budgets = measureAssetBudgets(DIST_DIR);
+    violations.push(...budgetViolations(budgets));
+    warnings.push(...budgetWarnings(budgets));
+  } catch (error) {
+    violations.push(`download budget graph could not be measured: ${error.message}`);
   }
 
-  report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalBytes, totalGzipBytes, codeUrlOccurrences, fileCount: files.length });
+  report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalBytes, totalGzipBytes, budgets, codeUrlOccurrences, fileCount: files.length });
 }
 
 function printTable(rows, header) {
@@ -445,7 +494,7 @@ function printTable(rows, header) {
   }
 }
 
-function report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalBytes, totalGzipBytes, codeUrlOccurrences, fileCount }) {
+function report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalBytes, totalGzipBytes, budgets, codeUrlOccurrences, fileCount }) {
   console.log(`audit:assets  ${path.relative(REPO_ROOT, DIST_DIR)}  (${fileCount} files)`);
 
   console.log(`\nMedia files (${mediaRows.length})`);
@@ -475,8 +524,16 @@ function report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalB
     for (const [host, count] of [...mapHosts].sort((a, b) => b[1] - a[1])) console.log(`    ${host}  ${count}`);
   }
 
-  console.log('\nBudget (dist excluding .map)');
-  console.log(`  ${formatBytes(totalBytes)} raw, ${formatBytes(totalGzipBytes)} gzipped; limit ${formatBytes(BUDGET_FAIL_BYTES)}, low-bandwidth target ${formatBytes(BUDGET_WARN_BYTES)}`);
+  console.log('\nDownload budgets (source maps excluded)');
+  if (budgets) {
+    console.log(`  first visit landing/corridor: ${formatBytes(budgets.initialGzipBytes)} gzip across ${budgets.initialFiles.size} files; limit ${formatBytes(INITIAL_DOWNLOAD_BUDGET_BYTES)}`);
+    for (const route of budgets.roomRoutes) {
+      console.log(`  ${route.label} expanded lazy route: ${formatBytes(route.gzipBytes)} gzip across ${route.files.size} new files; target ${formatBytes(ROOM_ROUTE_BUDGET_BYTES)}`);
+    }
+    console.log(`  shared gramophone records: ${formatBytes(budgets.sharedMediaBytes)} raw across ${budgets.sharedMediaFiles.size} files; limit ${formatBytes(SHARED_MEDIA_BUDGET_BYTES)}`);
+    console.log(`  whole build backstop: ${formatBytes(budgets.totalBytes)} raw; limit ${formatBytes(WHOLE_BUILD_BUDGET_BYTES)}`);
+  }
+  console.log(`  all shipped files: ${formatBytes(totalBytes)} raw, ${formatBytes(totalGzipBytes)} gzipped`);
 
   if (warnings.length > 0) {
     console.log(`\nWarnings (${warnings.length})`);

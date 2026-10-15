@@ -33,7 +33,8 @@ export type SignatureId =
   | 'stout-pull'
   | 'biscuit-tin'
   | 'fleurons'
-  | 'finger-plate';
+  | 'finger-plate'
+  | 'enamel-repair-tab';
 
 export interface Look {
   roles: Partial<Record<Role, Hue>>;
@@ -44,12 +45,13 @@ export interface Look {
 
 const L = (look: Look): Look => look;
 
-/** Keyed by door key: the four chambers, then the nine authored blank doors. */
+/** Keyed by door key: the open chambers, then the authored blank doors. */
 export const LOOKS: Readonly<Record<string, Look>> = {
   'certification-office': L({ roles: { frame: 'secondary', panel: 'primary', bar: 'secondary' }, signature: 'old-plaque-ghost' }),
   apartment: L({ roles: { stile: 'primary', rail: 'primary', panel: 'primary', bead: 'secondary', kick: 'secondary' }, signature: 'butterfly-keys', pot: 'fern' }),
   'tomorrow-engine': L({ roles: { frame: 'secondary', panel: 'primary', bar: 'secondary' }, signature: 'leather-grip' }),
   'great-atrium': L({ roles: { stile: 'primary', rail: 'primary', panel: 'primary', bead: 'secondary', bar: 'secondary', kick: 'faded' }, signature: 'brass-kick-plates' }),
+  'outline-room': L({ roles: { frame: 'secondary', panel: 'primary', bar: 'secondary' }, signature: 'enamel-repair-tab' }),
   'blank-0L': L({ roles: { stile: 'primary', rail: 'primary', panel: 'primary', bead: 'secondary', kick: 'fresh' }, signature: 'ghost-number' }),
   'blank-0R': L({ roles: { stile: 'primary', rail: 'primary', panel: 'primary', bead: 'secondary', bar: 'secondary' }, signature: 'cylinder-latch' }),
   'blank-1L': L({ roles: { frame: 'secondary', panel: 'primary', bar: 'secondary' }, signature: 'patch-plate' }),

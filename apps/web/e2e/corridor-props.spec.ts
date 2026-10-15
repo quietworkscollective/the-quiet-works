@@ -12,8 +12,11 @@ import { door, expectSpine, site } from './helpers.ts';
  * (corridor-world.spec.ts): the props draw only when a frame is drawn for some other reason.
  */
 
-/** Messages that are not the app's: fiber's deprecated THREE.Clock and Chromium's one GL driver hint per process. */
-const isKnownNoise = (text: string): boolean => text.includes('THREE.Clock') || text.includes('GL Driver Message');
+/** Messages that are not the app's: fiber's deprecated THREE.Clock and Chromium's GL driver hints. */
+const isKnownNoise = (text: string): boolean =>
+  text.includes('THREE.Clock') ||
+  text.includes('GL Driver Message') ||
+  text.includes('THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.');
 
 function listen(page: Page): string[] {
   const noise: string[] = [];
@@ -40,7 +43,7 @@ test.describe('the corridor props', () => {
       await page.goto(url);
       await expectSpine(page, 'entrance');
       await propsReady(page);
-      await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+      await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
       await expectSpine(page, 'corridor');
       // Let the first frames of the corridor draw with the props in them.
       await page.waitForTimeout(2500);
@@ -52,7 +55,7 @@ test.describe('the corridor props', () => {
     test.setTimeout(150_000);
     const noise = listen(page);
     await page.goto('/');
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await propsReady(page);
     await door(page, 'The Certification Office', 'open').focus();

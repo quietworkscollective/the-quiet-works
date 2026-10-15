@@ -1,0 +1,756 @@
+{
+  "version": 1,
+  "space": "corridor",
+  "hash": "5073da1ba964ee5325cf8d3ac47016c8addfeec4fa16478b973e4837c11d62a5",
+  "materialHash": "1fbffbeebd011ca944f9297d8b24972d8fa328da97a6bc3f1dbebf41c62199fb",
+  "baselineHash": "39bfe91ec3a73c7d891f544c1b6466bf2d32d691fa2ace213a16ee3c147f2a95",
+  "meshes": [
+    "0080191774253b264cb20ac58f45f1041d31cc226a62b7ac1cbfa2373423f923",
+    "00b0d1ea2880cf1a67c5eac73abb52f1e7be9ee461d33fd67166575640f57050",
+    "0a96dd3fc8c0fc07bc726440cf32975a71002b8cb6272226a9b678464f4e3ab5",
+    "10d7882e81f746372869e40c39c145c97225d21a7aa0899a4dce4e199e8a3a37",
+    "12120dee499d3561b3f6ced2c3bb3ef36c0f6cd9ae41c6466535f8e74648301c",
+    "1df15c62efd6bed8ae341c2ccb05e949533648523970d9428d2c5cf301eda091",
+    "2dd51e2e42c89cef80637f633c63f7ac527f2d7a5744c304defd9debfc4e2209",
+    "2e4c2d1f99f9c9284e46516fc3fe8535212925002e9b556e8718ef5868df2082",
+    "2e9e2002961aa238ccd24e492cb98191a561185db8056ffceffe9516ff25b2c2",
+    "2fdf379a540f82bec040ebdad3ea8447225eeb8c833ddbe8d5eb03d0faced821",
+    "30951a0dd6e48c21ca86db0871b0b2bd8bd882a16d44c1e3f72c1b8289d5e668",
+    "3274dc4fcf9aa6e355c403d7b15250c2435f6b3e1a1475500d9a982b7e9a1af8",
+    "40b3641ce2d2db136fb8522dc7189b5e549d3ff17116a61901216042de0cf462",
+    "4f3c50133da86bc43741ba93e0109d8ea0b87d2259581dd9bed64775beebae83",
+    "53709d8466ebd65e3156b27884f98f6a7574c29bb04575d9e70c772b65d3c3d5",
+    "5aa10b1a10d45cea1eeea1f26eadb49a26b3e8cb2c1a094a2972c874a1c9a43c",
+    "5ab2ad44cbd7b95fa3b61f6094c3a5a809ec50aba366e876d0566b42b3db9372",
+    "5ebf715f88f1ba3a1b3b09f0183c31c1fb1b32ea97e7c3dacff81cb17c83e5bb",
+    "66a962121a7ce8a9d376d319ae3e17063aba854f791fe75beb99a08f7b1122fa",
+    "66db5a2b4c63f723f1548f54339d96af280f3ab91a38609a5a6d643e2114ba7a",
+    "68ee3944471fbf93cf047c0d894c30a524cce9fc08cec01e51c127f987e16eeb",
+    "6abd711af43975bd1267c50af77afc64516c45e194fe90b2aee987a589da8eef",
+    "74289a33949703704eee8b67eba0b0780545365f0c79ef0d41949c65c11f9afa",
+    "7b0cb8e238a3cd9db84e187c571b4bd6a9f9b8d44529ed10a26c211e3f0fad12",
+    "7bde1342eaa191c31daa8da2c80513ccb798ba760a4f43768f9c65cd4b0f05d8",
+    "846637c251fffa7fabeeab4329a08088da61d1133471bd6e5570253343a408e0",
+    "85384aa24ff35318a0302523c9bccab4512d0be05bc11bcc4b9f14752c0159bf",
+    "8b9607e9f8da9f7229d4c13832d9e171c2121b0fabc934776f5233f86ac5bd83",
+    "8ee567334b4e811070e230b6845afbb88fef6683859c942b951b528837df90a4",
+    "99c9c8ec14cb24607221ee3f3d2487303a0a53d93d721b145f748811a1958eb7",
+    "9cb7cae7ddae840ea7dca84f384c07c5190e2d99e88a55d9269dfa56c0f6c536",
+    "9e66613828e06c4043e9effb4b85b37166347ca22d958ba87c809d7f77bd6748",
+    "a655cbc7e3d5a274b3e4600b1b9bfe2b688d98c7396c0e4691272b4c7a7f565b",
+    "a9baad9294ffc43a802135c30412959673d5ed1ac49bb63d8563e0e1738c4670",
+    "b23f6e35254ebf72e23de2a0e95cced3989081e2090f517dde4003a82d800d90",
+    "b317c4e751e6091241c8b1d146634dfd9a2b9e216713c429f80d7fc1940b6321",
+    "b8be7533a7ae055e79a36bddc10ac9d086687dc2783d2a4b275298bfb112f171",
+    "c440091995fd3d3a6c41541888cce53cdbbaef78f3edd79656835ce7335d5ee1",
+    "c6ad6f04b3f634bb883c84a4df0092928242d1f1affd0e74f380906002376321",
+    "d0f0bbdc9108b0bda9d99b79f913c310a46e31f7e2c8df86c60ec435e4d6455e",
+    "d75c224c7a8a4fd59595fd64913067ab34c82c0e4d6bc73f459f377ce1d678b2",
+    "dc87e6fff662e9a4b6f1a8c5e06a23169a313f2d7cefecc69210833b28cd13f6",
+    "dd7180a875d0ccdb37330d0ada9120fc0a51eb3f67420ef07634b21251b13ce6",
+    "e4f5453461d992a45f2c4e364ddd4e155fdd0677c0f7068bbaca1bc863b9c1e2",
+    "e639e1b547e1b9cf7613eab658946c55fc09a809d9d8cd30666b79fd71cb18a4",
+    "ebcd508904dbeb4cc08cc5d96114ce3f6f34efeb827d8fb0bbafb7735f50a3a6",
+    "f2ecd379697185a7dfe10777b8c225a38990682dfbd019eb9371bda8e9c20eab",
+    "f42e6904e5fce07c41dd06e1322f6c400270846026d2cf9d1e376ec8b72eee08",
+    "f8a3c589e697cbb2621b6d26eddf4b8b41672097a23deb0ff3071c1b06983091"
+  ],
+  "lazyMeshes": [
+    "0080191774253b264cb20ac58f45f1041d31cc226a62b7ac1cbfa2373423f923",
+    "10d7882e81f746372869e40c39c145c97225d21a7aa0899a4dce4e199e8a3a37",
+    "1df15c62efd6bed8ae341c2ccb05e949533648523970d9428d2c5cf301eda091",
+    "2dd51e2e42c89cef80637f633c63f7ac527f2d7a5744c304defd9debfc4e2209",
+    "2fdf379a540f82bec040ebdad3ea8447225eeb8c833ddbe8d5eb03d0faced821",
+    "30951a0dd6e48c21ca86db0871b0b2bd8bd882a16d44c1e3f72c1b8289d5e668",
+    "40b3641ce2d2db136fb8522dc7189b5e549d3ff17116a61901216042de0cf462",
+    "4f3c50133da86bc43741ba93e0109d8ea0b87d2259581dd9bed64775beebae83",
+    "53709d8466ebd65e3156b27884f98f6a7574c29bb04575d9e70c772b65d3c3d5",
+    "5ebf715f88f1ba3a1b3b09f0183c31c1fb1b32ea97e7c3dacff81cb17c83e5bb",
+    "66a962121a7ce8a9d376d319ae3e17063aba854f791fe75beb99a08f7b1122fa",
+    "66db5a2b4c63f723f1548f54339d96af280f3ab91a38609a5a6d643e2114ba7a",
+    "74289a33949703704eee8b67eba0b0780545365f0c79ef0d41949c65c11f9afa",
+    "7b0cb8e238a3cd9db84e187c571b4bd6a9f9b8d44529ed10a26c211e3f0fad12",
+    "7bde1342eaa191c31daa8da2c80513ccb798ba760a4f43768f9c65cd4b0f05d8",
+    "85384aa24ff35318a0302523c9bccab4512d0be05bc11bcc4b9f14752c0159bf",
+    "8b9607e9f8da9f7229d4c13832d9e171c2121b0fabc934776f5233f86ac5bd83",
+    "9cb7cae7ddae840ea7dca84f384c07c5190e2d99e88a55d9269dfa56c0f6c536",
+    "a655cbc7e3d5a274b3e4600b1b9bfe2b688d98c7396c0e4691272b4c7a7f565b",
+    "a9baad9294ffc43a802135c30412959673d5ed1ac49bb63d8563e0e1738c4670",
+    "b23f6e35254ebf72e23de2a0e95cced3989081e2090f517dde4003a82d800d90",
+    "b317c4e751e6091241c8b1d146634dfd9a2b9e216713c429f80d7fc1940b6321",
+    "b8be7533a7ae055e79a36bddc10ac9d086687dc2783d2a4b275298bfb112f171",
+    "c440091995fd3d3a6c41541888cce53cdbbaef78f3edd79656835ce7335d5ee1",
+    "d0f0bbdc9108b0bda9d99b79f913c310a46e31f7e2c8df86c60ec435e4d6455e",
+    "d75c224c7a8a4fd59595fd64913067ab34c82c0e4d6bc73f459f377ce1d678b2",
+    "dc87e6fff662e9a4b6f1a8c5e06a23169a313f2d7cefecc69210833b28cd13f6",
+    "e4f5453461d992a45f2c4e364ddd4e155fdd0677c0f7068bbaca1bc863b9c1e2",
+    "f42e6904e5fce07c41dd06e1322f6c400270846026d2cf9d1e376ec8b72eee08",
+    "f8a3c589e697cbb2621b6d26eddf4b8b41672097a23deb0ff3071c1b06983091"
+  ],
+  "lights": [
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1,
+        1.594,
+        -45.580000000000005
+      ],
+      "colour": [
+        1,
+        0.42233927375528035,
+        0.13511156659148987
+      ],
+      "intensity": 36.15405405405406,
+      "power": 454.325242454818,
+      "distance": 10.5,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.1,
+        2.1350000000000002,
+        -22.400000000000002
+      ],
+      "colour": [
+        1,
+        0.44076420335141947,
+        0.15567688220471093
+      ],
+      "intensity": 2.6926027397260275,
+      "power": 33.83624394463615,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.1,
+        2.305,
+        -8
+      ],
+      "colour": [
+        1,
+        0.4037493288998013,
+        0.11525059357080195
+      ],
+      "intensity": 1.5386301369863016,
+      "power": 19.334996539792087,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.1,
+        2.7,
+        -13.4
+      ],
+      "colour": [
+        1,
+        0.5128022963147368,
+        0.24295283765871364
+      ],
+      "intensity": 2.6926027397260275,
+      "power": 33.83624394463615,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -17
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -2.6
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -20.1
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -24.200000000000003
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -31.400000000000002
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -38.6
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -5.55
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.28,
+        2.25,
+        -9.8
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.8,
+        3.2,
+        3.2
+      ],
+      "colour": [
+        1,
+        0.8062739896762322,
+        0.6631998270682881
+      ],
+      "intensity": 4.598464491362765,
+      "power": 57.786009055435144,
+      "distance": 5.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -1.93450479934686,
+        1.9849999999999999,
+        3.2931748562369076
+      ],
+      "colour": [
+        1,
+        0.44076420335141947,
+        0.15567688220471093
+      ],
+      "intensity": 3.0880733944954124,
+      "power": 38.80587475957153,
+      "distance": 3,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -2.0649999999999995,
+        1.12,
+        4.95
+      ],
+      "colour": [
+        1,
+        0.42233927375528035,
+        0.13511156659148987
+      ],
+      "intensity": 0.6438837950004824,
+      "power": 8.091282400556128,
+      "distance": 2.8,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -2.18,
+        1.85,
+        7.6
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -2.18,
+        2.25,
+        5.9
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        -2.18,
+        2.25,
+        9
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        0,
+        3,
+        4
+      ],
+      "colour": [
+        1,
+        0.4037493288998013,
+        0.11525059357080195
+      ],
+      "intensity": 6.479959204487508,
+      "power": 81.42956892951806,
+      "distance": 7.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        0,
+        3,
+        8
+      ],
+      "colour": [
+        1,
+        0.4037493288998013,
+        0.11525059357080195
+      ],
+      "intensity": 6.479959204487508,
+      "power": 81.42956892951806,
+      "distance": 7.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        0,
+        3.78,
+        1.5
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 3.783154324477106,
+      "power": 47.540519332694934,
+      "distance": 3.4,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.1,
+        2.4850000000000003,
+        -22.400000000000002
+      ],
+      "colour": [
+        1,
+        0.4771154378353797,
+        0.19848377677581372
+      ],
+      "intensity": 2.307945205479452,
+      "power": 29.002494809688127,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.1,
+        2.65,
+        -4.4
+      ],
+      "colour": [
+        1,
+        0.44076420335141947,
+        0.15567688220471093
+      ],
+      "intensity": 2.6926027397260275,
+      "power": 33.83624394463615,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.1,
+        2.7,
+        -18.8
+      ],
+      "colour": [
+        1,
+        0.45902304261916216,
+        0.17683305266892563
+      ],
+      "intensity": 2.307945205479452,
+      "power": 29.002494809688127,
+      "distance": 3.6,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -10.34
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -13.4
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -17.4
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -20.6
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -27.800000000000004
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -35
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -42.2
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        1.28,
+        2.25,
+        -6.2
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292496
+      ],
+      "intensity": 3.656013945380593,
+      "power": 45.94282620891803,
+      "distance": 6.2,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        2.18,
+        2.05,
+        6.15
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        2.18,
+        2.25,
+        2.1
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        2.18,
+        2.25,
+        4.15
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        2.18,
+        2.25,
+        8
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "AnalyticPoint",
+      "position": [
+        2.18,
+        2.25,
+        9.9
+      ],
+      "colour": [
+        1,
+        0.38499633252299703,
+        0.09622815041292494
+      ],
+      "intensity": 4.801781737193764,
+      "power": 60.34096891883825,
+      "distance": 7,
+      "decay": 2
+    },
+    {
+      "type": "HemisphereLight",
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "colour": [
+        0.775,
+        0.3725444484400705,
+        0.15863209964201655
+      ],
+      "intensity": 1.7,
+      "distance": 0,
+      "decay": 2
+    }
+  ],
+  "atlases": [
+    {
+      "file": "corridor-0.webp",
+      "width": 1760,
+      "height": 880,
+      "scale": 8,
+      "encoding": "srgb-scale",
+      "bytes": 320274,
+      "density": {
+        "near": {
+          "min": 16.804247896978545,
+          "max": 16.826080867362155,
+          "area": 848.1859429836152,
+          "target": 24
+        }
+      }
+    }
+  ],
+  "sourceHash": "6011f481252824b0714d19629488cf57f17c0d1b650981e60c8474a93714cc3a"
+}

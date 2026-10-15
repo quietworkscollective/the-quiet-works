@@ -57,6 +57,8 @@ describe('the lettering on the props is the drafted copy', () => {
   it('writes the recipe card and the score book from the props lane\'s own drafted lines', () => {
     expect(on('recipeCard')).toEqual([PROP_COPY.recipe.title, ...PROP_COPY.recipe.lines]);
     expect(on('scoreCover')).toEqual([PROP_COPY.scorebook.cover, PROP_COPY.scorebook.season]);
+    // The modelled scorebook's cover is blank: the same two lines go on a label pasted over it.
+    expect(on('scoreLabel')).toEqual([PROP_COPY.scorebook.cover, PROP_COPY.scorebook.season]);
   });
 
   it('says, in words, everything the props print: the page carries every beat the 3D scene does', () => {

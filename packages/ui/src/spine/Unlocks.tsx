@@ -31,8 +31,8 @@ function saveFile(text: string): void {
  * The archive (ADR 0003): what this visitor's own device has opened, to read again. A cabinet made
  * of spacing, grouping and paper proportions, not another bulletin board. Per room: a plain count
  * ("3 of 7 papers found.") with no bar, ring or total across rooms; found items with an approved
- * title and, where there is one, a reread action; and every unfound paper as the same closed-paper
- * silhouette and the one word "Sealed". No title, excerpt, hint or token for an item that has not
+ * title and, where there is one, a reread action; and unfound papers as compact, neutral rows that
+ * say only "Sealed". No title, excerpt, hint or token for an item that has not
  * been found is anywhere in this component's markup or code.
  *
  * Secrets appear only once found, and are counted without a total, so how many exist is not given
@@ -115,39 +115,45 @@ export function Unlocks({ store, chambers, describe, recognitionName, onReread, 
                   ? ` ${count.secrets.found === 1 ? ARCHIVE_COPY.secretsOne : fillCopy(ARCHIVE_COPY.secretsMany, { n: count.secrets.found })}`
                   : ''}
               </p>
-              <ul className="tqw-archive__items">
-                {found.map((finding) => {
-                  const info = describe?.(count.chamber, finding) ?? null;
-                  const title = info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
-                  return (
-                    <li
-                      key={finding.id}
-                      className="tqw-paper"
-                      data-state="found"
-                      data-kind={finding.kind}
-                      data-new={alreadyThere.has(`${count.chamber}/${finding.id}`) ? undefined : 'true'}
-                    >
-                      <h4 className="tqw-paper__title">{title}</h4>
-                      {info?.fragment ? <p className="tqw-paper__fragment">{info.fragment}</p> : null}
-                      {onReread ? (
-                        <button
-                          type="button"
-                          className="tqw-paper__reread"
-                          aria-label={`${ARCHIVE_COPY.reread}: ${title}`}
-                          onClick={() => onReread(count.chamber, finding)}
-                        >
-                          {ARCHIVE_COPY.reread}
-                        </button>
-                      ) : null}
+              {found.length > 0 ? (
+                <ul className="tqw-archive__items">
+                  {found.map((finding) => {
+                    const info = describe?.(count.chamber, finding) ?? null;
+                    const title = info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
+                    return (
+                      <li
+                        key={finding.id}
+                        className="tqw-paper"
+                        data-state="found"
+                        data-kind={finding.kind}
+                        data-new={alreadyThere.has(`${count.chamber}/${finding.id}`) ? undefined : 'true'}
+                      >
+                        <h4 className="tqw-paper__title">{title}</h4>
+                        {info?.fragment ? <p className="tqw-paper__fragment">{info.fragment}</p> : null}
+                        {onReread ? (
+                          <button
+                            type="button"
+                            className="tqw-paper__reread"
+                            aria-label={`${ARCHIVE_COPY.reread}: ${title}`}
+                            onClick={() => onReread(count.chamber, finding)}
+                          >
+                            {ARCHIVE_COPY.reread}
+                          </button>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+              {sealedPapers > 0 ? (
+                <ul className="tqw-archive__sealed" aria-label={`Sealed papers in ${room?.title ?? count.chamber}`}>
+                  {Array.from({ length: sealedPapers }, (_, index) => (
+                    <li key={`sealed-${index}`} className="tqw-archive__sealed-row">
+                      <span>{ARCHIVE_COPY.sealed}</span>
                     </li>
-                  );
-                })}
-                {Array.from({ length: sealedPapers }, (_, index) => (
-                  <li key={`sealed-${index}`} className="tqw-paper" data-state="sealed">
-                    <span className="tqw-paper__sealed">{ARCHIVE_COPY.sealed}</span>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </ul>
+              ) : null}
             </section>
           );
         })}
@@ -169,9 +175,6 @@ export function Unlocks({ store, chambers, describe, recognitionName, onReread, 
             <button type="button" className="tqw-archive__action" onClick={() => fileInput.current?.click()}>
               {ARCHIVE_COPY.import}
             </button>
-            <button type="button" className="tqw-archive__action" onClick={() => setConfirming(true)}>
-              {ARCHIVE_COPY.forget}
-            </button>
             <input
               ref={fileInput}
               type="file"
@@ -184,6 +187,11 @@ export function Unlocks({ store, chambers, describe, recognitionName, onReread, 
                 event.currentTarget.value = '';
               }}
             />
+          </div>
+          <div className="tqw-archive__forget">
+            <button type="button" className="tqw-archive__forget-button" onClick={() => setConfirming(true)}>
+              {ARCHIVE_COPY.forget}
+            </button>
           </div>
           {/* A live region without the status role: it is announced the same, and a page has one status role per live readout. */}
           <p className="tqw-archive__message" aria-live="polite">

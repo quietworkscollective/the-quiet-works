@@ -12,6 +12,7 @@ import {
   audibleGain,
   context,
   FakeAudioContext,
+  FakeBiquad,
   FakeBufferSource,
   FakeCompressor,
   FakeConvolver,
@@ -46,13 +47,18 @@ const sealed: SpineCue = { type: 'door-sealed', id: 'apartment' };
 /** The Office's ambience: its D2 and A2 drones and the vent, which reads the noise at its natural rate. */
 function officeSources(ctx: FakeAudioContext): FakeSource[] {
   const drones = ctx.of(FakeOscillator).filter((o) => o.stopTime === null && [OFFICE_DRONE, 110].some((hz) => Math.abs(o.frequency.valueAt(0) - hz) < 0.01));
-  const vent = ctx.of(FakeBufferSource).filter((s) => s.loop && s.stopTime === null && s.playbackRate.valueAt(0) === 1);
+  const officeVentFilters = ctx.of(FakeBiquad).filter((filter) => filter.frequency.valueAt(0) === 380);
+  const vent = officeVentFilters.flatMap((filter) => ctx.inputsOf(filter)).filter((source): source is FakeBufferSource => source instanceof FakeBufferSource && source.loop && source.stopTime === null);
   return [...drones, ...vent];
 }
 
 /** The corridor's tone: the looped noise read at its own rates, and nothing tonal. */
 function toneSources(ctx: FakeAudioContext): FakeBufferSource[] {
   return ctx.of(FakeBufferSource).filter((s) => s.loop && s.stopTime === null && s.playbackRate.valueAt(0) !== 1);
+}
+
+function exchangeSources(ctx: FakeAudioContext): FakeOscillator[] {
+  return ctx.of(FakeOscillator).filter((o) => o.stopTime === null && [60, 120, 180].includes(o.frequency.valueAt(0)));
 }
 
 const loudest = (list: readonly FakeSource[], time: number): number => Math.max(0, ...list.map((s) => audibleGain(s, time)));
@@ -98,6 +104,13 @@ describe('before the first gesture', () => {
 });
 
 describe('rooms', () => {
+  it('gives the Exchange its own quiet switchboard bed, separate from the corridor and Office', () => {
+    const { ctx } = unlocked('exchange');
+    expect(exchangeSources(ctx).map(source => source.frequency.valueAt(0)).sort((a, b) => a - b)).toEqual([60, 120, 180]);
+    expect(officeSources(ctx)).toEqual([]);
+    expect(toneSources(ctx)).toEqual([]);
+  });
+
   it('starts in the room that was set before the gesture: the corridor has its own tone and no Office drone', () => {
     const { ctx } = unlocked('corridor');
     expect(toneSources(ctx).length).toBeGreaterThanOrEqual(5);

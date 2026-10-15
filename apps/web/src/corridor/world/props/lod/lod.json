@@ -1,0 +1,493 @@
+{
+  "models": {
+    "trophy-cup-tall": {
+      "id": "trophy-cup-tall",
+      "source": "web/src/assets/original/trophy-cup-tall.glb",
+      "sourceSha256": "447588564734b7da5b3f04ab4e9ce91ea7c08198a4085234759664eb365958d0",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "07888ab0d5376eced2caa970f2c0ea8e5cc8ff5215f69329713944a648e3bc2c",
+      "bytes": 39492,
+      "sourceBytes": 708340,
+      "triangles": 441,
+      "sourceTriangles": 6252,
+      "textureEdge": 384,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 384,
+          "height": 384,
+          "bytes": 690
+        },
+        {
+          "role": "orm",
+          "width": 384,
+          "height": 384,
+          "bytes": 16422
+        },
+        {
+          "role": "baseColor",
+          "width": 384,
+          "height": 384,
+          "bytes": 7672
+        }
+      ],
+      "dimensions": [
+        0.2264,
+        0.2744,
+        0.1486
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 6252 to 441 triangles",
+        "textures resized to at most 384 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "trophy-cup-squat": {
+      "id": "trophy-cup-squat",
+      "source": "web/src/assets/original/trophy-cup-squat.glb",
+      "sourceSha256": "1653143c949f266a57862dad09a6aba3fd9fa44f452e134316fadeecc9ab6862",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "7025e0824fbdb802101f3b0e432265e3c3fc02e32fb8208dd1a85ee961fb93db",
+      "bytes": 23844,
+      "sourceBytes": 174564,
+      "triangles": 339,
+      "sourceTriangles": 2666,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 308
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 9266
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 4194
+        }
+      ],
+      "dimensions": [
+        0.2074,
+        0.1636,
+        0.1505
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2666 to 339 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "trophy-shield": {
+      "id": "trophy-shield",
+      "source": "web/src/assets/original/trophy-shield.glb",
+      "sourceSha256": "ab26fb8bf9482875625d908e4528709708b363a175496296cbc038a86a60c7b4",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "98b6db4138451b303d60667e0c892405ac9fcee4b1c6003c35b8018551d722b7",
+      "bytes": 36136,
+      "sourceBytes": 169192,
+      "triangles": 324,
+      "sourceTriangles": 2404,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 1390
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 13764
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 7932
+        }
+      ],
+      "dimensions": [
+        0.34,
+        0.3968,
+        0.0235
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2404 to 324 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "trophy-plinth-small": {
+      "id": "trophy-plinth-small",
+      "source": "web/src/assets/original/trophy-plinth-small.glb",
+      "sourceSha256": "06380ec2e78ec744226b315efee38d93182cfa0ab78cb82ed006352423ac329a",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "d8d9edd585440a2ca9576cd504aa4ee5a1ca1d3c9fe0bc15ea3aac051f14e1b4",
+      "bytes": 28260,
+      "sourceBytes": 161616,
+      "triangles": 398,
+      "sourceTriangles": 2848,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 702
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 9634
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 4156
+        }
+      ],
+      "dimensions": [
+        0.0975,
+        0.2045,
+        0.0975
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2848 to 398 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "cricket-bat": {
+      "id": "cricket-bat",
+      "source": "web/src/assets/original/cricket-bat.glb",
+      "sourceSha256": "e137e2bc1a3bbce87084eabb07fef8388c3ce2aa7b93639a6b84cbcea218ae45",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "4ba94a2da2e3a1f3c414d242d6fb7a734ba65f9757d11f214a8ea68f205e903a",
+      "bytes": 42304,
+      "sourceBytes": 416188,
+      "triangles": 387,
+      "sourceTriangles": 2836,
+      "textureEdge": 512,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 512,
+          "height": 512,
+          "bytes": 698
+        },
+        {
+          "role": "orm",
+          "width": 512,
+          "height": 512,
+          "bytes": 15536
+        },
+        {
+          "role": "baseColor",
+          "width": 512,
+          "height": 512,
+          "bytes": 15700
+        }
+      ],
+      "dimensions": [
+        0.1083,
+        0.8505,
+        0.0461
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2836 to 387 triangles",
+        "textures resized to at most 512 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "cricket-stumps": {
+      "id": "cricket-stumps",
+      "source": "web/src/assets/original/cricket-stumps.glb",
+      "sourceSha256": "11ad2bc290ed7050f71037cc7f4685aea4331596250b4f57890071c8b5526e94",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "7444b4e8afa4f4c80b7f66eaf00e588089f8e3da87dfc594337e07e0d7f4c92e",
+      "bytes": 32720,
+      "sourceBytes": 165888,
+      "triangles": 353,
+      "sourceTriangles": 2838,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 360
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 14600
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 4014
+        }
+      ],
+      "dimensions": [
+        0.2878,
+        0.7387,
+        0.0837
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2838 to 353 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "cricket-ball": {
+      "id": "cricket-ball",
+      "source": "web/src/assets/original/cricket-ball.glb",
+      "sourceSha256": "5bef85e252b8394b6e49a732a4741027652c9ff7671d01e633c2192bf762f90a",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "3cb7e3b86a1a4caf090573ea5bd057f169c0512fe6407fa53fadd0ec394aae3b",
+      "bytes": 7504,
+      "sourceBytes": 196236,
+      "triangles": 96,
+      "sourceTriangles": 1920,
+      "textureEdge": 128,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 128,
+          "height": 128,
+          "bytes": 586
+        },
+        {
+          "role": "orm",
+          "width": 128,
+          "height": 128,
+          "bytes": 1816
+        },
+        {
+          "role": "baseColor",
+          "width": 128,
+          "height": 128,
+          "bytes": 1184
+        }
+      ],
+      "dimensions": [
+        0.0702,
+        0.0692,
+        0.0709
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 1920 to 96 triangles",
+        "textures resized to at most 128 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "scorebook": {
+      "id": "scorebook",
+      "source": "web/src/assets/original/scorebook.glb",
+      "sourceSha256": "a44b036c7ec086f50aedf7237c8155080c7cf2670a63d6cd6f2a42c84dddf685",
+      "licence": "CC-BY-4.0",
+      "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0",
+      "sha256": "6a5193ab44d8ee935716162dc25fc63680e4e88b1a22bbfc1bbb4aa64d8ae24d",
+      "bytes": 20764,
+      "sourceBytes": 90432,
+      "triangles": 143,
+      "sourceTriangles": 500,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 1234
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 8014
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 3564
+        }
+      ],
+      "dimensions": [
+        0.2202,
+        0.0298,
+        0.3896
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 500 to 143 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "toolbox-metal": {
+      "id": "toolbox-metal",
+      "source": "web/src/assets/models/toolbox-metal.glb",
+      "sourceSha256": "27e5eb455c63f37e1c050dbc33451a1dcc7bf742637b19b315655c0cda23daaa",
+      "licence": "CC0-1.0",
+      "copyright": "Metal Toolbox by Mateusz Sadek (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/metal_toolbox",
+      "sha256": "5dabcf3562bda993fc4ba99e5a0f41c5204759196fcb190ac81dba62ba2f867b",
+      "bytes": 51004,
+      "sourceBytes": 95396,
+      "triangles": 1170,
+      "sourceTriangles": 2922,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 128,
+          "height": 128,
+          "bytes": 1554
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 3362
+        },
+        {
+          "role": "orm",
+          "width": 128,
+          "height": 128,
+          "bytes": 5306
+        }
+      ],
+      "dimensions": [
+        0.4,
+        0.3018,
+        0.268
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2922 to 1170 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "glove-work": {
+      "id": "glove-work",
+      "source": "web/src/assets/models/glove-work.glb",
+      "sourceSha256": "ce74562e845f97411265eddda34050789876cf418c799f64a80f041661bc810e",
+      "licence": "CC0-1.0",
+      "copyright": "Garden Gloves 01 by Satyaki Mandal (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/garden_gloves_01",
+      "sha256": "de3ee1ad0957df320e62e1e43d22e550e67aaf6a84af613eca82dc68e3b5d3e8",
+      "bytes": 27628,
+      "sourceBytes": 65156,
+      "triangles": 378,
+      "sourceTriangles": 2880,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 128,
+          "height": 128,
+          "bytes": 4894
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 7812
+        },
+        {
+          "role": "orm",
+          "width": 128,
+          "height": 128,
+          "bytes": 5202
+        }
+      ],
+      "dimensions": [
+        0.2249,
+        0.0724,
+        0.2988
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2880 to 378 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    },
+    "watering-can": {
+      "id": "watering-can",
+      "source": "web/src/assets/models/watering-can.glb",
+      "sourceSha256": "2d316963b36fca7ba5e55875af68e9703050ceb5cc0fa0e8c7513ddd06ba9295",
+      "licence": "CC0-1.0",
+      "copyright": "Watering Can Metal 01 by Charles Nderitu (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/watering_can_metal_01",
+      "sha256": "5b0318641ab091f5545f873ca8fbf34328b808482e246f31a771d2f98b775cd1",
+      "bytes": 57212,
+      "sourceBytes": 112480,
+      "triangles": 490,
+      "sourceTriangles": 2879,
+      "textureEdge": 256,
+      "textures": [
+        {
+          "role": "normal",
+          "width": 256,
+          "height": 256,
+          "bytes": 12192
+        },
+        {
+          "role": "baseColor",
+          "width": 256,
+          "height": 256,
+          "bytes": 7946
+        },
+        {
+          "role": "orm",
+          "width": 256,
+          "height": 256,
+          "bytes": 21758
+        }
+      ],
+      "dimensions": [
+        0.1896,
+        0.196,
+        0.4521
+      ],
+      "done": [
+        "dequantised, welded",
+        "simplified from 2879 to 490 triangles",
+        "textures resized to at most 256 px and re-encoded as WebP",
+        "geometry re-quantised"
+      ]
+    }
+  },
+  "tools": {
+    "glTF-Transform": "4.5.1",
+    "sharp": "0.35.5"
+  },
+  "note": "Lighter copies of the library models for the corridor props, built by build.mjs. Licences are the sources'."
+}

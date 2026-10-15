@@ -39,6 +39,8 @@ export interface CorridorWorldProps {
   animation: CorridorAnimation;
   focus: ChamberId | null;
   reducedMotion: boolean;
+  /** The visitor has started the walk-in or opened the game window; photographic dressing may load. */
+  decorActive: boolean;
   /** Pointer interest and clicks on chamber doors (blank doors are not interactive). */
   onDoorPointer(id: ChamberId, kind: 'over' | 'out' | 'click'): void;
   /** A clipping on the 3D notice board was chosen. */

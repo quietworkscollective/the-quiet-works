@@ -29,6 +29,8 @@ function harness() {
     info: { render: { frame: 12 } },
     properties: { get: (t: Texture) => uploaded.get(t) ?? {} },
     initTexture: vi.fn((t: Texture) => { if (image.complete) uploaded.set(t, { __webglTexture: {}, __version: t.version }); }),
+    extensions: { has: vi.fn(() => true) },
+    compile: vi.fn(),
     compileAsync: vi.fn(() => compilation),
     getRenderTarget: (): WebGLRenderTarget | null => null,
   };
@@ -94,4 +96,30 @@ it('cancels pending preparation and restores the room render hook on leave', asy
   h.dispose(); h.resolveCompile(); await h.tick(); h.draw(); h.draw();
   expect(h.done).not.toHaveBeenCalled(); expect(h.invalidate).not.toHaveBeenCalled();
   expect(h.scene.onAfterRender).not.toBe(hook);
+});
+
+it('counts the finishing stack main-camera target but reveals only after its complete output frame', async () => {
+ const h=harness();h.dispose();h.image.complete=true;
+ let complete: (()=>void)|undefined;
+ const done=vi.fn();
+ const off=whenOfficeReady(h.gl,done,{scene:h.scene,camera:h.camera,fontsReady:()=>true,invalidate:h.invalidate,onError:h.onError,
+  acceptRenderTarget:()=>true,afterFrame:callback=>{complete=callback;}});
+ h.renderer.getRenderTarget=()=>({}) as WebGLRenderTarget;
+ await h.tick();h.resolveCompile();await h.tick();
+ h.draw();h.draw();expect(done).not.toHaveBeenCalled();expect(complete).toBeTypeOf('function');
+ complete?.();expect(done).toHaveBeenCalledOnce();off();
+});
+
+
+it('prepares shaders synchronously when parallel compilation is unavailable, still requiring two frames', async () => {
+  const h = harness(); h.image.complete = true;
+  h.renderer.extensions.has.mockReturnValue(false);
+  await h.tick();
+  expect(h.renderer.extensions.has).toHaveBeenCalledWith('KHR_parallel_shader_compile');
+  expect(h.renderer.compileAsync, 'the optional extension must not be requested on an unsupported renderer').not.toHaveBeenCalled();
+  expect(h.renderer.compile).toHaveBeenCalledWith(h.scene, h.camera);
+  expect(h.done).not.toHaveBeenCalled();
+  h.draw(); expect(h.done).not.toHaveBeenCalled();
+  h.draw(); expect(h.done).toHaveBeenCalledOnce();
+  h.dispose();
 });

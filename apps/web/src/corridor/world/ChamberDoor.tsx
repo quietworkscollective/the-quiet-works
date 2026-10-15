@@ -17,9 +17,9 @@ import { nth, noise1, smoothstep } from './math.ts';
 import type { LitMaterial, WorldMaterials } from './materials.ts';
 
 /**
- * One of the four chamber doors at runtime: the leaf swings on its hinge, the handle turns, a
+ * One chamber door at runtime: the leaf swings on its hinge, the handle turns, a
  * sealed door rattles, hovering or focusing a door lets its plaque and handle catch a little more
- * light, and an open chamber (the Office) leaks its interior light at the seam. All of it is read
+ * light, and a ready chamber leaks its interior light at the seam. All of it is read
  * from `animation[id]` in `useFrame`; nothing here starts an animation of its own, and nothing
  * invalidates the frame loop.
  */

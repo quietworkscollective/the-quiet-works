@@ -1,4 +1,4 @@
-import { spineTransition, type SpineCue, type SpineEvent, type SpineState } from './spine.ts';
+import { authoredChamberOpen, spineTransition, type ChamberAvailability, type SpineCue, type SpineEvent, type SpineState } from './spine.ts';
 import type { Unsubscribe } from './store.ts';
 
 /**
@@ -15,7 +15,7 @@ export interface SpineStore {
   onDispatch(listener: (event: SpineEvent, state: SpineState) => void): Unsubscribe;
 }
 
-export function createSpineStore(start: SpineState): SpineStore {
+export function createSpineStore(start: SpineState, isOpen: ChamberAvailability = authoredChamberOpen): SpineStore {
   let state = start;
   const stateListeners = new Set<() => void>();
   const cueListeners = new Set<(cue: SpineCue) => void>();
@@ -25,7 +25,7 @@ export function createSpineStore(start: SpineState): SpineStore {
     getState: () => state,
 
     dispatch(event) {
-      const result = spineTransition(state, event);
+      const result = spineTransition(state, event, isOpen);
       if (result.state !== state) {
         state = result.state;
         for (const listener of [...stateListeners]) listener();

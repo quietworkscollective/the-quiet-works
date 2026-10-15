@@ -4,8 +4,8 @@
  * second. When the renderer is a CPU one (headless browsers, virtual machines, blocklisted GPUs)
  * the world drops to a lite tier: no bump or roughness maps, no anisotropic filtering, no
  * reflection environment, and a lower pixel ratio. The geometry, lamps, fog and composition are
- * identical. `?quality=high` or `?quality=low` overrides detection (for art review captures on a
- * software renderer, and for checking the lite tier on a GPU).
+ * identical. In development only, `?quality=high` or `?quality=low` can override detection for
+ * review captures and tier checks.
  */
 
 export type Quality = 'full' | 'lite';
@@ -15,11 +15,13 @@ export function isSoftwareRenderer(renderer: string): boolean {
   return /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic/i.test(renderer);
 }
 
-/** The tier for a renderer description and a query string (`?quality=high|low`). */
-export function chooseQuality(renderer: string, search: string): Quality {
-  const asked = new URLSearchParams(search).get('quality');
-  if (asked === 'high') return 'full';
-  if (asked === 'low') return 'lite';
+/** The tier for a renderer description; query overrides exist only in development. */
+export function chooseQuality(renderer: string, search?: string): Quality {
+  if (import.meta.env.DEV) {
+    const asked = new URLSearchParams(search ?? window.location.search).get('quality');
+    if (asked === 'high') return 'full';
+    if (asked === 'low') return 'lite';
+  }
   return isSoftwareRenderer(renderer) ? 'lite' : 'full';
 }
 

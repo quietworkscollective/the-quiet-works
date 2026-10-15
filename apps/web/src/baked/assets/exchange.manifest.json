@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "space": "exchange",
+  "hash": "c5c0c03efaeb07bd127b21c47231162aa6a5c37ff746c05d756a220f7f0f51e1",
+  "materialHash": "658e7796136e06c3c2a326dc21935a70e553e5fc9ab08a7b5197d627ea72f5ec",
+  "baselineHash": "b384f187e9722be224c720378732a31adf5cd54e8f73ab8c4709220a794e65c7",
+  "meshes": [
+    "079e2ba7e621ef3b58716a8e6e1cb07fa11d1bee99807d554c6f8e3cd24204ba",
+    "1c10d4e07a3ae70062315cc29e00d027e642023798d17e7e701e58977b5a35f8",
+    "1da15bc82cf41c1b18a28bf6a8530ab1a7e4c3d6bbf64c732a396fd0b80a3443",
+    "2036a2d33dc8179b48be085f9657afb8cfe5fc6cc004cb2dda8c005f2f502913",
+    "246bbc82894ff1fee806b95b1019d4e06460167702d8ff1796717bade68517f1",
+    "46b2f16545253300557c85826a2c3c93b823fde55070933646425067302b1d5d",
+    "4a1fb17579a11d41a556906d8aa2e4c6fa09e708c59a8cb5057117f7a5de994d",
+    "54610bbe770dd450094ea11ca3e45e3b8bab9051c197fe5fb4cc9691b0c67095",
+    "5cd2eb88514a5ccae7ae67358e6cb3c8e6a6c8e39923ff0ae2667fbc156b7371",
+    "639d6747444d3f9eb3ebcc57bc5284707a1473ff217f425d2ac52e9732e9a45f",
+    "6725d812734f9f4afe7320e0e9c7bf32d910cd680e8dc76030659237e25e45ef",
+    "67dd5996e347e2e0e44823071e5bf31addd46d161c6f097d44dad068b12559da",
+    "6e4f6080e40a1e35ad5a0a4b3de86a8b37ecd967969c1c038a5d9aee179584a9",
+    "76523163c01f0ce73b58597793c350d84bb4a0399911478207150c187b9aa5fc",
+    "7debc7b9290d8c6aa39e5eddd4cccc8f6e9333b3f13f15ce4281c810576b0cb7",
+    "838c6e26a39d7568b537c5c2a695f0da3144d1559492ce5a2479a2fb29eb1b73",
+    "83fdfdafbafa81747186cb4c5d7a509314f189a16d487cfbba36a87c88ca437b",
+    "8c18e02009ec999aca8e299f8adc2541854086d163a9018b8306eec85b426949",
+    "8ec3d32d6c8f1339a5aac7961ee096f2a8c8dc23eddbb0710266d44fc4df0c21",
+    "96f8d548dcb97cefd6a95db96a9ecd9c4e57b9ef67648bbba6135c4c4443481e",
+    "9c21b8ad2b7f8a76e5c8346a719209e35b84d96bea8632134e13cc96d41328e2",
+    "9d2e881aff7c145919807fc47c4708cb860b85687c3db801d33f35aaf55bacb7",
+    "a322a318f961db4ceef5a6163c851a8dfc676c223371c3fe77344d026cd3f138",
+    "abb802a7e406a7d5437a7e8ab97b03cacc410a8c2ce61338e77b9e78e2d2ef1a",
+    "b34ecb1e49afaa3f5b0569a8b8bc33867875677c90b6f4de5dc997739412b6c3",
+    "c2bbbf1ab01c56a7a2a4af10306090822424ed1ad88f9129555fa93a44821f4c",
+    "cdeff5eb7a625a2204bb304a15c41d79645c44224543a6bafe6dc86a6a51438d",
+    "cf77855c3eec8b9d74f1aa9806089a1a237e87c604b2f04c9cdaab971579c940",
+    "dbd21ad080eed4a7c693118ae76fd249a9de7539e75d99aaa04f94cdcf59df77",
+    "dcf3c159a4ac37c2969ce463d71d4efb647f672c596d07ed83c12e943565a7cd",
+    "dec29fe9da5c8f0840a1b68b5b56dade4a1ec4cf12763e6eddadc96d81d62381",
+    "e0dcd031fd7cedec97f0134389db118fda37e6cf5dfbc2c1fcc50f35be82f4d8",
+    "edc099496824ed3436913dae2f19dd5dd63dc09a3beff31eab6c76a4defc11d2"
+  ],
+  "lazyMeshes": [],
+  "lights": [
+    {
+      "type": "DirectionalLight",
+      "position": [
+        -3,
+        8,
+        3
+      ],
+      "colour": [
+        1,
+        0.7835377915215659,
+        0.4735314961384573
+      ],
+      "intensity": 1.2,
+      "distance": 0,
+      "decay": 2,
+      "direction": [
+        0.3312945782245396,
+        -0.8834522085987723,
+        -0.3312945782245396
+      ]
+    },
+    {
+      "type": "HemisphereLight",
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "colour": [
+        0.4488969844199432,
+        0.4083264973563156,
+        0.3521695950091937
+      ],
+      "intensity": 2.2,
+      "distance": 0,
+      "decay": 2
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        -0.82,
+        1.2,
+        -1.56
+      ],
+      "colour": [
+        0.8879231178794776,
+        0.48514994004665124,
+        0.158960835050774
+      ],
+      "intensity": 14,
+      "distance": 4,
+      "decay": 2,
+      "power": 175.92918860102841
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        1.82,
+        11.17,
+        -5.18
+      ],
+      "colour": [
+        0.6795424696265424,
+        0.7230551289161951,
+        0.6795424696265424
+      ],
+      "intensity": 75,
+      "distance": 12,
+      "decay": 2,
+      "power": 942.4777960769379
+    }
+  ],
+  "atlases": [
+    {
+      "file": "exchange-0.webp",
+      "width": 2048,
+      "height": 2048,
+      "scale": 0.000012237818737048656,
+      "encoding": "srgb-scale",
+      "bytes": 2050,
+      "density": {
+        "switchboard": {
+          "min": 25.707108530676546,
+          "max": 25.707768174741624,
+          "area": 953.1509341031247,
+          "target": 28
+        },
+        "foreground": {
+          "min": 29.37982710503414,
+          "max": 29.37995481201471,
+          "area": 18.231350623954796,
+          "target": 32
+        }
+      }
+    },
+    {
+      "file": "exchange-1.webp",
+      "width": 1024,
+      "height": 1024,
+      "scale": 0.000012237818737048656,
+      "encoding": "srgb-scale",
+      "bytes": 1092,
+      "density": {
+        "desk": {
+          "min": 47.99963156943199,
+          "max": 48.0007757065441,
+          "area": 10.800483887772522,
+          "target": 48
+        },
+        "foreground": {
+          "min": 31.99914327980675,
+          "max": 32.000638776596965,
+          "area": 1.8573630225518754,
+          "target": 32
+        }
+      }
+    }
+  ],
+  "sourceHash": "5cf6de2ee705ad286521904ee093f2143814b7af349484e688661830f4473703"
+}

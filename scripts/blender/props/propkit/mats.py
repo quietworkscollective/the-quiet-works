@@ -62,10 +62,78 @@ def _seed_loc(seed):
     return (seed * 7.13, seed * 3.71, seed * 5.29)
 
 
+def scratch_lines(ng, pos, seed, fineness=520.0, length=22.0, thickness=0.018, rotations=((0.0, 0.0, 0.0), (0.0, 0.0, 1.1), (0.0, 0.0, 2.3)),
+                  clustered=True):
+    """Hairline scratches: the contour lines of a stretched noise field, so they are long, thin and a little
+    wavy, in a few directions, and (when `clustered`) gathered in patches the way wear collects. 0..1."""
+    lines = None
+    for k, rot in enumerate(rotations):
+        v = ng.mapping(pos, scale=(fineness, fineness / length, fineness), location=_seed_loc(seed + 30 + k), rotation=rot)
+        field = ng.noise(v, scale=1.0, detail=0.0, roughness=0.5)
+        d = ng.math('ABSOLUTE', ng.sub(field, 0.5))
+        ln = ng.inv(ng.map_range(d, 0.0, thickness, 0.0, 1.0))
+        lines = ln if lines is None else ng.maxf(lines, ln)
+    if clustered:
+        gate = ng.threshold(ng.noise(ng.mapping(pos, location=_seed_loc(seed + 36)), scale=5.0, detail=3), 0.42, 0.4)
+        lines = ng.mul(lines, gate)
+    return lines
+
+
+def lived_in(ng, pos, col, rough, *, seed=0.0, amount=1.0, tint=1.0, dust=0.0, dust_color=(0.19, 0.175, 0.15, 1.0),
+             prints=0.0, spots=(), cav=None, breakup=1.0, grime=0.5):
+    """The shared realism layer, added at the end of a recipe so every material gets the variation scanned
+    surfaces have: slow tonal drift (value and a slight warm or cool shift), uneven polish and cleaning in
+    the roughness, dust that settles in recesses and on upward faces, and fingermarks round the places
+    hands touch. Returns (colour, roughness, height). `amount` 0 turns it all off."""
+    if amount <= 0.0:
+        return col, rough, 0.0
+    a = amount
+    p = ng.mapping(pos, location=_seed_loc(seed + 40))
+    n_slow = ng.noise(p, scale=2.4, detail=3, roughness=0.55)
+    n_mid = ng.noise(p, scale=15.0, detail=4, roughness=0.6)
+    # no two panels of a thing age alike: a slow drift of value and of warm against cool
+    shift = ng.mix(ng.map_range(n_slow, 0.35, 0.65, 0.0, 1.0), (0.95, 0.985, 1.04, 1.0), (1.05, 1.0, 0.94, 1.0))
+    col = ng.mix(ng.clamp01(ng.mul(a, 0.9 * tint)), col, shift, blend='MULTIPLY')
+    value = ng.map_range(n_mid, 0.32, 0.68, 0.88, 1.12)
+    col = ng.mix(ng.clamp01(ng.mul(a, 0.8 * tint)), col, ng.combine_color(value, value, value), blend='MULTIPLY')
+    # uneven polish and cleaning: some patches kept bright by hands and cloths, some left dull
+    r1 = ng.map_range(ng.noise(ng.mapping(p, location=(3.1, 1.7, 5.3)), scale=26.0, detail=4, roughness=0.55), 0.3, 0.7, -1.0, 1.0)
+    r2 = ng.map_range(ng.noise(ng.mapping(p, location=(7.3, 2.9, 1.1)), scale=110.0, detail=2), 0.3, 0.7, -1.0, 1.0)
+    rough = ng.add(rough, ng.mul(r1, 0.085 * a * breakup))
+    rough = ng.add(rough, ng.mul(r2, 0.04 * a * breakup))
+    _, _, nz = ng.separate_xyz(ng.normal())
+    if dust > 0.0:
+        # dust settles in recesses and on upward faces, in patches, and dulls what it covers
+        top = ng.map_range(nz, 0.55, 0.95, 0.0, 1.0)
+        c = cav if cav is not None else ng.cavity_mask(0.014)
+        gate = ng.threshold(ng.noise(ng.mapping(p, location=(1.3, 8.1, 4.4)), scale=9.0, detail=4), 0.42, 0.4)
+        dm = ng.clamp01(ng.mul(ng.add(ng.mul(c, 0.9), ng.mul(top, 0.45)), ng.mul(gate, dust * a)))
+        col = ng.mix(ng.mul(dm, 0.5), col, dust_color)
+        rough = ng.mixf(ng.mul(dm, 0.7), rough, 0.9)
+    if grime > 0.0:
+        # stains and soil: broad dark patches and finer smudges that no one ever scrubbed off, uneven as real dirt is
+        stain = ng.threshold(ng.noise(ng.mapping(p, location=(8.7, 3.3, 6.1)), scale=4.5, detail=5, roughness=0.6, distortion=0.8), 0.52, 0.5)
+        smudge = ng.threshold(ng.noise(ng.mapping(p, location=(2.2, 9.4, 1.9)), scale=38.0, detail=4, roughness=0.6), 0.55, 0.4)
+        gm = ng.clamp01(ng.mul(ng.add(ng.mul(stain, 0.7), ng.mul(smudge, 0.5)), grime * a))
+        col = ng.mix(ng.mul(gm, 0.6), col, (0.50, 0.46, 0.42, 1.0), blend='MULTIPLY')
+        rough = ng.add(rough, ng.mul(gm, 0.07))
+    height = 0.0
+    if prints > 0.0 and spots:
+        # fingermarks: broken oval smears round the places hands touch, with faint ridges, a touch greasy
+        m = ng.mul(touch_mask(ng, pos, spots), 1.4)
+        blob = ng.threshold(ng.noise(ng.mapping(p, scale=(1.0, 1.0, 1.6), location=(5.5, 0.7, 9.2)), scale=70.0, detail=2), 0.5, 0.35)
+        ridges = ng.wave(ng.mapping(p, location=(0.4, 0.0, 0.0)), scale=330.0, distortion=4.0, detail=1.0, direction='X', profile='SIN')
+        pm = ng.clamp01(ng.mul(ng.mul(m, blob), prints * a))
+        rough = ng.add(rough, ng.mul(pm, ng.madd(ridges, 0.1, 0.06)))
+        col = ng.mix(ng.mul(pm, 0.5), col, (0.82, 0.8, 0.78, 1.0), blend='MULTIPLY')
+        height = ng.mul(ng.mul(pm, ridges), 0.12)
+    return col, rough, height
+
+
 def worn_metal(name, bright, mid, dull, deep, age=0.5, spots=(), seed=0.0, rough_lo=0.34, rough_hi=0.56,
                edge_radius=0.003, scratches=0.5, cav_dist=0.02, under=None, rub=0.0, tarnish_bias=0.0,
                metal_floor=0.72, spin=0.0, solder=(), cav_power=0.9, cav_gain=0.75, brush_axis=None, brush=0.0,
-               waviness=0.0, grain=0.15, bands=(), rough_range=None):
+               waviness=0.0, grain=0.15, bands=(), rough_range=None, life=1.0, dust=0.25, prints=0.8, contrast=1.0):
     """Polished metal with an honest life: `age` 0 is freshly polished, 1 is long-neglected. Hand spots
     stay polished, crevices tarnish, edges catch bright metal. With `under` set, plating is rubbed
     through to the base metal along edges and at hand spots by `rub` (0..1)."""
@@ -77,7 +145,7 @@ def worn_metal(name, bright, mid, dull, deep, age=0.5, spots=(), seed=0.0, rough
     blotch = ng.noise(p, scale=8.0, detail=6, roughness=0.62, distortion=0.45)
     fine = ng.noise(p, scale=220.0, detail=2, roughness=0.5)
     hand = touch_mask(ng, pos, spots)
-    t = ng.madd(blotch, 1.15, -0.28)
+    t = ng.madd(blotch, 1.15 * contrast, -0.28 - 0.3 * (contrast - 1.0))
     t = ng.madd(t, age, ng.mul(cav, cav_gain + 0.2 * age))
     t = ng.add(t, age * 0.28 + tarnish_bias)
     t = ng.sub(t, ng.mul(hand, 1.1))
@@ -96,9 +164,7 @@ def worn_metal(name, bright, mid, dull, deep, age=0.5, spots=(), seed=0.0, rough
         col = ng.mix(worn, col, under_col)
         rough = ng.mixf(worn, rough, 0.46)
         metal = ng.mixf(worn, metal, 1.0)
-    sc_vec = ng.mapping(pos, scale=(260.0, 11.0, 260.0), location=_seed_loc(seed + 1))
-    lines = ng.voronoi(sc_vec, scale=1.0, feature='DISTANCE_TO_EDGE')
-    lines = ng.inv(ng.map_range(lines, 0.0, 0.06, 0.0, 1.0))
+    lines = scratch_lines(ng, pos, seed + 1)
     height = ng.add(ng.mul(fine, 0.35 * grain), ng.mul(lines, scratches * 0.4))
     if brush_axis and brush > 0.0:
         bs = {'X': (4.0, 520.0, 520.0), 'Y': (520.0, 4.0, 520.0), 'Z': (520.0, 520.0, 4.0)}[brush_axis]
@@ -124,6 +190,8 @@ def worn_metal(name, bright, mid, dull, deep, age=0.5, spots=(), seed=0.0, rough
         zm = ng.mul(ng.map_range(zz, z0, z0 + 0.002, 0.0, 1.0), ng.map_range(zz, z1 - 0.002, z1, 1.0, 0.0))
         rough = ng.add(rough, ng.mul(zm, d_rough))
         col = ng.mix(ng.mul(zm, 1.0 - tone), col, (0.55, 0.52, 0.48, 1.0), blend='MULTIPLY')
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.7, dust=dust, prints=prints, spots=spots, cav=cav, grime=0.35)
+    height = ng.add(height, hx)
     if rough_range is not None:
         rough = ng.minf(ng.maxf(rough, rough_range[0]), rough_range[1])
     rough = ng.clamp01(rough)
@@ -138,10 +206,11 @@ def worn_metal(name, bright, mid, dull, deep, age=0.5, spots=(), seed=0.0, rough
 
 def brass(name='brass', **kw):
     """Cast or spun brass: warm, polished where hands go, tarnish in the crevices."""
-    kw.setdefault('bright', '#E6C06A')
-    kw.setdefault('mid', '#B08A3A')
-    kw.setdefault('dull', '#715826')
-    kw.setdefault('deep', '#3A2D15')
+    kw.setdefault('bright', '#D8BE84')
+    kw.setdefault('mid', '#A68B55')
+    kw.setdefault('dull', '#6B5A3B')
+    kw.setdefault('deep', '#322A1D')
+    kw.setdefault('contrast', 1.5)
     # brass keeps to the brief's roughness range, 0.35 to 0.55, wherever it has been polished or tarnished
     kw['rough_lo'] = max(kw.get('rough_lo', 0.35), 0.36)
     kw['rough_hi'] = min(kw.get('rough_hi', 0.55), 0.54)
@@ -164,10 +233,10 @@ def silver_plate(name='silver plate', **kw):
 
 def gilt(name='gilt', **kw):
     """Gold-coloured anodised or lacquered metal of the 1970s: even, satin, scuffed rather than tarnished."""
-    kw.setdefault('bright', '#DDBB5E')
-    kw.setdefault('mid', '#BC9E48')
-    kw.setdefault('dull', '#85702F')
-    kw.setdefault('deep', '#47391A')
+    kw.setdefault('bright', '#CDB784')
+    kw.setdefault('mid', '#A28D5C')
+    kw.setdefault('dull', '#74653F')
+    kw.setdefault('deep', '#37301F')
     kw.setdefault('rough_lo', 0.38)
     kw.setdefault('rough_hi', 0.55)
     return worn_metal(name, **kw)
@@ -175,7 +244,8 @@ def gilt(name='gilt', **kw):
 
 def wood(name='wood', light='#C79B62', dark='#7A4F2A', axis='Z', ring_freq=95.0, grain_stretch=0.03,
          roughness=0.62, age=0.4, spots=(), seed=0.0, warp=5.0, pore=0.5, edge_radius=0.003,
-         edge_lift=0.12, polish=0.0, patches=(), contrast=1.0, ray_flecks=0.0, wander=0.045, relief=0.035, decals=(), rough_range=None):
+         edge_lift=0.12, polish=0.0, patches=(), contrast=1.0, ray_flecks=0.0, wander=0.045, relief=0.035, decals=(), rough_range=None,
+         life=1.0, dust=0.2, prints=0.4):
     """Sawn timber. Grain runs along the object's local `axis`: growth-ring bands wander with the wood,
     pores show as short dark dashes, hands darken and gloss what they touch, edges lift pale where
     the finish has worn through. `ring_freq` is bands per 0.314 m (about 3.3 mm apart at 95)."""
@@ -235,11 +305,13 @@ def wood(name='wood', light='#C79B62', dark='#7A4F2A', axis='Z', ring_freq=95.0,
             rough = ng.mixf(m, rough, d['rough'])
     rough = ng.sub(rough, ng.mul(hand, 0.14 + polish))
     rough = ng.sub(rough, ng.mul(edge, 0.05))
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.6, dust=dust, prints=prints, spots=spots, cav=cav, grime=0.5)
     if rough_range is not None:
         rough = ng.minf(ng.maxf(rough, rough_range[0]), rough_range[1])
     rough = ng.clamp01(rough)
     height = ng.add(ng.mul(late, 0.4), ng.mul(pores, -0.9 * pore))
     height = ng.add(height, ng.mul(streaks, 0.25))
+    height = ng.add(height, hx)
     normal = ng.bump(height, strength=relief, distance=0.0004)
     principled(mat, ng, col, rough, metallic=0.0, normal=normal)
     return mat
@@ -260,7 +332,7 @@ def enamel(name='enamel', color='#8D977F', chip_metal='#4A4B49', age=0.5, **kw):
 def painted(name='painted', color='#D8D0BD', age=0.5, spots=(), seed=0.0, roughness=0.5, edge_radius=0.003,
             substrate='#4B4A47', chip_amount=0.4, metal_substrate=True, cav_dist=0.03, yellowing=1.0,
             rub_color=None, grime='#0D0A07', spec=None, dust=0.0, streaks=0.0, floor_grime=None, heat=None,
-            variation=0.12, rust=0.0, patches=(), scuffs=0.0, smudge=0.0, rough_range=None):
+            variation=0.12, rust=0.0, patches=(), scuffs=0.0, smudge=0.0, rough_range=None, life=1.0, prints=0.35, chip_radius=None):
     """Many-coat paint on cast iron or timber: soft thick edges, yellowing, grime in recesses, a few
     chips down to the substrate. Yellowing multiplies the paint colour (so black stays black), and
     `rub_color` is the sheen colour that hand-rubbed paint tends towards.
@@ -278,7 +350,9 @@ def painted(name='painted', color='#D8D0BD', age=0.5, spots=(), seed=0.0, roughn
     fine = ng.noise(p, scale=260.0, detail=1, roughness=0.5)
     hand = touch_mask(ng, pos, spots)
     cf = ng.noise(p, scale=55.0, detail=5, roughness=0.62, distortion=0.8)
-    chips = ng.mul(edge, ng.threshold(cf, 0.7 - 0.25 * chip_amount, 0.12))
+    # flaking reaches in from an edge further than the rounding of the edge does
+    chip_edge = edge if chip_radius is None else ng.edge_mask(chip_radius)
+    chips = ng.mul(chip_edge, ng.threshold(cf, 0.7 - 0.25 * chip_amount, 0.12))
     chips = ng.clamp01(chips)
     paint = hex_rgb(color)
     col = ng.mix(ng.mul(big, 0.55 * age * yellowing), paint, (1.12, 0.98, 0.72, 1.0), blend='MULTIPLY')
@@ -311,11 +385,7 @@ def painted(name='painted', color='#D8D0BD', age=0.5, spots=(), seed=0.0, roughn
     col = ng.mix(ng.mul(hand, 0.2), col, rub)
     if scuffs > 0.0:
         # fine pale scratches and scuffs, thickest low down and on the edges
-        lines = None
-        for k, rot in enumerate(((0.0, 0.0, 0.0), (0.0, 0.0, 1.1), (0.0, 0.0, 2.3))):
-            sv = ng.mapping(pos, scale=(260.0, 26.0, 260.0), location=_seed_loc(seed + 20 + k), rotation=rot)
-            ln = ng.inv(ng.map_range(ng.voronoi(sv, scale=1.0, feature='DISTANCE_TO_EDGE'), 0.0, 0.05, 0.0, 1.0))
-            lines = ln if lines is None else ng.maxf(lines, ln)
+        lines = scratch_lines(ng, pos, seed + 20, fineness=420.0, length=10.0, thickness=0.03, clustered=False)
         gate = ng.threshold(ng.noise(ng.mapping(pos, location=_seed_loc(seed + 25)), scale=7.0, detail=3), 0.40, 0.40)
         low = ng.map_range(z, 0.0, 0.45, 1.0, 0.25)
         sm = ng.clamp01(ng.mul(ng.mul(lines, gate), ng.madd(ng.add(low, edge), 0.7, 0.0)))
@@ -336,12 +406,14 @@ def painted(name='painted', color='#D8D0BD', age=0.5, spots=(), seed=0.0, roughn
         # fingermarks and wipe marks: broad soft variations in how glossy the paint is
         smu = ng.noise(ng.mapping(pos, location=_seed_loc(seed + 30)), scale=22.0, detail=3, roughness=0.6)
         rough = ng.add(rough, ng.mul(ng.madd(smu, 2.0, -1.0), 0.09 * smudge))
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.8, prints=prints, spots=spots, cav=cav, grime=0.8)
     if rough_range is not None:
         rough = ng.minf(ng.maxf(rough, rough_range[0]), rough_range[1])
     rough = ng.mixf(chips, rough, 0.6)
     rough = ng.clamp01(rough)
     height = ng.add(ng.mul(fine, 0.2), ng.mul(mid_n, 0.15))
     height = ng.sub(height, ng.mul(chips, 0.5))
+    height = ng.add(height, hx)
     normal = ng.bump(height, strength=0.25, distance=0.0008)
     metal = ng.mul(chips, 0.6) if metal_substrate else 0.0
     principled(mat, ng, col, rough, metallic=metal, normal=normal, spec=spec)
@@ -349,7 +421,7 @@ def painted(name='painted', color='#D8D0BD', age=0.5, spots=(), seed=0.0, roughn
 
 
 def lacquer(name='lacquer', color='#1B1A19', age=0.3, spots=(), seed=0.0, roughness=0.2, edge_radius=0.0025,
-            under='#5B4B3A', rub=0.35):
+            under='#5B4B3A', rub=0.35, life=1.0, dust=0.2, prints=1.0):
     """Glossy black lacquer or Bakelite: crisp reflections, hairline scratches, edges rubbed through to the
     brown or brass beneath, hand-polished spots a touch glossier."""
     mat, ng = new_material(name)
@@ -361,8 +433,7 @@ def lacquer(name='lacquer', color='#1B1A19', age=0.3, spots=(), seed=0.0, roughn
     cf = ng.noise(p, scale=70.0, detail=5, roughness=0.6, distortion=0.7)
     hand = touch_mask(ng, pos, spots)
     worn = ng.clamp01(ng.mul(ng.mul(edge, 1.2), ng.threshold(cf, 0.7 - 0.3 * rub, 0.14)))
-    sc = ng.voronoi(ng.mapping(pos, scale=(300.0, 14.0, 300.0), location=_seed_loc(seed + 3)), scale=1.0, feature='DISTANCE_TO_EDGE')
-    scratches = ng.inv(ng.map_range(sc, 0.0, 0.05, 0.0, 1.0))
+    scratches = scratch_lines(ng, pos, seed + 3)
     col = ng.mix(ng.mul(cav, 0.6), hex_rgb(color), (0.004, 0.003, 0.003, 1.0))
     col = ng.mix(ng.mul(scratches, 0.35 * age), col, (0.05, 0.048, 0.045, 1.0))
     col = ng.mix(worn, col, hex_rgb(under))
@@ -370,15 +441,17 @@ def lacquer(name='lacquer', color='#1B1A19', age=0.3, spots=(), seed=0.0, roughn
     rough = ng.add(rough, ng.mul(scratches, 0.25 * age))
     rough = ng.sub(rough, ng.mul(hand, 0.05))
     rough = ng.mixf(worn, rough, 0.55)
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.5, dust=dust, prints=prints, spots=spots, cav=cav, grime=0.4)
     rough = ng.clamp01(rough)
     height = ng.add(ng.mul(fine, 0.12), ng.mul(scratches, -0.25 * age))
+    height = ng.add(height, hx)
     normal = ng.bump(height, strength=0.2, distance=0.0004)
     principled(mat, ng, col, rough, metallic=ng.mul(worn, 0.4), normal=normal)
     return mat
 
 
 def fabric(name='fabric', color='#2F5B3C', age=0.4, spots=(), seed=0.0, roughness=0.92, nap=0.5, weave=True,
-           weave_scale=900.0, fray=(0.6, 0.55, 0.42), edge_radius=0.003, rub_edges=0.5, mottle=0.5):
+           weave_scale=900.0, fray=(0.6, 0.55, 0.42), edge_radius=0.003, rub_edges=0.5, mottle=0.5, life=1.0, dust=0.12, relief=0.15):
     """Baize, bookcloth or felt: matte, finely woven, worn pale at the edges and where hands rub."""
     mat, ng = new_material(name)
     pos = ng.position()
@@ -405,14 +478,16 @@ def fabric(name='fabric', color='#2F5B3C', age=0.4, spots=(), seed=0.0, roughnes
     col = ng.mix(rubbed, col, ng.mix(0.55, base, pale))
     rough = ng.clamp01(ng.madd(cloth, -0.06 * nap, roughness))
     rough = ng.sub(rough, ng.mul(hand, 0.12))
-    height = ng.add(ng.mul(cloth, 0.5), ng.mul(mid_n, 0.15))
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.9, dust=dust, cav=cav, breakup=0.5, grime=0.5)
+    rough = ng.clamp01(rough)
+    height = ng.add(ng.mul(cloth, 0.5), ng.mul(mid_n, relief))
     normal = ng.bump(height, strength=0.2, distance=0.0005)
     principled(mat, ng, col, rough, metallic=0.0, normal=normal)
     return mat
 
 
 def marbled(name='marbled paper', colors=('#2D4A6B', '#B4442F', '#D8C58E', '#1B1E24'), scale=14.0, age=0.6, spots=(), seed=0.0,
-            roughness=0.55, edge_radius=0.0015, warp=0.06):
+            roughness=0.55, edge_radius=0.0015, warp=0.06, life=1.0):
     """Spanish-style marbled paper over boards: big soft clouds of three inks netted with fine dark
     veins, glazed, the corners worn through to the grey board beneath. `colors` = (main, accent, light, vein)."""
     mat, ng = new_material(name)
@@ -436,16 +511,19 @@ def marbled(name='marbled paper', colors=('#2D4A6B', '#B4442F', '#D8C58E', '#1B1
     worn = ng.clamp01(ng.mul(ng.add(edge, ng.mul(hand, 0.5)), ng.threshold(ng.noise(ng.mapping(pos, location=_seed_loc(seed + 3)), scale=60.0, detail=4), 0.55 - 0.1 * age, 0.2)))
     col = ng.mix(ng.mul(cav, 0.4), col, (0.01, 0.008, 0.006, 1.0))
     col = ng.mix(worn, col, hex_rgb('#8A8478'))
-    col = ng.mix(ng.mul(ng.noise(ng.mapping(pos, location=_seed_loc(seed + 4)), scale=5.0, detail=3), 0.3 * age), col, (0.72, 0.64, 0.52, 1.0), blend='MULTIPLY')
+    paper_age = ng.noise(ng.mapping(pos, location=_seed_loc(seed + 4)), scale=22.0, detail=3)
+    col = ng.mix(ng.mul(paper_age, 0.12 * age), col, (0.88, 0.84, 0.76, 1.0), blend='MULTIPLY')
     rough = ng.clamp01(ng.madd(fine, 0.1, roughness - 0.05))
     rough = ng.mixf(worn, rough, 0.85)
-    normal = ng.bump(ng.mul(fine, 0.3), strength=0.1, distance=0.0003)
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life * 0.45, tint=0.75, dust=0.12, cav=cav, breakup=0.3, prints=0.2, spots=spots, grime=0.06)
+    rough = ng.clamp01(rough)
+    normal = ng.bump(ng.add(ng.mul(fine, 0.3), hx), strength=0.1, distance=0.0003)
     principled(mat, ng, col, rough, metallic=0.0, normal=normal)
     return mat
 
 
 def paper(name='paper', tone='#E3D9C0', age=0.4, spots=(), seed=0.0, roughness=0.9, edge_radius=0.0012, stack_axis=None,
-          page_pitch=0.004, speckle=None, metallic=0.0, scribble=()):
+          page_pitch=0.004, speckle=None, metallic=0.0, scribble=(), life=1.0, dust=0.3):
     """Writing paper and card: warm cream, yellowed towards the edges, foxed in places, softly fibrous.
     With `stack_axis` set, the surface is the edge of a block of pages: fine parallel leaves along that
     axis, `page_pitch` apart (coarser than real paper, which no atlas could hold)."""
@@ -489,8 +567,10 @@ def paper(name='paper', tone='#E3D9C0', age=0.4, spots=(), seed=0.0, roughness=0
                          profile='SIN')
         col = ng.mix(ng.mul(leaves, 0.28), col, (0.72, 0.66, 0.55, 1.0), blend='MULTIPLY')
         height = ng.add(height, ng.mul(leaves, 0.8))
-    normal = ng.bump(height, strength=0.12, distance=0.0003)
     rough = ng.clamp01(ng.madd(fibre, 0.06, roughness - 0.03))
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.7, dust=dust, cav=cav, breakup=0.5, grime=0.45)
+    rough = ng.clamp01(rough)
+    normal = ng.bump(ng.add(height, hx), strength=0.12, distance=0.0003)
     principled(mat, ng, col, rough, metallic=metallic, normal=normal)
     return mat
 
@@ -498,7 +578,7 @@ def paper(name='paper', tone='#E3D9C0', age=0.4, spots=(), seed=0.0, roughness=0
 BOOK_PALETTE = ('#5B2227', '#27453A', '#26304A', '#A27A2A', '#7B5B3E', '#2F3133', '#3C6360', '#4C2E48', '#B9AB88', '#6E2F20')
 
 
-def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_zones=()):
+def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_zones=(), life=1.0):
     """Every book in a row from one material. Per-book variation comes from mesh attributes the builder writes:
     `bk` (a random number per book, picks colour, cloth or leather, bands, label and fading), `bz` and `bx`
     (position up and across the spine, 0..1) and `bt` (0 covers and spine, 1 page edges, 2 page faces) and `bl` (metres along the stack of leaves). Gilt
@@ -519,7 +599,7 @@ def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_
     faded = ng.mul(ng.threshold(hsh(29.1, 0.77), 0.65, 0.02), 0.55 * age)
     cover = ng.mix(faded, cover, (0.30, 0.27, 0.22, 1.0))
     big = ng.noise(p, scale=7.0, detail=4, roughness=0.6)
-    cover = ng.mix(ng.mul(ng.madd(big, 0.8, 0.0), 0.25), cover, (0.6, 0.58, 0.55, 1.0), blend='MULTIPLY')
+    cover = ng.mix(ng.mul(ng.madd(big, 0.8, 0.0), 0.38), cover, (0.55, 0.52, 0.5, 1.0), blend='MULTIPLY')
     edge = ng.edge_mask(0.0022)
     cav = ng.cavity_mask(0.015, power=1.0)
     rub = ng.mul(ng.mul(edge, ng.threshold(ng.noise(ng.mapping(pos, location=_seed_loc(seed + 3)), scale=90.0, detail=3), 0.5, 0.25)), 0.55 + 0.4 * age)
@@ -552,7 +632,7 @@ def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_
 
     # page edges: leaves of paper; page faces: faint printed lines (no words)
     leaves = ng.madd(ng.math('SINE', ng.mul(bl, 1795.6)), 0.5, 0.5)       # leaves of paper, 3.5 mm apart (`bl` is the metres along the stack)
-    paper = ng.mix(ng.mul(leaves, 0.3), hex_rgb('#DCD0B2'), (0.7, 0.64, 0.54, 1.0), blend='MULTIPLY')
+    paper = ng.mix(ng.mul(leaves, 0.3), hex_rgb('#CDBB93'), (0.68, 0.6, 0.48, 1.0), blend='MULTIPLY')
     lines_y = ng.threshold(ng.math('ABSOLUTE', ng.math('SINE', ng.mul(py_of(ng, pos), 523.6))), 0.9, 0.06)   # a line every 6 mm
     run = ng.threshold(ng.noise(ng.mapping(pos, scale=(55.0, 170.0, 3.0), location=_seed_loc(seed + 8)), scale=1.0, detail=1), 0.42, 0.08)
     ink = ng.mul(ng.mul(lines_y, run), 0.55)
@@ -563,7 +643,7 @@ def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_
             m = box_mask(ng, pos, z['at'], z['half'], soft=0.06)
             zone = m if zone is None else ng.maxf(zone, m)
         ink = ng.mul(ink, zone)
-    page_face = ng.mix(ink, hex_rgb('#E4DAC0'), hex_rgb('#5C554A'))
+    page_face = ng.mix(ink, hex_rgb('#D8C9A4'), hex_rgb('#5C554A'))
     pageedge = ng.map_range(bt, 0.4, 0.6, 0.0, 1.0)
     pageface = ng.map_range(bt, 1.4, 1.6, 0.0, 1.0)
     col = ng.mix(pageedge, cover, paper)
@@ -579,6 +659,8 @@ def bookshelf(name='shelf books', seed=0.0, palette=BOOK_PALETTE, age=0.6, text_
     height = ng.add(ng.mul(grain, ng.mixf(leather, 0.25, 0.5)), ng.mul(bands, 0.8))
     height = ng.add(height, ng.mul(lab, -0.2))
     height = ng.add(height, ng.mul(leaves, ng.mul(pageedge, 0.4)))
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=1.0, dust=0.0, breakup=0.6, cav=cav, grime=0.45)
+    height = ng.add(height, hx)
     normal = ng.bump(height, strength=0.18, distance=0.0005)
     principled(mat, ng, col, ng.clamp01(rough), metallic=metal, normal=normal)
     return mat
@@ -588,7 +670,8 @@ def py_of(ng, pos):
     return ng.separate_xyz(pos)[1]
 
 
-def cased_glass(name='cased glass', color='#1B6B45', rim='#CFE6D4', age=0.4, spots=(), seed=0.0, roughness=0.1, edge_radius=0.002, dust=0.5):
+def cased_glass(name='cased glass', color='#1B6B45', rim='#CFE6D4', age=0.4, spots=(), seed=0.0, roughness=0.1, edge_radius=0.002, dust=0.5,
+                life=1.0, prints=1.0):
     """Cased glass for a lamp shade: deep colour over a white lining that shows at the cut edges, a hard
     clean gloss, streaks of dust on the crown and a few fine scuffs."""
     mat, ng = new_material(name)
@@ -609,10 +692,10 @@ def cased_glass(name='cased glass', color='#1B6B45', rim='#CFE6D4', age=0.4, spo
     col = ng.mix(ng.mul(cav, 0.4), col, (0.01, 0.02, 0.014, 1.0))
     rough = ng.madd(swirl, 0.05, roughness - 0.02)
     rough = ng.add(rough, ng.mul(ng.clamp01(ng.mul(dm, dust * age)), 0.5))
-    sc = ng.voronoi(ng.mapping(pos, scale=(300.0, 18.0, 300.0), location=_seed_loc(seed + 2)), scale=1.0, feature='DISTANCE_TO_EDGE')
-    scr = ng.inv(ng.map_range(sc, 0.0, 0.05, 0.0, 1.0))
+    scr = scratch_lines(ng, pos, seed + 2)
     rough = ng.add(rough, ng.mul(scr, 0.06 * age))
-    normal = ng.bump(ng.mul(scr, -0.3), strength=0.04, distance=0.0003)
+    col, rough, hx = lived_in(ng, pos, col, rough, seed=seed, amount=life, tint=0.4, prints=prints, spots=spots, breakup=0.2, grime=0.15)
+    normal = ng.bump(ng.add(ng.mul(scr, -0.3), hx), strength=0.04, distance=0.0003)
     principled(mat, ng, col, ng.clamp01(rough), metallic=0.0, normal=normal, spec=0.6)
     return mat
 

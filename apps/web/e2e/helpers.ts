@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 export const app = (page: Page): Locator => page.locator('.tqw-app');
@@ -15,12 +16,13 @@ export async function expectStamps(page: Page, n: number): Promise<void> {
  * half-built room), so nothing in it can be focused or pressed; a test that acts on the room waits for this first.
  */
 export async function roomReady(page: Page): Promise<void> {
-  await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
+  await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(45_000) });
 }
 
 /** One full stamp through the keyboard path: Space down (contact), Space up (lift). */
 export async function stampWithKeyboard(page: Page, key: 'Space' | 'Enter' = 'Space'): Promise<void> {
   await roomReady(page);
+  await approachDesk(page);
   const before = Number(await app(page).getAttribute('data-stamps'));
   await stampButton(page).focus();
   await page.keyboard.down(key);
@@ -80,8 +82,9 @@ export const site = (page: Page): Locator => page.locator('.tqw-site');
  * software WebGL in CI renders slowly; that phase gets a longer wait than the others.
  */
 export async function expectSpine(page: Page, phase: 'entrance' | 'corridor' | 'threshold' | 'chamber'): Promise<void> {
-  // Arriving takes frames (a hand-over, a walk through a door); a busy machine draws them seconds apart.
-  await expect(site(page)).toHaveAttribute('data-spine', phase, phase === 'chamber' || phase === 'corridor' ? { timeout: 25_000 } : {});
+  // Chamber entry can include both the door fallback and the room's readiness fallback on software WebGL.
+  const timeout = phase === 'chamber' ? sceneTimeout(60_000) : phase === 'corridor' ? sceneTimeout(25_000) : undefined;
+  await expect(site(page)).toHaveAttribute('data-spine', phase, timeout ? { timeout } : {});
 }
 
 /** A door's DOM equivalent, by chamber title. */
@@ -122,6 +125,14 @@ export async function closeMenu(page: Page): Promise<void> {
 
 /** The Office station is reached before pointer/touch press tests operate the physical handle. */
 export async function approachDesk(page: Page): Promise<void> {
+  const places = page.locator('.tqw-places');
+  const summary = places.locator(':scope > summary');
+  const wasOpen = await places.evaluate((node: HTMLDetailsElement) => node.open);
+  if (!wasOpen) {
+    await summary.focus();
+    await summary.click();
+  }
   await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
   await expect(app(page)).toHaveAttribute('data-station', 'desk');
+  if (!wasOpen) await summary.click();
 }

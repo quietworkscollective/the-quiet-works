@@ -60,7 +60,7 @@ the visitor left.
   - the Privacy page states this plainly.
 
   This replaces ADR 0001's "no storage". The e2e privacy guard changes from "nothing stored" to
-  "nothing stored before a discovery, only that key after, no cookies, no network".
+  "nothing stored before a discovery, only that key after, no cookies or third-party requests".
 - **R-2 Wordmark lockup:** bold UNHELD with a small .space.
 - **R-3 Milestones include per-room counts.** No points, percentages-as-scores, streaks,
   leaderboards, timers or any "fixed" or "cured" framing (the design laws). Counts and
@@ -89,7 +89,25 @@ the visitor left.
   - after one, only the versioned key;
   - "Forget everything" empties it;
   - export then import round-trips.
-- **Privacy:** no network, before and after.
+- **Privacy:** the app may load its own room code, models and written records from the same origin
+  as visitors move between rooms. It does not connect to other servers. Discoveries stay in local
+  storage on the visitor's device.
 - **Accessibility and comfort:** reduced motion (no drift, no smoke animation; the transition becomes
   a dissolve), text mode, keyboard and screen-reader paths through every section.
 - **Screenshots** of every section at desktop, Pixel 7 and 320 px wide, for art review.
+
+## Proposed amendment — content-height closing sections (for maintainer review)
+
+The archive, details and footer take their height from their content. They do not reserve a
+viewport-sized minimum: an empty archive, short details copy or footer must not create an unexplained
+blank screen. The archive may grow as discoveries are added, and all three sections may grow with
+text zoom or visitor settings.
+
+About, Credits, Privacy and Licences appear once in the footer. The Details section links to the
+contribution guidance instead of repeating site navigation. The footer is a colophon: the UNHELD
+lockup, tagline, creator credit, the four links, licence lines and copyright. It contains neither a
+detached Menu control nor a trivia slot.
+
+This proposal amends the viewport-height treatment in decisions 4 and 5, and the menu and trivia
+items in decision 6. Existing content, route behavior, local progress and the shared renderer remain
+as recorded above. Its status stays proposed until maintainer review.

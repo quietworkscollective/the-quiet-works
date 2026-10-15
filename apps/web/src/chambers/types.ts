@@ -47,6 +47,8 @@ export type ChamberComponent = ComponentType<ChamberProps>;
 export interface ChamberModule {
   /** Every chamber introduces its own door, open or sealed. */
   door: DoorSpec;
-  /** Present for open chambers: loads the chamber's code. Called early to preload. */
+  /** One-line release approval. Development can open authored rooms before this is approved. */
+  releaseOpen: boolean;
+  /** Present for rooms that are open in the authored registry; called early to preload. */
   load?: () => Promise<{ default: ChamberComponent }>;
 }

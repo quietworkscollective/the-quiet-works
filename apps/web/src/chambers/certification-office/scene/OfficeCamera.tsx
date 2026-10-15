@@ -40,8 +40,9 @@ export function OfficeCamera({ navigation, onStampTarget, overlay, onGesture }: 
     camera.fov = lensFor(size.width, size.height, FOV);
     camera.aspect = size.width / size.height;
     camera.updateProjectionMatrix();
+    navigation.setLens(camera.fov, camera.aspect);
     invalidate();
-  }, [camera, size.width, size.height, invalidate]);
+  }, [camera, size.width, size.height, invalidate, navigation]);
 
   useEffect(() => {
     const canvas = overlay.current;

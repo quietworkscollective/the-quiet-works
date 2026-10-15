@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { ANNEX, bayCentreZ, CORRIDOR } from '../layout.ts';
+import { PlaqueLayout } from './artLayout.ts';
 import { createBuckets } from './buckets.ts';
 import { buildCare, CARE, coatAndCap, mug, newspaper, RAIL_LENGTH, wedge } from './care.ts';
 import { PROPS } from '../props.ts';
 import { RADIATOR, RADIATOR_SLOTS } from './fixtures.ts';
-import { farPrintSlots, PIER_PRINTS } from './groupings.ts';
+import { buildAnnexSign, farPrintSlots, PIER_PRINTS } from './groupings.ts';
 import { gapOf, FRAME, placements } from './openings.ts';
+import { STAGE } from './stage.ts';
 
 /**
  * Founder feedback: show present-day care, not abandonment, and no long bare walls. A coat and cap
@@ -105,15 +107,26 @@ describe('no long bare walls', () => {
   it('every far bay with no door on a side has a print at its centre, and none where there is a door (authored or repeated)', () => {
     const slots = farPrintSlots();
     const doors = placements();
-    expect(slots.length).toBeGreaterThan(3);
-    for (let bay = CORRIDOR.walkableBays; bay <= Math.floor((CORRIDOR.innerDoorZ - CORRIDOR.farZ) / CORRIDOR.bay) - 1; bay += 1) {
+    expect(slots.length).toBeGreaterThan(1);
+    for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
       for (const side of ['left', 'right'] as const) {
         const has = slots.some((s) => s.bay === bay && s.side === side);
         const hasDoor = doors.some((d) => d.side === side && Math.abs(d.z - bayCentreZ(bay)) < CORRIDOR.bay / 2);
-        expect(has, `bay ${bay} ${side}`).toBe(!hasDoor && bay !== ANNEX.bay);
+        expect(has, `bay ${bay} ${side}`).toBe(!hasDoor);
       }
     }
     for (const s of slots) expect(s.z).toBeCloseTo(bayCentreZ(s.bay), 6);
+  });
+
+  it('sets an enamel Annex sign directly above the bay 6 door', () => {
+    const buckets = createBuckets();
+    buildAnnexSign(buckets, new PlaqueLayout([{ text: 'ANNEX', code: 'BAY 6' }]));
+    const enamel = buckets.enamel.bounds();
+    expect(buckets.enamel.triangleCount).toBeGreaterThan(0);
+    expect(buckets.plaque.triangleCount).toBeGreaterThan(0);
+    expect(enamel.min[1]).toBeCloseTo(ANNEX.sign.y - 0.145, 3);
+    expect(enamel.max[1]).toBeCloseTo(ANNEX.sign.y + 0.145, 3);
+    expect((enamel.min[2] + enamel.max[2]) / 2).toBeCloseTo(bayCentreZ(ANNEX.bay), 3);
   });
 
 });

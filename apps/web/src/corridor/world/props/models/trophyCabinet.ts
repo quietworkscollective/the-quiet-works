@@ -1,10 +1,11 @@
 import { atlasUvs } from '../atlasLayout.ts';
 import { IVORY, linear, METAL, mulRgb, wood } from '../colours.ts';
 import { brassFrame, screw } from '../kit.ts';
+import { placeModel } from '../modelKit.ts';
 import type { PropModel } from '../model.ts';
 import { ramp, rad, turned, Y, Z, type PoseSet } from '../motion.ts';
 import type { Assembly } from '../parts.ts';
-import { cup, plinth, reservedSpace, teamMug } from '../trophies.ts';
+import { cup, labelPlate, plinth, reservedSpace, teamMug } from '../trophies.ts';
 
 /**
  * The trophy cabinet (competition, softened): a walnut cabinet on the lobby's right wall, three
@@ -31,6 +32,9 @@ const WALNUT = wood('#4B3021');
 const WALNUT_LIGHT = wood('#5E3D29');
 const WALNUT_DARK = wood('#3B2418');
 
+/** The runner-up cup is scaled to fit its shelf. */
+const RUNNER_SCALE = 0.74;
+
 export const trophyCabinet: PropModel = {
   id: 'trophy-cabinet',
 
@@ -39,7 +43,7 @@ export const trophyCabinet: PropModel = {
     { name: 'catch', pivot: [-0.047, 1.0, 0.338] },
   ],
 
-  build(a) {
+  build(a, _placement, kit) {
     const { half: H, z0, z1 } = CABINET;
     const [s1, s2, s3] = CABINET.shelves;
     const door = a.part('door');
@@ -117,18 +121,40 @@ export const trophyCabinet: PropModel = {
     a.quad('print', [-cardW / 2, 0.517 - cardH / 2, z1 + 0.0004], [cardW / 2, 0.517 - cardH / 2, z1 + 0.0004], [cardW / 2, 0.517 + cardH / 2, z1 + 0.0004], [-cardW / 2, 0.517 + cardH / 2, z1 + 0.0004], [0, 0, 1], undefined, atlasUvs('rota'));
     for (const x of [-0.162, 0.162]) screw(a, [x, 0.517, z1 - 0.0005], 0.0034);
 
-    // Contents. Top shelf: the cup that was won, and the trophy still in its box.
+    // Contents. Where the ready-made trophies loaded, they stand on the shelves, each with its
+    // drafted engraving on a brass plate in front; where they did not, the procedural ones do.
     const mid = (z0 + z1) / 2 - 0.022;
-    const plinthTop3 = plinth(a, -0.2, s3, mid, 0.13, 'plateComposed');
-    cup(a, { at: [-0.2, plinthTop3, mid], scale: 1.16, tint: METAL.gold });
+    const plateZ = z1 - 0.05;
+    // Top shelf: the cup that was won (a gold trophy on its own plinth), and the trophy still in its box.
+    const composed = kit?.get('trophy-plinth-small');
+    if (composed) {
+      placeModel(a, composed, { at: [-0.2, s3, mid] });
+      labelPlate(a, -0.2, s3, plateZ, 'plateComposed');
+    } else {
+      const plinthTop3 = plinth(a, -0.2, s3, mid, 0.13, 'plateComposed');
+      cup(a, { at: [-0.2, plinthTop3, mid], scale: 1.16, tint: METAL.gold });
+    }
     const plinthTopC = plinth(a, 0.185, s3, mid, 0.12, 'plateEffort');
     boxed(a, 0.185, plinthTopC, mid);
-    // Middle shelf: the runner-up cup, and the ordinary team mug.
-    const plinthTop2 = plinth(a, -0.19, s2, mid, 0.15, 'plateRunner');
-    cup(a, { at: [-0.19, plinthTop2, mid], scale: 0.9, tint: METAL.silver, broad: true });
+    // Middle shelf: the runner-up cup (pewter, lidded, two-handled), and the ordinary team mug.
+    const runner = kit?.get('trophy-cup-tall');
+    if (runner) {
+      // The cup is 0.31 m tall; the shelf is 0.24 m between boards.
+      placeModel(a, runner, { at: [-0.19, s2, mid], scale: RUNNER_SCALE });
+      labelPlate(a, -0.19, s2, plateZ, 'plateRunner');
+    } else {
+      const plinthTop2 = plinth(a, -0.19, s2, mid, 0.15, 'plateRunner');
+      cup(a, { at: [-0.19, plinthTop2, mid], scale: 0.9, tint: METAL.silver, broad: true });
+    }
     teamMug(a, [0.2, s2, mid + 0.01]);
-    // Lowest shelf: the space that is kept.
+    // Lowest shelf: a brass cup nobody engraved, and the space kept by its dust ring and tent card.
+    const brass = kit?.get('trophy-cup-squat');
+    if (brass) placeModel(a, brass, { at: [-0.19, s1, mid], scale: 0.86 });
+    // The plinth stays bare, with the procedural dust ring and tent card that mark the space as kept.
     reservedSpace(a, 0.2, s1, mid, mid + 0.07);
+    // On the wall above the cabinet, an honours board with its plates, where the ready-made one loaded.
+    const board = kit?.get('trophy-shield');
+    if (board) placeModel(a, board, { at: [0, 1.7, 0.0125], yaw: 0 });
 
     // On top, a ship in a bottle on its cradle.
     shipInBottle(a, 0.17, CABINET.top);

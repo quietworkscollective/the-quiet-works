@@ -82,6 +82,8 @@ export class SpineSound {
   private readonly out: GainNode;
   private readonly gateDry: GainNode;
   private readonly gateSend: GainNode | null;
+  /** Input of the corridor's reverb, or null when the platform has none: other sounds in the building send here to be in the same room. */
+  readonly roomSend: AudioNode | null;
   private readonly env: voices.SpineEnv;
   private readonly roomEnv: voices.SpineEnv;
   private corridor = false;
@@ -124,6 +126,7 @@ export class SpineSound {
         gateSend = null;
       }
       this.gateSend = gateSend;
+      this.roomSend = send;
 
       this.gateDry = this.gain(0);
       this.gateDry.connect(this.out);

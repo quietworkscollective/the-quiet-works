@@ -14,6 +14,7 @@ function setup() {
   const detach = director.attach();
   return {
     store,
+    director,
     events,
     detach,
     at: (t: number) => {
@@ -29,6 +30,48 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
+describe('response completion', () => {
+  it('keeps a slow response busy until a resting pose has actually been drawn', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const s = setup();
+    const invalidate = vi.fn();
+    s.director.setInvalidate(invalidate);
+    s.store.dispatch({ type: 'PRESS' });
+    s.store.dispatch({ type: 'RELEASE' });
+    s.director.beginFrame(1001);
+    invalidate.mockClear();
+    vi.advanceTimersByTime(30_000);
+    expect(invalidate).toHaveBeenCalledOnce();
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(true);
+    s.director.beginFrame(31_000);
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(false);
+    s.detach();
+  });
+
+  it('cannot settle a new stamp with an old frame queued before reset', async () => {
+    const s = setup();
+    s.store.dispatch({ type: 'PRESS' });
+    s.store.dispatch({ type: 'RELEASE' });
+    s.director.beginFrame(31_000);
+    s.director.afterFrame();
+    s.store.dispatch({ type: 'RESET' });
+    s.store.dispatch({ type: 'PRESS' });
+    s.store.dispatch({ type: 'RELEASE' });
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(true);
+    s.director.beginFrame(32_000);
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(false);
+    s.detach();
+  });
 });
 
 describe('Director timing rule (timing.ts header)', () => {

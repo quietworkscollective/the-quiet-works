@@ -1,24 +1,28 @@
 import { CHAMBERS } from '@tqw/engine';
 import { describe, expect, it } from 'vitest';
 import { CHAMBER_MODULES } from '../../chambers/registry.ts';
-import { CHAMBER_SLOTS, CORRIDOR, LOBBY, WALK_LIMITS } from '../layout.ts';
+import { ANNEX, bayCentreZ, CHAMBER_SLOTS, CORRIDOR, LOBBY, WALK_LIMITS } from '../layout.ts';
 import { ART, PLAQUE_ATLAS, PlaqueLayout, uvRect } from './artLayout.ts';
-import { BENCH } from './architecture/lobbyFixtures.ts';
-import { LOBBY_MID_Z, TROPHY_ZONE } from './architecture/lobbyPlan.ts';
+import { BANKER_LAMP_SOURCE, LOBBY_MID_Z, TROPHY_ZONE } from './architecture/lobbyPlan.ts';
 import { BOARD_DEPTH, CLIPPINGS, CLIPPING_SIZE, FREE_EDGE_STANDOFF, SLEEVE, boardToWorld } from './board.ts';
 import { BUCKET_KEYS, triangleTotal } from './buckets.ts';
 import { buildWorld } from './build.ts';
-import { buildRadiator, buildSconce, radiatorMounts, SCONCE_FAR_Z, sconceGroups, sconceMounts } from './fixtures.ts';
+import { CORRIDOR_LOOK } from '../../look/profiles.ts';
+import { buildSconce, SCONCE_FAR_Z, sconceGroups, sconceMounts } from './fixtures.ts';
 import { LOBBY_SCONCES, MAX_LAMPS } from './lighting.ts';
 import { PROPS } from '../props.ts';
 import { FRAME, gapOf, placements } from './openings.ts';
+import { END_Z, STAGE } from './stage.ts';
+import { DECOR_DRAW_CALLS, DECOR_TRIANGLES } from './decor/budget.ts';
+import { DECOR_LAYOUT } from './decor/layout.ts';
+import decorManifest from './decor/lod/manifest.json';
 
 const world = buildWorld();
 
 describe('placements', () => {
   const places = placements();
 
-  it('puts the four chamber doors in corridor order, on the sides the registry names', () => {
+  it('puts the chamber doors in corridor order, on the sides the registry names', () => {
     const chamber = places.filter((p) => p.chamber !== null).sort((a, b) => b.z - a.z);
     expect(chamber.map((p) => p.chamber)).toEqual(CHAMBERS.map((c) => c.id));
     for (const p of chamber) {
@@ -28,6 +32,13 @@ describe('placements', () => {
     expect(chamber.map((p) => p.z)).toEqual(CHAMBER_SLOTS.map((s) => s.z));
   });
 
+  it('places both Annex room doors opposite each other in bay six beneath the shared sign', () => {
+    const annexDoors = places.filter((p) => p.chamber === 'exchange' || p.chamber === 'outline-room');
+    expect(annexDoors.map((p) => p.chamber)).toEqual(['exchange', 'outline-room']);
+    expect(annexDoors.map((p) => p.side)).toEqual(['right', 'left']);
+    expect(annexDoors.map((p) => p.z)).toEqual([bayCentreZ(ANNEX.bay), bayCentreZ(ANNEX.bay)]);
+  });
+
   it('keeps every opening and its architrave clear of the next, on both sides, all the way to the fog', () => {
     for (const side of ['left', 'right'] as const) {
       const spans = places
@@ -35,15 +46,17 @@ describe('placements', () => {
         .map((p) => [p.z - gapOf(p.spec).width / 2, p.z + gapOf(p.spec).width / 2] as const)
         .sort((a, b) => a[0] - b[0]);
       for (let i = 1; i < spans.length; i += 1) expect(spans[i]![0], `${side} openings ${i - 1}/${i}`).toBeGreaterThan(spans[i - 1]![1] + 0.1);
-      expect(spans[0]![0]).toBeGreaterThan(CORRIDOR.farZ);
+      expect(spans[0]![0]).toBeGreaterThan(END_Z);
       expect(spans[spans.length - 1]![1]).toBeLessThan(CORRIDOR.innerDoorZ - 0.5);
     }
   });
 
-  it('recedes past the walkable bays: blank doors continue to the far fog and are marked far', () => {
+  it('stops its blank-door flats at the last stage bay and marks them far', () => {
     const far = places.filter((p) => p.far);
-    expect(far.length).toBeGreaterThan(20);
-    expect(Math.min(...far.map((p) => p.z))).toBeLessThan(-70);
+    expect(far.length).toBeGreaterThan(6);
+    expect(Math.min(...far.map((p) => p.z))).toBeLessThan(END_Z + 3);
+    expect(Math.max(...far.map((p) => p.z))).toBeGreaterThan(END_Z);
+    expect(STAGE.bays).toBe(13);
     for (const p of far) expect(p.chamber).toBeNull();
     // Each reveal is 0.22 m deep; the architrave is 0.1 m wide.
     expect(FRAME.reveal).toBe(0.22);
@@ -51,9 +64,9 @@ describe('placements', () => {
 });
 
 describe('the built world', () => {
-  it('stays inside the triangle budget (250k) counting everything drawn, and well under the draw-call budget (150)', () => {
-    // The merged world, plus what is drawn on top of it: the animated doors (counted whole, so a
-    // part also merged is counted twice: an upper bound) and the instanced sconces and radiators.
+  it('stays inside the 210k triangle and 125 draw-call budgets', () => {
+    // Doors are counted whole even where a part also merged, so this is an upper bound. The
+    // triangle total includes the dressing and the props lane's full allowance.
     const doors = world.chamberDoors.reduce(
       (n, d) => n + triangleTotal(d.build.flat) + triangleTotal(d.build.fixed) + d.build.leaves.reduce((m, leaf) => m + triangleTotal(leaf.body), 0),
       0,
@@ -62,20 +75,19 @@ describe('the built world', () => {
       const sconce = buildSconce(detail);
       return sconce.brass.triangleCount + sconce.glass.triangleCount;
     };
-    const radiator = buildRadiator();
     const groups = sconceGroups();
-    const instanced = groups.near.length * lantern('near') + groups.far.length * lantern('far') + radiatorMounts().length * (radiator.paint.triangleCount + radiator.iron.triangleCount);
-    expect(world.triangles + doors + instanced).toBeLessThan(250_000);
+    const instanced = groups.near.length * lantern('near') + groups.far.length * lantern('far');
+    expect(world.triangles + doors + instanced + DECOR_TRIANGLES + 25_000).toBeLessThanOrEqual(210_000);
     const drawn = BUCKET_KEYS.filter((k) => world.buckets[k].triangleCount > 0).length;
-    // One mesh per material, plus the instanced fixtures (4) and each chamber door's parts (about 8).
-    expect(drawn + 6 + world.chamberDoors.length * 8 + 4).toBeLessThan(150);
+    const desktopFinishCalls = 7 + 2 + 1 + 2 * CORRIDOR_LOOK.bloom.levels;
+    expect(drawn + 6 + world.chamberDoors.length * 8 + 4 + DECOR_DRAW_CALLS + desktopFinishCalls).toBeLessThanOrEqual(125);
   });
 
   it('only the sconces the visitor can never approach get the light-weight lantern', () => {
     const { near, far } = sconceGroups();
     // Every sconce is in exactly one group.
     expect(near.length + far.length).toBe(sconceMounts().length);
-    expect(far.length).toBeGreaterThan(8);
+    expect(far.length).toBeGreaterThan(3);
     // Nothing the visitor can walk up to, or see from within eight metres of the end of the walk, is thinned.
     for (const m of near) expect(m.position[2]).toBeGreaterThanOrEqual(SCONCE_FAR_Z);
     for (const m of far) expect(m.position[2]).toBeLessThan(WALK_LIMITS.minZ - 7.99);
@@ -86,6 +98,23 @@ describe('the built world', () => {
     expect(weight(light)).toBeLessThan(weight(full) / 2);
     expect(light.glass.triangleCount).toBeGreaterThan(0);
     expect(light.brass.triangleCount).toBeGreaterThan(0);
+  });
+
+  it('sets a 1.16 m glossier walked strip down the centre of the corridor floor', () => {
+    const walk = world.buckets.terrazzoWalk;
+    expect(walk.triangleCount).toBeGreaterThan(0);
+    const bounds = walk.bounds();
+    expect(bounds.min[0]).toBeCloseTo(-0.58, 5);
+    expect(bounds.max[0]).toBeCloseTo(0.58, 5);
+    expect(bounds.min[2]).toBeCloseTo(END_Z, 5);
+    expect(bounds.max[2]).toBeCloseTo(CORRIDOR.innerDoorZ, 5);
+  });
+
+  it('lights the real banker lamp on the hall table from a visible warm source', () => {
+    const lamp = world.lamps.find((item) => item.id === 'lobby-banker-lamp');
+    expect(lamp?.position).toEqual(BANKER_LAMP_SOURCE);
+    expect(lamp?.position[1]).toBeGreaterThan(1);
+    expect(lamp?.range).toBeLessThanOrEqual(3);
   });
 
   it('has no non-finite vertex data and unit normals', () => {
@@ -128,7 +157,7 @@ describe('the built world', () => {
     expect(max[0]!).toBeLessThan(LOBBY.width / 2 + 0.4);
     expect(min[1]!).toBeGreaterThanOrEqual(-0.001);
     expect(max[1]!).toBeLessThanOrEqual(LOBBY.height + 0.05);
-    expect(min[2]!).toBeGreaterThanOrEqual(CORRIDOR.farZ - 0.01);
+    expect(min[2]!).toBeGreaterThanOrEqual(END_Z - 0.01);
     expect(max[2]!).toBeLessThanOrEqual(LOBBY.startZ + 0.4);
   });
 
@@ -141,8 +170,10 @@ describe('the built world', () => {
     const lamps = world.lamps.filter((l) => l.kind === 'door-lamp');
     const named = world.places.filter((p) => p.spec.character?.lamp && !p.far).map((p) => p.key);
     expect(lamps.map((l) => l.id).sort()).toEqual(named.map((k) => `door-lamp-${k}`).sort());
-    // The four chamber doors all have one (ADR 0004: Office 3000 K, Apartment 2800 K, Tomorrow Engine 3400 K, Atrium 3100 K).
-    expect(named).toEqual(expect.arrayContaining(['certification-office', 'apartment', 'tomorrow-engine', 'great-atrium']));
+    // Every authored chamber door has its named lamp; both Annex doors are included.
+    expect(named).toEqual(expect.arrayContaining([
+      'certification-office', 'apartment', 'tomorrow-engine', 'great-atrium', 'exchange', 'outline-room',
+    ]));
     // Warmer data is redder: 2800 K carries a higher red-to-blue ratio than 3400 K.
     const ratio = (id: string): number => {
       const l = lamps.find((x) => x.id === id);
@@ -212,7 +243,9 @@ describe('the lobby\'s anchors for the props lane', () => {
     for (const l of LOBBY_SCONCES.filter((x) => x.x > 0 && x.id !== 'lobby-cabinet')) {
       expect(l.z < TROPHY_ZONE.z0 - 0.15 || l.z > TROPHY_ZONE.z1 + 0.15, `${l.id} at z=${l.z} in the trophy zone ${TROPHY_ZONE.z0}..${TROPHY_ZONE.z1}`).toBe(true);
     }
-    expect(BENCH.z0 > TROPHY_ZONE.z1 || BENCH.z1 < TROPHY_ZONE.z0).toBe(true);
+    const bench = DECOR_LAYOUT.bench;
+    const halfBench = decorManifest.models['bench-painted-wood'].dimensions[0]! * (bench.scale ?? 1) / 2;
+    expect(bench.position[2] - halfBench > TROPHY_ZONE.z1 || bench.position[2] + halfBench < TROPHY_ZONE.z0).toBe(true);
     // The anchors really are where the contract says: the cabinet and the photograph on the right, the can on the left.
     const cabinet = PROPS.find((p) => p.id === 'trophy-cabinet');
     const photo = PROPS.find((p) => p.id === 'team-photo');
@@ -229,13 +262,15 @@ describe('the lobby\'s anchors for the props lane', () => {
 
 describe('lettered art layout', () => {
   it('gives every distinct plaque its own slot on the atlas, inside it, without overlap', () => {
-    const layout = new PlaqueLayout(
-      CHAMBERS.flatMap((c) => {
+    const specs = [
+      ...CHAMBERS.flatMap((c) => {
         const plaque = CHAMBER_MODULES[c.id].door.plaque;
         return plaque ? [plaque, plaque] : [];
       }),
-    );
-    expect(layout.all.length).toBe(3);
+      { text: 'ANNEX', code: 'BAY 6' },
+    ];
+    const layout = new PlaqueLayout(specs);
+    expect(layout.all.length).toBe(new Set(specs.map((p) => p.text)).size);
     const rects = layout.all.map((p) => layout.rect(p.text));
     for (const r of rects) {
       expect(r.y + r.h).toBeLessThanOrEqual(PLAQUE_ATLAS.height);

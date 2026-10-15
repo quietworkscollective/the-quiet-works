@@ -1,7 +1,7 @@
 {
   "name": "the-quiet-works",
   "private": true,
-  "description": "UNHELD — a space for everything we carry. The Quiet Works is its browser-native 3D world; Chapter Zero: HE'S FINE.",
+  "description": "UNHELD \u2014 a space for everything we carry. The Quiet Works is its browser-native 3D world; Chapter Zero: HE'S FINE.",
   "homepage": "https://unheld.space/",
   "author": "Asiri Dalugoda",
   "license": "(Apache-2.0 AND CC-BY-4.0)",
@@ -12,15 +12,22 @@
   "scripts": {
     "dev": "pnpm --filter @tqw/web dev",
     "build": "pnpm --filter @tqw/web build",
+    "build:e2e-fixture": "NODE_ENV=development pnpm --filter @tqw/web exec vite build --mode development --outDir dist-authored",
+    "ci:local": "node scripts/ci/local.mjs",
     "preview": "pnpm --filter @tqw/web preview",
     "lint": "pnpm -r --parallel lint",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && node --test scripts/bake/*.test.mjs scripts/audit-assets-budget.test.mjs scripts/blender/props/*.test.mjs && pnpm check:bakes && pnpm check:commons",
     "test:e2e": "pnpm --filter @tqw/web test:e2e",
-    "check:content": "pnpm --filter @tqw/engine check:content",
+    "check:content": "pnpm --filter @tqw/engine check:content && pnpm --filter @tqw/web exec vitest run src/discoverability.test.ts --reporter=verbose",
+    "check:commons": "python3 -I scripts/commons/test_validator.py && python3 -I scripts/commons/validate.py && python3 -I docs/commons/examples/invalid/check.py",
     "audit:assets": "pnpm --filter @tqw/web audit:assets",
     "check:public": "node scripts/check-public.mjs",
-    "seal": "node scripts/seal-content.ts"
+    "seal": "node scripts/seal-content.ts",
+    "bake": "node scripts/bake/run.mjs",
+    "build:exchange": "node scripts/blender/rooms/exchange/run.ts",
+    "check:bakes": "node scripts/bake/run.mjs --check",
+    "test:bake-toolchain": "node --test scripts/bake/encoding.integration.mjs"
   },
   "type": "module",
   "devDependencies": {

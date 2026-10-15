@@ -17,4 +17,10 @@ describe('Privacy page and the discovery store', () => {
   it('says that nothing is stored until the first find', () => {
     expect(text).toMatch(/until you find something, it stores nothing/i);
   });
+
+  it('explains lazy same-origin files and rules out requests to other origins', () => {
+    expect(text).toMatch(/loads? its own room code, models and written records from the same site/i);
+    expect(text).toMatch(/does not (?:contact|connect to) (?:any )?other servers?/i);
+    expect(text).not.toMatch(/no network requests at all/i);
+  });
 });

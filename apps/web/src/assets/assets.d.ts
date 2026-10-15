@@ -5,3 +5,8 @@ declare module '*.glb?url&inline' {
   const dataUrl: string;
   export default dataUrl;
 }
+
+declare module '*.glb.gz?url&inline' {
+  const dataUrl: string;
+  export default dataUrl;
+}

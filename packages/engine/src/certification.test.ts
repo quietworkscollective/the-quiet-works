@@ -119,6 +119,25 @@ describe('escalation and overload', () => {
 });
 
 describe('stillness path', () => {
+  it('ignores stillness and stale completions until the latest released response settles', () => {
+    const store = createCertificationStore();
+    store.dispatch({ type: 'PRESS' });
+    store.dispatch({ type: 'RELEASE' });
+    const first = store.getState();
+    store.dispatch({ type: 'STILLNESS' });
+    expect(store.getState()).toBe(first);
+    store.dispatch({ type: 'PRESS' });
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    expect(store.getState().processing).toBe(true);
+    store.dispatch({ type: 'RELEASE' });
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    expect(store.getState().processing).toBe(true);
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 2 });
+    expect(store.getState().processing).toBe(false);
+    store.dispatch({ type: 'STILLNESS' });
+    expect(store.getState().memo.source).toBe('stillness');
+  });
+
   it('reveals the memo with the stillness provenance', () => {
     const { state, cues } = run([{ type: 'STILLNESS' }]);
     expect(state.display).toBe(STILLNESS_LINE.display);

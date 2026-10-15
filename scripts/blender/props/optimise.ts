@@ -25,6 +25,8 @@ const sharp = need('sharp');
 export interface OptimiseOptions {
   /** WebP quality for base colour, packed occlusion-roughness-metallic and normal maps. */
   quality?: { color?: number; orm?: number; normal?: number };
+  /** Quantize positions for stage sets whose moving nodes have authored, centred pivots. */
+  quantizePosition?: number;
   copyright?: string;
 }
 
@@ -33,15 +35,21 @@ export async function optimise(input: string, output: string, options: OptimiseO
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.readBinary(new Uint8Array(readFileSync(input)));
   await doc.transform(dedup(), prune(), weld());
-  await doc.transform(quantize({ pattern: /^(NORMAL|TANGENT|TEXCOORD_0)$/, quantizeNormal: 10, quantizeTexcoord: 14 }));
+  const positionPattern = options.quantizePosition === undefined ? '' : '|POSITION';
+  await doc.transform(quantize({
+    pattern: new RegExp('^(NORMAL|TANGENT|TEXCOORD_0' + positionPattern + ')$'),
+    ...(options.quantizePosition === undefined ? {} : { quantizePosition: options.quantizePosition }),
+    quantizeNormal: 10,
+    quantizeTexcoord: 14,
+  }));
   // glTF-Transform only declares KHR_mesh_quantization when positions are quantised, but 16-bit
   // normals are not legal glTF without it.
-  const quantisedNormals = doc
+  const quantised = doc
     .getRoot()
     .listMeshes()
     .flatMap((mesh: any) => mesh.listPrimitives())
-    .some((prim: any) => prim.getAttribute('NORMAL')?.getComponentType() === 5122);
-  if (quantisedNormals) doc.createExtension(KHRMeshQuantization).setRequired(true);
+    .some((prim: any) => ['NORMAL', 'POSITION'].some(name => prim.getAttribute(name)?.getComponentType() === 5122));
+  if (quantised) doc.createExtension(KHRMeshQuantization).setRequired(true);
   const webp = (slots: RegExp, quality: number, nearLossless = false): any =>
     textureCompress({ encoder: sharp, targetFormat: 'webp', slots, quality, nearLossless, effort: 100 });
   await doc.transform(

@@ -14,6 +14,23 @@ import {
 /** The spine layer's stylesheet, read as text: tokens, contrast, targets, layout, reduced motion, measurements. */
 
 describe('site tokens', () => {
+  it('defines the exhibition palette and applies it to the public surface', () => {
+    expect(color('--page-ground')).toBe('#171918');
+    expect(color('--page-surface')).toBe('#202421');
+    expect(color('--page-text')).toBe('#eee9df');
+    expect(color('--page-muted')).toBe('#bdbdb4');
+    expect(color('--page-rule')).toBe('#414741');
+    expect(color('--page-action')).toBe('#d59b4a');
+    expect(color('--page-paper')).toBe('#e2dacb');
+    const site = declarationsOf('.tqw-site');
+    expect(site).toMatch(/--coal:\s*var\(--page-ground\)/);
+    expect(site).toMatch(/--coal-2:\s*var\(--page-surface\)/);
+    expect(site).toMatch(/--bone:\s*var\(--page-text\)/);
+    expect(site).toMatch(/--muted:\s*var\(--page-muted\)/);
+    expect(site).toMatch(/--divider:\s*var\(--page-rule\)/);
+    expect(site).toMatch(/--stock-bone:\s*var\(--page-paper\)/);
+  });
+
   it('defines the ADR palette', () => {
     const t = tokens();
     expect(t.get('--coal')).toBe('#151a20');
@@ -34,10 +51,16 @@ describe('site tokens', () => {
     }
   });
 
-  it('holds the three lower sections to one 1040 px container', () => {
-    expect(tokens().get('--section-width')).toBe('1040px');
+  it('holds the three lower sections to one 1200 px container', () => {
+    expect(tokens().get('--section-width')).toBe('1200px');
     for (const selector of ['.tqw-archive__inner', '.tqw-details__inner', '.tqw-footer__inner']) {
       expect(declarationsOf(selector), selector).toMatch(/width:\s*min\(var\(--section-width\), 100%\)/);
+    }
+  });
+
+  it('lets the archive, details and footer take their content height', () => {
+    for (const selector of ['.tqw-archive', '.tqw-details', '.tqw-footer', '.tqw-footer__inner']) {
+      expect(declarationsOf(selector), selector).not.toMatch(/min-height\s*:/);
     }
   });
 });
@@ -64,6 +87,27 @@ describe('contrast', () => {
     expect(contrastHex(color(fg), color(bg))).toBeGreaterThanOrEqual(4.5);
   });
 
+  const pageTextPairs: Array<[string, string, string]> = [
+    ['--page-text', '--page-ground', 'primary page text'],
+    ['--page-text', '--page-surface', 'surface text'],
+    ['--page-muted', '--page-ground', 'secondary page text'],
+    ['--page-muted', '--page-surface', 'secondary surface text'],
+    ['--page-action', '--page-ground', 'action text'],
+    ['--page-action', '--page-surface', 'action text on a surface'],
+    ['--paper-ink', '--page-paper', 'found document copy'],
+    ['--ink-soft', '--page-paper', 'found document metadata'],
+    ['--teal-ink', '--page-paper', 'found document stamp'],
+  ];
+
+  it.each(pageTextPairs)('%s on %s reaches 4.5 : 1 (%s)', (fg, bg) => {
+    expect(contrastHex(color(fg), color(bg))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('keeps focus indicators at least 3 : 1 on dark and paper surfaces', () => {
+    expect(contrastHex(color('--page-action'), color('--page-ground'))).toBeGreaterThanOrEqual(3);
+    expect(contrastHex(color('--paper-ink'), color('--page-paper'))).toBeGreaterThanOrEqual(3);
+  });
+
   it('the focus ring is at least 3 : 1 on coal, and ink is on the stocks', () => {
     expect(contrastHex(color('--amber'), color('--coal'))).toBeGreaterThanOrEqual(3);
     expect(contrastHex(color('--paper-ink'), color('--stock-grey-green'))).toBeGreaterThanOrEqual(3);
@@ -71,24 +115,26 @@ describe('contrast', () => {
     expect(declarationsOf('.tqw-clipping :focus-visible,\n.tqw-paper :focus-visible')).toMatch(/outline-color:\s*var\(--paper-ink\)/);
   });
 
-  it('the sealed word and the archive lines are 4.5 : 1 on the sealed paper colour', () => {
-    expect(declarationsOf(".tqw-paper[data-state='sealed']")).toMatch(/background:\s*#1c222a/);
-    expect(contrastHex(color('--muted'), '#1c222a')).toBeGreaterThanOrEqual(4.5);
-    expect(contrastHex(color('--bone'), '#1c222a')).toBeGreaterThanOrEqual(4.5);
+  it('the sealed rows and archive lines are 4.5 : 1 on their neutral surface', () => {
+    const row = declarationsOf('.tqw-archive__sealed-row');
+    expect(row).toMatch(/background:\s*var\(--coal-2\)/);
+    expect(row).toMatch(/color:\s*var\(--muted\)/);
+    expect(contrastHex(color('--page-muted'), color('--page-surface'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastHex(color('--page-text'), color('--page-surface'))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('the hero lays a light coal wash over the live world and a plate behind the lockup', () => {
     const scrim = declarationsOf('.tqw-hero__scrim');
-    expect(scrim).toMatch(/rgba\(21, 26, 32, var\(--hero-wash, 0\.15\)\)/);
+    expect(scrim).toMatch(/rgba\(23, 25, 24, var\(--hero-wash, 0\.15\)\)/);
     // Heavy enough to hold the type, light enough that the doorway and the warm light stay visible.
-    for (const [, alpha = ''] of scrim.matchAll(/rgba\(21, 26, 32, ([\d.]+)\)/g)) expect(Number(alpha)).toBeLessThanOrEqual(0.55);
+    for (const [, alpha = ''] of scrim.matchAll(/rgba\(23, 25, 24, ([\d.]+)\)/g)) expect(Number(alpha)).toBeLessThanOrEqual(0.55);
   });
 
   it('the plate is attached to the lockup, so it follows the type at every width: solid across it, fading to nothing', () => {
     const plate = declarationsOf('.tqw-hero__lockup::before');
     expect(plate).toMatch(/radial-gradient\(\s*ellipse closest-side at 50% 50%/);
-    expect(plate).toMatch(/rgba\(21, 26, 32, var\(--hero-plate, 0\.7\)\) var\(--plate-solid, 62%\)/);
-    expect(plate).toMatch(/rgba\(21, 26, 32, 0\) 100%/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, var\(--hero-plate, 0\.7\)\) var\(--plate-solid, 62%\)/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, 0\) 100%/);
     expect(plate).toMatch(/pointer-events:\s*none/);
     expect(plate).toMatch(/z-index:\s*-1/);
     // Anchored to the type, not to the lockup's top padding: it starts where the padding for the menu ends.
@@ -120,7 +166,7 @@ describe('targets and focus', () => {
     ['.tqw-paper__reread', 44],
     ['.tqw-forget__button', 44],
     ['.tqw-details__link', 44],
-    ['.tqw-footer__link', 44],
+    ['.tqw-footer__link', 48],
     ['.tqw-menu-panel__link', 44],
   ] as const)('%s is at least its minimum target tall', (selector, min) => {
     const rule = selector === '.tqw-menu-panel__link' ? declarationsOf('.tqw-menu-panel__close,\n.tqw-menu-panel__link') : declarationsOf(selector);
@@ -200,35 +246,35 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     const [min, base, from, slope, max] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5])];
     return Math.min(max, Math.max(min, base + (width - from) * slope));
   }
-  /** A hero token at a width: the 412 px and up values live in the @media block over the phone ones. */
+  /** A hero token at a width: the 390 px and up values live in the @media block over the narrow phone ones. */
   function hero(property: string, width: number): number {
-    const wide = declaredTokens(inMedia('(min-width: 412px)', ':root'));
-    return clampAt(width >= 412 ? wide.get(property) : tokens().get(property), width);
+    const wide = declaredTokens(inMedia('(min-width: 390px)', ':root'));
+    return clampAt(width >= 390 ? wide.get(property) : tokens().get(property), width);
   }
 
-  it('sets UNHELD 144 px at 1440, 76 px at 412 and 60 px at 320, and stops growing there', () => {
-    expect(hero('--hero-name', 1440)).toBeCloseTo(144, 0);
-    expect(hero('--hero-name', 412)).toBeCloseTo(76, 0);
-    expect(hero('--hero-name', 320)).toBeCloseTo(60, 0);
-    expect(hero('--hero-name', 2560)).toBe(144);
-    expect(hero('--hero-name', 280)).toBe(60);
+  it('sets UNHELD 136 px at 1440, 72 px at 390 and 64 px at 320, and stops growing there', () => {
+    expect(hero('--hero-name', 1440)).toBeCloseTo(136, 0);
+    expect(hero('--hero-name', 390)).toBeCloseTo(72, 0);
+    expect(hero('--hero-name', 320)).toBeCloseTo(64, 0);
+    expect(hero('--hero-name', 2560)).toBe(136);
+    expect(hero('--hero-name', 280)).toBe(64);
   });
 
-  it('sets .space 30 / 18 / 16 px and its gap 6 / 4 / 4 px', () => {
-    expect(hero('--hero-space', 1440)).toBeCloseTo(30, 0);
-    expect(hero('--hero-space', 412)).toBeCloseTo(18, 0);
+  it('sets .space 20 / 16 px and its gap 6 / 4 px', () => {
+    expect(hero('--hero-space', 1440)).toBeCloseTo(20, 0);
+    expect(hero('--hero-space', 390)).toBeCloseTo(16, 0);
     expect(hero('--hero-space', 320)).toBeCloseTo(16, 0);
     expect(hero('--hero-space-gap', 1440)).toBeCloseTo(6, 0);
-    expect(hero('--hero-space-gap', 412)).toBeCloseTo(4, 0);
+    expect(hero('--hero-space-gap', 390)).toBeCloseTo(4, 0);
   });
 
-  it('sets the tagline 26 / 20 / 18 px and its distance from .space 24 / 18 / 18 px', () => {
-    expect(hero('--hero-tagline', 1440)).toBeCloseTo(26, 0);
-    expect(hero('--hero-tagline', 412)).toBeCloseTo(20, 0);
-    expect(hero('--hero-tagline', 320)).toBeCloseTo(18, 0);
+  it('sets the tagline 28 / 22 px and its distance from .space 24 / 20 px', () => {
+    expect(hero('--hero-tagline', 1440)).toBeCloseTo(28, 0);
+    expect(hero('--hero-tagline', 390)).toBeCloseTo(22, 0);
+    expect(hero('--hero-tagline', 320)).toBeCloseTo(22, 0);
     expect(hero('--hero-tagline-gap', 1440)).toBeCloseTo(24, 0);
-    expect(hero('--hero-tagline-gap', 412)).toBeCloseTo(18, 0);
-    expect(hero('--hero-tagline-gap', 320)).toBeCloseTo(18, 0);
+    expect(hero('--hero-tagline-gap', 390)).toBeCloseTo(20, 0);
+    expect(hero('--hero-tagline-gap', 320)).toBeCloseTo(20, 0);
   });
 
   it('keeps 64 / 24 / 20 px clear at the sides', () => {
@@ -237,11 +283,11 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     expect(hero('--hero-clear', 320)).toBeCloseTo(20, 0);
   });
 
-  it('sets UNHELD in Sans Condensed 700, tracking -0.025 em, line height 0.9, in bone', () => {
+  it('sets UNHELD in Plex Sans 700, tracking -0.025 em, line height 0.94, in bone', () => {
     const name = declarationsOf('.tqw-hero__name');
-    expect(name).toMatch(/font-family:\s*var\(--font-ui\)/);
+    expect(name).toMatch(/font-family:\s*var\(--font-public\)/);
     expect(name).toMatch(/font-weight:\s*700/);
-    expect(name).toMatch(/line-height:\s*0\.9/);
+    expect(name).toMatch(/line-height:\s*0\.9444/);
     expect(name).toMatch(/color:\s*var\(--bone\)/);
     // The tracking is on the word, beside its size: in em on the h1 it would be em of the h1's own
     // 16 px, inherited as a fixed length, and the lockup would be 3.6 px a letter too loose at 144 px.
@@ -266,15 +312,15 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     expect(tagline).toMatch(/text-wrap:\s*balance/);
   });
 
-  it('sets the live details 14 px muted, 32 px apart, and the menu 16 px / 400 with 24 px between', () => {
+  it('sets the live details to metadata scale and the menu to the control scale', () => {
     const details = declarationsOf('.tqw-hero__details');
-    expect(details).toMatch(/font-size:\s*0\.875rem/);
+    expect(details).toMatch(/font-size:\s*var\(--page-meta-size\)/);
     expect(details).toMatch(/gap:\s*0\.25rem 2rem/);
-    expect(details).toMatch(/color:\s*var\(--muted\)/);
+    expect(details).toMatch(/color:\s*var\(--bone\)/);
     const item = declarationsOf('.tqw-menu__item');
-    expect(item).toMatch(/font-size:\s*1rem/);
+    expect(item).toMatch(/font-size:\s*var\(--page-control-size\)/);
     expect(item).toMatch(/font-weight:\s*400/);
-    expect(item).toMatch(/letter-spacing:\s*0\.02em/);
+    expect(item).toMatch(/letter-spacing:\s*0/);
     expect(declarationsOf('.tqw-menu')).toMatch(/gap:\s*1\.5rem/);
   });
 
@@ -319,12 +365,6 @@ describe('the page is one column of sections (ADR 0003)', () => {
     expect(window).not.toMatch(/(?:^|[\s;])border:/);
   });
 
-  it.each(['.tqw-archive', '.tqw-details', '.tqw-footer'])('%s is at least one viewport tall and grows with its content', (selector) => {
-    const rule = declarationsOf(selector);
-    expect(rule).toMatch(/min-height:\s*var\(--tqw-vh\)/);
-    expect(rule).not.toMatch(/(?:^|[\s;])height:/);
-  });
-
   it('never snaps or hijacks scrolling', () => {
     expect(css).not.toMatch(/scroll-snap/);
     expect(css).not.toMatch(/(?<!over)scroll-behavior/);
@@ -358,7 +398,7 @@ describe('the game window', () => {
   it('lifts the resting scrim over 180 ms when engaged', () => {
     const scrim = declarationsOf('.tqw-game__scrim');
     expect(scrim).toMatch(/transition:\s*opacity 180ms cubic-bezier\(0\.22, 0\.61, 0\.36, 1\)/);
-    expect(scrim).toMatch(/linear-gradient\(to bottom, rgba\(21, 26, 32, 0\.88\), rgba\(21, 26, 32, 0\) 96px\)/);
+    expect(scrim).toMatch(/linear-gradient\(to bottom, rgba\(23, 25, 24, 0\.88\), rgba\(23, 25, 24, 0\) 96px\)/);
     expect(declarationsOf(".tqw-game__window[data-engaged='true'] .tqw-game__scrim")).toMatch(/opacity:\s*0/);
   });
 
@@ -443,15 +483,30 @@ describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
     expect(inMedia('(max-width: 22.5rem)', '.tqw-archive__items')).toMatch(/grid-template-columns:\s*minmax\(0, 1fr\)/);
   });
 
-  it('makes every paper the same size, found or sealed', () => {
+  it('gives found documents room for their content without assigning a fixed height', () => {
     expect(declarationsOf('.tqw-paper')).toMatch(/min-height:\s*10rem/);
     expect(css).not.toMatch(/\.tqw-paper\[data-state='(?:found|sealed)'\]\s*\{[^}]*(?:min-)?height:/);
+    expect(css).not.toContain(".tqw-paper[data-state='sealed']");
   });
 
-  it('draws a sealed paper as one plain silhouette: nothing in it but the word, no generated text', () => {
-    expect(declarationsOf(".tqw-paper[data-state='sealed']")).toMatch(/clip-path:\s*polygon\(/);
-    expect(css).not.toMatch(/\.tqw-paper[^{}]*::?(?:before|after)/);
-    expect(css).not.toMatch(/\.tqw-paper[^{}]*\{[^}]*(?<![-\w])content:/);
+  it('sets sealed finds in compact, neutral 64 px rows, separate from found documents', () => {
+    const row = declarationsOf('.tqw-archive__sealed-row');
+    expect(row).toMatch(/height:\s*64px/);
+    expect(row).toMatch(/background:\s*var\(--coal-2\)/);
+    expect(row).not.toMatch(/clip-path/);
+    expect(declarationsOf('.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    expect(inMedia('(max-width: 22.5rem)', '.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*minmax\(0, 1fr\)/);
+  });
+
+  it('puts Forget everything on its own ruled row after export and import', () => {
+    expect(declarationsOf('.tqw-archive__forget')).toMatch(/border-top:\s*1px solid var\(--divider\)/);
+    expect(declarationsOf('.tqw-archive__actions')).toMatch(/display:\s*flex/);
+  });
+
+  it('adds no decorative shape or generated text to the sealed rows', () => {
+    expect(css).not.toMatch(/\.tqw-archive__sealed-row[^{}]*::?(?:before|after)/);
+    expect(css).not.toMatch(/\.tqw-archive__sealed-row[^{}]*\{[^}]*(?<![-\w])content:/);
   });
 
   it('draws no progress bar, ring, meter or percentage anywhere in the stylesheet', () => {
@@ -466,12 +521,12 @@ describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
     expect(frames).not.toMatch(/transform|translate|scale/);
   });
 
-  it('sets the room title in Newsreader 28 px (24 px on a phone) and its count line 14 px', () => {
+  it('sets the room title in Newsreader and its count line to metadata scale', () => {
     const title = declarationsOf('.tqw-archive__room-title');
     expect(title).toMatch(/font-family:\s*var\(--font-serif\)/);
     expect(title).toMatch(/font-size:\s*1\.75rem/);
     expect(inMedia('(max-width: 40rem)', '.tqw-archive__room-title')).toMatch(/font-size:\s*1\.5rem/);
-    expect(declarationsOf('.tqw-archive__room-count')).toMatch(/font-size:\s*0\.875rem/);
+    expect(declarationsOf('.tqw-archive__room-count')).toMatch(/font-size:\s*var\(--page-meta-size\)/);
     expect(declarationsOf('.tqw-paper__title')).toMatch(/font-size:\s*1\.125rem/);
   });
 
@@ -488,26 +543,38 @@ describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
 });
 
 describe('the details and the footer', () => {
-  it('sets the details in a 360 px intro column, a 64 px gap and the topics, stacked below 760 px', () => {
+  it('sets the details on a twelve column spread, with a five column introduction beside seven topic columns', () => {
     const inner = declarationsOf('.tqw-details__inner');
-    expect(inner).toMatch(/grid-template-columns:\s*360px minmax\(0, 1fr\)/);
-    expect(inner).toMatch(/gap:\s*4rem/);
+    expect(inner).toMatch(/grid-template-columns:\s*repeat\(12, minmax\(0, 1fr\)\)/);
+    expect(declarationsOf('.tqw-details__intro')).toMatch(/grid-column:\s*span 5/);
+    expect(declarationsOf('.tqw-details__topics')).toMatch(/grid-column:\s*span 7/);
+    expect(inner).toMatch(/gap:\s*1\.5rem/);
     expect(inMedia('(max-width: 47.5rem)', '.tqw-details__inner')).toMatch(/grid-template-columns:\s*minmax\(0, 1fr\)/);
+    expect(inMedia('(max-width: 47.5rem)', '.tqw-details__intro,\n  .tqw-details__topics')).toMatch(/grid-column:\s*1 \/ -1/);
   });
 
-  it('sets the body 20 px (18 px on a phone) at 1.55, with 48 px between topics', () => {
-    const body = declarationsOf('.tqw-details__lead,\n.tqw-details__topic-body');
-    expect(body).toMatch(/font-family:\s*var\(--font-serif\)/);
-    expect(body).toMatch(/font-size:\s*1\.25rem/);
-    expect(body).toMatch(/line-height:\s*1\.55/);
-    expect(inMedia('(max-width: 40rem)', '.tqw-details__lead,\n  .tqw-details__topic-body')).toMatch(/font-size:\s*1\.125rem/);
+  it('sets the editorial lead in Newsreader and body copy to the 18 / 28 scale', () => {
+    const lead = declarationsOf('.tqw-details__lead');
+    expect(lead).toMatch(/font-family:\s*var\(--font-serif\)/);
+    expect(lead).toMatch(/font-size:\s*1\.5rem/);
+    expect(lead).toMatch(/line-height:\s*1\.4167/);
+    const body = declarationsOf('.tqw-details__topic-body');
+    expect(body).toMatch(/font-family:\s*var\(--font-public\)/);
+    expect(body).toMatch(/font-size:\s*var\(--page-body-size\)/);
+    expect(body).toMatch(/line-height:\s*var\(--page-body-leading\)/);
+    expect(inMedia('(max-width: 40rem)', ':root')).toMatch(/--page-body-size:\s*1\.0625rem/);
+    expect(inMedia('(max-width: 40rem)', ':root')).toMatch(/--page-body-leading:\s*1\.5294/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-details__lead')).toMatch(/font-size:\s*1\.3125rem/);
     expect(declarationsOf('.tqw-details__topic + .tqw-details__topic')).toMatch(/margin-top:\s*3rem/);
   });
 
-  it('sets the section titles 44 px (32 px at the smallest) in Newsreader', () => {
+  it('sets the section titles 48 / 52 px desktop and 34 / 38 px phone, in Newsreader', () => {
     const title = declarationsOf('.tqw-archive__title,\n.tqw-details__title');
     expect(title).toMatch(/font-family:\s*var\(--font-serif\)/);
-    expect(title).toMatch(/font-size:\s*clamp\(2rem, 1\.6rem \+ 1\.4vw, 2\.75rem\)/);
+    expect(title).toMatch(/font-size:\s*3rem/);
+    expect(title).toMatch(/line-height:\s*1\.0833/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-archive__title,\n  .tqw-details__title,\n  .tqw-page__title')).toMatch(/font-size:\s*2\.125rem/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-archive__title,\n  .tqw-details__title,\n  .tqw-page__title')).toMatch(/line-height:\s*1\.1176/);
   });
 
   it('separates the footer\'s links from what is above with one rule, in the divider colour', () => {
@@ -516,11 +583,8 @@ describe('the details and the footer', () => {
     expect(css.match(/\.tqw-footer[\w-]*\s*\{[^}]*border-(?:top|bottom):/g)).toHaveLength(1);
   });
 
-  it('sets the trivia in Newsreader 20 px, at most 48 characters a line', () => {
-    const trivia = declarationsOf('.tqw-footer__trivia');
-    expect(trivia).toMatch(/max-width:\s*48ch/);
-    expect(trivia).toMatch(/font-family:\s*var\(--font-serif\)/);
-    expect(trivia).toMatch(/font-size:\s*1\.25rem/);
+  it('allocates no trivia block in the footer stylesheet', () => {
+    expect(css).not.toContain('.tqw-footer__trivia');
   });
 });
 
@@ -537,9 +601,9 @@ describe('the notice board', () => {
     expect(declarationsOf('.tqw-clipping__headline')).toMatch(/font-family:\s*var\(--font-serif\)/);
   });
 
-  it('sets datelines in Mono and details in Sans Condensed', () => {
+  it('keeps datelines in Mono and sets document text in Plex Sans', () => {
     expect(declarationsOf('.tqw-clipping__dateline')).toMatch(/font-family:\s*var\(--font-mono\)/);
-    expect(declarationsOf('.tqw-clipping__dek')).toMatch(/font-family:\s*var\(--font-ui\)/);
+    expect(declarationsOf('.tqw-clipping__dek')).toMatch(/font-family:\s*var\(--font-public\)/);
   });
 
   it('is two columns on a screen and one on a phone', () => {
@@ -549,19 +613,18 @@ describe('the notice board', () => {
 });
 
 describe('site pages', () => {
-  it('sets a 680 px reading column in Newsreader 20 px (18 px on a phone) at 1.55', () => {
+  it('sets a 680 px reading column in Plex Sans body type', () => {
     expect(declarationsOf('.tqw-page__sheet')).toMatch(/width:\s*min\(680px,/);
     const body = declarationsOf('.tqw-page__article p');
-    expect(body).toMatch(/font-family:\s*var\(--font-serif\)/);
-    expect(body).toMatch(/font-size:\s*1\.25rem/);
-    expect(body).toMatch(/line-height:\s*1\.55/);
-    expect(inMedia('(max-width: 40rem)', '.tqw-page__article p')).toMatch(/font-size:\s*1\.125rem/);
+    expect(body).toMatch(/font-family:\s*var\(--font-public\)/);
+    expect(body).toMatch(/font-size:\s*var\(--page-body-size\)/);
+    expect(body).toMatch(/line-height:\s*var\(--page-body-leading\)/);
   });
 
-  it('sets the navigation in Sans Condensed 16 px', () => {
+  it('sets the navigation in Plex Sans at the control scale', () => {
     const link = declarationsOf('.tqw-page__link');
-    expect(link).toMatch(/font-family:\s*var\(--font-ui\)/);
-    expect(link).toMatch(/font-size:\s*1rem/);
+    expect(link).toMatch(/font-family:\s*var\(--font-public\)/);
+    expect(link).toMatch(/font-size:\s*var\(--page-control-size\)/);
   });
 
   it('sets a link in a page bone and underlined, not in the browser\'s blue', () => {
@@ -570,13 +633,13 @@ describe('site pages', () => {
     expect(link).toMatch(/text-decoration:\s*underline/);
   });
 
-  it('lists the third-party assets as a ruled, unbulleted list in Sans Condensed, under a rule of its own', () => {
+  it('lists third-party assets as ruled, unbulleted Plex Sans body copy', () => {
     expect(declarationsOf('.tqw-page__assets')).toMatch(/border-top:\s*1px solid var\(--divider\)/);
     const list = declarationsOf('.tqw-page__assets-list');
     expect(list).toMatch(/list-style:\s*none/);
     expect(list).toMatch(/padding:\s*0/);
     const item = declarationsOf('.tqw-page__assets-list li');
-    expect(item).toMatch(/font-family:\s*var\(--font-ui\)/);
+    expect(item).toMatch(/font-family:\s*var\(--font-public\)/);
     expect(item).toMatch(/border-top:\s*1px solid var\(--divider\)/);
     // A long title or author must wrap inside the column, never carry the page sideways.
     expect(item).toMatch(/overflow-wrap:\s*anywhere/);
@@ -646,7 +709,7 @@ describe('text mode', () => {
     expect(rule).toMatch(/height:\s*auto/);
   });
 
-  it('keeps the corridor prose in the one 1040 px column, 44 rem wide for reading', () => {
+  it('keeps corridor prose inside the page grid, with a 44 rem reading column', () => {
     expect(declarationsOf('.tqw-text-corridor')).toMatch(/max-width:\s*var\(--section-width\)/);
     expect(declarationsOf('.tqw-text-corridor > *')).toMatch(/max-width:\s*44rem/);
   });

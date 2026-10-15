@@ -8,6 +8,7 @@ import {
   type Object3D,
   type Texture,
 } from 'three';
+import type { ModelTextures } from './modelKit.ts';
 import type { Channel } from './parts.ts';
 
 /**
@@ -27,7 +28,7 @@ type Lit = MeshStandardMaterial | MeshLambertMaterial;
  * the props take a little more of the light than the walls do. Paper takes the most, so that a
  * printed label stays legible where nothing is lighting it well.
  */
-export const GAIN = { wood: 1.45, paint: 1.6, metal: 1.3, paper: 1.9 } as const;
+export const GAIN = { wood: 1.45, paint: 1.6, metal: 1.3, paper: 1.9, model: 1.4 } as const;
 
 export interface Donors {
   /** The world's patched oak material: lit, with the corridor's grain. */
@@ -56,8 +57,11 @@ export interface PropMaterials {
   dispose(): void;
 }
 
-/** `atlas` belongs to the returned set: disposing the set disposes it. */
-export function createPropMaterials(donors: Donors | null, atlas: Texture | null): PropMaterials {
+/**
+ * `atlas` belongs to the returned set: disposing the set disposes it. `models` (the ready-made
+ * models' repacked textures) belongs to the kit that made them, which disposes them.
+ */
+export function createPropMaterials(donors: Donors | null, atlas: Texture | null, models: ModelTextures | null = null): PropMaterials {
   const lite = donors?.oak instanceof MeshLambertMaterial;
   const owned: Material[] = [];
   const glossy: MeshStandardMaterial[] = [];
@@ -77,6 +81,8 @@ export function createPropMaterials(donors: Donors | null, atlas: Texture | null
     gain?: number;
     colour?: Color | string;
     map?: Texture | null;
+    /** A packed occlusion (R), roughness (G), metalness (B) map; its factors are then 1. */
+    orm?: Texture | null;
     roughness: number;
     metalness: number;
     env: number;
@@ -103,6 +109,7 @@ export function createPropMaterials(donors: Donors | null, atlas: Texture | null
         metalness: s.metalness,
         envMapIntensity: s.env,
         ...(s.map ? { map: s.map } : {}),
+        ...(s.orm ? { aoMap: s.orm, roughnessMap: s.orm, metalnessMap: s.orm } : {}),
         ...(s.glass ? { transparent: true, opacity: 0.17, depthWrite: false, side: DoubleSide } : {}),
       }),
     );
@@ -130,6 +137,8 @@ export function createPropMaterials(donors: Donors | null, atlas: Texture | null
     matte: make({ gain: GAIN.paint, roughness: 0.9, metalness: 0, env: 0.3 }),
     print: make({ gain: GAIN.paper, map: atlas, roughness: 0.72, metalness: 0, env: 0.3 }),
     glass: make({ colour: '#d3e4e6', roughness: 0.05, metalness: 0, env: 1.5, glass: true }),
+    // Each model's own maps decide how rough and how metal it is: the factors multiply them, so they are 1.
+    model: make({ gain: GAIN.model, map: models?.base ?? null, orm: models?.orm ?? null, roughness: 1, metalness: 1, env: 1.0 }),
   };
 
   return {

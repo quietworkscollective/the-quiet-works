@@ -45,6 +45,7 @@ import {
   sphereAt,
 } from './geometry.ts';
 import { overloadHatchAngle } from './hatchMotion.ts';
+import { useHeroModel } from './HeroModel.tsx';
 import { MACHINE } from './machineLayout.ts';
 import { MemoSheet } from './MemoSheet.tsx';
 import { LAYOUT, PALETTE } from './palette.ts';
@@ -228,6 +229,7 @@ export function Machine() {
   const invalidate = useThree((s) => s.invalidate);
   const fontsReady = useFontsReady();
 
+  const hero = useHeroModel('machine');
   const hatchGroup = useRef<Group>(null);
   const rearLink = useRef<Group>(null);
 
@@ -522,9 +524,10 @@ export function Machine() {
     const od = now - s.overloadAt;
     const overloading = s.overloaded && od >= 0 && od < OVERLOAD_SCRIPT.unlatchAt;
     // This is only the machine linkage; root supplies the separate full-height service panel.
-    if (rearLink.current) {
+    const link = hero?.getObjectByName('rear_link') ?? rearLink.current;
+    if (link) {
       const release = s.overloaded ? smoothstep(900, 1400, od) : 0;
-      rearLink.current.rotation.z = -0.45 * (reduced && s.overloaded ? 1 : release);
+      link.rotation.z = -0.45 * (reduced && s.overloaded ? 1 : release);
       if (s.overloaded && od < 1400) active = true;
     }
     const [l0, l1, l2] = lamps;
@@ -550,6 +553,9 @@ export function Machine() {
     if (overloading) active = true;
 
     // --- hatch and cavity ----------------------------------------------------------------------
+    const angle = hatchAngle(s.hatch, now);
+    const authoredHatch = hero?.getObjectByName('hatch');
+    if (authoredHatch) authoredHatch.rotation.x = angle;
     const hatch = hatchGroup.current;
     if (hatch) {
       const angle = hatchAngle(s.hatch, now);
@@ -580,12 +586,14 @@ export function Machine() {
   return (
     <group position={[LAYOUT.machine.x, 0, LAYOUT.machine.z]} rotation={[0, LAYOUT.machine.yaw, 0]}>
       <group>
+        {hero ? <primitive object={hero} /> : <>
         <mesh geometry={parts.body} material={materials.enamelBody} castShadow receiveShadow />
         <mesh geometry={parts.rubber} material={materials.rubberFoot} />
         <mesh geometry={parts.frames} material={materials.enamel} receiveShadow />
         <mesh geometry={parts.dark} material={materials.bezel} />
         <mesh geometry={parts.brass} material={materials.brass} castShadow />
 
+        </>}
         {/* The amber display. */}
         <mesh geometry={parts.displayPlane} material={display.material} position={[0, d.y, FACE + 0.0035]} />
 
@@ -608,9 +616,11 @@ export function Machine() {
         />
 
         {/* Front hatch, hinged at its bottom edge. */}
-        <group ref={hatchGroup} position={[0, h.hingeY, h.hingeZ]}>
+        <group ref={hatchGroup} userData={{ bake: 'dynamic' }} position={[0, h.hingeY, h.hingeZ]}>
+          {!hero ? <>
           <mesh geometry={parts.hatchPanel} material={materials.enamelHatch} castShadow receiveShadow />
           <mesh geometry={parts.pull} material={materials.brassWorn} />
+          </> : null}
           <mesh
             geometry={parts.namePlane}
             material={materials.nameplate}
@@ -619,18 +629,18 @@ export function Machine() {
         </group>
 
         {/* Service bell stays still until a visitor deliberately operates it. */}
-        <group position={[MACHINE.bell.x, MACHINE.bodyTop + 0.006, MACHINE.bell.z]}>
-          <mesh geometry={parts.bell} material={materials.brass} castShadow receiveShadow />
+        <group userData={{ bake: 'dynamic' }} position={[MACHINE.bell.x, MACHINE.bodyTop + 0.006, MACHINE.bell.z]}>
+          {!hero ? <mesh geometry={parts.bell} material={materials.brass} castShadow receiveShadow /> : null}
         </group>
 
-        <group ref={rearLink} position={[MACHINE.width / 2 + 0.018, 0.12, -MACHINE.depth / 2]}>
-          <mesh geometry={parts.rearLink} material={materials.brassWorn} />
+        <group ref={rearLink} userData={{ bake: 'dynamic' }} position={[MACHINE.width / 2 + 0.018, 0.12, -MACHINE.depth / 2]}>
+          {!hero ? <mesh geometry={parts.rearLink} material={materials.brassWorn} /> : null}
         </group>
-        <Receipt />
+        <group userData={{ bake: 'dynamic' }}><Receipt /></group>
       </group>
 
-      <SpillReceipts />
-      <MemoSheet />
+      <group userData={{ bake: 'dynamic' }}><SpillReceipts /></group>
+      <group userData={{ bake: 'dynamic' }}><MemoSheet /></group>
     </group>
   );
 }

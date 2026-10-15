@@ -2541,13 +2541,13 @@
       ],
       "transforms": [
         "maps: albedo, normal, arm (OpenGL normal convention; no displacement)",
-        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm"
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 84 normal, 84 orm"
       ],
       "outputs": [
         {
           "path": "surfaces/oak-panelling-albedo.webp",
-          "sha256": "1155f4bf73730f8c580b7a2ca0c046932591fb28421e651ebf0f344033df2337",
-          "bytes": 65626
+          "sha256": "f81a7e4e7bb56e9204a8ec68376d51f7da1b10eed968b0f27bbb89d8c1154b03",
+          "bytes": 24678
         },
         {
           "path": "surfaces/oak-panelling-normal.webp",
@@ -2598,14 +2598,14 @@
       ],
       "transforms": [
         "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
-        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 72 colour, 76 normal, 76 orm",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 76 normal, 76 orm",
         "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
       ],
       "outputs": [
         {
           "path": "surfaces/terrazzo-albedo.webp",
-          "sha256": "cbdd5139ec543e9b6845aac5e95468f46a734ea5241f574bc1c92f27123ad722",
-          "bytes": 254884
+          "sha256": "64e8e0738646ab63182d17fe35b78d47527be6240e6eead5f72fe334551ba23c",
+          "bytes": 106228
         },
         {
           "path": "surfaces/terrazzo-normal.webp",
@@ -2881,14 +2881,14 @@
       ],
       "transforms": [
         "maps: albedo, normal, rough (OpenGL normal convention; no displacement)",
-        "resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm",
+        "resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 84 normal, 84 orm",
         "packed rough into orm.webp (R occlusion, G roughness, B metalness)"
       ],
       "outputs": [
         {
           "path": "surfaces/painted-timber-albedo.webp",
-          "sha256": "66cd8ff9cf3bd333f9fbbf39b574cae91286423fa7f95988b1e7dff9ca32a26a",
-          "bytes": 104766
+          "sha256": "4f4bb97fc45547c4b3e975dff33555199d7f1d3ad7d3e11fe3653683f5925372",
+          "bytes": 38466
         },
         {
           "path": "surfaces/painted-timber-normal.webp",

@@ -239,10 +239,11 @@ export function CameraRig(props: CameraRigProps) {
 
     // What the end-to-end tests read: the pose, where the doors are on screen, frames drawn.
     const el = container.current;
-    if (el) {
+    if (el && gl.domElement.dataset['world'] === 'ready') {
       const pose = `${round(d.pose.x, 3)},${round(d.pose.z, 3)},${round(wrapYaw(d.pose.yawDeg), 2)}`;
       if (pose !== scratch.current.pose) {
         scratch.current.pose = pose;
+        el.dataset['poseTime'] = String(now);
         el.dataset['pose'] = pose;
       }
       const pitch = round(d.pose.pitchDeg, 1);
