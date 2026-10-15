@@ -20,7 +20,7 @@ This onboarding uses only unheld.space pages and public GitHub pages. External l
 - Every contribution receives human review. Nothing is published automatically.
 - Agent-made work needs a named human or organisation to grant its licence and carries the machine-made mark.
 - Secrets, private lore, credentials, personal testimony and executable content are not accepted.
-- A room manifest format is proposed in ADR 0005; there is no validated room-manifest schema yet.
+- A room manifest format is proposed; there is no validated room-manifest schema yet.
 
 ## Taking part
 

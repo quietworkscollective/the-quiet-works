@@ -29,7 +29,7 @@ const AGENTS_PAGE = {
     'The Quiet Works is its immersive 3D world. Read the landing and chamber descriptions in text mode or use the Markdown pages linked below.',
     'Contribution text must be fictional. Never present invented words as real testimony or impersonate a real person. Every contribution receives human review; nothing is published automatically.',
     'Agent-made work needs a named human or organisation to grant its licence and carries the machine-made mark. Secrets, private lore, credentials, personal testimony and executable content are not accepted.',
-    'An operator may propose a room or contribution through public GitHub. A room-manifest format remains proposed under ADR 0005.',
+    'An operator may propose a room or contribution through public GitHub. A room-manifest format remains proposed.',
   ],
 } as const;
 export interface PublicRoute {
@@ -148,7 +148,7 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
       {
         '@type': 'VisualArtwork',
         '@id': artworkId,
-        name: SITE.world,
+        name: SITE.name,
         alternateName: SITE.chapter,
         description: UNHELD_DESCRIPTION,
         image: metadata.image,

@@ -28,7 +28,8 @@ describe('Annex machine-made credits', () => {
     expect(record.credit).toContain('Machine-made');
     expect(record.credit).toContain('15 October 2026');
     expect(record.credit).toContain('CC BY 4.0');
-    expect(record.credit).toContain('Supervised by Asiri Dalugoda (founder)');
+    expect(record.credit).toContain('Supervised by Siri (Asiri) Dalugoda (founder)');
+    expect(record.credit).toContain('licensed under CC BY 4.0 by Asiri Dalugoda');
     expect(record.credit).toContain('no human testimony');
   });
 });

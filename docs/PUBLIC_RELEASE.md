@@ -141,9 +141,7 @@ release review. See ADR 0014. The maintainer reviews this split with the release
    not licensed. `LICENSING.md` maps files to licences; `NOTICE` carries the attribution.
 2. **Conduct contact: decided.** `info@unheld.space`, the project's own address (`CODE_OF_CONDUCT.md`);
    `check:public` allows exactly that address and still rejects any other.
-3. **Personal email: never public.** Every commit is authored with the GitHub no-reply address
-   `22433736+asiridalugoda@users.noreply.github.com` (set in this repository's git config from
-   14 October 2026). Earlier commits are rewritten to it, as below.
+3. **Personal email: never public.** Every commit is authored with the account's GitHub no-reply address (set in this repository's git config from 14 October 2026). Earlier commits are rewritten to it, as below.
 4. **AI attribution: none, anywhere, ever (hard rule).** `AGENTS.md` #11. `check:public` rejects
    attribution lines in tracked files; `--release` also rejects them anywhere in the history.
 5. **Lore and secrets: out of the repository.** The design bible and the chamber designs live in

@@ -1,4 +1,4 @@
-# AGENTS.md — UNHELD (The Quiet Works)
+# AGENTS.md — UNHELD
 
 **Identity (updated 14 October 2026):** UNHELD is the public project — canonical domain `unheld.space`, tagline *A space for everything we carry.* **The Quiet Works** is the immersive 3D world within UNHELD, and **HE'S FINE.** is its opening experience (Chapter Zero). Earlier text that uses "The Quiet Works" for the whole project predates this naming; the architecture, chapters, mechanics, contribution model and creator attribution are unchanged.
 
