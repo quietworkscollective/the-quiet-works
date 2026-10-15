@@ -16,4 +16,3 @@ The manifest must use [`contribution-0.1`](../../docs/commons/schema/contributio
 ## Manifest path
 
 <!-- Path relative to the repository, for example commons/example-piece/manifest.json. -->
-

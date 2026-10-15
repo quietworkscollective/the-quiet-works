@@ -26,6 +26,7 @@ import {
   TEXT_MODE_NOTICE_CORRIDOR,
   type ChamberId,
   type PageId,
+  type SpineCue,
   type SpineState,
 } from '@tqw/engine';
 import {
@@ -135,6 +136,7 @@ export function App() {
     captions: false,
   }));
   const [captions, setCaptions] = useState<readonly CaptionLine[]>([]);
+  const [readyChamber, setReadyChamber] = useState<ChamberId | null>(null);
   const sound = useSoundDesk();
   // The visitor's on-device discoveries (ADR 0003, R-1). Creating the store reads storage and never
   // writes it: the one key is first written when something is found (or an archive is imported).
@@ -150,6 +152,7 @@ export function App() {
   // Once audio has started the mute control stays one press away, outside the menu.
   const [audioOn, setAudioOn] = useState(false);
   const captionId = useRef(0);
+  const pendingDoorCue = useRef<SpineCue | null>(null);
 
   const textMode = textReason !== null;
   // The corridor scene has drawn its first frame: the poster behind the hero dissolves, the veil may stop waiting.
@@ -210,16 +213,7 @@ export function App() {
     sound.setRoom(state.phase === 'chamber' && state.chamber ? state.chamber : 'corridor');
   }, [sound, state.phase, state.chamber]);
 
-  // Follow the OS reduced-motion preference live, unless the visitor has toggled it here.
   const motionOverridden = useRef(false);
-  useEffect(() => {
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const onChange = () => {
-      if (!motionOverridden.current) setSettings((s) => ({ ...s, reducedMotion: query.matches }));
-    };
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
 
   const caption = useCallback((text: string) => {
     captionId.current += 1;
@@ -227,6 +221,11 @@ export function App() {
     setCaptions((lines) => [...lines, line].slice(-MAX_CAPTIONS));
     window.setTimeout(() => setCaptions((lines) => lines.filter((l) => l.id !== line.id)), CAPTION_LIFETIME_MS);
   }, []);
+  const playSpineCue = useCallback((cue: SpineCue) => {
+    sound.playSpine(cue);
+    const line = SPINE_CAPTIONS[cue.type];
+    if (line) caption(line);
+  }, [sound, caption]);
 
   // The URL follows the spine; back and forward come in as ROUTE events.
   useEffect(
@@ -249,8 +248,8 @@ export function App() {
   // A threshold completes when the door choreography reached the seam AND the chamber is ready.
   // Arriving by the board or a link has no walk, so its seam is immediate.
   const threshold = useRef({ seam: state.phase === 'threshold', ready: false });
-  // Mirrors threshold.current.seam for rendering: a chamber walked into mounts only once the
-  // visitor stands in the doorway, so its heavy first mount never lands mid-walk.
+  // Mirrors threshold.current.seam for rendering: a room can prepare behind the closed door, but
+  // the host remains hidden and inert until the visitor reaches the doorway.
   const [seamReached, setSeamReached] = useState(state.phase === 'threshold');
   const completeIfDone = useCallback(() => {
     const t = threshold.current;
@@ -273,11 +272,16 @@ export function App() {
         if (next.phase === 'threshold' && lastPhase.current !== 'threshold') {
           const seam = next.via !== 'door' || instantRef.current;
           threshold.current = { seam, ready: false };
+          pendingDoorCue.current = null;
+          setReadyChamber(null);
           setSeamReached(seam);
           if (!textModeRef.current) {
             window.scrollTo(0, gameTop());
             setEngaged(true);
           }
+        } else if (next.phase !== 'threshold' && lastPhase.current === 'threshold') {
+          pendingDoorCue.current = null;
+          setReadyChamber(null);
         }
         lastPhase.current = next.phase;
       }),
@@ -287,22 +291,35 @@ export function App() {
   useEffect(
     () =>
       spine.onCue((cue) => {
-        sound.playSpine(cue);
-        const line = SPINE_CAPTIONS[cue.type];
-        if (line) caption(line);
+        const current = spine.getState();
+        if (
+          cue.type === 'door-open' &&
+          cue.via === 'door' &&
+          current.phase === 'threshold' &&
+          current.via === 'door' &&
+          !threshold.current.ready
+        ) {
+          pendingDoorCue.current = cue;
+          return;
+        }
+        playSpineCue(cue);
       }),
-    [spine, sound, caption],
+    [spine, playSpineCue],
   );
 
   useEffect(() => {
-    if (state.phase !== 'threshold' || threshold.current.seam) return;
+    if (
+      state.phase !== 'threshold' ||
+      threshold.current.seam ||
+      (state.via === 'door' && !threshold.current.ready)
+    ) return;
     const timer = window.setTimeout(() => {
       threshold.current.seam = true;
       setSeamReached(true);
       completeIfDone();
     }, SEAM_FALLBACK_MS);
     return () => window.clearTimeout(timer);
-  }, [state.phase, state.chamber, completeIfDone]);
+  }, [state.phase, state.chamber, state.via, readyChamber, completeIfDone]);
 
   const onSeam = useCallback(() => {
     threshold.current.seam = true;
@@ -310,9 +327,49 @@ export function App() {
     completeIfDone();
   }, [completeIfDone]);
   const onChamberReady = useCallback(() => {
+    const current = spine.getState();
+    if (current.phase !== 'threshold' || !current.chamber) return;
     threshold.current.ready = true;
+    if (current.via === 'door') {
+      const cue = pendingDoorCue.current;
+      pendingDoorCue.current = null;
+      if (cue) playSpineCue(cue);
+      if (!instantThreshold) {
+        setReadyChamber(current.chamber);
+        return;
+      }
+      threshold.current.seam = true;
+      setSeamReached(true);
+    }
     completeIfDone();
-  }, [completeIfDone]);
+  }, [spine, instantThreshold, playSpineCue, completeIfDone]);
+
+  const markInstantDoorSeam = useCallback(() => {
+    const current = spine.getState();
+    if (current.phase !== 'threshold' || current.via !== 'door') return;
+    threshold.current.seam = true;
+    setSeamReached(true);
+    completeIfDone();
+  }, [spine, completeIfDone]);
+  const restoreAnimatedDoorSeam = useCallback(() => {
+    const current = spine.getState();
+    if (current.phase !== 'threshold' || current.via !== 'door' || threshold.current.ready) return;
+    threshold.current.seam = false;
+    setSeamReached(false);
+  }, [spine]);
+
+  // Follow the OS reduced-motion preference live, unless the visitor has toggled it here.
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = () => {
+      if (motionOverridden.current) return;
+      setSettings((s) => ({ ...s, reducedMotion: query.matches }));
+      if (query.matches) markInstantDoorSeam();
+      else if (!textModeRef.current) restoreAnimatedDoorSeam();
+    };
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, [markInstantDoorSeam, restoreAnimatedDoorSeam]);
 
   // ---- the page: scroll, progress, engagement -------------------------------------------------
 
@@ -439,7 +496,14 @@ export function App() {
         setTextReason((reason) => (reason === null ? 'chosen' : null));
         return;
       }
-      if (key === 'reducedMotion') motionOverridden.current = true;
+      if (key === 'reducedMotion') {
+        motionOverridden.current = true;
+        if (settings.reducedMotion) {
+          if (!textMode) restoreAnimatedDoorSeam();
+        } else {
+          markInstantDoorSeam();
+        }
+      }
       if (key === 'muted') {
         const unmuting = settings.muted;
         // Mute first so unlock() sees the new value; only turning sound ON may create audio.
@@ -451,7 +515,7 @@ export function App() {
       }
       setSettings((s) => ({ ...s, [key]: !s[key as keyof CoreSettings] }));
     },
-    [webgl, settings.muted, sound],
+    [webgl, settings.muted, settings.reducedMotion, textMode, sound, markInstantDoorSeam, restoreAnimatedDoorSeam],
   );
 
   const onContextLost = useCallback(() => setTextReason('contextLost'), []);
@@ -510,7 +574,7 @@ export function App() {
   const inChamber = (state.phase === 'threshold' || state.phase === 'chamber') && state.chamber !== null;
   // Walking through a door keeps the corridor on screen until the seam; the board and links cut straight in.
   const showCorridor = !inChamber || (state.phase === 'threshold' && state.via === 'door' && !instantThreshold);
-  const mountChamber = inChamber && (state.phase === 'chamber' || seamReached);
+  const mountChamber = inChamber;
   const Chamber = mountChamber && state.chamber ? CHAMBER_VIEWS[state.chamber] : undefined;
 
   const soundControl = audioOn ? { muted: settings.muted, onToggle: () => toggle('muted') } : undefined;
@@ -619,6 +683,7 @@ export function App() {
                       spine={spine}
                       progress={progress}
                       reducedMotion={settings.reducedMotion}
+                      readyChamber={readyChamber}
                       onDoorIntent={doorIntent}
                       onSeam={onSeam}
                       onWalk={(mps) => sound.setWalk(mps)}
@@ -646,7 +711,13 @@ export function App() {
           ) : null}
 
           {Chamber ? (
-            <ChamberHost chamber={state.chamber ?? ''} hold={!textMode} inert={!holding && !textMode} onReady={onChamberReady}>
+            <ChamberHost
+              chamber={state.chamber ?? ''}
+              hold={!textMode}
+              inert={!holding && !textMode}
+              seam={state.phase !== 'threshold' || seamReached}
+              onReady={onChamberReady}
+            >
               {(ready) => (
                 <Suspense fallback={null}>
                   <Chamber

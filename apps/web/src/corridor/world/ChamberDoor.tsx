@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Color, type BufferGeometry, type Group, type Material, type MeshBasicMaterial } from 'three';
+import { Color, type BufferGeometry, type Group, type Material, type MeshBasicMaterial, type Object3D } from 'three';
 import type { ChamberId } from '@tqw/engine';
 import type { CorridorAnimation } from '../animation.ts';
 import { SPINE_TIMING } from '../../timing.ts';
@@ -15,9 +15,10 @@ import { FRAME } from './doorKit/frame.ts';
 import { CORRIDOR } from '../layout.ts';
 import { nth, noise1, smoothstep } from './math.ts';
 import type { LitMaterial, WorldMaterials } from './materials.ts';
+import { OutlineDoorModel } from './OutlineDoorModel.tsx';
 
 /**
- * One chamber door at runtime: the leaf swings on its hinge, the handle turns, a
+ * One chamber door at runtime: the leaf swings on its hinge (or the Outline Room's paired panels slide), the handle turns, a
  * sealed door rattles, hovering or focusing a door lets its plaque and handle catch a little more
  * light, and a ready chamber leaks its interior light at the seam. All of it is read
  * from `animation[id]` in `useFrame`; nothing here starts an animation of its own, and nothing
@@ -26,12 +27,14 @@ import type { LitMaterial, WorldMaterials } from './materials.ts';
 
 const SWING = (SPINE_TIMING.swingDeg * Math.PI) / 180;
 const HANDLE_TURN = (SPINE_TIMING.handleTurnDeg * Math.PI) / 180;
+const NOOP = (): void => undefined;
 
 interface Props {
   door: ChamberDoorBuild;
   materials: WorldMaterials;
   animation: CorridorAnimation;
   reducedMotion: boolean;
+  onOutlineReady?(): void;
   onPointer(id: ChamberId, kind: 'over' | 'out' | 'click'): void;
 }
 
@@ -64,10 +67,11 @@ function Meshes({ geometries, materials, override }: { geometries: Partial<Recor
   );
 }
 
-export function ChamberDoor({ door, materials, animation, reducedMotion, onPointer }: Props) {
+export function ChamberDoor({ door, materials, animation, reducedMotion, onOutlineReady, onPointer }: Props) {
   const { placement, build } = door;
   if (placement.chamber === null) throw new Error(`${placement.key} is not a chamber door`);
   const id = placement.chamber;
+  const customOutlineDoor = id === 'outline-room';
   const spec = placement.spec;
   const sign = placement.side === 'left' ? -1 : 1;
 
@@ -78,7 +82,7 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
   const leafB = useBucketGeometries(leafGeometries[1] ?? EMPTY);
   const handleA = useBucketGeometries(handleGeometries[0] ?? EMPTY);
   const handleB = useBucketGeometries(handleGeometries[1] ?? EMPTY);
-  const interiorBuckets = useMemo(() => (spec.spill ? buildInterior(spec) : EMPTY), [spec]);
+  const interiorBuckets = useMemo(() => (spec.spill ? buildInterior(spec, customOutlineDoor ? 'outline-room' : 'default') : EMPTY), [spec, customOutlineDoor]);
   const interior = useBucketGeometries(interiorBuckets);
   const interiorRef = useRef<Group>(null);
   const leafSets = [leafA, leafB];
@@ -96,8 +100,11 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
     return { plaque, handleBrass, handleIron };
   }, [materials]);
 
-  const leafRefs = useRef<(Group | null)[]>([]);
+  const leafRefs = useRef<(Object3D | null)[]>([]);
   const handleRefs = useRef<(Group | null)[]>([]);
+  const setOutlineLeaf = useCallback((side: 'left' | 'right', node: Object3D | null) => {
+    leafRefs.current[side === 'left' ? 0 : 1] = node;
+  }, []);
 
   // Seam light: a warm sheet behind the leaf that shows through the gaps while the door is shut,
   // and the interior light spilling over the corridor floor once it opens.
@@ -123,11 +130,11 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
       sheet: sheet.toGeometry(),
       strip: strip.toGeometry(),
       wedge: wedge.toGeometry(),
-      sheetMat: materials.basicMaterial(colour.clone().multiplyScalar(1.7), { opacity: 1 }),
+      sheetMat: materials.basicMaterial(colour.clone().multiplyScalar(1.7), { opacity: customOutlineDoor ? 0.12 : 1 }),
       stripMat: materials.glowMaterial(materials.textures.wedge, colour.clone().multiplyScalar(0.8), 0.5),
       wedgeMat: materials.glowMaterial(materials.textures.wedge, colour.clone().multiplyScalar(0.55), 0),
     };
-  }, [spec, materials]);
+  }, [spec, materials, customOutlineDoor]);
   useEffect(
     () => () => {
       if (!light) return;
@@ -144,30 +151,38 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
   const update = (): void => {
     const m = animation[id];
     const swing = smoothOpen(m.open);
-    build.leaves.forEach((leaf, i) => {
-      const group = leafRefs.current[i];
-      if (!group) return;
-      const dir = leaf.hinge === 'left' ? 1 : -1;
-      let yaw = dir * swing * SWING;
-      let dx = 0;
-      let dz = 0;
-      if (m.rattle > 0 && !reducedMotion) {
-        const p = m.rattle;
-        const decay = 1 - p;
-        dx = Math.sin(p * Math.PI * 2 * 7) * 0.0032 * decay;
-        dz = noise1(p * 14, i + 3) * 0.0014 * decay;
-        yaw += Math.sin(p * Math.PI * 2 * 5.5 + 1) * 0.0035 * decay;
-      }
-      group.position.set(leaf.pivot[0] + dx, leaf.pivot[1], leaf.pivot[2] + dz);
-      group.rotation.set(0, yaw, 0);
-      const handle = handleRefs.current[i];
-      if (handle && leaf.handle) {
-        let turn = -leaf.handle.dir * m.handle * HANDLE_TURN;
-        if (m.rattle > 0 && !reducedMotion) turn += Math.sin(m.rattle * Math.PI * 2 * 9) * (1 - m.rattle) * 0.11;
-        handle.rotation.set(0, 0, turn);
-        if (leaf.handle.kind === 'push-plate') handle.position.z = leaf.handle.offset[2] - 0.004 * m.handle;
-      }
-    });
+    if (customOutlineDoor) {
+      const left = leafRefs.current[0];
+      const right = leafRefs.current[1];
+      const travel = spec.width / 2;
+      if (left) left.position.x = Number(left.userData['closedX'] ?? left.position.x) - swing * travel;
+      if (right) right.position.x = Number(right.userData['closedX'] ?? right.position.x) + swing * travel;
+    } else {
+      build.leaves.forEach((leaf, i) => {
+        const group = leafRefs.current[i];
+        if (!group) return;
+        const dir = leaf.hinge === 'left' ? 1 : -1;
+        let yaw = dir * swing * SWING;
+        let dx = 0;
+        let dz = 0;
+        if (m.rattle > 0 && !reducedMotion) {
+          const p = m.rattle;
+          const decay = 1 - p;
+          dx = Math.sin(p * Math.PI * 2 * 7) * 0.0032 * decay;
+          dz = noise1(p * 14, i + 3) * 0.0014 * decay;
+          yaw += Math.sin(p * Math.PI * 2 * 5.5 + 1) * 0.0035 * decay;
+        }
+        group.position.set(leaf.pivot[0] + dx, leaf.pivot[1], leaf.pivot[2] + dz);
+        group.rotation.set(0, yaw, 0);
+        const handle = handleRefs.current[i];
+        if (handle && leaf.handle) {
+          let turn = -leaf.handle.dir * m.handle * HANDLE_TURN;
+          if (m.rattle > 0 && !reducedMotion) turn += Math.sin(m.rattle * Math.PI * 2 * 9) * (1 - m.rattle) * 0.11;
+          handle.rotation.set(0, 0, turn);
+          if (leaf.handle.kind === 'push-plate') handle.position.z = leaf.handle.offset[2] - 0.004 * m.handle;
+        }
+      });
+    }
     // Attention: the plaque and handle catch a little more light.
     const a = Math.min(1, Math.max(0, m.attention));
     own.plaque.emissive.setRGB(0.5 * a * 0.34, 0.45 * a * 0.34, 0.38 * a * 0.34);
@@ -179,7 +194,8 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
     if (light) {
       const o = smoothstep(0, 0.06, m.open);
       const lit = smoothstep(0.02, 0.5, m.open);
-      (light.sheetMat as MeshBasicMaterial).opacity = 1 - o;
+      const closedSheetOpacity = customOutlineDoor ? 0.12 : 1;
+      (light.sheetMat as MeshBasicMaterial).opacity = closedSheetOpacity * (1 - o);
       (light.sheetMat as MeshBasicMaterial).visible = o < 0.999;
       (light.stripMat as MeshBasicMaterial).opacity = 0.5 * (1 - lit);
       (light.wedgeMat as MeshBasicMaterial).opacity = 0.7 * lit;
@@ -207,7 +223,9 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onPoint
 
   return (
     <group position={matrixPosition} rotation={[0, rotationY, 0]} dispose={null}>
-      {build.leaves.map((leaf, i) => (
+      {customOutlineDoor ? (
+        <OutlineDoorModel leafRef={setOutlineLeaf} onReady={onOutlineReady ?? NOOP} />
+      ) : build.leaves.map((leaf, i) => (
         <group
           key={leaf.index}
           ref={(g) => {

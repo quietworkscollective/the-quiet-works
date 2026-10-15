@@ -33,7 +33,7 @@ import {
   NAMEPLATE_W,
 } from './canvasArt.ts';
 import { useFontsReady, useScene } from './context.ts';
-import { OVERLOAD_SCRIPT, QUIET_HATCH_MS } from './director.ts';
+import { OVERLOAD_SCRIPT, OVERLOAD_LIGHT_RISE_MS, QUIET_HATCH_MS } from './director.ts';
 import {
   boxAt,
   createBellGeometry,
@@ -476,7 +476,7 @@ export function Machine() {
                 ? { kind: 'reduced', startAt: event.slideAt - TIMING.memoAfterLandMs - 400 }
                 : { kind: 'overload', startAt: event.hatchAt };
               s.lightStart = event.hatchAt + TIMING.overloadLatchLeadMs;
-              s.lightDur = 800;
+              s.lightDur = OVERLOAD_LIGHT_RISE_MS;
             } else {
               s.hatch = motion.reduced
                 ? { kind: 'reduced', startAt: event.slideAt - 400 }

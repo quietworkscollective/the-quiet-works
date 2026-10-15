@@ -10,6 +10,8 @@ import type { ProgressSource } from './progress.ts';
  */
 export interface CorridorSceneProps {
   spine: SpineStore;
+  /** The chamber whose first ready frame may release its pending corridor door. */
+  readyChamber: ChamberId | null;
   /** Landing scroll progress; drives the camera while the spine is in the entrance phase. */
   progress: ProgressSource;
   reducedMotion: boolean;

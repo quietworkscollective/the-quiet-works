@@ -20,7 +20,7 @@ import { hexToSrgb, luminance } from '../colour.ts';
  *  - dust: a few motes that show only inside a lamp cone.
  */
 
-export type SpaceId = 'corridor' | 'landing' | 'office' | 'exchange';
+export type SpaceId = 'corridor' | 'landing' | 'office' | 'exchange' | 'apartment';
 
 /** One of the three tones of the dark. Luma is sRGB-encoded, 0 black to 1 white. */
 export interface DarkBand {
@@ -242,20 +242,41 @@ export const ATMOSPHERES: Readonly<Record<SpaceId, AtmosphereProfile>> = {
     ceilingY: 12.6,
     darkness: DARKNESS,
     heightFog: [
-      { id: 'floor-mist', y: 0, thins: 'up', scaleHeight: 0.45, density: 0.024, colour: '#C4C1BA' },
-      { id: 'mid-haze', y: 0, thins: 'up', scaleHeight: 3.4, density: 0.0045, colour: '#C9C6BF' },
-      { id: 'ceiling-smoke', y: 12.6, thins: 'down', scaleHeight: 4, density: 0.014, colour: '#CBC8C1' },
+      { id: 'floor-mist', y: 0, thins: 'up', scaleHeight: 0.45, density: 0.010, colour: '#D5D5CF' },
+      { id: 'mid-haze', y: 0, thins: 'up', scaleHeight: 3.4, density: 0.0032, colour: '#D5D5CF' },
+      { id: 'ceiling-smoke', y: 12.6, thins: 'down', scaleHeight: 4, density: 0.004, colour: '#D5D5CF' },
     ],
     farGlow: { from: 6, to: 12, colour: '#D7C9AE', strength: 0.035 },
     cones: {
       specs: [
-        { lamp: 'desk-lamp', halfAngleDeg: 28, length: 1.7, opacity: 0.11, falloff: 1.3, edge: 0.3, kelvin: 2900, breakup: 0.15, patch: 0.35 },
-        { lamp: 'window', halfAngleDeg: 24, length: 8.5, opacity: 0.11, falloff: 0.9, edge: 0.35, kelvin: 5000, breakup: 0.25, patch: 0.6, gobo: { columns: 4, rows: 3, bar: 0.22, soft: 0.09 } },
+        { lamp: 'desk-lamp', halfAngleDeg: 28, length: 1.7, opacity: 0.025, falloff: 1.3, edge: 0.3, kelvin: 2900, breakup: 0.15, patch: 0.35 },
+        { lamp: 'window', halfAngleDeg: 24, length: 8.5, opacity: 0.04, falloff: 0.9, edge: 0.35, kelvin: 5000, breakup: 0.25, patch: 0.6, gobo: { columns: 4, rows: 3, bar: 0.22, soft: 0.09 } },
       ],
       maxVisible: 2,
     },
     haze: { amplitude: 0.28, scale: 7, drift: 0.012 },
     dust: { count: 700, sizePx: [1, 2.4], brightness: 0.72, drift: 0.008, rise: 0.006, volume: [4.2, 12.6, 9] },
+    budget: { drawCalls: 2, triangles: 2 * CONE_TRIANGLES },
+  },
+  // A short lived-in room: pale air holds the view together, with warm light at the kettle and sun through the sash.
+  apartment: {
+    ceilingY: 2.65,
+    darkness: DARKNESS,
+    heightFog: [
+      { id: 'floor-mist', y: 0, thins: 'up', scaleHeight: 0.38, density: 0.055, colour: '#D2D0CA' },
+      { id: 'mid-haze', y: 0, thins: 'up', scaleHeight: 3.0, density: 0.006, colour: '#D8D6D0' },
+      { id: 'ceiling-smoke', y: 2.65, thins: 'down', scaleHeight: 0.6, density: 0.025, colour: '#D9D6CF' },
+    ],
+    farGlow: { from: 4.5, to: 12, colour: '#D0B889', strength: 0.05 },
+    cones: {
+      specs: [
+        { lamp: 'window', halfAngleDeg: 26, length: 5.8, opacity: 0.1, falloff: 0.9, edge: 0.35, kelvin: 5000, breakup: 0.18, patch: 0.55, gobo: { columns: 3, rows: 2, bar: 0.14, soft: 0.12 } },
+        { lamp: 'kitchen-practical', halfAngleDeg: 32, length: 2.4, opacity: 0.1, falloff: 1.4, edge: 0.35, kelvin: 2900, breakup: 0.15, patch: 0.22 },
+      ],
+      maxVisible: 2,
+    },
+    haze: { amplitude: 0.22, scale: 4.8, drift: 0.008 },
+    dust: { count: 600, sizePx: [1, 2.2], brightness: 0.72, drift: 0.008, rise: 0.006, volume: [6.2, 2.65, 5.4] },
     budget: { drawCalls: 2, triangles: 2 * CONE_TRIANGLES },
   },
 };

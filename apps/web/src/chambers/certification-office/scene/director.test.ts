@@ -55,6 +55,52 @@ describe('response completion', () => {
     s.detach();
   });
 
+  it('settles a reduced reply after its completed draw and cancels the later full-motion wake', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const s = setup();
+    const invalidate = vi.fn();
+    s.director.setInvalidate(invalidate);
+    s.director.beginFrame(1000, true);
+    s.store.dispatch({ type: 'PRESS' });
+    s.store.dispatch({ type: 'RELEASE' });
+    const reply = s.of('reply')[0]!;
+    s.director.beginFrame(reply.printAt + 120, true);
+    expect(s.store.getState().processing).toBe(true);
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(false);
+    invalidate.mockClear();
+    vi.advanceTimersByTime(30_000);
+    expect(invalidate).not.toHaveBeenCalled();
+    s.detach();
+  });
+
+  it('settles reduced overload after the cavity light and memo are presented, with no late wake', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const s = setup();
+    const invalidate = vi.fn();
+    s.director.setInvalidate(invalidate);
+    s.director.beginFrame(1000, true);
+    for (let n = 0; n < 5; n++) {
+      s.store.dispatch({ type: 'PRESS' });
+      s.store.dispatch({ type: 'RELEASE' });
+    }
+    const reply = s.of('reply')[4]!;
+    const lightEnd = reply.printAt + TIMING.overloadMs + 800;
+    s.director.beginFrame(lightEnd - 1, true);
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(true);
+    s.director.beginFrame(lightEnd, true);
+    s.director.afterFrame();
+    await Promise.resolve();
+    expect(s.store.getState().processing).toBe(false);
+    invalidate.mockClear();
+    vi.advanceTimersByTime(30_000);
+    expect(invalidate).not.toHaveBeenCalled();
+    s.detach();
+  });
+
   it('cannot settle a new stamp with an old frame queued before reset', async () => {
     const s = setup();
     s.store.dispatch({ type: 'PRESS' });

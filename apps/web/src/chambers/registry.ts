@@ -13,7 +13,7 @@ import type { ChamberComponent, ChamberModule } from './types.ts';
  */
 export const CHAMBER_MODULES: Record<ChamberId, ChamberModule> = {
   'certification-office': { door: OFFICE_DOOR, releaseOpen: true, load: () => import('./certification-office/index.ts') },
-  apartment: { door: APARTMENT_DOOR, releaseOpen: false },
+  apartment: { door: APARTMENT_DOOR, releaseOpen: false, load: () => import('./apartment/index.ts') },
   'tomorrow-engine': { door: TOMORROW_DOOR, releaseOpen: false },
   'great-atrium': { door: ATRIUM_DOOR, releaseOpen: false },
   exchange: { door: EXCHANGE_DOOR, releaseOpen: false, load: () => import('./exchange/index.ts') },

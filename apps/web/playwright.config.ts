@@ -15,13 +15,13 @@ const gpuArgs = angle === 'metal'
 const port = Number(process.env.TQW_E2E_PORT ?? 4173);
 const baseURL = `http://127.0.0.1:${port}`;
 const artifact = process.env.TQW_E2E_ARTIFACT === '1';
-if (artifact && !existsSync(new URL('./dist/index.html', import.meta.url))) {
+if (artifact && !process.argv.includes('--list') && !existsSync(new URL('./dist/index.html', import.meta.url))) {
   throw new Error('Missing production artifact; download it or run pnpm build first');
 }
 
 export default defineConfig({
   testDir: './e2e',
-  testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts'],
+  testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts', 'apartment.spec.ts'],
   // Cold software renders and repeated room visits need a larger CI budget, not weaker predicates.
   timeout: process.env.CI ? 300_000 : 60_000,
   expect: { timeout: process.env.CI ? 90_000 : 10_000 },

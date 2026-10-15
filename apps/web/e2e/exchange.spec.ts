@@ -6,7 +6,7 @@ const OBJECT_ACTIONS = [
   'Lift the handset', 'Read the rulebook', 'Trace the diagram', 'Move the ladder', 'Test the lamps',
   'Turn the cap', 'Lift the cardigan', 'Read the roster', 'Tilt the frame', 'Ring the bell',
 ];
-const STATION_ANGLE = { threshold: { yaw: 0, pitch: 2 }, desk: { yaw: 0, pitch: -19 }, ladder: { yaw: 0, pitch: 50 }, 'window-seat': { yaw: 0, pitch: 5 } } as const;
+const STATION_ANGLE = { threshold: { yaw: 0, pitch: 18 }, desk: { yaw: 0, pitch: -9 }, ladder: { yaw: 0, pitch: 30 }, 'window-seat': { yaw: 0, pitch: -13 } } as const;
 
 async function magentaPixels(page: import('@playwright/test').Page, png: Buffer): Promise<number> {
   return page.evaluate(async base64 => {
@@ -78,6 +78,31 @@ test('night service opens the third route after twenty-five seconds without inpu
   await page.getByRole('button', { name: 'Connect the operator line' }).click();
   await page.getByRole('button', { name: 'Answer the handset' }).click();
   await expect(page.locator('.tqw-exchange')).toHaveAttribute('data-findings', /operator-ticket/);
+});
+
+test('keeps the camera inside the stage arc when a resize narrows the lens', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.goto('/the-exchange?quality=high');
+  const stage = page.locator('.tqw-exchange-canvas');
+  await expect(stage).toHaveAttribute('data-ready', 'true', { timeout: 60_000 });
+
+  await expect.poll(async () => Number(await stage.getAttribute('data-yaw-limit'))).toBeGreaterThan(20);
+  const portraitLimit = Number(await stage.getAttribute('data-yaw-limit'));
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('exchange:turn', { detail: 360 })));
+  await expect.poll(async () => Math.abs(Number(await stage.getAttribute('data-yaw')))).toBeCloseTo(portraitLimit);
+
+  await page.setViewportSize({ width: 915, height: 412 });
+  await expect.poll(async () => Number(await stage.getAttribute('data-yaw-limit'))).toBeLessThan(portraitLimit);
+  await expect.poll(async () => {
+    const yaw = Number(await stage.getAttribute('data-yaw'));
+    const limit = Number(await stage.getAttribute('data-yaw-limit'));
+    return Math.abs(yaw) <= limit + 0.01;
+  }).toBe(true);
+  await expect.poll(async () => {
+    const yaw = Number(await stage.getAttribute('data-yaw'));
+    const cameraYaw = Number(await stage.getAttribute('data-camera-yaw'));
+    return Math.abs(yaw - cameraYaw);
+  }).toBeLessThan(0.01);
 });
 
 test('magenta hole sweep: station views stay framed at both yaw and pitch limits', async ({ page }, testInfo) => {

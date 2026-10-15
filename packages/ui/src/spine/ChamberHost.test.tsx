@@ -1,20 +1,41 @@
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { ChamberHost } from './ChamberHost.tsx';
 
-function setup(over: { hold?: boolean; inert?: boolean; fallbackMs?: number } = {}) {
+function setup(over: { hold?: boolean; inert?: boolean; seam?: boolean; fallbackMs?: number; content?: boolean } = {}) {
   const onReady = vi.fn();
   let ready: () => void = () => undefined;
-  const view = render(
-    <ChamberHost chamber="certification-office" hold={over.hold ?? true} inert={over.inert ?? false} onReady={onReady} fallbackMs={over.fallbackMs}>
+  let content = over.content ?? true;
+  const props = { hold: over.hold ?? true, inert: over.inert ?? false, fallbackMs: over.fallbackMs };
+  const contents = () => (
+    <ChamberHost chamber="certification-office" {...props} seam={over.seam ?? true} onReady={onReady}>
       {(markReady) => {
         ready = markReady;
-        return <p>the room</p>;
+        return content ? <div className="tqw-app"><p>the room</p></div> : null;
+      }}
+    </ChamberHost>
+  );
+  const view = render(contents());
+  const setSeam = (seam: boolean) => view.rerender(
+    <ChamberHost chamber="certification-office" {...props} seam={seam} onReady={onReady}>
+      {(markReady) => {
+        ready = markReady;
+        return content ? <div className="tqw-app"><p>the room</p></div> : null;
       }}
     </ChamberHost>,
   );
-  const host = () => view.container.querySelector('.tqw-chamber-host') as HTMLElement;
+  const setContent = (next: boolean) => {
+    content = next;
+    view.rerender(contents());
+  };
+  const maybeHost = () => view.container.querySelector('.tqw-chamber-host') as HTMLElement | null;
+  const host = () => {
+    const element = maybeHost();
+    if (!element) throw new Error('the chamber host is not mounted');
+    return element;
+  };
   const veil = () => view.container.querySelector('.tqw-seam-veil') as HTMLElement | null;
-  return { onReady, host, veil, ready: () => ready(), view };
+  const staging = () => view.container.querySelector('.tqw-chamber-preload') as HTMLElement | null;
+  return { onReady, host, maybeHost, staging, veil, ready: () => ready(), setSeam, setContent, view };
 }
 
 beforeEach(() => {
@@ -38,6 +59,37 @@ describe('ChamberHost: nothing half-built is ever shown', () => {
     const { veil } = setup();
     expect(veil()?.getAttribute('data-held')).toBe('true');
     expect(veil()?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('keeps the room staged and out of the host slot until the seam', () => {
+    const { host, maybeHost, staging, veil, ready, setSeam, onReady } = setup({ seam: false });
+    expect(maybeHost()).toBeNull();
+    expect(staging()?.getAttribute('data-ready')).toBe('false');
+    expect(staging()?.getAttribute('aria-hidden')).toBe('true');
+    expect(staging()?.hasAttribute('inert')).toBe(true);
+    expect(veil()).toBeNull();
+    expect(onReady).not.toHaveBeenCalled();
+    act(() => ready());
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(staging()?.getAttribute('data-ready')).toBe('true');
+    expect(staging()?.hasAttribute('inert')).toBe(true);
+    act(() => setSeam(true));
+    expect(staging()).toBeNull();
+    expect(host().getAttribute('data-seam')).toBe('true');
+    expect(host().getAttribute('data-ready')).toBe('true');
+    expect(host().hasAttribute('inert')).toBe(false);
+    expect(veil()?.getAttribute('data-held')).toBe('false');
+  });
+
+  it('keeps an unresolved lazy room in a hidden host shell until its content loads', async () => {
+    const { host, staging, setContent } = setup({ seam: false, content: false });
+    expect(host().getAttribute('data-ready')).toBe('false');
+    expect(host().getAttribute('data-seam')).toBe('false');
+    expect(host().getAttribute('aria-hidden')).toBe('true');
+    expect(host().hasAttribute('inert')).toBe(true);
+    vi.useRealTimers();
+    act(() => setContent(true));
+    await waitFor(() => expect(staging()).not.toBeNull());
   });
 
   it('reveals the room, and lets the veil go, the moment the chamber reports ready', () => {

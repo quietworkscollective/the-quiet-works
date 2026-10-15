@@ -32,6 +32,175 @@ body {
   margin-block: 0.75rem;
 }
 
+/* Public reading pages remain fully designed and readable when the application script is absent. */
+.tqw-static-content--reading {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #171a17;
+  color: #eeeae1;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.tqw-static-page__header {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100vw;
+  min-height: 124px;
+  margin-left: calc(50% - 50vw);
+  padding: calc(80px + env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 0
+    max(24px, calc((100vw - 720px) / 2));
+}
+
+.tqw-static-page__header ul,
+.tqw-static-page__resources ul {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tqw-static-page__header a,
+.tqw-static-page__resources a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #bdb8ae;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 20px;
+  text-decoration: none;
+  text-underline-offset: 0.45em;
+}
+
+.tqw-static-page__header a[aria-current='page'] {
+  color: #eeeae1;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.tqw-static-page__close {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  min-width: 44px;
+  color: #eeeae1 !important;
+}
+
+.tqw-static-page__sheet {
+  box-sizing: border-box;
+  width: min(720px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 24px 0 calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+.tqw-static-content--reading article h1 {
+  margin: 0 0 32px;
+  color: #eeeae1;
+  font-family: Newsreader, Georgia, serif;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.tqw-static-content--reading article h2,
+.tqw-static-content--reading article h3 {
+  margin: 2rem 0 0.75rem;
+  color: #bdb8ae;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.04em;
+}
+
+.tqw-static-content--reading article h1 + h2 {
+  margin-top: 0;
+}
+
+.tqw-static-content--reading article h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tqw-static-content--reading article p {
+  margin: 0 0 1.1em;
+  color: #eeeae1;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.tqw-static-content--reading article a {
+  color: #eeeae1;
+  text-decoration-color: #bdb8ae;
+  text-underline-offset: 0.2em;
+}
+
+.tqw-static-content--reading article nav ul {
+  padding-left: 1.25rem;
+}
+
+.tqw-static-page__resources {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid #414741;
+}
+
+.tqw-static-page__resources a {
+  color: #eeeae1;
+}
+
+.tqw-static-content--reading :focus-visible {
+  outline: 2px solid #eeeae1;
+  outline-offset: 3px;
+}
+
+@media (max-width: 40rem) {
+  .tqw-static-page__header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    min-height: 0;
+    padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 0
+      max(24px, env(safe-area-inset-left, 0px));
+  }
+
+  .tqw-static-page__header nav {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tqw-static-page__header ul {
+    gap: 0 24px;
+  }
+
+  .tqw-static-page__close {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tqw-static-page__sheet {
+    width: 100%;
+    padding: 24px max(24px, env(safe-area-inset-right, 0px)) calc(64px + env(safe-area-inset-bottom, 0px))
+      max(24px, env(safe-area-inset-left, 0px));
+  }
+
+  .tqw-static-content--reading article h1 {
+    font-size: clamp(36px, 8vw, 48px);
+  }
+}
+
 /* Replace the fallback layout before the live root measures its initial scroll position. */
 #static-content:has(+ #root > *),
 html.tqw-app-mounted #static-content {

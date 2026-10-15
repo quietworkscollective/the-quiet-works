@@ -6,10 +6,12 @@ if (!import.meta.env.DEV) throw new Error('The lighting workbench is development
 const requestedSpace = new URLSearchParams(location.search).get('space');
 const space = requestedSpace === 'office' ? 'office'
   : requestedSpace === 'codex-room' ? 'codex-room'
-    : requestedSpace === 'exchange' ? 'exchange' : 'corridor';
+    : requestedSpace === 'exchange' ? 'exchange'
+      : requestedSpace === 'apartment' ? 'apartment' : 'corridor';
 const route = space === 'office' ? '/certification-office'
   : space === 'codex-room' ? '/outline-room'
-    : space === 'exchange' ? '/the-exchange' : '/';
+    : space === 'exchange' ? '/the-exchange'
+      : space === 'apartment' ? '/apartment' : '/';
 history.replaceState(null, '', `${route}?quality=high&bake=off`);
 await import('../main.tsx');
 const dev = window as unknown as {

@@ -1,22 +1,30 @@
 {
   "version": 1,
   "space": "codex-room",
-  "hash": "a353f5d426728c9d59ba422eabf297bd142757c25bffbcd4276f1b8ce209fe64",
-  "materialHash": "5f48bf7709147ca47a29fe385bdb5f15b59a9bbf30609cd6e50d0e2102c43e6d",
-  "baselineHash": "6a991f150d52a1e7c3c698cf92f018e6c1dc130c10fb0bdd6057dea1628c49d8",
+  "hash": "216978c3b1475cc800bf209b1300826ef07205e52b6b5f3582464705f0e6236b",
+  "materialHash": "a0990cec5cc938aa438c7597b05a73f80befff0a7c6578edbaa75c516161d081",
+  "baselineHash": "8ef9f26a4ae6b1f90e06fd36d836318006de5f853d9bec6aff45bf97d9109833",
   "meshes": [
-    "075215c4c084cce7f04763366bc23d7fa8bae80e2a978a64a5d0adf0675a537e",
-    "3192709d1f387a3884a2bd99f3304c97ffb26d83c81692b08a1ec5562329d10e",
-    "48d9f37d6d44234aaa9f7cf9c4ffeac4a522a77cfb6769bca0cb2f3b4e073476",
-    "4f16a9f3c636c229772d2faf2af314937ce4263af72aafa903f42c111629dfa4",
-    "6ab00839cbd374876acebf4d21b2f8ad99ae1507b040a86e6ea5e9fbbf98a3c8",
-    "6fe805d291c26b54b036d5e2a27af77bb26d402537adf9809c7de3bc66996a4d",
-    "73bb3ffac932e12a86c19865b4c1c84b51c84659f00047eef08e51b3bd854e9e",
-    "83cce99c56cfe529e67c143555fbdf2a433cd5714a820286fa185d468d2959b8",
-    "b616f00779e2c117d0ad10de53cbcfdf7fbf612800115ff47f9897893f556cc4",
-    "bf938c37f8a4b0dd82cfbd82a18fea6d7ebf86b6cce54d467f02b3d23d195faf",
-    "c39cc7e422e3f1993dadfd2b2b691b25ec77f73446c4c171ca57a0c2161f86b4",
-    "c8a4f7a814dc7ab2ffcf8d1239b7ffe0cccc84b8941c981f6f8f5e57deae5460"
+    "07a375e2a8ff65f4e80e5abb28c9c6311af1f56855abf8922d977b520b76bc0c",
+    "1b73dc5bdad52c7b0d2cadfbf11c543c7a4ef76bf407b7066a3d928a8838fdb2",
+    "236ce60e621e5b6abec2801c78eb13dde75cc42335e6547b8188df5d2b8a0c33",
+    "2b4b20cc29f364acbeec54cf458b6c13773075c18eecacd1526b6fdd7668eb8c",
+    "2f2fac619e1dafc1de5eec0462c559ba7c075eb47b660159f0482960020f3d31",
+    "309a09c86b825518254c34851043087c1ec3096aacc6ef471e74d3183b3ef7bc",
+    "4446abb3a8147e5ec14dd416b9a228cb8017427728545addaafe1cf683a598fe",
+    "4d91cd17f9a469ecaec3de54dcfdd2dd418855ffc8b2664ac0f26f82912bb888",
+    "5cd0d294b55652a49eb1e9af98900822dd17973539b0b2f11a8187078f2184ff",
+    "60851c8ec4ad0126eb5fa504a17fdc77cffdb644bc43828d9633cba91ddb3fe1",
+    "662f12036f0886df56d59c1bf7d330759c983c4e23ff0442e8f85bd221032e8b",
+    "6811cef1e00ab1281fd5dc7b840ffe1f808e6d6a817c165a0a53ccf86dfa5a31",
+    "80bfc421c8be93c6bd34681a5cb1fff3f5c5f12825ee6828e9b7c60778293486",
+    "9bab475b2b24aff2ff99572e70dcc5b3f6b7aa075df3d0100043245779952edb",
+    "9bc27d58ab5e7809279bf680b8385db3e73c1cda5c132a82f16690148ca256bf",
+    "a712d6fec712877f004c97f4dc3bb8a23c3c132cdc0410fcbd971d31fd416636",
+    "a9ce2184602106e53492c55397a87dae0ee5fb491ad7e32202eb27614969f9e2",
+    "cc817fcc53a86ec3e4516df2454805aeed8db5ca2bd97251ea7a25069f25a441",
+    "e3b573ca362f0c2178a8f791e387818da6cc29a9c0d327aaaa9c664f0a1b0927",
+    "e747446246580460c1dc4256a7ade1357202acdf6468f828d886680b948543ee"
   ],
   "lazyMeshes": [],
   "lights": [
@@ -32,43 +40,67 @@
         0.3590157880244371,
         0.3121227633758383
       ],
-      "intensity": 0.28,
+      "intensity": 0.055,
       "distance": 0,
       "decay": 2
     },
     {
       "type": "PointLight",
       "position": [
-        -2.5,
-        2.5,
-        6.75
+        -0.82,
+        1.55,
+        4.28
       ],
       "colour": [
         0.6795424696265424,
-        0.5972017883558645,
-        0.4969329950515914
+        0.6514056374127929,
+        0.5775804404214573
       ],
-      "intensity": 1.25,
-      "distance": 7,
+      "intensity": 0.4,
+      "distance": 4.2,
       "decay": 2,
-      "power": 15.707963267948966
+      "power": 5.026548245743669
     },
     {
       "type": "PointLight",
       "position": [
         0,
-        2.52,
-        3.85
+        2.05,
+        0.55
+      ],
+      "colour": [
+        0.775822218312646,
+        0.5457244613615395,
+        0.3231432091022285
+      ],
+      "intensity": 0.15,
+      "distance": 3.2,
+      "decay": 2,
+      "power": 1.8849555921538759
+    },
+    {
+      "type": "SpotLight",
+      "position": [
+        0.82,
+        2.58,
+        4.1
       ],
       "colour": [
         0.9046611743890203,
         0.5840784178830671,
         0.3139887133649649
       ],
-      "intensity": 16,
-      "distance": 7,
+      "intensity": 24,
+      "distance": 5.6,
       "decay": 2,
-      "power": 201.06192982974676
+      "power": 75.39822368615503,
+      "direction": [
+        -0.4441330495344896,
+        -0.8666010722624189,
+        -0.22748278146888465
+      ],
+      "angle": 0.58,
+      "penumbra": 0.78
     }
   ],
   "atlases": [
@@ -76,24 +108,24 @@
       "file": "codex-room-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 22.830228805541992,
+      "scale": 0.13875573873519897,
       "encoding": "srgb-scale",
-      "bytes": 326620,
+      "bytes": 449742,
       "density": {
         "desk": {
-          "min": 63.937734189424546,
-          "max": 64.00396217638753,
-          "area": 0.9581398721785127,
+          "min": 63.995988730886715,
+          "max": 64.00345660622997,
+          "area": 2.261313820333023,
           "target": 64
         },
         "foreground": {
-          "min": 31.993215457457396,
-          "max": 37.329098359161215,
-          "area": 508.69943673328794,
+          "min": 31.99549880741536,
+          "max": 32.00514761291576,
+          "area": 532.697988137668,
           "target": 32
         }
       }
     }
   ],
-  "sourceHash": "7c568c8f63e1eebed63b2901366fc128b6c05a0dca837e342650c07d264b3009"
+  "sourceHash": "6c19cfa2cad947f4c54f70d0513853afafa36dd3f53c1c9f34b939542957f912"
 }

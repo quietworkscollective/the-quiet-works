@@ -128,8 +128,32 @@ export const OFFICE_LOOK: LookProfile = {
 export const EXCHANGE_LOOK: LookProfile = {
   ...OFFICE_LOOK,
   space: 'exchange',
-  bloom: { ...OFFICE_LOOK.bloom, strength: 0.14, threshold: 1.15 },
+  lut: { ...OFFICE_LOOK.lut, mobileIntensity: 0.8 },
+  exposure: 1,
+  bloom: { ...OFFICE_LOOK.bloom, strength: 0.10, levels: 2, threshold: 1.2 },
+  environment: { ...OFFICE_LOOK.environment, intensity: 0.25 },
   atmosphere: ATMOSPHERES.exchange,
+};
+
+export const APARTMENT_LOOK: LookProfile = {
+  ...OFFICE_LOOK,
+  space: 'apartment',
+  ao: { ...OFFICE_LOOK.ao, radius: 0.22, intensity: 0.32 },
+  bloom: { ...OFFICE_LOOK.bloom, strength: 0.14, threshold: 1.18 },
+  lut: { intensity: 0.3, mobileIntensity: 0.38 },
+  vignette: { amount: 0.025, inner: 0.56 },
+  environment: { intensity: 0.2, ceilingKelvin: 3000, windowKelvin: 6500, windowWeight: 0.52, floorBounceWeight: 0.12 },
+  atmosphere: {
+    ...ATMOSPHERES.apartment,
+    heightFog: ATMOSPHERES.apartment.heightFog.map((layer) => ({ ...layer, density: layer.density * 0.35 })),
+    cones: {
+      ...ATMOSPHERES.apartment.cones,
+      specs: ATMOSPHERES.apartment.cones.specs.map((spec) => spec.lamp === 'window'
+        ? { ...spec, kelvin: 3200, opacity: 0.015, patch: 0.25 }
+        : { ...spec, opacity: 0.015, patch: 0.12 }),
+    },
+    haze: { ...ATMOSPHERES.apartment.haze, amplitude: 0.14 },
+  },
 };
 
 export const LOOK_PROFILES: Readonly<Record<SpaceId, LookProfile>> = {
@@ -137,4 +161,5 @@ export const LOOK_PROFILES: Readonly<Record<SpaceId, LookProfile>> = {
   landing: LANDING_LOOK,
   office: OFFICE_LOOK,
   exchange: EXCHANGE_LOOK,
+  apartment: APARTMENT_LOOK,
 };

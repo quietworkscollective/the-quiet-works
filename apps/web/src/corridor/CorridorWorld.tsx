@@ -89,6 +89,8 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
   const quality = useMemo(() => chooseQuality(rendererName(gl.getContext())), [gl]);
   const [bakeReady, setBakeReady] = useState(() => import.meta.env.DEV && new URLSearchParams(window.location.search).get('bake') === 'off');
   const markBakeReady = useCallback(() => setBakeReady(true), []);
+  const [outlineDoorReady, setOutlineDoorReady] = useState(false);
+  const markOutlineDoorReady = useCallback(() => setOutlineDoorReady(true), []);
   const [Dressing, setDressing] = useState<ComponentType<CorridorDressingProps> | null>(null);
   const [decorReady, setDecorReady] = useState(false);
   const markDecorReady = useCallback(() => {
@@ -195,9 +197,21 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
     if (t.ground) h.groundColor.set(t.ground);
   });
 
-  // Readiness waits for the scanned materials, lettering, first baked draw and activated dressing.
+  // The poster tracks the live corridor content's first draw. It does not wait for the custom door
+  // model or its bake binding, both of which can finish after the corridor is already visible.
   useEffect(() => {
-    if (!art || !bakeReady || scans === null || (decorActive && !decorReady)) return;
+    if (!art || scans === null) return;
+    const canvas = gl.domElement;
+    canvas.dataset['content'] = 'ready';
+    invalidate();
+    return () => {
+      delete canvas.dataset['content'];
+    };
+  }, [art, scans, gl, invalidate]);
+
+  // Full world readiness also waits for the doorway's static Blender frame before binding its bake.
+  useEffect(() => {
+    if (!art || !bakeReady || !outlineDoorReady || scans === null || (decorActive && !decorReady)) return;
     const canvas = gl.domElement;
     canvas.dataset['world'] = 'ready';
     canvas.dataset['scans'] = scans.length === 0 ? 'ok' : `failed:${scans.join(',')}`;
@@ -206,7 +220,7 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
       delete canvas.dataset['world'];
       delete canvas.dataset['scans'];
     };
-  }, [art, bakeReady, scans, decorActive, decorReady, gl, invalidate]);
+  }, [art, bakeReady, outlineDoorReady, scans, decorActive, decorReady, gl, invalidate]);
 
   // Nothing is drawn until the lettering and the scanned surfaces can be: the DOM landing covers the short wait.
   if (!art || scans === null) return null;
@@ -218,11 +232,15 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
       {entries.map(([key, geometry]) => (
         <mesh key={key} name={key} geometry={geometry} material={materials.byKey[key]} renderOrder={RENDER_ORDER[key] ?? 0} />
       ))}
-      <BakedSpace key={decorReady ? 'decorated' : 'landing'} space="corridor" onReady={markBakeReady} allowLazyMissing={!decorReady} />
+      {outlineDoorReady ? <BakedSpace key={decorReady ? 'decorated' : 'landing'} space="corridor" onReady={markBakeReady} allowLazyMissing={!decorReady} /> : null}
       {Dressing ? <Dressing onReady={markDecorReady} /> : null}
       <Fixtures materials={materials} />
       <Beacon materials={materials} />
-      {world.chamberDoors.map((door) => (
+      {world.chamberDoors.map((door) => door.placement.key === 'outline-room' ? (
+        <group key={door.placement.key}>
+          <ChamberDoor door={door} materials={materials} animation={animation} reducedMotion={reducedMotion} onOutlineReady={markOutlineDoorReady} onPointer={onDoorPointer} />
+        </group>
+      ) : (
         <group key={door.placement.key} userData={{ bake: 'dynamic' }}>
           <ChamberDoor door={door} materials={materials} animation={animation} reducedMotion={reducedMotion} onPointer={onDoorPointer} />
         </group>

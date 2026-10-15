@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import { chooseQuality, rendererName } from '../corridor/world/quality.ts';
 import { isOnScreenSceneTarget } from '../look/render.ts';
-import { bindBake, usesLightmaps, type BakeBinding } from './runtime.ts';
+import { bindBake, usesLightmaps, type BakeAssets, type BakeBinding } from './runtime.ts';
 
-export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space: 'corridor' | 'office' | 'codex-room' | 'exchange'; onReady?: () => void; allowLazyMissing?: boolean }) {
+const apartmentAssets = import.meta.glob<{ default: BakeAssets }>('./assets/apartment.ts')['./assets/apartment.ts'];
+
+export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space: 'corridor' | 'office' | 'codex-room' | 'exchange' | 'apartment'; onReady?: () => void; allowLazyMissing?: boolean }) {
   const { scene, gl, invalidate } = useThree();
   useEffect(() => {
     const disabledForReview = import.meta.env.DEV && new URLSearchParams(location.search).get('bake') === 'off';
@@ -18,7 +20,9 @@ export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space
         ? import('./assets/office.ts')
         : space === 'codex-room'
           ? import('./assets/codex-room.ts')
-          : import('./assets/exchange.ts');
+          : space === 'exchange'
+            ? import('./assets/exchange.ts')
+            : apartmentAssets?.() ?? Promise.reject(new Error('Apartment lightmaps have not been baked'));
     void load.then(async ({ default: assets }) => {
       if (cancelled) return;
       if (!assets) throw new Error('Missing baked assets');

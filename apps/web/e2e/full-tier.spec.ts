@@ -63,6 +63,162 @@ test.describe('the full rendering tier', () => {
     });
   }
 
+  test('holds the Apartment threshold until its baked scene reports ready', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/?quality=high');
+    await expectSpine(page, 'entrance');
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await expectSpine(page, 'corridor');
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
+    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+
+    let atlasRequested = false;
+    let releaseAtlas: (() => void) | undefined;
+    const held = new Promise<void>((resolve) => { releaseAtlas = resolve; });
+    await page.route('**/apartment-0*.webp', async (route) => {
+      atlasRequested = true;
+      await held;
+      await route.continue();
+    });
+    try {
+      await door(page, 'The Apartment', 'open').focus();
+      await page.keyboard.press('Enter');
+      // On the Pixel 7 profile, allow the high-tier model to finish parsing before the held atlas request.
+      await expect.poll(() => atlasRequested, { timeout: 30_000 }).toBe(true);
+      await expect(site(page)).toHaveAttribute('data-spine', 'threshold');
+      await expect(site(page)).toHaveAttribute('data-chamber', 'apartment');
+      await expect(page.locator('.tqw-apartment')).toHaveAttribute('data-room-ready', 'false');
+      const staging = page.locator('.tqw-chamber-preload');
+      await expect(staging).toHaveAttribute('data-seam', 'false');
+      await expect(staging).toHaveAttribute('data-ready', 'false');
+      await expect(staging).toHaveAttribute('aria-hidden', 'true');
+      await expect(staging).toHaveAttribute('inert');
+      await expect(page.locator('.tqw-chamber-host')).toHaveCount(0);
+      await expect(page.locator('.tqw-seam-veil')).toHaveCount(0);
+      await page.waitForTimeout(500);
+      await expect(site(page)).toHaveAttribute('data-spine', 'threshold');
+      releaseAtlas?.();
+      await expectSpine(page, 'chamber');
+      await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: 60_000 });
+      expect(errors).toEqual([]);
+    } finally {
+      releaseAtlas?.();
+      await page.unroute('**/apartment-0*.webp');
+    }
+  });
+
+  test('slides both custom Outline Room leaves from the keyboard with reduced motion', async ({ page }, testInfo) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/?quality=high');
+    await expect(site(page)).toHaveAttribute('data-reduced-motion', 'true');
+    await expectSpine(page, 'entrance');
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await expectSpine(page, 'corridor');
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
+    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+    const corridorCanvas = page.locator('.tqw-corridor-canvas canvas');
+    await expect(corridorCanvas).toHaveAttribute('data-baked', 'corridor', { timeout: 60_000 });
+    await expect.poll(() => page.evaluate(() => {
+      const scene = (window as Window & { __tqwA1?: { scene: { getObjectByName(name: string): unknown } } }).__tqwA1?.scene;
+      return Boolean(scene?.getObjectByName('OutlineDoorLeafLeft') && scene?.getObjectByName('OutlineDoorLeafRight'));
+    })).toBe(true);
+    const slideReadings = await page.evaluate(() => {
+      const hook = (window as Window & {
+        __tqwA1?: {
+          animation: Record<string, { open: number }>;
+          freeze(): void;
+          render(): unknown;
+          scene: { getObjectByName(name: string): { position: { x: number } } | undefined };
+        };
+      }).__tqwA1;
+      if (!hook) throw new Error('The corridor door capture hook did not mount');
+      hook.freeze();
+      const readX = (side: 'Left' | 'Right') => hook.scene.getObjectByName(`OutlineDoorLeaf${side}`)?.position.x ?? Number.NaN;
+      hook.animation['outline-room']!.open = 0;
+      hook.render();
+      const closed = { left: readX('Left'), right: readX('Right') };
+      hook.animation['outline-room']!.open = 0.5;
+      hook.render();
+      const opening = { left: readX('Left'), right: readX('Right') };
+      hook.animation['outline-room']!.open = 1;
+      hook.render();
+      const open = { left: readX('Left'), right: readX('Right') };
+      hook.animation['outline-room']!.open = 0;
+      hook.render();
+      return { closed, opening, open };
+    });
+    expect(slideReadings.opening.left - slideReadings.closed.left).toBeCloseTo(-0.55, 2);
+    expect(slideReadings.opening.right - slideReadings.closed.right).toBeCloseTo(0.55, 2);
+    expect(slideReadings.open.left - slideReadings.closed.left).toBeCloseTo(-1.1, 2);
+    expect(slideReadings.open.right - slideReadings.closed.right).toBeCloseTo(1.1, 2);
+
+    const evidenceDir = process.env['TQW_EVIDENCE_DIR'];
+    if (evidenceDir) {
+      await mkdir(evidenceDir, { recursive: true });
+      const mobile = testInfo.project.name === 'mobile';
+      await page.evaluate((isMobile) => {
+        const hook = (window as Window & { __tqwA1?: { freeze(): void; setCam(...pose: number[]): unknown } }).__tqwA1;
+        if (!hook) throw new Error('The corridor door capture hook did not mount');
+        hook.freeze();
+        const pose = isMobile ? [0.9, 1.62, -17, 35, -5, 70] : [0.9, 1.62, -17, 25, -5, 70];
+        hook.setCam(...pose);
+      }, mobile);
+      await page.mouse.move(1, 1);
+      await corridorCanvas.screenshot({ path: join(evidenceDir, `${testInfo.project.name}-outline-door-down-corridor.png`), animations: 'disabled' });
+      const closed = await page.evaluate((isMobile) => {
+        const hook = (window as Window & { __tqwA1?: { freeze(): void; setCam(...pose: number[]): unknown; project(x: number, y: number, z: number): { x: number; y: number; depth: number } } }).__tqwA1;
+        if (!hook) throw new Error('The corridor door capture hook did not mount');
+        hook.freeze();
+        const rendered = isMobile
+          ? hook.setCam(2.24, 1.62, -20.16, 59.7, -8.5, 70)
+          : hook.setCam(0.8, 1.62, -21, 59.7, -8.5, 70);
+        const centre = hook.project(-1.6, 1.2, -22.4);
+        const bounds = document.querySelector('.tqw-corridor-canvas canvas')?.getBoundingClientRect();
+        if (!bounds) throw new Error('The corridor canvas has no capture bounds');
+        return { rendered, centre, bounds: { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height } };
+      }, mobile);
+      expect(closed.rendered).toBeTruthy();
+      expect(closed.centre.x).toBeGreaterThan(closed.bounds.left + closed.bounds.width * 0.3);
+      expect(closed.centre.x).toBeLessThan(closed.bounds.left + closed.bounds.width * 0.7);
+      expect(closed.centre.y).toBeGreaterThan(closed.bounds.top + closed.bounds.height * 0.25);
+      expect(closed.centre.y).toBeLessThan(closed.bounds.top + closed.bounds.height * 0.75);
+      await page.mouse.move(1, 1);
+      await corridorCanvas.screenshot({ path: join(evidenceDir, `${testInfo.project.name}-outline-door-closed.png`), animations: 'disabled' });
+      await page.evaluate(() => {
+        const hook = (window as Window & { __tqwA1?: { animation: Record<string, { open: number }>; render(): unknown } }).__tqwA1;
+        if (!hook) throw new Error('The corridor door capture hook did not mount');
+        hook.animation['outline-room']!.open = 0.5;
+        hook.render();
+      });
+      await page.mouse.move(1, 1);
+      await corridorCanvas.screenshot({ path: join(evidenceDir, `${testInfo.project.name}-outline-door-opening.png`), animations: 'disabled' });
+      await page.evaluate(() => {
+        const hook = (window as Window & { __tqwA1?: { animation: Record<string, { open: number }>; render(): unknown } }).__tqwA1;
+        if (!hook) throw new Error('The corridor door capture hook did not mount');
+        hook.animation['outline-room']!.open = 1;
+        hook.render();
+      });
+      await page.mouse.move(1, 1);
+      await corridorCanvas.screenshot({ path: join(evidenceDir, `${testInfo.project.name}-outline-door-open.png`), animations: 'disabled' });
+      await page.evaluate(() => {
+        const hook = (window as Window & { __tqwA1?: { animation: Record<string, { open: number }>; render(): unknown } }).__tqwA1;
+        if (!hook) throw new Error('The corridor door capture hook did not mount');
+        hook.animation['outline-room']!.open = 0;
+        hook.render();
+      });
+    }
+
+    await door(page, 'The Outline Room', 'open').focus();
+    await page.keyboard.press('Enter');
+    await expectSpine(page, 'chamber');
+    await expect(page).toHaveURL(/\/outline-room/);
+    await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: 60_000 });
+    expect(errors).toEqual([]);
+  });
+
   test('opens the Outline Room after its scene and baked light are ready', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
@@ -79,6 +235,33 @@ test.describe('the full rendering tier', () => {
       expect(String(renderer), 'the browser should expose its Metal WebGL renderer').toMatch(/metal/i);
     }
     expect(errors).toEqual([]);
+  });
+
+  test('captures the comparison hood shut and lifted at the tracing bench', async ({ page }, testInfo) => {
+    await page.goto('/outline-room?quality=high');
+    const room = page.locator('.tqw-outline-room');
+    await expect(room).toHaveAttribute('data-room-ready', 'true', { timeout: 60_000 });
+    await page.getByText('Places and actions', { exact: true }).click();
+    await page.getByRole('button', { name: 'Tracing bench' }).click();
+    const hoodVisible = () => page.evaluate(() => {
+      const probe = (window as Window & { __outlineStageProbe?: { scene: { getObjectByName(name: string): { visible: boolean } | undefined } } }).__outlineStageProbe;
+      return probe?.scene.getObjectByName('ComparisonHood')?.visible ?? null;
+    });
+    await expect.poll(hoodVisible).toBe(true);
+
+    const evidenceDir = process.env['TQW_EVIDENCE_DIR'];
+    if (evidenceDir) {
+      await mkdir(evidenceDir, { recursive: true });
+      await page.mouse.move(1, 1);
+      await page.locator('.tqw-outline-room__stage').screenshot({ path: join(evidenceDir, `${testInfo.project.name}-hood-closed.png`), animations: 'disabled' });
+    }
+
+    await page.getByRole('button', { name: 'Lift comparison hood' }).click();
+    await expect.poll(hoodVisible).toBe(false);
+    if (evidenceDir) {
+      await page.mouse.move(1, 1);
+      await page.locator('.tqw-outline-room__stage').screenshot({ path: join(evidenceDir, `${testInfo.project.name}-hood-open.png`), animations: 'disabled' });
+    }
   });
 
   test('has a keyboard action for every object and reaches the tracing path', async ({ page }) => {
@@ -174,6 +357,7 @@ test.describe('the full rendering tier', () => {
         }, { id: reading.station, yaw: reading.appliedYaw });
         await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
         const view = reading.sign === 0 ? 'center' : reading.sign < 0 ? 'yaw-left' : 'yaw-right';
+        await page.mouse.move(1, 1);
         await page.screenshot({ path: join(evidenceDir, `${testInfo.project.name}-${reading.station}-${view}.png`), animations: 'disabled' });
       }
     }

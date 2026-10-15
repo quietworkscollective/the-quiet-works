@@ -133,6 +133,7 @@ export default function CorridorScene(props: CorridorSceneProps) {
               spine={spine}
               progress={progress}
               animation={animation}
+              readyChamber={props.readyChamber}
               handlers={handlers}
               container={container}
               overlay={overlay}

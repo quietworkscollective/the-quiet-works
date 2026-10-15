@@ -183,15 +183,15 @@ describe('targets and focus', () => {
     expect(phone).not.toMatch(/display:\s*none/);
   });
 
-  it('gives the whole spine layer the one amber focus ring, at low specificity so toggles keep theirs', () => {
+  it('gives keyboard focus a 2 px bone ring with a 3 px offset, at low specificity', () => {
     const rule = declarationsOf(':where(.tqw-site) :focus-visible');
-    expect(rule).toMatch(/outline:\s*2px solid var\(--amber\)/);
-    expect(rule).toMatch(/outline-offset:\s*2px/);
-    expect(css).not.toMatch(/:focus\s*\{\s*outline:\s*none/);
+    expect(rule).toMatch(/outline:\s*2px solid var\(--bone\)/);
+    expect(rule).toMatch(/outline-offset:\s*3px/);
   });
 
-  it('never draws the ring on the scripted focus of a page heading', () => {
-    expect(declarationsOf('.tqw-page__title:focus-visible')).toMatch(/outline:\s*none/);
+  it('leaves the programmatically focused page heading unoutlined while controls keep their focus-visible ring', () => {
+    expect(declarationsOf(':where(.tqw-site) :focus-visible')).toMatch(/outline:\s*2px solid var\(--bone\)/);
+    expect(declarationsOf('.tqw-page__title:focus')).toMatch(/outline:\s*none/);
   });
 
   it('keeps the skip link out of sight until it is focused', () => {
@@ -316,7 +316,7 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     const details = declarationsOf('.tqw-hero__details');
     expect(details).toMatch(/font-size:\s*var\(--page-meta-size\)/);
     expect(details).toMatch(/gap:\s*0\.25rem 2rem/);
-    expect(details).toMatch(/color:\s*var\(--bone\)/);
+    expect(details).toMatch(/color:\s*#fff8ec/);
     const item = declarationsOf('.tqw-menu__item');
     expect(item).toMatch(/font-size:\s*var\(--page-control-size\)/);
     expect(item).toMatch(/font-weight:\s*400/);
@@ -560,12 +560,11 @@ describe('the details and the footer', () => {
     expect(lead).toMatch(/line-height:\s*1\.4167/);
     const body = declarationsOf('.tqw-details__topic-body');
     expect(body).toMatch(/font-family:\s*var\(--font-public\)/);
-    expect(body).toMatch(/font-size:\s*var\(--page-body-size\)/);
-    expect(body).toMatch(/line-height:\s*var\(--page-body-leading\)/);
-    expect(inMedia('(max-width: 40rem)', ':root')).toMatch(/--page-body-size:\s*1\.0625rem/);
-    expect(inMedia('(max-width: 40rem)', ':root')).toMatch(/--page-body-leading:\s*1\.5294/);
+    expect(body).toMatch(/font-size:\s*18px/);
+    expect(body).toMatch(/line-height:\s*28px/);
     expect(inMedia('(max-width: 40rem)', '.tqw-details__lead')).toMatch(/font-size:\s*1\.3125rem/);
-    expect(declarationsOf('.tqw-details__topic + .tqw-details__topic')).toMatch(/margin-top:\s*3rem/);
+    expect(declarationsOf('.tqw-details__topic + .tqw-details__topic')).toMatch(/margin-top:\s*2rem/);
+    expect(declarationsOf('.tqw-details__link')).toMatch(/margin-top:\s*0\.75rem/);
   });
 
   it('sets the section titles 48 / 52 px desktop and 34 / 38 px phone, in Newsreader', () => {
@@ -613,8 +612,8 @@ describe('the notice board', () => {
 });
 
 describe('site pages', () => {
-  it('sets a 680 px reading column in Plex Sans body type', () => {
-    expect(declarationsOf('.tqw-page__sheet')).toMatch(/width:\s*min\(680px,/);
+  it('sets a 720 px reading column in Plex Sans body type', () => {
+    expect(declarationsOf('.tqw-page__sheet')).toMatch(/width:\s*min\(720px,/);
     const body = declarationsOf('.tqw-page__article p');
     expect(body).toMatch(/font-family:\s*var\(--font-public\)/);
     expect(body).toMatch(/font-size:\s*var\(--page-body-size\)/);
@@ -624,12 +623,19 @@ describe('site pages', () => {
   it('sets the navigation in Plex Sans at the control scale', () => {
     const link = declarationsOf('.tqw-page__link');
     expect(link).toMatch(/font-family:\s*var\(--font-public\)/);
-    expect(link).toMatch(/font-size:\s*var\(--page-control-size\)/);
+    expect(link).toMatch(/font-size:\s*15px/);
+    expect(link).toMatch(/line-height:\s*20px/);
   });
 
-  it('sets a link in a page bone and underlined, not in the browser\'s blue', () => {
+  it('leaves 64 px plus the safe-area inset after the final reading text', () => {
+    expect(declarationsOf('.tqw-page__sheet')).toMatch(/padding:\s*24px 0 calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-page__sheet'))
+      .toMatch(/padding:.*calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+  });
+
+  it('sets a link in the reading text colour and underlined, not in the browser\'s blue', () => {
     const link = declarationsOf('.tqw-page__article a');
-    expect(link).toMatch(/color:\s*var\(--bone\)/);
+    expect(link).toMatch(/color:\s*var\(--reading-text\)/);
     expect(link).toMatch(/text-decoration:\s*underline/);
   });
 
@@ -829,8 +835,9 @@ describe('the poster and the seam', () => {
   });
 
   it('keeps a chamber invisible and out of reach until it is ready, and fades it in over the seam', () => {
-    expect(declarationsOf(".tqw-chamber-host[data-ready='false']")).toMatch(/opacity:\s*0/);
-    expect(declarationsOf(".tqw-chamber-host[data-ready='false']")).toMatch(/pointer-events:\s*none/);
+    const hidden = declarationsOf(".tqw-chamber-host[data-ready='false'],\n.tqw-chamber-host[data-seam='false']");
+    expect(hidden).toMatch(/opacity:\s*0/);
+    expect(hidden).toMatch(/pointer-events:\s*none/);
     expect(declarationsOf('.tqw-chamber-host')).toMatch(/transition:\s*opacity var\(--tqw-seam-ms, 400ms\) cubic-bezier\(0\.22, 0\.61, 0\.36, 1\)/);
   });
 

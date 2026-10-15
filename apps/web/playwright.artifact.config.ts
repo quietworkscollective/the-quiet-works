@@ -9,10 +9,9 @@ if (!process.argv.includes('--list') && !existsSync(new URL('./dist-authored/ind
   throw new Error('Missing authored artifact; run pnpm build:e2e-fixture first');
 }
 
-export default defineConfig({ ...production, webServer: [], projects: [] }, {
+export default defineConfig({ ...production, projects: (production.projects ?? []).filter(project => project.name !== 'reading-no-js'), webServer: [] }, {
   testIgnore: [],
-  testMatch: ['**/full-tier.spec.ts'],
-  projects: (production.projects ?? []).filter(project => project.name !== 'reading-no-js'),
+  testMatch: ['**/full-tier.spec.ts', '**/office-budget.spec.ts'],
   use: { baseURL },
   webServer: {
     command: `pnpm exec vite preview --outDir dist-authored --port ${port} --strictPort`,

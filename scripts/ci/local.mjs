@@ -19,4 +19,5 @@ run(['build:e2e-fixture']);
 const env = { TQW_E2E_ANGLE: 'metal', TQW_E2E_ARTIFACT: '1', TQW_E2E_PORT: process.env.TQW_E2E_PORT ?? '5397' };
 run(['--filter', '@tqw/web', 'exec', 'playwright', 'test', '--grep-invert', '@extended', `--workers=${workers}`], env);
 run(['--filter', '@tqw/web', 'exec', 'playwright', 'test', '--config', 'playwright.artifact.config.ts', `--workers=${workers}`], env);
+run(['--filter', '@tqw/web', 'exec', 'playwright', 'test', '--config', 'playwright.released-authored.config.ts', '--grep-invert', '@extended', '--pass-with-no-tests', `--workers=${workers}`], env);
 console.log(`ci:local passed in ${((performance.now() - started) / 1000).toFixed(1)}s (${workers} Metal workers).`);

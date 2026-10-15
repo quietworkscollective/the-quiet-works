@@ -30,6 +30,7 @@ function fixture(t) {
   };
 
   write('index.html', '<script type="module" src="/assets/main.js"></script>');
+  write('certification-office/index.html', '<script type="module" src="/assets/main.js"></script>');
   write('assets/main.js', 'import("./CorridorScene-test.js");');
   write('assets/CorridorScene-test.js', 'import("./corridor-test.js"); export const corridor = true;');
   write('assets/corridor-test.js', 'export const corridorRuntime = true;');
@@ -148,7 +149,7 @@ test('counts nested Office model chunks and reports overage as a warning', t => 
   assert.equal(office.gzipBytes, [...office.files].reduce((sum, file) => sum + gzipSync(readFileSync(path.join(build.dist, file))).byteLength, 0));
   assert.ok(office.gzipBytes > ROOM_ROUTE_BUDGET_BYTES);
   assert.ok(budgetWarnings(result).some(message => message.startsWith('Office expanded lazy route')));
-  assert.deepEqual(budgetViolations(result), [], 'room overages remain warnings pending a ruling');
+  assert.ok(budgetViolations(result).some(message => message.startsWith('Office direct-link first visit')), 'a cold Office visit must gate even when incremental room bytes only warn');
 
   build.write('assets/office-model.glb', 'interaction-time office prop');
   const restored = measureAssetBudgets(build.dist);
@@ -209,4 +210,27 @@ test('fails then passes the whole-build backstop', t => {
     oversized: Buffer.alloc(WHOLE_BUILD_BUDGET_BYTES + 1, 42),
     expectedPrefix: 'whole build',
   });
+});
+
+test('gates a cold Office visit including shared startup bytes without counting the corridor', t => {
+  const build = fixture(t);
+  build.write('assets/main.js', 'export const startup = "' + randomBytes(1_600_000).toString('base64') + '"; import("./CorridorScene-test.js");');
+  build.write('assets/office-scene-test.js', 'export const office = "' + randomBytes(1_600_000).toString('base64') + '";');
+  const red = measureAssetBudgets(build.dist);
+  assert.ok(red.initialGzipBytes < INITIAL_DOWNLOAD_BUDGET_BYTES);
+  assert.ok(red.roomRoutes.find(route => route.label === 'Office').gzipBytes < ROOM_ROUTE_BUDGET_BYTES);
+  assert.ok(budgetViolations(red).some(message => message.startsWith('Office direct-link first visit')));
+  assert.ok(!red.officeFirstVisit.files.has('assets/CorridorScene-test.js'));
+  build.write('assets/office-scene-test.js', 'export const office = true;');
+  assert.deepEqual(budgetViolations(measureAssetBudgets(build.dist)), []);
+});
+
+test('keeps deferred Office models in the expanded graph but outside the first frame', t => {
+  const build = fixture(t);
+  build.write('assets/cart-tool-green.js', randomBytes(ROOM_ROUTE_BUDGET_BYTES + 100_000));
+  const result = measureAssetBudgets(build.dist);
+  assert.ok(result.roomRoutes.find(route => route.label === 'Office').files.has('assets/cart-tool-green.js'));
+  assert.ok(!result.officeFirstVisit.files.has('assets/cart-tool-green.js'));
+  assert.ok(budgetWarnings(result).some(message => message.startsWith('Office expanded lazy route')));
+  assert.deepEqual(budgetViolations(result), []);
 });

@@ -55,9 +55,8 @@ describe('door character, rendered from data', () => {
       if (names.length > 0) expect(after, `${key} builds its ${names.map((l) => l.build).join(' and ')}`).toBeGreaterThan(before);
       else expect(after, `${key} has no lock fitting beyond its handle`).toBe(before);
     }
-    // The Atrium's padlock and the Apartment's bolt are the closures the spec already builds: not built twice.
+    // The Atrium's padlock is the closure the spec already builds: not built twice.
     expect(planDoor(CHAMBER_MODULES['great-atrium'].door).character?.locks.find((l) => l.role === 'extra')?.build).toBe('closure');
-    expect(planDoor(CHAMBER_MODULES.apartment.door).character?.locks.find((l) => l.role === 'extra')?.build).toBe('closure');
   });
 
   it('draws every mark the data names: each becomes decal geometry on its leaf, and a door with none draws none', () => {

@@ -7,8 +7,8 @@ export function publicChambers(chambers: readonly ChamberEntry[], production: bo
   if (!production) return chambers;
   return chambers.map((chamber) => chamber.status === 'open' ? chamber : {
     ...chamber,
-    clipping: { headline: chamber.title.toUpperCase(), dek: SEALED_COPY, dateline: '' },
-    doorDescription: SEALED_COPY,
+    clipping: publicClipping(chamber, production),
+    doorDescription: publicDoorDescription({ status: chamber.status, description: chamber.doorDescription }, production),
     findings: { papers: 0, secrets: 0 },
   });
 }

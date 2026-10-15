@@ -4,6 +4,7 @@ import {
   applyStageYaw,
   containsStagePoint,
   horizontalFov,
+  limitStagePose,
   stageYawLimit,
   stationYawLimit,
   turnScaleAtLimit,
@@ -38,6 +39,16 @@ describe('The Exchange stage', () => {
     expect(applyStageYaw(limit, 90, limit)).toBe(limit);
     expect(applyStageYaw(limit, -12, limit)).toBe(limit - 12);
     expect(applyStageYaw(-limit, 12, limit)).toBe(-limit + 12);
+  });
+
+  it('reclamps the camera pose when a lens change narrows a station arc', () => {
+    const station = EXCHANGE_STAGE.stations[0];
+    const portraitFov = horizontalFov(76, 412 / 915);
+    const landscapeFov = horizontalFov(48, 900 / 412);
+    const portraitPose = limitStagePose({ x: station.x, z: station.z, yawDeg: 40, pitchDeg: station.pitchDeg }, portraitFov, station.visibleHalfArcDeg);
+    const landscapePose = limitStagePose(portraitPose, landscapeFov, station.visibleHalfArcDeg);
+    expect(Math.abs(portraitPose.yawDeg)).toBeGreaterThan(Math.abs(landscapePose.yawDeg));
+    expect(landscapePose.yawDeg).toBeCloseTo(stationYawLimit(station, landscapeFov));
   });
 
   it('keeps all authored stations inside the walkable stage polygon', () => {

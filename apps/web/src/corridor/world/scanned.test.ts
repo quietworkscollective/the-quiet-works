@@ -64,7 +64,7 @@ describe('what the corridor ships of the library', () => {
           for (const line of source.split('\n')) {
             const match = /(?:from|import\()\s*['"]([^'"]*\/assets\/[^'"]*)['"]/.exec(line);
             const target = match?.[1];
-            if (target && !/\/assets\/(surfaces\/[a-z-]+\.webp\?url|models\/[a-z0-9-]+\.glb\?url&inline|gltf\.ts|dispose\.ts)$/.test(target)) offenders.push(`${full.split('/src/')[1]}: ${target}`);
+            if (target && !/\/assets\/(surfaces\/[a-z-]+\.webp\?url|models\/[a-z0-9-]+\.glb\?url&inline|outline-door\.glb\.gz\?url&inline|gltf\.ts|dispose\.ts)$/.test(target)) offenders.push(`${full.split('/src/')[1]}: ${target}`);
           }
         }
       }

@@ -36,7 +36,7 @@ export const BLOOM_GAIN = 4.5;
 /** Bloom: pmndrs `radius` (the spread of the mip upsampling) for a profile radius. */
 export const bloomRadius = (profileRadius: number): number => Math.min(1, 0.4 + 2 * profileRadius);
 /** Bloom: width of the luminance knee above the threshold, in linear HDR. */
-export const BLOOM_SMOOTHING = 0.05;
+export const BLOOM_SMOOTHING = 0.2;
 
 export interface LookDriverOptions {
   readonly renderer: WebGLRenderer;

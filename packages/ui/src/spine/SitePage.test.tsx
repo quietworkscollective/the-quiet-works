@@ -21,7 +21,17 @@ describe('SitePage', () => {
     setup(page);
     const dialog = screen.getByRole('dialog', { name: content.title });
     expect(within(dialog).getByRole('heading', { level: 1, name: content.title })).toBeTruthy();
-    for (const paragraph of content.body) expect(within(dialog).getByText(paragraph)).toBeTruthy();
+    if (page === 'credits') {
+      expect(within(dialog).getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent))
+        .toEqual(['Authorship', 'Licences', 'Typefaces:', 'Software:']);
+      expect(within(dialog).getByText(CREDITS.body[0] as string)).toBeTruthy();
+      expect(within(dialog).getByText(CREDITS.body[1] as string)).toBeTruthy();
+      expect(within(dialog).getByText((CREDITS.body[2] as string).slice('Typefaces: '.length))).toBeTruthy();
+      const softwareBody = (CREDITS.body[3] as string).slice('Software: '.length);
+      expect(dialog.querySelector('.tqw-page__credits-section:last-child')?.textContent).toContain(softwareBody);
+    } else {
+      for (const paragraph of content.body) expect(within(dialog).getByText(paragraph)).toBeTruthy();
+    }
   });
 
   describe('the maker', () => {
@@ -72,6 +82,12 @@ describe('SitePage', () => {
       expect(screen.getByRole('dialog').textContent).toContain('an independent artwork by Siri (Asiri) Dalugoda');
       expect(screen.getByRole('dialog').textContent).toContain('© 2026 Siri (Asiri) Dalugoda');
     });
+
+  it('links the existing descriptive licence phrase to the bundled notice file', () => {
+    setup('credits');
+    const link = screen.getByRole('link', { name: 'The full licence texts for everything bundled' });
+    expect(link.getAttribute('href')).toBe('/third-party-notices.txt');
+  });
   });
 
   describe('the third-party assets', () => {
@@ -97,12 +113,12 @@ describe('SitePage', () => {
       expect(within(section()).getByText(THIRD_PARTY_COPY.intro)).toBeTruthy();
     });
 
-    it('comes after the Credits paragraphs, and before the navigation', () => {
+    it('comes after the Credits paragraphs while the site navigation stays at the top', () => {
       setup('credits', { thirdParty: GROUPS });
       const dialog = screen.getByRole('dialog');
-      const last = within(dialog).getByText(CREDITS.body.at(-1) as string);
-      expect(last.compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(section().compareDocumentPosition(screen.getByRole('navigation', { name: 'Site' })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      const software = dialog.querySelector('.tqw-page__credits-section:last-child') as HTMLElement;
+      expect(software.compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(screen.getByRole('navigation', { name: 'Site' }).compareDocumentPosition(section()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('groups by provider, each under its own heading, in the order given', () => {
@@ -187,7 +203,7 @@ describe('SitePage', () => {
     });
   });
 
-  it('puts focus on the heading, so the page is read from its start, not from a link', () => {
+  it('puts programmatic focus on the heading so the page is read from its start', () => {
     setup('about');
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'About UNHELD' }));
   });
@@ -210,8 +226,33 @@ describe('SitePage', () => {
     expect(within(nav).getByRole('link', { name: 'About' }).getAttribute('aria-current')).toBeNull();
     fireEvent.click(within(nav).getByRole('link', { name: 'Privacy' }));
     expect(onNavigate).toHaveBeenCalledWith('privacy');
-    fireEvent.click(within(nav).getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps keyboard focus inside the reading page at both ends of its tab order', () => {
+    setup('about');
+    const dialog = screen.getByRole('dialog');
+    const focusable = [...dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    const rect = {} as DOMRect;
+    const visibleRects: DOMRectList = {
+      0: rect,
+      length: 1,
+      item: () => rect,
+      [Symbol.iterator]: [rect][Symbol.iterator],
+    };
+    for (const element of focusable) {
+      vi.spyOn(element, 'getClientRects').mockReturnValue(visibleRects);
+    }
+    const first = focusable[0] as HTMLElement;
+    const last = focusable.at(-1) as HTMLElement;
+
+    first.focus();
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
   });
 
   it('keeps the browser from following a link: the shell owns the URL', () => {

@@ -10,9 +10,14 @@ describe('Details', () => {
     const bodies = [...container.querySelectorAll('.tqw-details__topic-body')].map((body) => body.textContent ?? '');
     expect(bodies).toHaveLength(3);
     expect(bodies.every((body) => body.trim().split(/\s+/).length <= 30)).toBe(true);
-    expect(screen.getByRole('link', { name: 'Read the contribution guide' }).getAttribute('href')).toBe(
+    const contribution = container.querySelectorAll('.tqw-details__topic')[1] as HTMLElement;
+    const body = contribution.querySelector('.tqw-details__topic-body') as HTMLElement;
+    const guide = within(contribution).getByRole('link', { name: 'Read the contribution guide' });
+    expect(guide.getAttribute('href')).toBe(
       'https://github.com/quietworkscollective/the-quiet-works/blob/main/docs/commons/AGENT_DOSSIER.md',
     );
+    expect(body.compareDocumentPosition(guide) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(bodies[1]).not.toMatch(/Apache|Creative Commons|CC BY/i);
   });
 
   it('is a section named by its h2 title', () => {

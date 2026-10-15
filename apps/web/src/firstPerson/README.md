@@ -113,9 +113,12 @@ while engaged. A finger waits `dragThresholdPx.touch` (12 by default) before its
 the choice is final for that gesture, and so is the mode it began in: engaging or leaving part-way
 through a drag changes nothing about it.
 
-It reports `onGesture()` for any click, and for a key press while engaged (never for scrolling),
-so the host can unlock audio. It ignores movement keys in text fields and dialogs. Mark a control
-drawn over the surface with `data-fp-ignore` so a drag never starts on it.
+It reports `onGesture()` for scene clicks and taps, and for deliberate key presses while engaged.
+Keys operating page controls (buttons, links, disclosures, fields, dialogs, and controls marked
+`data-fp-ignore`) do not unlock audio; scrolling never does. Movement keys are ignored in text
+fields and dialogs. Mark a control drawn over the surface with `data-fp-ignore` so pointer drags
+and audio gestures do not start there; movement keys remain available to the scene on those
+controls.
 
 ### `applyPose`, `lensFor`, `lookScale`, `floorPoint`
 

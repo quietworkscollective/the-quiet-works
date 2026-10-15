@@ -31,6 +31,7 @@ interface Rig {
 
 function rig(overrides: Partial<InputOptions> = {}): Rig {
   const calls: string[] = [];
+  const host = (overrides.host ?? new EventTarget()) as EventTarget;
   const controls: InputControls = {
     hold: (source, dir) => calls.push(`hold:${source}:${dir}`),
     turn: (source, dir) => calls.push(`turn:${source}:${dir}`),
@@ -45,13 +46,12 @@ function rig(overrides: Partial<InputOptions> = {}): Rig {
     },
     releasePointerCapture() {},
   });
-  const host = new EventTarget();
   const state: { mode: InputMode; reduced: boolean } = { mode: 'engaged', reduced: false };
   const out = { gestures: 0, steps: [] as number[], touches: 0 };
   const input = bindInput({
     controls,
     surface,
-    host: host as never,
+    host,
     mode: () => state.mode,
     reducedMotion: () => state.reduced,
     lookScale: () => ({ yaw: 0.05, pitch: 0.05 }),
@@ -209,6 +209,30 @@ describe('keys', () => {
     fire(r.host, 'keydown', key('KeyW', { repeat: true }));
     fire(r.host, 'keydown', key('ShiftLeft', { key: 'Shift' }));
     expect(r.gestures).toBe(1);
+  });
+
+  it('does not unlock sound for control-owned keys, while movement keys still reach the scene', () => {
+    const r = rig();
+    const control = {
+      closest: (selector: string) => selector.includes('[data-fp-ignore]') ? {} : null,
+    };
+    fire(r.host, 'keydown', key('Enter', { target: control }));
+    fire(r.host, 'keydown', key('KeyW', { target: control }));
+    fire(r.host, 'keyup', key('KeyW', { target: control }));
+    expect(r.gestures).toBe(0);
+    expect(r.calls).toEqual(['hold:key:1', 'turn:key:0', 'hold:key:0', 'turn:key:0']);
+  });
+
+  it('does not treat keyboard actions on interface controls as world gestures', () => {
+    for (const tagName of ['BUTTON', 'SUMMARY']) {
+      const control = Object.assign(new EventTarget(), {
+        tagName,
+        closest: (selector: string) => (selector.includes(tagName.toLowerCase()) ? control : null),
+      });
+      const r = rig({ host: control });
+      fire(control, 'keydown', key('Enter'));
+      expect(r.gestures).toBe(0);
+    }
   });
 
   it('steps between viewpoints instead of walking under reduced motion', () => {

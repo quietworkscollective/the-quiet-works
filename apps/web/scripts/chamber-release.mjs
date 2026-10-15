@@ -45,6 +45,7 @@ function objectProperties(node) {
 
 function literalValue(node) {
   const value = unwrap(node);
+  if (ts.isNumericLiteral(value)) return Number(value.text);
   if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) return value.text;
   if (value.kind === ts.SyntaxKind.TrueKeyword) return true;
   if (value.kind === ts.SyntaxKind.FalseKeyword) return false;

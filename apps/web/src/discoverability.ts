@@ -1,4 +1,4 @@
-import { createElement as h, type ReactNode } from 'react';
+import { createElement as h, Fragment, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   ABOUT,
@@ -6,6 +6,7 @@ import {
   CHAMBERS,
   CREDITS,
   FOOTER_COPY,
+  PAGE_NAV,
   PRIVACY,
   TEXT_MODE_CORRIDOR,
   TEXT_MODE_NOTICE,
@@ -31,13 +32,6 @@ const AGENTS_PAGE = {
     'An operator may propose a room or contribution through public GitHub. A room-manifest format remains proposed under ADR 0005.',
   ],
 } as const;
-const EXCHANGE_TEXT_MODE_COPY = { ready: 'The room is ready as a set of places and actions.' } as const;
-const OUTLINE_TEXT_MODE_COPY = {
-  title: 'A small instrument workshop',
-  description: 'A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.',
-  fictionNote: 'The tins are fictional workshop specimens. Nothing here describes a visitor.',
-} as const;
-
 export interface PublicRoute {
   path: string;
   markdownPath: string;
@@ -68,19 +62,7 @@ interface StaticDocument {
   blocks: readonly StaticBlock[];
 }
 
-const chamberDescription = (chamber: ChamberEntry, production: boolean): string => {
-  if (production && chamber.status === 'sealed') return 'Not yet open.';
-  switch (chamber.id) {
-    case 'certification-office':
-      return TEXT_MODE_SCENE.join(' ');
-    case 'exchange':
-      return EXCHANGE_TEXT_MODE_COPY.ready;
-    case 'outline-room':
-      return `${OUTLINE_TEXT_MODE_COPY.title}. ${OUTLINE_TEXT_MODE_COPY.description}`;
-    default:
-      return chamber.doorDescription;
-  }
-};
+const chamberDescription = (chamber: ChamberEntry): string => chamber.doorDescription;
 
 export const UNHELD_DESCRIPTION = ABOUT.body[0] as string;
 
@@ -102,10 +84,9 @@ const pageRoutes: readonly PublicRoute[] = [
 ];
 
 export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, production = false): readonly PublicRoute[] {
-  const publicEntries = production ? publicChambers(chambers, true) : chambers;
   return [
     ...pageRoutes,
-    ...publicEntries.map((chamber): PublicRoute => ({
+    ...publicChambers(chambers, production).map((chamber): PublicRoute => ({
       path: `/${chamber.slug}`,
       markdownPath: `/${chamber.slug}.md`,
       key: `chamber:${chamber.id}`,
@@ -127,7 +108,7 @@ function normalizedPath(pathname: string): string {
   return pathOnly.replace(/\/+$/, '') || '/';
 }
 
-function routeForPath(pathname: string, chambers: readonly ChamberEntry[], production: boolean): PublicRoute {
+function routeForPath(pathname: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): PublicRoute {
   const path = normalizedPath(pathname);
   return publicRoutesFor(chambers, production).find((route) => route.path === path) ?? homeRoute;
 }
@@ -199,6 +180,44 @@ function text(value: string): StaticBlock {
   return { kind: 'paragraph', parts: [value] };
 }
 
+function splitCreditLabel(copy: string): { label: string; body: string } {
+  const separator = copy.indexOf(': ');
+  if (separator < 0) return { label: '', body: copy };
+  return { label: copy.slice(0, separator + 1), body: copy.slice(separator + 2) };
+}
+
+function creditsBlocks(creditGroups: readonly CreditGroup[]): StaticBlock[] {
+  const typefaces = splitCreditLabel(CREDITS.body[2] as string);
+  const software = splitCreditLabel(CREDITS.body[3] as string);
+  const noticeText = 'The full licence texts for everything bundled';
+  const noticeStart = software.body.indexOf(noticeText);
+  const softwareParagraph: StaticBlock = {
+    kind: 'paragraph',
+    parts: noticeStart < 0
+      ? [software.body]
+      : [
+        software.body.slice(0, noticeStart),
+        { text: noticeText, href: '/third-party-notices.txt' },
+        software.body.slice(noticeStart + noticeText.length),
+      ],
+  };
+  return [
+    { kind: 'heading', level: 1, text: CREDITS.title },
+    { kind: 'heading', level: 2, text: 'Authorship' },
+    text(CREDITS.body[0] as string),
+    { kind: 'heading', level: 2, text: FOOTER_COPY.licences },
+    text(CREDITS.body[1] as string),
+    { kind: 'heading', level: 2, text: typefaces.label },
+    text(typefaces.body),
+    { kind: 'heading', level: 2, text: software.label },
+    softwareParagraph,
+    { kind: 'heading', level: 2, text: THIRD_PARTY_COPY.heading },
+    text(THIRD_PARTY_COPY.intro),
+    { kind: 'credits', groups: creditGroups },
+    text(THIRD_PARTY_COPY.original),
+  ];
+}
+
 function link(text_: string, href: string): StaticBlock {
   return { kind: 'link', text: text_, href };
 }
@@ -218,19 +237,19 @@ function aboutBlocks(): StaticBlock[] {
   return blocks;
 }
 
-function corridorBlocks(selectedPath?: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): StaticBlock[] {
+function corridorBlocks(selectedPath?: string, chambers: readonly ChamberEntry[] = CHAMBERS): StaticBlock[] {
   return [
     text(TEXT_MODE_NOTICE_CORRIDOR.chosen),
     { kind: 'heading', level: 2, text: 'The corridor' },
     ...TEXT_MODE_CORRIDOR.map(text),
-    { kind: 'doors', ...(selectedPath ? { selectedPath } : {}), doors: production ? publicChambers(chambers, true) : chambers },
+    { kind: 'doors', ...(selectedPath ? { selectedPath } : {}), doors: chambers },
     link('Read The Quiet Works in text mode', '/?mode=text'),
   ];
 }
 
-function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers: readonly ChamberEntry[], production: boolean): StaticDocument {
+function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers: readonly ChamberEntry[]): StaticDocument {
   const normalized = normalizedPath(path);
-  const route = routeForPath(normalized, chambers, production);
+  const route = routeForPath(normalized);
   if (route.key === 'home') {
     return {
       title: route.title,
@@ -239,7 +258,7 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
         text(SITE.tagline),
         text(ABOUT.body[0] as string),
         link('About UNHELD', '/about'),
-        ...corridorBlocks(undefined, chambers, production),
+        ...corridorBlocks(undefined, chambers),
       ],
     };
   }
@@ -247,14 +266,7 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
   if (route.key === 'credits') {
     return {
       title: route.title,
-      blocks: [
-        { kind: 'heading', level: 1, text: CREDITS.title },
-        ...CREDITS.body.map(text),
-        { kind: 'heading', level: 2, text: THIRD_PARTY_COPY.heading },
-        text(THIRD_PARTY_COPY.intro),
-        { kind: 'credits', groups: creditGroups },
-        text(THIRD_PARTY_COPY.original),
-      ],
+      blocks: creditsBlocks(creditGroups),
     };
   }
   if (route.key === 'privacy') {
@@ -283,18 +295,15 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
     };
   }
 
-  const entries = production ? publicChambers(chambers, true) : chambers;
-  const chamber = entries.find((entry) => route.key === `chamber:${entry.id}`);
-  if (!chamber) {
+  const chamber = chambers.find((entry) => route.key === `chamber:${entry.id}`);
+  if (!chamber || chamber.status === 'sealed') {
     return {
       title: route.title,
-      blocks: corridorBlocks(undefined, chambers, production),
+      blocks: chamber ? [
+        { kind: 'heading', level: 1, text: chamber.title },
+        text(chamber.doorDescription),
+      ] : corridorBlocks(undefined, chambers),
     };
-  }
-  if (chamber.status === 'sealed') {
-    return production
-      ? { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text('Not yet open.')] }
-      : { title: route.title, blocks: corridorBlocks(`/${chamber.slug}`, chambers, production) };
   }
 
   if (chamber.id === 'certification-office') {
@@ -307,36 +316,17 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers
       ],
     };
   }
-  if (chamber.id === 'exchange') {
-    return {
-      title: route.title,
-      blocks: [
-        { kind: 'heading', level: 1, text: chamber.title },
-        text(EXCHANGE_TEXT_MODE_COPY.ready),
-      ],
-    };
-  }
-  if (chamber.id === 'outline-room') {
-    return {
-      title: route.title,
-      blocks: [
-        { kind: 'heading', level: 1, text: chamber.title },
-        { kind: 'heading', level: 2, text: OUTLINE_TEXT_MODE_COPY.title },
-        text(OUTLINE_TEXT_MODE_COPY.description),
-        text(OUTLINE_TEXT_MODE_COPY.fictionNote),
-      ],
-    };
-  }
-  return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text(chamberDescription(chamber, production))] };
+  return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text(chamberDescription(chamber))] };
 }
 
 function readingDocument(pathname: string, creditGroups: readonly CreditGroup[], chambers: readonly ChamberEntry[], production: boolean): StaticDocument {
-  const document = pageBlocks(pathname, creditGroups, chambers, production);
+  const entries = publicChambers(chambers, production);
+  const document = pageBlocks(pathname, creditGroups, entries);
   const containsParagraph = (value: string) => document.blocks.some(block => block.kind === 'paragraph' && block.parts.includes(value));
   const blocks: StaticBlock[] = [...document.blocks].filter(block => block.kind !== 'doors');
   if (!containsParagraph(SITE.tagline)) blocks.push(text(SITE.tagline));
   if (!containsParagraph(ABOUT.body[0] as string)) blocks.push(text(ABOUT.body[0] as string));
-  blocks.push({ kind: 'doors', selectedPath: normalizedPath(pathname), doors: production ? publicChambers(chambers, true) : chambers });
+  blocks.push({ kind: 'doors', selectedPath: normalizedPath(pathname), doors: entries });
   if (!containsParagraph(PRIVACY.body[0] as string)) blocks.push(text(PRIVACY.body[0] as string));
   return { ...document, blocks };
 }
@@ -365,13 +355,38 @@ function renderBlock(block: StaticBlock, key: number): ReactNode {
 export function staticHtmlForPath(pathname: string, creditGroups: readonly CreditGroup[] = [], chambers: readonly ChamberEntry[] = CHAMBERS, production = false): string {
   const route = routeForPath(pathname, chambers, production);
   const document = readingDocument(pathname, creditGroups, chambers, production);
+  const readingPage = ['about', 'credits', 'privacy'].includes(route.key);
+  const pageLinks = [
+    ['about', PAGE_NAV.about, '/about'],
+    ['credits', PAGE_NAV.credits, '/credits'],
+    ['privacy', PAGE_NAV.privacy, '/privacy'],
+  ] as const;
+  const staticLinks = [
+    ['Licences', '/licences'], ['Agents', '/agents'], ['llms.txt', '/llms.txt'], ['sitemap.xml', '/sitemap.xml'],
+  ] as const;
   const navigation = [
     ['UNHELD', '/'], ['About', '/about'], ['Credits', '/credits'], ['Privacy', '/privacy'],
     ['Licences', '/licences'], ['Agents', '/agents'], ['llms.txt', '/llms.txt'], ['sitemap.xml', '/sitemap.xml'],
   ];
-  return renderToStaticMarkup(h('main', { id: 'static-content', className: 'tqw-static-content', 'data-static-route': route.path },
-    h('article', null, ...document.blocks.map(renderBlock)),
-    h('nav', { 'aria-label': 'Site' }, h('ul', null, ...navigation.map(([label, href]) => h('li', { key: href }, h('a', { href }, label)))))));
+  const header = readingPage ? h('header', { className: 'tqw-static-page__header' },
+    h('a', { className: 'tqw-static-page__close', href: '/', 'aria-label': PAGE_NAV.close },
+      PAGE_NAV.close, ' ', h('span', { 'aria-hidden': 'true' }, '×')),
+    h('nav', { 'aria-label': 'Site' }, h('ul', null, ...pageLinks.map(([id, label, href]) =>
+      h('li', { key: id }, h('a', { href, ...(route.key === id ? { 'aria-current': 'page' } : {}) }, label)))))) : null;
+  const links = readingPage
+    ? h('nav', { className: 'tqw-static-page__resources', 'aria-label': 'Site resources' },
+      h('ul', null, ...staticLinks.map(([label, href]) => h('li', { key: href }, h('a', { href }, label)))))
+    : h('nav', { 'aria-label': 'Site' },
+      h('ul', null, ...navigation.map(([label, href]) => h('li', { key: href }, h('a', { href }, label)))));
+  return renderToStaticMarkup(h('main', {
+    id: 'static-content',
+    className: `tqw-static-content${readingPage ? ' tqw-static-content--reading' : ''}`,
+    'data-static-route': route.path,
+  }, readingPage
+    ? h(Fragment, null,
+      header,
+      h('div', { className: 'tqw-static-page__sheet' }, h('article', null, ...document.blocks.map(renderBlock)), links))
+    : h('article', null, ...document.blocks.map(renderBlock)), readingPage ? null : links));
 }
 
 function markdownInline(parts: readonly InlinePart[]): string {
@@ -398,20 +413,14 @@ function renderBlockMarkdown(block: StaticBlock): string {
   }
 }
 
-export function markdownForPath(
-  pathname: string,
-  creditGroups: readonly CreditGroup[] = [],
-  chambers: readonly ChamberEntry[] = CHAMBERS,
-  production = false,
-): string {
+export function markdownForPath(pathname: string, creditGroups: readonly CreditGroup[] = [], chambers: readonly ChamberEntry[] = CHAMBERS, production = false): string {
   const page = readingDocument(pathname, creditGroups, chambers, production);
   const route = routeForPath(pathname, chambers, production);
-  const body = page.blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
-  const entries = production ? publicChambers(chambers, true) : chambers;
-  const chamber = entries.find((entry) => route.key === `chamber:${entry.id}`);
+  const chamber = chambers.find(entry => route.key === `chamber:${entry.id}`);
   if (production && chamber?.status === 'sealed') return `# ${chamber.title}\n\nNot yet open.\n`;
+  const body = page.blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
   const siteLinks = `## Site pages\n\n- [About](${new URL('/about.md', SITE.url)})\n- [Credits](${new URL('/credits.md', SITE.url)})\n- [Privacy](${new URL('/privacy.md', SITE.url)})\n- [Agents](${new URL('/agents.md', SITE.url)})\n- [Agent skill](${new URL('/skill.md', SITE.url)})`;
-  return `# ${page.title}\n\n${body}\n\n${siteLinks}\n\n[Canonical page](${metadataForPath(route.path, chambers, production).canonical})\n`;
+  return `# ${page.title}\n\n${body}\n\n${siteLinks}\n\n[Canonical page](${metadataForPath(route.path).canonical})\n`;
 }
 
 function setMeta(target: Document, selector: string, attribute: 'name' | 'property', key: string, value: string): void {
@@ -453,6 +462,7 @@ export function applyRouteMetadata(pathname: string, target: Document = document
   setMeta(target, 'meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', metadata.imageAlt);
   setLink(target, 'canonical', metadata.canonical);
   setLink(target, 'alternate', metadata.markdown, 'text/markdown');
+  setLink(target, 'alternate', '/llms.txt', 'text/plain');
   setLink(target, 'describedby', new URL('/llms.txt', SITE.url).toString());
 
   let jsonLd = target.head.querySelector<HTMLScriptElement>('#route-structured-data');

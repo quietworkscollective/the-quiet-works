@@ -2,8 +2,15 @@ import { CHAMBERS } from '@tqw/engine';
 import { describe, expect, it } from 'vitest';
 import { publicChambers } from '../../../../packages/ui/src/spine/chamberCopy.ts';
 import { isChamberOpenInBuild } from './registry.ts';
+import { chambersForBuild, REPO_ROOT } from '../../scripts/chamber-release.mjs';
 
 describe('public chamber copy', () => {
+  it.each([false, true])('matches the runtime registry and authored numeric totals (development=%s)', development => {
+    const expected = CHAMBERS.map(chamber => ({
+      ...chamber, status: isChamberOpenInBuild(chamber.id, development) ? 'open' as const : 'sealed' as const,
+    }));
+    expect(chambersForBuild(REPO_ROOT, development)).toEqual(expected);
+  });
   const productionChambers = CHAMBERS.map((chamber) => ({
     ...chamber,
     status: isChamberOpenInBuild(chamber.id, false) ? 'open' as const : 'sealed' as const,

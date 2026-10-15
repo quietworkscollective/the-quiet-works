@@ -28,7 +28,7 @@ const sharedFiles = [
   'packages/ui/src/contextualCues.ts',
 ];
 const roomInputs = {
-  corridor: ['apps/web/src/corridor'],
+  corridor: ['apps/web/src/corridor', 'scripts/blender/doors/outline-room'],
   office: ['apps/web/src/chambers/certification-office'],
   'codex-room': [
     'apps/web/src/chambers/annex-codex',
@@ -38,17 +38,24 @@ const roomInputs = {
   exchange: [
     'apps/web/src/chambers/exchange',
     'scripts/blender/rooms/exchange',
+    'scripts/blender/props',
     'apps/web/src/chambers/exchange/assets/exchange.glb',
     'apps/web/src/chambers/exchange/assets/exchange.glb.gz',
   ],
+  apartment: [
+    'apps/web/src/chambers/apartment',
+    'scripts/blender/rooms/apartment',
+    'apps/web/src/chambers/apartment/assets/apartment.glb',
+    'apps/web/src/chambers/apartment/assets/apartment.glb.gz',
+  ],
 };
 const productionInput = name => /\.(?:[cm]?[jt]sx?|py|json|css|glb|gltf|bin|gz|png|jpe?g|webp|svg|avif|woff2?|ttf|otf)$/i.test(name) && !name.startsWith('.') && !/\.(test|spec|integration)\.[^.]+$/.test(name) && !['testUtils.ts', 'testSetup.ts', 'domStub.ts', 'README.md'].includes(name);
-async function collect(root, directory) {
+async function collect(root, directory, excluded = new Set()) {
   const files = [];
   for (const entry of await readdir(path.join(root, directory), { withFileTypes: true })) {
     const file = `${directory}/${entry.name}`;
-    if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '__pycache__') files.push(...await collect(root, file));
-    else if (entry.isFile() && productionInput(entry.name)) files.push(file);
+    if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '__pycache__') files.push(...await collect(root, file, excluded));
+    else if (entry.isFile() && productionInput(entry.name) && !excluded.has(file)) files.push(file);
   }
   return files;
 }
@@ -74,8 +81,14 @@ export async function hashInputs(root, files) {
 
 export async function sourceInputs(root, space) {
   if (!(space in roomInputs)) throw new Error(`Unknown bake space: ${space}`);
+  // Generated room models are shared in one public asset directory, but only their own route
+  // consumes them. Keep their authored bytes in that route's fingerprint without making every
+  // unrelated bake stale each time a room is rebuilt.
+  const excludedSharedAssets = new Set();
+  if (space !== 'codex-room') excludedSharedAssets.add('apps/web/src/assets/outline-room.glb.gz');
+  if (space !== 'corridor') excludedSharedAssets.add('apps/web/src/assets/outline-door.glb.gz');
   const files = [...sharedFiles];
-  for (const directory of sharedDirectories) files.push(...await collect(root, directory));
+  for (const directory of sharedDirectories) files.push(...await collect(root, directory, excludedSharedAssets));
   for (const input of roomInputs[space]) files.push(...await collectInput(root, input));
   const chambers = 'apps/web/src/chambers';
   for (const entry of await readdir(path.join(root, chambers), { withFileTypes: true })) {

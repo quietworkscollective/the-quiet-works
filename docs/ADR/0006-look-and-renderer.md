@@ -8,7 +8,7 @@
   - "multiple layers of darkness and a little bit of smoke so it looks real";
   - "try using WebGL or WebGPU, investigate latest tech";
   - "let's get Blender and do it fully".
-- **Amends:** `docs/DESIGN.md` §8, which said to prefer procedural geometry in the first slice.
+- **Amends:** `docs/DESIGN.md` §8, the stack table's 3D assets row, which allows Draco/meshopt and KTX2 textures. This ADR uses WebP textures and quantised geometry instead.
 
 ## Context
 

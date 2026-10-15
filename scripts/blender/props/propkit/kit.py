@@ -212,7 +212,8 @@ def run(props, build, argv_opts=None):
             bpy.ops.wm.save_as_mainfile(filepath=os.path.join(opts['work'], f'{spec["id"]}.procedural.blend'))
         # island gutters twice as wide as the bake's edge extension, so neighbouring islands never bleed into each other
         baked = [o for o in parts if o not in built.unbaked]
-        bakemod.unwrap_and_pack(baked, margin_px=2 * max(4, size // 128) + 2, size=size)
+        bakemod.unwrap_and_pack(baked, margin_px=2 * max(4, size // 128) + 2, size=size,
+                                shape_method=spec.get('uv_shape', 'CONCAVE'))
         maps = bakemod.bake_atlas(baked, size, opts['work'], spec['id'], ao_distance=spec.get('ao_distance', 0.3),
                                   samples=opts['samples'] or spec.get('bake_samples', 96),
                                   ao_samples=spec.get('ao_samples', 256), floor=spec.get('ground_ao', True))

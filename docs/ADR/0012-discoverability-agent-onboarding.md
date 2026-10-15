@@ -82,18 +82,17 @@ Human review is required before any change is accepted or published.
 3. A maintainer creates `commons:human-review` in GitHub repository settings and confirms whether
    the existing `proposal` label is present for the room issue form.
 
-## Amendment — readable HTML and link previews, 16 October 2026
+## Amendment — readable HTML and link previews, 15 October 2026
 
 Proposed for maintainer approval with this branch. The production build renders every public
-route (including Licences and direct links to sealed rooms) with `react-dom/server`. It uses
-the app's existing About, Credits, Privacy, brand and chamber copy. The live hotfix
-`chambersForBuild` reader evaluates the registry release flags, and its `publicChambers` filter
-limits sealed room copy to the room name and “not yet open” status. Both mechanisms remain
-shared with the hotfix; no second release-state reader or copy filter is introduced. No unreleased
-room interiors, discoveries or private narrative are rendered.
+route (including Licences and unreleased doors in the sitemap) with `react-dom/server`. It uses
+the app's existing About, Credits, Privacy, brand and chamber copy; the build evaluates the same
+registry release flags as the app. Unreleased rooms expose only their public door description
+and “not yet open” status. No unreleased room interiors, discoveries or private narrative are rendered.
 Every reading page includes the introduction, tagline, room directory, privacy promise and
-ordinary links to the site pages, `llms.txt` and the sitemap. Licences is a standalone reading
-page and links to the full bundled software notices. No new public wording is introduced.
+ordinary links to the site pages, `llms.txt` and the sitemap. The live footer repeats the existing
+first Privacy paragraph. Licences is a standalone reading page and links to the full bundled
+software notices. No new public wording is introduced.
 
 Each route ships its own title, description, canonical and Open Graph metadata, one JSON-LD
 graph, a large-image card and a plain-text alternate for `llms.txt`. The share image is a committed
@@ -102,10 +101,9 @@ existing wordmark and tagline. Its source and licence are included in the asset 
 entries include the content revision date, rather than a new timestamp on every rebuild.
 
 A small same-origin blocking script hides the reading page before the body paints for app routes.
-The existing poster covers app startup; text mode keeps the plain page colour. The reading page
-returns if startup fails or times out.
-Agents and Licences remain written pages. The app removes the written document once its root
-mounts, avoiding duplicate text in the DOM. The hero and game window keep their existing rendering. The CSP and hosting security configuration are unchanged:
+The existing poster covers app startup; text mode keeps the plain page colour. The reading page returns if startup fails or times out.
+Agents and Licences remain written pages. The live app removes the written document once its root mounts, avoiding duplicate text in the DOM; neither
+the hero nor the game window changes. The CSP and hosting security configuration are unchanged:
 JSON-LD and route data are inert data blocks, and all executing scripts remain external.
 
 Acceptance is guarded by no-JavaScript navigation and raw HTTP checks for every public route,
@@ -113,7 +111,7 @@ plus desktop and Pixel 7 startup captures, layout-shift measurement below 0.05, 
 the asset budget and public-content gates. Rollback is a revert of this branch; no persisted
 progress format, scene contract or security policy changes.
 
-## Amendment: release-aware discovery (16 October 2026)
+## Amendment: release-aware discovery (15 October 2026)
 
 Proposed for maintainer review. The sitemap includes site pages and released rooms only, derived
 from the same production release gate as the readable HTML. Sealed reading pages remain available
@@ -126,11 +124,36 @@ at build time. A replacement description requires founder approval.
 
 `pnpm check:crawl` checks a running built preview for readable body content, navigation and Open
 Graph tags on the entrance and Office, using seven named crawler user agents. Set `TQW_CRAWL_URL`
-to select the preview; the default is loopback port 4192. This makes no request from visitor code
+to select the preview; the default is loopback port 4190. This makes no request from visitor code
 and changes no CSP directive.
 
-The required production core and `ci:local` selections include the readable, discoverability,
-text-startup and crawler guards. A dedicated no-JavaScript project reads all twelve routes.
-`discovery-coverage.test.mjs` checks the actual CI selection with a Playwright dry run. This live
-port changes no authored-room selection, scene rendering, contrast, Office idle or download
-behavior, or bake tooling. The Vite configuration remains synchronous.
+## Amendment: Office direct-link startup (16 October 2026)
+
+Proposed for maintainer review. The Office's static document omits the corridor poster preload
+and uses a build-derived copy of the reading stylesheet with its poster URLs removed. The base
+stylesheet remains the source of truth. The existing chamber seam holds until the Office has
+prepared its own first frame; the landing and corridor startup retain their poster.
+
+The side bookcases, parked trolley and window radiator are occluded or outside the arrival view.
+Their existing models load after that prepared frame. A shared model plan supplies the runtime
+and audit exclusions; the expanded Office graph still includes every model. No model, material,
+lightmap, atlas resolution or compression setting changes. Cold desktop and Pixel 7 guards check
+3 MB gzip before the prepared frame, eventual completion, CSP, and identical arrival pixels with
+those requests held and then released. The asset audit independently gates the direct route with
+shared startup bytes included. Rollback restores eager model loading and the shared poster CSS.
+
+## Amendment: reconcile the live discovery releases (16 October 2026)
+
+Proposed for maintainer review. Production reading pages, Markdown, discovery indexes and the
+sitemap use the registry's release flags, read at build time without importing room implementations.
+The shared public chamber-copy helpers supply sealed door descriptions and clippings to the DOM,
+canvas clippings and readable documents. A sealed room exposes its name and “Not yet open.”; its
+authored description, clipping and paper totals remain hidden. The archive keeps this live behavior
+until the founder rules on sealed-room counts. Existing stored discoveries are preserved.
+
+Integration's Office startup exclusions, deferred dressing, grouped Credits and reading-page
+layout remain in place. The unapproved footer privacy sentence is excluded; the Privacy route and
+readable documents retain the approved privacy text. Discovery guards run in required core, including
+all twelve no-JavaScript routes and seven crawler user agents. Authored smoke retains the full-tier
+and Office budget suites and excludes the production reading project. Production builds also run
+`check-sealed-production.mjs` against their emitted documents. The CSP is unchanged.

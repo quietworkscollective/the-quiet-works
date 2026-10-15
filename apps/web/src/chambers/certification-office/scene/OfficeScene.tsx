@@ -8,7 +8,7 @@ import { ContextualCue } from './ContextualCue.tsx';
 import { OfficeCamera } from './OfficeCamera.tsx';
 import { createCursorControl, createView, SceneContext, useFontsReady, type SceneContextValue } from './context.ts';
 import { OfficeFurniture } from './OfficeFurniture.tsx';
-import { useOfficeAssets, type OfficeResources } from './assets.ts';
+import { useOfficeAssets, useDeferredOfficeModels, type OfficeResources } from './assets.ts';
 import { Director } from './director.ts';
 import { BankerLight } from './BankerLight.tsx';
 import { Sunlight } from './Sunlight.tsx';
@@ -67,6 +67,7 @@ function OfficeScene(props: OfficeSceneProps) {
   const fontsReady = useFontsReady();
   const assets = useOfficeAssets(props.onContextLost);
   const [prepared, setPrepared] = useState(false);
+  const deferredModels = useDeferredOfficeModels(prepared, props.onContextLost);
   const containerRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const handlers = useRef(props);
@@ -182,6 +183,7 @@ function OfficeScene(props: OfficeSceneProps) {
         >
           <Scene
             assets={assets}
+            deferredModels={deferredModels}
             store={store}
             director={director}
             motion={motion}
@@ -219,6 +221,7 @@ export default memo(OfficeScene);
 
 interface SceneProps {
   assets: OfficeResources;
+  deferredModels: OfficeResources['models'];
   store: OfficeSceneProps['store'];
   director: Director;
   motion: { reduced: boolean };
@@ -256,9 +259,9 @@ function pressHandlers(handlers: React.RefObject<OfficeSceneProps>): Pick<SceneC
   };
 }
 
-function Scene({ assets, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
+function Scene({ assets, deferredModels, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
   // Sample before pose updates; a slow draw must not claim it presented a later resting pose.
-  useFrame(() => director.beginFrame(performance.now()), -100);
+  useFrame(() => director.beginFrame(performance.now(), motion.reduced), -100);
   const mountedScene=useRef(false);
   useLayoutEffect(()=>{mountedScene.current=true;return ()=>{mountedScene.current=false;};},[]);
   const certification = useSyncExternalStore(store.subscribe, store.getState);
@@ -341,7 +344,7 @@ function Scene({ assets, store, director, motion, view, coarse, selectedPosition
         <BakedSpace space="office" onReady={onBakeReady} />
         <Application />
         <Sunlight />
-        <OfficeFurniture resources={assets} />
+        <OfficeFurniture resources={assets} deferredModels={deferredModels} />
         <Wear inkPadOpen={objects.toggles['ink-pad']} />
         <group userData={{ bake: 'dynamic' }}>
           <InspectionLamp understood={shadow || certification.memo.revealed || objects.uses.sign > 0 || objects.uses.conduit > 0} />

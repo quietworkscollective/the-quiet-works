@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
-import { ACESFilmicToneMapping, BufferGeometry, Color, Group, Light, Material, Mesh, PerspectiveCamera, Texture, type Object3D } from 'three';
+import { ACESFilmicToneMapping, BufferGeometry, Color, Group, Light, Material, Mesh, Object3D, PerspectiveCamera, Texture } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { BakedSpace } from '../../baked/BakedSpace.tsx';
+import { LookStack } from '../../look/LookStack.tsx';
 import type { RoomObjectId, RoomState } from './state.ts';
+import { CODEX_ROOM_LAMPS, CODEX_STACK_PROFILE } from './look.ts';
 import { stageAdapter, STATIONS, type StagePosition } from './stage.ts';
 import './room.css';
 
@@ -15,8 +17,8 @@ const OBJECT_ID = new Map<string, RoomObjectId>([
   ['tin-b', 'tin-b'], ['leaves', 'leaves'], ['hood', 'hood'], ['rest', 'rest'],
   ['eraser', 'eraser'], ['drawer', 'drawer'], ['provenance', 'provenance'], ['door', 'door'],
 ]);
-const CAMERA = { position: [0, 1.62, 1.2] as [number, number, number], fov: 48, near: 0.08, far: 35 };
-const DEFAULT_STATION = { id: 'arrival', label: 'Entrance view', x: 0, z: 1.2, headingDeg: 180 } as const;
+const CAMERA = { position: [0, 1.7, 0.55] as [number, number, number], fov: 48, near: 0.08, far: 35 };
+const DEFAULT_STATION = { id: 'arrival', label: 'Entrance view', x: 0, z: 0.55, headingDeg: 193, pitchDeg: -12 } as const;
 
 export interface OutlineSceneProps {
   state: RoomState;
@@ -77,11 +79,11 @@ function disposeRoom(gltf: GLTF): void {
   for (const texture of textures) texture.dispose();
 }
 
-function poseCamera(camera: PerspectiveCamera, station: { headingDeg: number; x: number; z: number }, yawOffset: number, width: number, height: number, pitchDeg: number): { yaw: number; pitch: number } {
+function poseCamera(camera: PerspectiveCamera, station: { id?: (typeof STATIONS)[number]['id']; headingDeg: number; x: number; z: number }, yawOffset: number, width: number, height: number, pitchDeg: number): { yaw: number; pitch: number } {
   const limits = stageAdapter.limits(width, height);
   const yaw = stageAdapter.clampTurn(yawOffset, width, height);
   const pitch = stageAdapter.clampPitch(pitchDeg);
-  camera.position.set(station.x, 1.62, station.z);
+  camera.position.set(station.x, station.id === 'arrival' ? 1.9 : 1.62, station.z);
   camera.rotation.order = 'YXZ';
   camera.rotation.set((pitch * Math.PI) / 180, ((station.headingDeg + yaw) * Math.PI) / 180, 0);
   camera.fov = limits.verticalFovDeg;
@@ -91,9 +93,9 @@ function poseCamera(camera: PerspectiveCamera, station: { headingDeg: number; x:
   return { yaw, pitch };
 }
 
-function setPose(camera: PerspectiveCamera, stationId: OutlineSceneProps['station'], yawOffset: number, width: number, height: number, positionOverride?: StagePosition, pitchDeg = -2): number {
+function setPose(camera: PerspectiveCamera, stationId: OutlineSceneProps['station'], yawOffset: number, width: number, height: number, positionOverride?: StagePosition, pitchOverride?: number): number {
   const station = STATIONS.find((value) => value.id === stationId) ?? DEFAULT_STATION;
-  poseCamera(camera, { ...station, ...(positionOverride ?? {}) }, yawOffset, width, height, pitchDeg);
+  poseCamera(camera, { ...station, ...(positionOverride ?? stageAdapter.stationPosition(station, width, height)) }, yawOffset, width, height, pitchOverride ?? station.pitchDeg);
   return stageAdapter.limits(width, height).yawLimitDeg;
 }
 
@@ -126,18 +128,18 @@ function updateInteractiveProps(root: Group, state: RoomState): void {
     const guide = state.activeTrace;
     const progress = guide === 'wingnut' ? state.lineProgress.wingnut : guide === 'tin-a' ? state.lineProgress.tinA : guide === 'tin-b' ? state.lineProgress.tinB : guide === 'service' ? state.lineProgress.service : 1;
     if (guide && progress < 1) {
-      const centres = { wingnut: [-0.5, 3.65, 0.19, 0.11], 'tin-a': [-0.4, 5.15, 0.15, 0.1], 'tin-b': [0.4, 5.15, 0.15, 0.1], service: [-1.2, 3.56, 0.07, 0.075] } as const;
+      const centres = { wingnut: [-0.55, 3.3, 0.19, 0.11], 'tin-a': [-0.4, 5.15, 0.15, 0.1], 'tin-b': [0.4, 5.15, 0.15, 0.1], service: [-1.2, 3.56, 0.07, 0.075] } as const;
       const [x, z, radiusX, radiusZ] = centres[guide];
       const angle = progress * Math.PI * 2;
-      follower.position.x = Number(follower.userData['baseX']) + x + radiusX * Math.cos(angle) - 0.62;
-      follower.position.z = Number(follower.userData['baseZ']) + z + radiusZ * Math.sin(angle) - 3.6;
+      follower.position.x = Number(follower.userData['baseX']) + x + radiusX * Math.cos(angle) - 0.55;
+      follower.position.z = Number(follower.userData['baseZ']) + z + radiusZ * Math.sin(angle) - 4.04;
     } else {
       follower.position.x = Number(follower.userData['baseX']);
       follower.position.z = Number(follower.userData['baseZ']);
     }
   }
   const selector = root.getObjectByName('SelectorPointer');
-  if (selector) selector.position.x = state.selectedGuide === 'tin-a' ? -0.8 : state.selectedGuide === 'tin-b' ? -0.66 : -0.94;
+  if (selector) selector.position.x = state.selectedGuide === 'tin-a' ? -1.1 : state.selectedGuide === 'tin-b' ? -0.96 : -1.24;
   const boat = root.getObjectByName('WoodenBoat');
   if (boat) boat.position.y = state.boatLifted ? 0.17 : 0;
   setVisible('Folded mast', !state.boatMastRaised);
@@ -154,14 +156,14 @@ function updateInteractiveProps(root: Group, state: RoomState): void {
   const rightLeaf = root.getObjectByName('Right ground-glass leaf');
   if (rightLeaf) {
     if (rightLeaf.userData['baseX'] === undefined) rightLeaf.userData['baseX'] = rightLeaf.position.x;
-    rightLeaf.position.x = Number(rightLeaf.userData['baseX']) - (state.comparisonOverlaid ? 0.8 : 0);
+    rightLeaf.position.x = Number(rightLeaf.userData['baseX']) - (state.comparisonOverlaid ? 1.54 : 0);
   }
   const rightLine = root.getObjectByName('WaxLine_TinB');
-  if (rightLine) rightLine.position.x = state.comparisonOverlaid ? -0.8 : 0;
+  if (rightLine) rightLine.position.x = state.comparisonOverlaid ? -1.54 : 0;
   root.traverse((node) => {
     if (node.name === 'Glass leaf brass rail' && node.position.x > 0) {
       if (node.userData['baseX'] === undefined) node.userData['baseX'] = node.position.x;
-      node.position.x = Number(node.userData['baseX']) - (state.comparisonOverlaid ? 0.8 : 0);
+      node.position.x = Number(node.userData['baseX']) - (state.comparisonOverlaid ? 1.54 : 0);
     }
   });
 }
@@ -169,6 +171,11 @@ function updateInteractiveProps(root: Group, state: RoomState): void {
 function RoomModel({ props, onLoaded }: { props: OutlineSceneProps; onLoaded(): void }) {
   const { camera, gl, invalidate, scene, setFrameloop } = useThree();
   const [gltf, setGltf] = useState<GLTF | null>(null);
+  const taskLightTarget = useMemo(() => {
+    const target = new Object3D();
+    target.position.set(0, 0.98, 3.68);
+    return target;
+  }, []);
   const handlers = useRef(props);
   const yaw = useRef(0);
   const position = useRef<{ x: number; z: number }>({ x: DEFAULT_STATION.x, z: DEFAULT_STATION.z });
@@ -192,7 +199,7 @@ function RoomModel({ props, onLoaded }: { props: OutlineSceneProps; onLoaded(): 
     const { width, height } = gl.domElement.getBoundingClientRect();
     yaw.current = 0;
     const station = STATIONS.find((value) => value.id === props.station) ?? DEFAULT_STATION;
-    position.current = { x: station.x, z: station.z };
+    position.current = stageAdapter.stationPosition(station, width, height);
     setPose(camera as PerspectiveCamera, props.station, 0, width, height, position.current);
     invalidate();
   }, [camera, gl, invalidate, props.station]);
@@ -289,12 +296,13 @@ function RoomModel({ props, onLoaded }: { props: OutlineSceneProps; onLoaded(): 
     dev.__tqwFreeze = () => setFrameloop('never');
     let previousVisibility: Map<Object3D, boolean> | null = null;
     const probe = {
-      setPose(stationId: OutlineSceneProps['station'], yawOffsetDeg: number, pitchDeg = -2): number {
+      setPose(stationId: OutlineSceneProps['station'], yawOffsetDeg: number, pitchDeg?: number): number {
         const rect = gl.domElement.getBoundingClientRect();
         const station = STATIONS.find((value) => value.id === stationId) ?? DEFAULT_STATION;
-        const pose = poseCamera(camera as PerspectiveCamera, station, yawOffsetDeg, rect.width, rect.height, pitchDeg);
+        const stationPosition = stageAdapter.stationPosition(station, rect.width, rect.height);
+        const pose = poseCamera(camera as PerspectiveCamera, { ...station, ...stationPosition }, yawOffsetDeg, rect.width, rect.height, pitchDeg ?? station.pitchDeg);
         yaw.current = pose.yaw;
-        position.current = { x: station.x, z: station.z };
+        position.current = stationPosition;
         invalidate();
         return yaw.current;
       },
@@ -379,11 +387,14 @@ function RoomModel({ props, onLoaded }: { props: OutlineSceneProps; onLoaded(): 
 
   return <>
     <color attach="background" args={['#151A20']} />
-    <hemisphereLight name="4300K soft fill" args={['#d7d3c8', '#52493d', 0.28]} />
-    <pointLight name="3500K task pool" color="#f4c998" intensity={16} distance={7} decay={2} position={[0, 2.52, 3.85]} />
-    <pointLight name="quiet wall fill" color="#d7cbbb" intensity={1.25} distance={7} decay={2} position={[-2.5, 2.5, 6.75]} />
+    <hemisphereLight name="4300K soft fill" args={['#d7d3c8', '#52493d', 0.055]} />
+    <primitive object={taskLightTarget} />
+    <spotLight name="3500K shaded task pool" color="#f4c998" intensity={24} distance={5.6} angle={0.58} penumbra={0.78} decay={2} position={[0.82, 2.58, 4.1]} target={taskLightTarget} />
+    <pointLight name="4300K glass fill" color="#d7d3c8" intensity={0.4} distance={4.2} decay={2} position={[-0.82, 1.55, 4.28]} />
+    <pointLight name="3000K corridor spill" color="#e4c39a" intensity={0.15} distance={3.2} decay={2} position={[0, 2.05, 0.55]} />
     {gltf ? <primitive object={gltf.scene} dispose={null} onClick={onClick} /> : null}
     {gltf ? <BakedSpace space="codex-room" onReady={onLoaded} /> : null}
+    <LookStack profile={CODEX_STACK_PROFILE} reducedMotion={props.reducedMotion} lamps={CODEX_ROOM_LAMPS} />
   </>;
 }
 

@@ -86,6 +86,8 @@ export interface Director {
   setReducedMotion(reduced: boolean): void;
   /** Pointer over (or off) a door in the scene. */
   setHover(id: ChamberId | null): void;
+  /** The chamber behind the pending door has drawn its first ready frame. */
+  markChamberReady(id: ChamberId): void;
   /** A door in the scene was clicked or tapped: glide to it, or, once there, open it. */
   clickDoor(id: ChamberId): void;
   /** The floor was clicked or tapped at this point. */
@@ -102,6 +104,7 @@ interface Opening {
   t: number;
   advancing: boolean;
   seamed: boolean;
+  ready: boolean;
 }
 
 export function createDirector(options: DirectorOptions): Director {
@@ -244,31 +247,43 @@ export function createDirector(options: DirectorOptions): Director {
   }
 
   function startOpening(id: ChamberId): void {
-    if (reduced) {
-      options.onSeam();
-      return;
-    }
     leaveScrub();
     const frame = doorFrame(id);
     const { pose } = controller;
     const away = Math.hypot(pose.x - frame.x, pose.z - frame.z);
-    if (away > ARRIVAL_SLACK_M) controller.cutTo(frame);
+    if (reduced || away > ARRIVAL_SLACK_M) controller.cutTo(frame);
     else if (away > 0.01 && !controller.gliding) controller.glideTo(frame);
     controller.lock(true);
     framed = id;
     // A door still closing behind a returning visitor opens again from shut.
     closing = null;
-    opening = { id, t: 0, advancing: false, seamed: false };
+    opening = { id, t: 0, advancing: false, seamed: false, ready: false };
+  }
+
+  function markChamberReady(id: ChamberId): void {
+    if (!opening || opening.id !== id) return;
+    if (reduced) {
+      opening = null;
+      options.onSeam();
+    } else {
+      opening.ready = true;
+    }
+    options.requestFrame();
   }
 
   /** The visitor went back (browser Back) while a door was opening: put them in front of it again. */
   function abortOpening(): void {
     if (!opening) return;
-    const { id } = opening;
+    const { id, ready } = opening;
     opening = null;
     controller.lock(false);
     controller.cutTo(doorFrame(id));
     motion(id).handle = 0;
+    if (!ready) {
+      motion(id).open = 0;
+      closing = null;
+      return;
+    }
     motion(id).open = 1;
     closing = { id, t: 0 };
   }
@@ -386,7 +401,7 @@ export function createDirector(options: DirectorOptions): Director {
       busy = busy || drifting;
     }
 
-    if (opening) {
+    if (opening?.ready) {
       opening.t += dt;
       const door = motion(opening.id);
       const frame = openingAt(opening.t);
@@ -502,6 +517,8 @@ export function createDirector(options: DirectorOptions): Director {
       if (id && phase === 'corridor') options.onDoorIntent(id);
       options.requestFrame();
     },
+
+    markChamberReady,
 
     clickDoor(id) {
       if (phase !== 'corridor' || opening || closing) return;

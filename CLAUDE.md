@@ -23,7 +23,7 @@ Surreal, beautiful, tactile, occasionally darkly funny, emotionally observant. N
 3. Produce a playable browser build early; check an actual screenshot/contact sheet rather than imagining it looks good.
 4. Test on touch/mobile and keyboard path. Check memory cleanup and reduced-motion behaviour.
 5. Build runtime sound with Web Audio, using Claude Motion only for separate pre-rendered assets, trailers and concept clips.
-6. Keep assets licensed and source-preserved. Use licensed ready-made assets (CC0 first, CC BY with recorded attribution) or original Blender models built from committed scripts; procedural geometry where it serves the room. Light is baked in Blender (`docs/ADR/0006-look-and-renderer.md`).
+6. Keep assets licensed and source-preserved. Use licensed ready-made assets (CC0 first, CC BY with recorded attribution) or original Blender models built from committed scripts; procedural geometry where it serves the room. Light is baked in Blender (`docs/ADR/0008-baked-light.md`).
 7. Invite Codex independent review on nontrivial diff. Treat its concerns seriously; escalate story disagreements to human editor.
 8. Report exact commands run, evidence, changes and unresolved problems. Do not call something finished without validation.
 

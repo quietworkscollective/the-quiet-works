@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useThree } from '@react-three/fiber';
 import { Color, InstancedMesh } from 'three';
 import { OFFICE_ASSET_SLOTS } from './assetSlots.ts';
 import { furnitureBatches, type FurnitureBatch } from './furnitureGeometry.ts';
@@ -19,7 +20,10 @@ function Batch({batch}:{batch:FurnitureBatch}) {
 
 /** Catalogue dressing keeps its authored occlusion and live lighting. It contributes bake occlusion
  * without downloading a second copy of every repeated shelf/book mesh. Fittings stay independent. */
-export function OfficeFurniture({resources}:{resources:OfficeResources}) {
- const batches=useMemo(()=>furnitureBatches(OFFICE_ASSET_SLOTS.filter(slot => !slot.catalogueId?.startsWith('office-hero-') || slot.id.startsWith('archive-bay-') || slot.id.startsWith('stage-bookcase-')),resources.models,stageModelId),[resources]);
+export function OfficeFurniture({resources,deferredModels}:{resources:OfficeResources;deferredModels:OfficeResources['models']}) {
+ const invalidate=useThree(state=>state.invalidate);
+ const models=useMemo(()=>new Map([...resources.models,...deferredModels]),[resources,deferredModels]);
+ useLayoutEffect(()=>{invalidate();},[models,invalidate]);
+ const batches=useMemo(()=>furnitureBatches(OFFICE_ASSET_SLOTS.filter(slot => !slot.catalogueId?.startsWith('office-hero-') || slot.id.startsWith('archive-bay-') || slot.id.startsWith('stage-bookcase-')),models,stageModelId),[models]);
  return <group name="office-catalogue-furniture" dispose={null} userData={{bake:'dynamic'}}>{batches.map(batch=><Batch key={batch.key} batch={batch} />)}</group>;
 }

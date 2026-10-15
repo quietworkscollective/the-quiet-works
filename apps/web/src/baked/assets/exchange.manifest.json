@@ -1,67 +1,49 @@
 {
   "version": 1,
   "space": "exchange",
-  "hash": "c5c0c03efaeb07bd127b21c47231162aa6a5c37ff746c05d756a220f7f0f51e1",
-  "materialHash": "658e7796136e06c3c2a326dc21935a70e553e5fc9ab08a7b5197d627ea72f5ec",
-  "baselineHash": "b384f187e9722be224c720378732a31adf5cd54e8f73ab8c4709220a794e65c7",
+  "hash": "b4a85654104f15bd7d2c294bd17332c9309b10bd96eac9af72b74ac3653c8baf",
+  "materialHash": "93f451678629a42f047661504c3435fa15ed2a31feb05e2fdf7427ec4e481eb8",
+  "baselineHash": "ddfbff6ad07ea514ec28bb3d628c74a91d31189c384004a80397f8de556aa77e",
   "meshes": [
-    "079e2ba7e621ef3b58716a8e6e1cb07fa11d1bee99807d554c6f8e3cd24204ba",
-    "1c10d4e07a3ae70062315cc29e00d027e642023798d17e7e701e58977b5a35f8",
-    "1da15bc82cf41c1b18a28bf6a8530ab1a7e4c3d6bbf64c732a396fd0b80a3443",
-    "2036a2d33dc8179b48be085f9657afb8cfe5fc6cc004cb2dda8c005f2f502913",
-    "246bbc82894ff1fee806b95b1019d4e06460167702d8ff1796717bade68517f1",
-    "46b2f16545253300557c85826a2c3c93b823fde55070933646425067302b1d5d",
-    "4a1fb17579a11d41a556906d8aa2e4c6fa09e708c59a8cb5057117f7a5de994d",
-    "54610bbe770dd450094ea11ca3e45e3b8bab9051c197fe5fb4cc9691b0c67095",
-    "5cd2eb88514a5ccae7ae67358e6cb3c8e6a6c8e39923ff0ae2667fbc156b7371",
-    "639d6747444d3f9eb3ebcc57bc5284707a1473ff217f425d2ac52e9732e9a45f",
-    "6725d812734f9f4afe7320e0e9c7bf32d910cd680e8dc76030659237e25e45ef",
-    "67dd5996e347e2e0e44823071e5bf31addd46d161c6f097d44dad068b12559da",
-    "6e4f6080e40a1e35ad5a0a4b3de86a8b37ecd967969c1c038a5d9aee179584a9",
-    "76523163c01f0ce73b58597793c350d84bb4a0399911478207150c187b9aa5fc",
-    "7debc7b9290d8c6aa39e5eddd4cccc8f6e9333b3f13f15ce4281c810576b0cb7",
-    "838c6e26a39d7568b537c5c2a695f0da3144d1559492ce5a2479a2fb29eb1b73",
-    "83fdfdafbafa81747186cb4c5d7a509314f189a16d487cfbba36a87c88ca437b",
-    "8c18e02009ec999aca8e299f8adc2541854086d163a9018b8306eec85b426949",
-    "8ec3d32d6c8f1339a5aac7961ee096f2a8c8dc23eddbb0710266d44fc4df0c21",
-    "96f8d548dcb97cefd6a95db96a9ecd9c4e57b9ef67648bbba6135c4c4443481e",
-    "9c21b8ad2b7f8a76e5c8346a719209e35b84d96bea8632134e13cc96d41328e2",
-    "9d2e881aff7c145919807fc47c4708cb860b85687c3db801d33f35aaf55bacb7",
-    "a322a318f961db4ceef5a6163c851a8dfc676c223371c3fe77344d026cd3f138",
-    "abb802a7e406a7d5437a7e8ab97b03cacc410a8c2ce61338e77b9e78e2d2ef1a",
-    "b34ecb1e49afaa3f5b0569a8b8bc33867875677c90b6f4de5dc997739412b6c3",
-    "c2bbbf1ab01c56a7a2a4af10306090822424ed1ad88f9129555fa93a44821f4c",
-    "cdeff5eb7a625a2204bb304a15c41d79645c44224543a6bafe6dc86a6a51438d",
-    "cf77855c3eec8b9d74f1aa9806089a1a237e87c604b2f04c9cdaab971579c940",
-    "dbd21ad080eed4a7c693118ae76fd249a9de7539e75d99aaa04f94cdcf59df77",
-    "dcf3c159a4ac37c2969ce463d71d4efb647f672c596d07ed83c12e943565a7cd",
-    "dec29fe9da5c8f0840a1b68b5b56dade4a1ec4cf12763e6eddadc96d81d62381",
-    "e0dcd031fd7cedec97f0134389db118fda37e6cf5dfbc2c1fcc50f35be82f4d8",
-    "edc099496824ed3436913dae2f19dd5dd63dc09a3beff31eab6c76a4defc11d2"
+    "01396998cfccb158270bcd4b46a7a614134226a2d343dfe7f90f997bcbff1c83",
+    "05d1e7c41dcb4a6a8f003333c2d9171dc784f20e0abc474b57f986fd4ffd2473",
+    "10457b154bef122b909579dce72f4c41d068d84faf5b54e87c9c6e6fd75f864c",
+    "2063e75742fd2cd90fe1961d9debb4fadcc1ede79476cf75713076d2c2cb9577",
+    "220f49dfb6c379528e19900b5cf36d465a2b4f48a646b771150b917a6d355934",
+    "2474cc1cc0712268857a47683366745c54d7ba7ccfbf2583bfe5e906125b0090",
+    "326acf8bfc7c220f09326c22e9eae4a5d3bca6171e7d12666e088013474c0346",
+    "334bf2ac8c7c7960d6c3779d88f9f47bf7c00c370894fa752076a16c65de5e98",
+    "35de9b4f7b9f486b8b6a23d2b72d766a43bdcf31f7f60b577d8f7081c5af6d76",
+    "41fa46acdf0643756af937b8bbbb575cf541fd47b5558a187b5cc9a6afddf7f7",
+    "52d82463a81960840a097dfab9dbe58a751cfe404030edd04b723add03051039",
+    "5f098f9f32650406ef9278879660b2e57169b8c53611919d8abcd18579c519dd",
+    "670a2ba3b574b6cd18426138f2fb387a9e9490a3292587890c928426cd57d703",
+    "6aa2829d751505c79e858b2902ef61c5357055c56cffbe7156794b70ec39a9db",
+    "6bec41c11e26da8137c7f2113708d1a1813e4f81c9e69d791c0680e36601ba1b",
+    "6db68c085a2a3051ad005ce6659b0d644ab7dabeffc56d45d4476d32869f4db3",
+    "801a551f9b54604a9f7bc7fb6666be0e5dcc70e8e124cd5a5a009bbb04a64044",
+    "86854fdac64d9e31a54ba649f4f1eed946f10a88aa0769a21f050dbff266d798",
+    "9e33ccbead71acbec286e5f627dfe904051f517f0d21960af8d126ffaf565332",
+    "9f85b6d64a6298d8c6d543790473250fb39cf148d5fdddeaa8a0c8621f4c3ad0",
+    "a29d4c0c40b3652b870ebb87d922ca136009be30b5a169ac59f5968c319d48a6",
+    "ac000ee62ff2875edb440a4172788aef74d7117a6d54c003fe9b2458e30df62f",
+    "ad8054a653f28546be618c146fc7a155c3df7f20b40cf7cdfb1e1776da0a551f",
+    "b826a6b0c60f9aa628c55f8882e169946b196c31a7684a2ac1a065e7f42ac1c5",
+    "ba2f293d84ce1ec30e75cfcac3c9d6690e89af1107e4c8b1ca1221814e660bb6",
+    "c65742c47b18ac18dab8d23f8b24597526a6aa0e1968bd2c18f52d4631764af4",
+    "c95d2a0c507a9638a432958f81816f1096c77b3b46e5de649067907e15bc61e1",
+    "cef26e9171ccfa1665e3c9c200056dfa89f3aebb1a1e61ac9bb7d370d4bf55a8",
+    "d7abd3f79bf5c7d32efa7f15b29956eca32b1e3b695fc6a3854271398a208239",
+    "ed1d8049dbd38b7458d3b4c05c3a884380c6cea7756ea380e34e94ddceeb7d4b",
+    "ef263b71935ef2c79206c20c607ce4b8466bf4db18ea344e2e633b8a6fe5d919",
+    "f35ac7e00a30d6a8b9a99d7a346b1e9ccbfcfcab247ddbda93abf5fc4bed7dc0",
+    "f50c0f3a69aec54d750662cb0f727287f9a2f4225a82e16a9135d95ff37ade67",
+    "f6052f44e59298ba020a3327259a06134d5074ccf1b2b0a00600ed6a78b82353",
+    "f73a67caff5e7c8f67925d74cde0f8692c58c1e1da1af87a0b4bed6f586b8e39",
+    "fe9fa56b3e4886a453f8eee1e263f1bd1dcc9f999c4594721b42cd3e899a48f0"
   ],
   "lazyMeshes": [],
   "lights": [
-    {
-      "type": "DirectionalLight",
-      "position": [
-        -3,
-        8,
-        3
-      ],
-      "colour": [
-        1,
-        0.7835377915215659,
-        0.4735314961384573
-      ],
-      "intensity": 1.2,
-      "distance": 0,
-      "decay": 2,
-      "direction": [
-        0.3312945782245396,
-        -0.8834522085987723,
-        -0.3312945782245396
-      ]
-    },
     {
       "type": "HemisphereLight",
       "position": [
@@ -70,47 +52,98 @@
         0
       ],
       "colour": [
-        0.4488969844199432,
-        0.4083264973563156,
-        0.3521695950091937
+        0.5148200058831645,
+        0.4973627377174929,
+        0.4476803231458006
       ],
-      "intensity": 2.2,
+      "intensity": 1.6,
       "distance": 0,
       "decay": 2
     },
     {
       "type": "PointLight",
       "position": [
-        -0.82,
-        1.2,
-        -1.56
+        -0.9,
+        1.65,
+        -5.31
       ],
       "colour": [
-        0.8879231178794776,
-        0.48514994004665124,
-        0.158960835050774
+        1,
+        0.38499633252299703,
+        0.09622815041292494
       ],
-      "intensity": 14,
+      "intensity": 1.35,
       "distance": 4,
       "decay": 2,
-      "power": 175.92918860102841
+      "power": 16.964600329384883
     },
     {
       "type": "PointLight",
       "position": [
-        1.82,
-        11.17,
-        -5.18
+        0.18,
+        6.7,
+        -7.55
       ],
       "colour": [
-        0.6795424696265424,
-        0.7230551289161951,
-        0.6795424696265424
+        1,
+        0.5303985539233284,
+        0.2656410734232386
       ],
-      "intensity": 75,
+      "intensity": 1.2,
+      "distance": 6,
+      "decay": 2,
+      "power": 15.079644737231007
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0.32,
+        0.46,
+        -5.35
+      ],
+      "colour": [
+        0.6866853124288864,
+        0.3813260114221238,
+        0.15592646369776456
+      ],
+      "intensity": 0.48,
+      "distance": 1.8,
+      "decay": 2,
+      "power": 6.031857894892402
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0.55,
+        3.1,
+        -7.72
+      ],
+      "colour": [
+        0.7454042095350284,
+        0.48514994004665124,
+        0.24228112245478564
+      ],
+      "intensity": 2.1,
+      "distance": 5,
+      "decay": 2,
+      "power": 26.389378290154262
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        1.55,
+        10.8,
+        -7.2
+      ],
+      "colour": [
+        1,
+        0.7759183875454478,
+        0.6167382259553973
+      ],
+      "intensity": 8,
       "distance": 12,
       "decay": 2,
-      "power": 942.4777960769379
+      "power": 100.53096491487338
     }
   ],
   "atlases": [
@@ -118,20 +151,20 @@
       "file": "exchange-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 0.000012237818737048656,
+      "scale": 2.4093239307403564,
       "encoding": "srgb-scale",
-      "bytes": 2050,
+      "bytes": 221598,
       "density": {
         "switchboard": {
-          "min": 25.707108530676546,
-          "max": 25.707768174741624,
-          "area": 953.1509341031247,
+          "min": 26.55021686681427,
+          "max": 26.552163096880797,
+          "area": 956.6602391868745,
           "target": 28
         },
         "foreground": {
-          "min": 29.37982710503414,
-          "max": 29.37995481201471,
-          "area": 18.231350623954796,
+          "min": 30.344003657109898,
+          "max": 30.344207856062546,
+          "area": 19.74665553190084,
           "target": 32
         }
       }
@@ -140,24 +173,18 @@
       "file": "exchange-1.webp",
       "width": 1024,
       "height": 1024,
-      "scale": 0.000012237818737048656,
+      "scale": 0.505548894405365,
       "encoding": "srgb-scale",
-      "bytes": 1092,
+      "bytes": 4178,
       "density": {
-        "desk": {
-          "min": 47.99963156943199,
-          "max": 48.0007757065441,
-          "area": 10.800483887772522,
-          "target": 48
-        },
         "foreground": {
-          "min": 31.99914327980675,
-          "max": 32.000638776596965,
-          "area": 1.8573630225518754,
+          "min": 31.9975151978277,
+          "max": 32.00038867855005,
+          "area": 1.0064337420653642,
           "target": 32
         }
       }
     }
   ],
-  "sourceHash": "5cf6de2ee705ad286521904ee093f2143814b7af349484e688661830f4473703"
+  "sourceHash": "26513caf0fd192764ab206615ad62607567f7f70826927d1ecc5ffd09d746d8a"
 }

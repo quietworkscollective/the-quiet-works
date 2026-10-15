@@ -42,7 +42,7 @@ function unlocked(room?: SoundRoom): { desk: Desk; ctx: FakeAudioContext } {
 const OFFICE_DRONE = 73.42;
 const contact: Cue = { type: 'contact' };
 const open: SpineCue = { type: 'door-open', id: 'certification-office', via: 'door' };
-const sealed: SpineCue = { type: 'door-sealed', id: 'apartment' };
+const sealed: SpineCue = { type: 'door-sealed', id: 'tomorrow-engine' };
 
 /** The Office's ambience: its D2 and A2 drones and the vent, which reads the noise at its natural rate. */
 function officeSources(ctx: FakeAudioContext): FakeSource[] {
@@ -182,7 +182,7 @@ describe('rooms', () => {
   });
 
   it('treats every sealed chamber as the corridor: no room tone of its own is built for a door that does not open', () => {
-    for (const id of ['apartment', 'tomorrow-engine', 'great-atrium'] as const) {
+    for (const id of ['tomorrow-engine', 'great-atrium'] as const) {
       FakeAudioContext.instances = [];
       const { desk, ctx } = unlocked('certification-office');
       ctx.currentTime = 10;

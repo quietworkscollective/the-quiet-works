@@ -1,7 +1,7 @@
 # Making the repository public
 
-The repository is private until UNHELD goes live. This document is the gate between those two
-states. Nothing here runs without the founder's explicit approval: making the repository public,
+The public repository is github.com/quietworkscollective/the-quiet-works. This document is the
+release gate for it. Nothing here runs without the founder's explicit approval: making the repository public,
 changing its security settings and rewriting history are release decisions (AGENTS.md #5).
 
 ## Controls already active (private or public)
@@ -61,29 +61,31 @@ of triggering a rebuild. Browser binaries use the pinned Playwright-version cach
 
 Smoke runs four jobs: desktop and Pixel 7, each against production and the authored fixture.
 Production selects the Office fifth-stamp/memo path, the landing, ordered doors, keyboard Office
-entry, and every production Annex sealed-door contract. The authored jobs run every case in
-`full-tier.spec.ts`, including its stage sweep. Smoke stops at its first failure and cancels its
+entry, and every production Annex sealed-door contract. The authored jobs run every non-extended case in
+`full-tier.spec.ts`, including its stage sweep, plus `office-budget.spec.ts`. Smoke stops at its first failure and cancels its
 siblings. Its 15-minute timeout allows cold installation; five minutes is the warm-cache target,
 not a reason to truncate assertions.
 
 Core retains all production-compatible cases by default: Office context/exploration/room and
 interaction specs, brand, page, spine, discoveries, robustness, gramophone music and both Annex
 release contracts. Corridor clock, rendering warnings, remount, page-input, gesture/audio-consent
-and accessible touch-control checks remain core. The production configuration excludes the
-development-only `full-tier.spec.ts`, `exchange.spec.ts` and `office-budget.spec.ts`; full-tier is
-now required in smoke, while the other authored suites remain available through the development
-configuration. Discovery and readable HTML guards run in core on desktop and Pixel 7; a
-no-JavaScript project reads all twelve routes. The crawler guard runs `check:crawl` against the
-same production preview for seven user agents. A CI-selection test verifies these cases with
-Playwright `--list`. New ordinary specs enter core automatically. A failing case is repaired or
-reviewed; failure alone is never a reason to remove it.
+and accessible touch-control checks remain core. The production configuration excludes suites that require development access or measurement probes.
+`office-budget.spec.ts` gates in authored smoke alongside the ordinary full-tier cases. The sealed
+`exchange.spec.ts` and `apartment.spec.ts` suites run in the visible, non-blocking authored extended
+job, along with the `@extended` cases in `full-tier.spec.ts`. Their release flags automatically move
+them into the required authored core selection when released. Both fixture selections evaluate the
+app's own production release gate. New ordinary specs enter core automatically. A failing case is repaired or
+reviewed; failure alone is never a reason to remove it. Discovery and readable HTML checks run
+in core on desktop and Pixel 7; the no-JavaScript project reads all twelve public routes. The crawler
+guard checks seven user agents against the same production preview. CI selection tests verify these
+cases with Playwright `--list`, alongside authored Office-budget coverage.
 
 The twelve core shards distribute individual cases (`fullyParallel`) by count, with one worker
 per runner. Playwright does not schedule from historical durations; measure the slowest shard
 on the next public run before claiming the 15–20 minute PR target is met. Core has a 45-minute
-ceiling for cold software rendering, and its matrix cancels siblings after a failure. CI-only
+ceiling for cold software rendering. Its shards are not fail-fast (`fail-fast: false`), so each one runs to the end and reports all its failures. CI-only
 budgets retain five minutes per test, ordinary assertions 90 seconds and explicit scene-state
-waits two minutes. No expected value, contrast threshold, distance or speed limit is relaxed.
+waits two minutes. No expected value, contrast threshold, distance or speed limit is relaxed. On CI only, Playwright retries a failed test once (`retries: process.env.CI ? 1 : 0` in `apps/web/playwright.config.ts` and `apps/web/playwright.dev.config.ts`). A test that passes on the retry is reported as flaky; one that fails both runs fails the job.
 
 A PR changing only `docs/**`, Markdown files, or string values/comments in the explicitly listed
 copy data modules (`packages/engine/src/copy.ts`, `packages/engine/src/siteCopy.ts`) skips all
@@ -94,7 +96,7 @@ and asset checks still run. Manual workflow dispatch always runs browsers.
 
 Before syncing, run `pnpm ci:local` on macOS. It runs lint, typecheck, unit, content, public and CI
 policy checks; builds and audits production; builds the authored fixture; then runs the entire
-core selection and full-tier from those artifacts using four Metal workers. It stops at a failed
+core selection, full-tier, Office budgets and released authored room suites from those artifacts using four Metal workers. It stops at a failed
 stage and prints stage/total times. Discovery-store harnesses use a separate available loopback
 port in each worker, preserving storage isolation without serialising their assertions. Override
 `TQW_LOCAL_WORKERS` for a smaller GPU/memory budget; ports default to 5397 (production) and 5398 (authored), fail if busy, and never reuse another server.
@@ -109,7 +111,7 @@ software-rendered GitHub timings. The packaged-artifact SwiftShader dry run of s
 (the largest summed local case duration) passed 38 cases with one existing skip in 7m 19s.
 All 564 bundle files retained identical bytes and modification times; no preview rebuilt them.
 
-Only tests marked `@extended` sit outside that required status. They measure corridor camera
+Tests marked `@extended` and the unreleased room suites sit outside that required status. They measure corridor camera
 trajectories and frame throughput: hero drift, scroll walk-in, off-screen/hidden-tab frame counts,
 camera pose/FOV/collision geometry, camera frame-loop budgets, reduced-motion camera cuts and
 the corridor idle draw count. Under the subsequent corridor-camera ruling, the camera movement
@@ -127,10 +129,10 @@ touch-button walking and stopping; native landing swipe with camera travel; and 
 drag and floor glide. These are 15 contracts, selected by camera measurement rather than result.
 
 Every browser-eligible pull request runs four `extended` shards as well, directly after build. Their failures remain visible as failed
-jobs, and each job summary lists every failed test and its error. Extended keeps running its other
-shards on a test failure; required smoke and core fail fast. The extended job is intentionally absent from the `checks` dependency
+jobs, and each job summary lists every failed test and its error. Extended and core shards keep
+running after a test failure (`fail-fast: false`); only required smoke fails fast. The extended job is intentionally absent from the `checks` dependency
 set; its diagnostics still require triage, and do not replace device/performance or editorial
-release review. See ADR 0011. The maintainer reviews this split with the release changes.
+release review. See ADR 0014. The maintainer reviews this split with the release changes.
 
 ## Founder decisions (14 October 2026)
 

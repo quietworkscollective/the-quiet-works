@@ -19,7 +19,7 @@ describe('public route discoverability', () => {
     expect(PUBLIC_ROUTES.every((route) => route.markdownPath.startsWith('/'))).toBe(true);
   });
 
-  it('keeps site pages and open room entries in the generated sitemap exactly once', () => {
+  it('keeps site pages and open room entries in the sitemap exactly once', () => {
     const sitemap = sitemapForChambers(CHAMBERS);
     const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     expect(new Set(locations).size).toBe(locations.length);
@@ -76,20 +76,26 @@ describe('public route discoverability', () => {
       expect(officeMarkdown).toContain(paragraph);
     }
 
-    for (const [path, heading, description] of [
-      ['/the-exchange', 'The Exchange', 'The room is ready as a set of places and actions.'],
-      ['/outline-room', 'A small instrument workshop', 'A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.'],
-    ] as const) {
-      expect(staticHtmlForPath(path)).toContain(heading);
-      expect(staticHtmlForPath(path)).toContain(description);
-      expect(markdownForPath(path)).toContain(heading);
-      expect(markdownForPath(path)).toContain(description);
+    for (const chamber of CHAMBERS) {
+      expect(staticHtmlForPath(`/${chamber.slug}`)).toContain(chamber.title);
+      expect(staticHtmlForPath(`/${chamber.slug}`)).toContain(chamber.doorDescription);
+      expect(markdownForPath(`/${chamber.slug}`)).toContain(chamber.doorDescription);
     }
 
     for (const route of PUBLIC_ROUTES) {
       expect(staticHtmlForPath(route.path)).toContain('id="static-content"');
       expect(markdownForPath(route.path)).toContain(route.title);
     }
+  });
+
+  it('keeps Credits grouped and links the full licence texts in fallback HTML', () => {
+    const credits = staticHtmlForPath('/credits');
+    expect(credits).toMatch(/<h2>Authorship<\/h2>/);
+    expect(credits).toMatch(/<h2>Licences<\/h2>/);
+    expect(credits).toMatch(/<h2>Typefaces:<\/h2>/);
+    expect(credits).toMatch(/<h2>Software:<\/h2>/);
+    expect(credits).toMatch(/<h2>Third-party assets<\/h2>/);
+    expect(credits).toContain('<a href="/third-party-notices.txt">The full licence texts for everything bundled</a>');
   });
 
   it('keeps agent-facing copy passive and limits its links to UNHELD and public GitHub', () => {

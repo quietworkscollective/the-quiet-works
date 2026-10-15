@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MutableRefObject, type RefObject } from 'react';
+import { useEffect, useMemo, useRef, type MutableRefObject, type RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { ChamberId, SpineStore } from '@tqw/engine';
 import { PerspectiveCamera, Vector3 } from 'three';
@@ -18,6 +18,9 @@ import { createDirector, type Director } from './director.ts';
 import { FOV } from './viewpoints.ts';
 import { watchVisibility } from './visibility.ts';
 import { renderWithLook } from '../../look/render.ts';
+import { isSoftwareRenderer, rendererName } from '../world/quality.ts';
+import { waitForGpuFrame } from './gpuFrame.ts';
+import { handoffFrameMode } from './handoff.ts';
 
 /**
  * What the scene's pointer handlers reach: the world reports door and board clicks here, so the
@@ -34,6 +37,7 @@ export interface CameraRigProps {
   spine: SpineStore;
   progress: ProgressSource;
   animation: CorridorAnimation;
+  readyChamber: ChamberId | null;
   /** The live props of the scene, read at event time so handlers never go stale. */
   handlers: RefObject<CorridorSceneProps>;
   container: RefObject<HTMLDivElement | null>;
@@ -55,7 +59,7 @@ const round = (v: number, places: number): string => v.toFixed(places);
  * what tests read, and ask for another frame only while something is moving.
  */
 export function CameraRig(props: CameraRigProps) {
-  const { spine, progress, animation, handlers, container, overlay, rigRef, onTouchSeen } = props;
+  const { spine, progress, animation, readyChamber, handlers, container, overlay, rigRef, onTouchSeen } = props;
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
@@ -68,6 +72,11 @@ export function CameraRig(props: CameraRigProps) {
   /** False while the scene is off screen or the tab is hidden: nothing is drawn. */
   const visible = useRef(true);
   const ambientTimer = useRef(0);
+  const software = useMemo(() => isSoftwareRenderer(rendererName(gl.getContext())), [gl]);
+  const firstFrameSubmitted = useRef(false);
+  const frameQueued = useRef(false);
+  const cancelFence = useRef<(() => void) | null>(null);
+  const syncFrameMode = useRef<(() => void) | null>(null);
   const touchSeen = useRef(onTouchSeen);
   useEffect(() => {
     touchSeen.current = onTouchSeen;
@@ -108,7 +117,7 @@ export function CameraRig(props: CameraRigProps) {
       onWalk: (mps) => handlers.current.onWalk(mps),
       onDoorIntent: (id) => handlers.current.onDoorIntent(id),
       beforeCut: () => dissolve.capture(),
-      requestFrame: () => get().invalidate(),
+      requestFrame: () => { syncFrameMode.current?.(); get().invalidate(); },
     });
     director.current = d;
     d.setEngaged(handlers.current.engaged);
@@ -125,7 +134,7 @@ export function CameraRig(props: CameraRigProps) {
       },
       metresPerPx: DEFAULT_TUNING.nudge.metresPerPx,
       onGesture: () => handlers.current.onGesture(),
-      onActivity: () => get().invalidate(),
+      onActivity: () => { syncFrameMode.current?.(); get().invalidate(); },
       onStep: (dir) => d.stepViewpoint(dir),
       onTouch: () => touchSeen.current(),
     });
@@ -141,17 +150,41 @@ export function CameraRig(props: CameraRigProps) {
       clickFloor: (point) => d.clickFloor(point),
     });
 
-    // The one renderer serves the hero and the game window and draws nothing while neither is
-    // on screen (or the tab is hidden); it comes back in the state it was left.
-    const show = (isVisible: boolean) => {
-      visible.current = isVisible;
+    // A software renderer must finish the submitted frame before readiness is published.
+    // Then leave the main thread quiet through the fade, observable ready state and DOM removal.
+    let handoffPending = document.querySelector('.tqw-poster') !== null;
+    let resumeTimer = 0;
+    const applyFrameMode = () => {
+      const mode = handoffFrameMode({
+        visible: visible.current,
+        stillHero: spine.getState().phase === 'entrance' && progress.get() === 0 && !handlers.current.engaged,
+        handoffPending,
+        firstFrameSubmitted: firstFrameSubmitted.current,
+        constrained: software,
+      });
       const root = get();
-      root.setFrameloop(isVisible ? 'demand' : 'never');
+      if (root.frameloop === mode) return;
+      root.setFrameloop(mode);
       window.clearTimeout(ambientTimer.current);
       ambientTimer.current = 0;
       lastFrame.current = null;
-      if (isVisible) root.invalidate();
+      if (mode === 'demand') root.invalidate();
       else root.internal.frames = 0;
+    };
+    syncFrameMode.current = applyFrameMode;
+    const poster = new MutationObserver(() => {
+      if (!handoffPending || document.querySelector('.tqw-poster') || resumeTimer) return;
+      // Keep removal observable before resuming an expensive software draw.
+      resumeTimer = window.setTimeout(() => {
+        handoffPending = false;
+        applyFrameMode();
+        poster.disconnect();
+      }, 1000);
+    });
+    if (software && handoffPending) poster.observe(document.documentElement, { childList: true, subtree: true });
+    const show = (isVisible: boolean) => {
+      visible.current = isVisible;
+      applyFrameMode();
     };
     const watch = watchVisibility(surface, show);
     show(watch.visible());
@@ -203,6 +236,13 @@ export function CameraRig(props: CameraRigProps) {
       surface.removeEventListener('pointerdown', onPointerDown, true);
       surface.removeEventListener('click', onClick);
       watch.dispose();
+      poster.disconnect();
+      window.clearTimeout(resumeTimer);
+      cancelFence.current?.();
+      cancelFence.current = null;
+      syncFrameMode.current = null;
+      firstFrameSubmitted.current = false;
+      frameQueued.current = false;
       window.clearTimeout(ambientTimer.current);
       ambientTimer.current = 0;
       binding.dispose();
@@ -211,7 +251,11 @@ export function CameraRig(props: CameraRigProps) {
       d.dispose();
       director.current = null;
     };
-  }, [spine, progress, animation, handlers, container, overlay, rigRef, gl, scene, camera, get]);
+  }, [spine, progress, animation, handlers, container, overlay, rigRef, gl, scene, camera, get, software]);
+
+  useEffect(() => {
+    if (readyChamber) director.current?.markChamberReady(readyChamber);
+  }, [readyChamber]);
 
   useEffect(() => {
     director.current?.setReducedMotion(props.reducedMotion);
@@ -220,11 +264,12 @@ export function CameraRig(props: CameraRigProps) {
   // Leaving the window lets go of every held key, whichever way the page released it.
   useEffect(() => {
     director.current?.setEngaged(props.engaged);
+    syncFrameMode.current?.();
     if (!props.engaged) input.current?.releaseAll();
   }, [props.engaged]);
 
   // Landing scroll moves the camera; a frame is due for every change of progress.
-  useEffect(() => progress.subscribe(() => invalidate()), [progress, invalidate]);
+  useEffect(() => progress.subscribe(() => { syncFrameMode.current?.(); invalidate(); }), [progress, invalidate]);
 
   const scratch = useRef({ v: new Vector3(), targets: '', pose: '', pitch: '' });
 
@@ -239,7 +284,8 @@ export function CameraRig(props: CameraRigProps) {
 
     // What the end-to-end tests read: the pose, where the doors are on screen, frames drawn.
     const el = container.current;
-    if (el && gl.domElement.dataset['world'] === 'ready') {
+    const publish = () => {
+      if (!el) return;
       const pose = `${round(d.pose.x, 3)},${round(d.pose.z, 3)},${round(wrapYaw(d.pose.yawDeg), 2)}`;
       if (pose !== scratch.current.pose) {
         scratch.current.pose = pose;
@@ -269,6 +315,33 @@ export function CameraRig(props: CameraRigProps) {
         el.dataset['doorTargets'] = targets;
       }
       el.dataset['frames'] = String(gl.info.render.frame);
+    };
+    if (el && gl.domElement.dataset['content'] === 'ready') {
+      if (!software || firstFrameSubmitted.current) {
+        if (!software || !cancelFence.current) publish();
+      } else if (!frameQueued.current) {
+        frameQueued.current = true;
+        // Fiber draws after its frame subscribers. The fence must follow that draw.
+        queueMicrotask(() => {
+          if (director.current !== d) return;
+          firstFrameSubmitted.current = true;
+          syncFrameMode.current?.();
+          const context = gl.getContext();
+          if (!('fenceSync' in context)) {
+            publish();
+            return;
+          }
+          cancelFence.current = waitForGpuFrame(context, () => {
+            cancelFence.current = null;
+            publish();
+          }, () => {
+            cancelFence.current = null;
+            firstFrameSubmitted.current = false;
+            frameQueued.current = false;
+            syncFrameMode.current?.();
+          });
+        });
+      }
     }
     if (!busy) return;
     if (!d.ambientOnly) {

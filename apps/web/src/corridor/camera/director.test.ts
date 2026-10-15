@@ -454,11 +454,28 @@ describe('opening a door', () => {
     return r;
   }
 
+  it('keeps the Apartment door shut until the chamber reports ready', () => {
+    const r = inCorridor();
+    r.settle();
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'apartment' });
+    r.settle();
+    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'apartment', via: 'door' });
+    r.run(5000);
+    expect(r.animation.apartment.handle).toBe(0);
+    expect(r.animation.apartment.open).toBe(0);
+    expect(r.log.seams).toHaveLength(0);
+    r.d.markChamberReady('apartment');
+    r.settle();
+    expect(r.animation.apartment.open).toBe(1);
+    expect(r.log.seams).toHaveLength(1);
+  });
+
   it('turns the handle, releases the latch, swings, then walks 1.6 m through and reports the seam', () => {
     const r = atOffice();
     const frame = doorFrame(OFFICE);
     const start = r.now();
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     expect(r.spine.getState().phase).toBe('threshold');
     const samples: { t: number; handle: number; open: number; x: number }[] = [];
     r.run(2600, () =>
@@ -491,6 +508,7 @@ describe('opening a door', () => {
   it('settles with the view level in the doorway and then asks for no more frames', () => {
     const r = atOffice();
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     r.settle();
     expect(r.d.pose.pitchDeg).toBe(0);
     expect(r.d.step(FRAME)).toBe(false);
@@ -500,6 +518,7 @@ describe('opening a door', () => {
   it('keeps the walk smooth through the doorway: no frame jumps more than 4 cm', () => {
     const r = atOffice();
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     let last = r.d.pose.x;
     let worst = 0;
     r.run(2600, () => {
@@ -512,6 +531,7 @@ describe('opening a door', () => {
   it('takes no input while the door opens', () => {
     const r = atOffice();
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     r.d.controller.hold('key', -1);
     r.d.controller.look(90, 10);
     expect(r.d.inputEnabled()).toBe(false);
@@ -526,6 +546,7 @@ describe('opening a door', () => {
     r.spine.dispatch({ type: 'FOCUS_DOOR', id: OFFICE });
     r.run(300);
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     expect(r.log.cuts).toBe(1);
     expect(r.d.pose.x).toBe(doorFrame(OFFICE).x);
     const start = r.now();
@@ -546,6 +567,7 @@ describe('opening a door', () => {
     q.spine.dispatch({ type: 'FOCUS_DOOR', id: OFFICE });
     while (Math.hypot(q.d.pose.x - doorFrame(OFFICE).x, q.d.pose.z - doorFrame(OFFICE).z) > 0.4) q.run(FRAME);
     q.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    q.d.markChamberReady(OFFICE);
     expect(q.log.cuts).toBe(0);
     q.settle();
     expect(q.log.seams).toHaveLength(1);
@@ -556,6 +578,8 @@ describe('opening a door', () => {
     const r = inCorridor({ reduced: true });
     r.spine.dispatch({ type: 'FOCUS_DOOR', id: OFFICE });
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    expect(r.log.seams).toHaveLength(0);
+    r.d.markChamberReady(OFFICE);
     expect(r.log.seams).toHaveLength(1);
     r.run(1000);
     expect(r.animation[OFFICE].open).toBe(0);
@@ -574,6 +598,7 @@ describe('opening a door', () => {
   it('puts the visitor back in front of the door if they go Back mid-opening', () => {
     const r = atOffice();
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     r.run(900);
     r.spine.dispatch({ type: 'ROUTE', route: { kind: 'home' } });
     expect(r.spine.getState().phase).toBe('corridor');
@@ -590,27 +615,27 @@ describe('a sealed door', () => {
   it('rattles for 420 ms, stays shut, and the visitor stays where they were', () => {
     const r = inCorridor();
     r.settle();
-    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'apartment' });
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'tomorrow-engine' });
     r.settle();
     const pose = { ...r.d.pose };
-    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'apartment', via: 'door' });
+    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'tomorrow-engine', via: 'door' });
     expect(r.spine.getState().phase).toBe('corridor');
     const phases: number[] = [];
-    r.run(600, () => phases.push(r.animation.apartment.rattle));
+    r.run(600, () => phases.push(r.animation['tomorrow-engine'].rattle));
     expect(phases.some((p) => p > 0 && p <= 1)).toBe(true);
     expect(Math.max(...phases)).toBeLessThanOrEqual(1);
     expect(phases.filter((p) => p > 0).length).toBeCloseTo(SPINE_TIMING.rattleMs / FRAME, -1);
-    expect(r.animation.apartment.rattle).toBe(0);
-    expect(r.animation.apartment.open).toBe(0);
+    expect(r.animation['tomorrow-engine'].rattle).toBe(0);
+    expect(r.animation['tomorrow-engine'].open).toBe(0);
     expect(r.d.pose).toEqual(pose);
     expect(r.log.seams).toHaveLength(0);
   });
 
   it('does not rattle under reduced motion (the caption and the DOM say it is sealed)', () => {
     const r = inCorridor({ reduced: true });
-    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'apartment' });
-    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'apartment', via: 'door' });
-    r.run(600, () => expect(r.animation.apartment.rattle).toBe(0));
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'tomorrow-engine' });
+    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'tomorrow-engine', via: 'door' });
+    r.run(600, () => expect(r.animation['tomorrow-engine'].rattle).toBe(0));
   });
 
   it('can be tried again to rattle again', () => {
@@ -674,18 +699,19 @@ describe('returning from a chamber', () => {
   });
 
   it('a deep link to a sealed chamber stands in front of its closed door', () => {
-    const r = rig({ route: { kind: 'chamber', id: 'apartment' } });
+    const r = rig({ route: { kind: 'chamber', id: 'tomorrow-engine' } });
     expect(r.spine.getState().phase).toBe('corridor');
-    const frame = doorFrame('apartment');
+    const frame = doorFrame('tomorrow-engine');
     expect(r.d.pose.x).toBe(frame.x);
     expect(r.d.pose.z).toBe(frame.z);
-    expect(r.animation.apartment.open).toBe(0);
+    expect(r.animation['tomorrow-engine'].open).toBe(0);
   });
 
   it('opening again while the door is still closing takes over the door from shut', () => {
     const r = returned();
     r.run(CLOSE_HOLD_MS + 100);
     r.spine.dispatch({ type: 'OPEN_DOOR', id: OFFICE, via: 'door' });
+    r.d.markChamberReady(OFFICE);
     const start = r.now();
     r.run(400, () => expect(r.animation[OFFICE].open).toBeCloseTo(openingAt(r.now() - start).open, 6));
   });

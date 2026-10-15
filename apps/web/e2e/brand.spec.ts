@@ -257,13 +257,13 @@ test.describe('notice board', () => {
 });
 
 test.describe('site pages', () => {
-  test('About reads in a 680 px column', async ({ page }, info) => {
+  test('About reads in a 720 px column', async ({ page }, info) => {
     await page.goto('/about');
     const dialog = page.getByRole('dialog', { name: 'About UNHELD' });
     await expect(dialog).toBeVisible();
     const column = await dialog.locator('.tqw-page__sheet').boundingBox();
-    if (isDesktop(info)) expect(column!.width).toBeCloseTo(680, 0);
-    else expect(column!.width).toBeLessThanOrEqual(680);
+    if (isDesktop(info)) expect(column!.width).toBeCloseTo(720, 0);
+    else expect(column!.width).toBeLessThanOrEqual(720);
   });
 
   test('About uses public Plex Sans body and control scales on desktop and phone', async ({ page }, info) => {
@@ -279,14 +279,19 @@ test.describe('site pages', () => {
     expect(parseFloat(paragraph['line-height']!)).toBeCloseTo(isDesktop(info) ? 28 : 27.5292, 1);
     expect(paragraph['font-family']).toContain('"IBM Plex Sans"');
     const link = await styleOf(page, '.tqw-page__link', ['font-size', 'font-family']);
-    expect(link['font-size']).toBe(isDesktop(info) ? '15px' : '16px');
+    expect(link['font-size']).toBe('15px');
     expect(link['font-family']).toContain('"IBM Plex Sans"');
   });
 
-  test('puts keyboard focus on the heading, and no ring on it', async ({ page }) => {
+  test('puts programmatic focus on the heading without drawing a control ring', async ({ page }) => {
     await page.goto('/about');
-    await expect(page.getByRole('heading', { level: 1, name: 'About UNHELD' })).toBeFocused();
-    expect((await styleOf(page, '.tqw-page__title', ['outline-style']))['outline-style']).toBe('none');
+    const heading = page.getByRole('heading', { level: 1, name: 'About UNHELD' });
+    await expect(heading).toBeFocused();
+    const ring = await heading.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { visible: element.matches(':focus-visible'), style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset };
+    });
+    expect(ring.style).toBe('none');
   });
 
   for (const slug of ['about', 'credits', 'privacy']) {

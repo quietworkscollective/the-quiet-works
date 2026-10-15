@@ -183,6 +183,11 @@ jobs:
       - run: pnpm --filter @tqw/web exec playwright test --grep-invert @extended --shard="$SHARD/12"
         env:
           SHARD: ${{ matrix.shard }}
+      - name: Run released room suites from the authored fixture
+        if: success() || failure()
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.released-authored.config.ts --grep-invert @extended --shard="$SHARD/12" --pass-with-no-tests
+        env:
+          SHARD: ${{ matrix.shard }}
 
   extended:
     needs: build
@@ -230,6 +235,18 @@ jobs:
           CI: 'true'
           SHARD: ${{ matrix.shard }}
           PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-results.json
+      - name: Run sealed rooms and authored diagnostics
+        if: success() || failure()
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.extended-authored.config.ts --shard="$SHARD/4" --reporter=line,json
+        env:
+          CI: 'true'
+          SHARD: ${{ matrix.shard }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-authored-results.json
+      - name: List every authored diagnostic failure
+        if: always()
+        env:
+          RESULTS_FILE: ${{ runner.temp }}/extended-authored-results.json
+        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
       - name: List every extended failure
         if: always()
         env:
