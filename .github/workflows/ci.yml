@@ -145,7 +145,8 @@ jobs:
     # by count; Playwright has no duration-history scheduler. No shard rebuilds the site.
     timeout-minutes: 45
     strategy:
-      fail-fast: true
+      # Smoke already fails fast; core shards each report every failure.
+      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     env:
