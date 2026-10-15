@@ -32,6 +32,8 @@ body {
   margin-block: 0.75rem;
 }
 
+/* Replace the fallback layout before the live root measures its initial scroll position. */
+#static-content:has(+ #root > *),
 html.tqw-app-mounted #static-content {
   display: none;
 }

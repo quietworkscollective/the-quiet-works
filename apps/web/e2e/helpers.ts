@@ -125,11 +125,13 @@ export async function closeMenu(page: Page): Promise<void> {
 /** The Office station is reached before pointer/touch press tests operate the physical handle. */
 export async function approachDesk(page: Page): Promise<void> {
   const places = page.locator('.tqw-places');
+  const summary = places.locator(':scope > summary');
   const wasOpen = await places.evaluate((node: HTMLDetailsElement) => node.open);
   if (!wasOpen) {
-    await places.locator('summary').click();
+    await summary.focus();
+    await summary.click();
   }
   await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
   await expect(app(page)).toHaveAttribute('data-station', 'desk');
-  if (!wasOpen) await places.locator('summary').click();
+  if (!wasOpen) await summary.click();
 }

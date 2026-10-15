@@ -270,8 +270,8 @@ test.describe('privacy', () => {
 
   test('public identity is UNHELD with The Quiet Works as the world', async ({ page }) => {
     await page.goto(OFFICE);
-    await expect(page).toHaveTitle('UNHELD — The Quiet Works');
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://unheld.space/');
+    await expect(page).toHaveTitle('The Certification Office — The Quiet Works — UNHELD');
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://unheld.space/certification-office');
     // The brand is the hero's h1; the world's name is the game window's location line (ADR 0003).
     await expect(page.getByRole('heading', { level: 1, name: 'UNHELD' })).toHaveCount(1);
     await expect(page.locator('.tqw-game__location')).toHaveText('The Quiet Works · Certification Office');

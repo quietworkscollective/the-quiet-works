@@ -316,7 +316,7 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     const details = declarationsOf('.tqw-hero__details');
     expect(details).toMatch(/font-size:\s*var\(--page-meta-size\)/);
     expect(details).toMatch(/gap:\s*0\.25rem 2rem/);
-    expect(details).toMatch(/color:\s*var\(--muted\)/);
+    expect(details).toMatch(/color:\s*var\(--bone\)/);
     const item = declarationsOf('.tqw-menu__item');
     expect(item).toMatch(/font-size:\s*var\(--page-control-size\)/);
     expect(item).toMatch(/font-weight:\s*400/);

@@ -93,7 +93,7 @@ test('the route metadata changes when the single-page app navigates', async ({ p
   expect(jsonLd['@graph'].find((item: { '@type': string }) => item['@type'] === 'WebPage').url).toBe('https://unheld.space/about');
 });
 
-test('text-only chamber fallbacks preserve the room descriptions', async ({ page, request }) => {
+test('text-only chamber fallbacks preserve the room descriptions', async ({ page, request, browser }) => {
   const office = await (await request.get('/certification-office/')).text();
   const officeFallback = office.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(officeFallback).toContain('One lamp makes a pool of light on an industrial desk.');
@@ -105,13 +105,24 @@ test('text-only chamber fallbacks preserve the room descriptions', async ({ page
   const exchange = await (await request.get('/the-exchange/')).text();
   const exchangeFallback = exchange.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(exchangeFallback).toContain('The room is ready as a set of places and actions.');
-  await page.goto('/the-exchange?mode=text');
-  await expect(page.getByText('The room is ready as a set of places and actions.', { exact: true })).toBeVisible();
-
   const outline = await (await request.get('/outline-room/')).text();
   const outlineFallback = outline.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(outlineFallback).toContain('A brass arm follows the outside edge of a selected object.');
-  await page.goto('/outline-room?mode=text');
-  await expect(page.getByText('A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', { exact: true })).toBeVisible();
-  await expect(page.getByText('The tins are fictional workshop specimens. Nothing here describes a visitor.', { exact: true })).toBeVisible();
+
+  // Unreleased rooms retain their crawlable descriptions without enabling their interactive routes.
+  for (const path of ['/the-exchange', '/outline-room']) {
+    await page.goto(`${path}?mode=text`);
+    await expect(page.getByRole('dialog', { name: "This address isn't in the directory" })).toBeVisible();
+    await expect(page.locator('.tqw-exchange, .tqw-outline-room')).toHaveCount(0);
+  }
+  const reading = await browser.newPage({ javaScriptEnabled: false, viewport: page.viewportSize() });
+  try {
+    await reading.goto(new URL('/the-exchange/', page.url()).href);
+    await expect(reading.getByText('The room is ready as a set of places and actions.', { exact: true })).toBeVisible();
+    await reading.goto(new URL('/outline-room/', page.url()).href);
+    await expect(reading.getByText('A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', { exact: true })).toBeVisible();
+    await expect(reading.getByText('The tins are fictional workshop specimens. Nothing here describes a visitor.', { exact: true })).toBeVisible();
+  } finally {
+    await reading.close();
+  }
 });

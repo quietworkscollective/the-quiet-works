@@ -18,13 +18,16 @@ import {
 const OFFICE = 'The Certification Office';
 
 test.describe('landing', () => {
-  test('opens on the UNHELD brand with enter, board and about available at once', async ({ page }) => {
+  test('opens on the UNHELD brand with Enter and Menu routes to the board and About', async ({ page }) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
     await expect(page.getByRole('heading', { level: 1, name: 'UNHELD' })).toBeVisible();
-    await expect(page.getByText('A space for everything we carry.').first()).toBeVisible();
+    await expect(page.locator('.tqw-hero__tagline')).toHaveText('A space for everything we carry.');
+    await expect(page.locator('.tqw-hero__tagline')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Enter The Quiet Works' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'About' }).first()).toBeVisible();
+    const menu = await openMenu(page);
+    await expect(menu.getByRole('button', { name: 'Notice board', exact: true })).toBeVisible();
+    await expect(menu.getByRole('link', { name: 'About', exact: true })).toBeVisible();
     await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveCount(1);
   });
 
@@ -54,13 +57,15 @@ test.describe('corridor doors', () => {
     await expectSpine(page, 'corridor');
   });
 
-  test('the doors are listed in corridor order, only the Office open', async ({ page }) => {
+  test('the six doors are listed in corridor order, only the released Office open', async ({ page }) => {
     const doors = page.getByRole('navigation', { name: 'Doors' }).getByRole('button');
     await expect(doors).toHaveText([
       'The Certification Office, open the door',
       'The Apartment, not yet open',
       'The Tomorrow Engine, not yet open',
       'The Great Atrium, not yet open',
+      'The Exchange, not yet open',
+      'The Outline Room, not yet open',
     ]);
   });
 
@@ -118,8 +123,8 @@ test.describe('corridor doors', () => {
 
   test('context loss in the corridor falls back to the text corridor in the same place', async ({ page }) => {
     await door(page, 'The Apartment', 'sealed').focus();
-    // The scene publishes door positions once it is rendering; only then is its context its own.
-    await expect(page.locator('.tqw-corridor-canvas')).not.toHaveAttribute('data-door-targets', '{}');
+    // Wait for a completed native frame; a valid view can have no door centre on screen.
+    await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveAttribute('data-world', 'ready', { timeout: 30_000 });
     await page.evaluate(() => {
       const canvas = document.querySelector<HTMLCanvasElement>('.tqw-corridor-canvas canvas');
       canvas?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();

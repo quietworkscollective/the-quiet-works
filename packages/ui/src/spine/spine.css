@@ -516,7 +516,7 @@ html {
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   letter-spacing: 0;
-  color: var(--muted);
+  color: var(--bone);
 }
 
 .tqw-hero__sep {

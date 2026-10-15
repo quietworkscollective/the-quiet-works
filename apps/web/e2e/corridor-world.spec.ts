@@ -61,7 +61,7 @@ test.describe('corridor world', () => {
     await expectSpine(page, 'entrance');
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
-    await doorTargets(page);
+    await worldReady(page);
     expect(noise).toEqual([]);
   });
 

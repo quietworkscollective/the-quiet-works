@@ -204,11 +204,12 @@ test.describe('notice board', () => {
 
   test('states a sealed clipping\'s status in text and gives it no way in', async ({ page }) => {
     const board = await open(page);
-    await expect(board.locator('.tqw-clipping[data-status="sealed"]')).toHaveCount(3);
+    await expect(board.locator('.tqw-clipping[data-status="sealed"]')).toHaveCount(5);
     for (const stamp of await board.locator('.tqw-clipping__stamp').all()) await expect(stamp).toHaveText('Not yet open');
-    await expect(board.getByRole('button', { name: /^Go in:/ })).toHaveCount(3);
-    for (const title of ['The Certification Office', 'The Exchange', 'The Outline Room']) {
-      await expect(board.getByRole('button', { name: `Go in: ${title}`, exact: true })).toBeVisible();
+    await expect(board.getByRole('button', { name: /^Go in:/ })).toHaveCount(1);
+    await expect(board.getByRole('button', { name: 'Go in: The Certification Office', exact: true })).toBeVisible();
+    for (const title of ['The Exchange', 'The Outline Room']) {
+      await expect(board.getByRole('button', { name: `Go in: ${title}`, exact: true })).toHaveCount(0);
     }
   });
 
@@ -345,7 +346,7 @@ test.describe('text mode', () => {
     await page.goto('/?mode=text');
     const list = page.getByRole('navigation', { name: 'Doors' });
     await expect(list.locator('.tqw-door__description')).toHaveCount(6);
-    await expect(list.locator('[data-status="open"] .tqw-door__status')).toHaveText(['open the door', 'open the door', 'open the door']);
+    await expect(list.locator('[data-status="open"] .tqw-door__status')).toHaveText(['open the door']);
     expect((await styleOf(page, '[data-status="open"] .tqw-door__status', ['color']))['color']).toBe('rgb(213, 155, 74)');
     await expect(list.locator('[data-status="sealed"] .tqw-door__status').first()).toHaveText('not yet open');
   });

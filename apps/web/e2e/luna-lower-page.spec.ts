@@ -16,6 +16,7 @@ test.describe('the exhibition lower page', () => {
       'About',
       'Credits',
       'Privacy',
+      'Agents',
       'Licences',
     ]);
   });

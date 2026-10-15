@@ -1,4 +1,5 @@
 import { expect, test, type CDPSession, type Page } from '@playwright/test';
+import { SPINE_TIMING } from '../src/timing.ts';
 import {
   CHAMBER_SLOTS,
   CORRIDOR,
@@ -20,6 +21,27 @@ const OFFICE_TITLE = 'The Certification Office';
 type Id = 'certification-office' | 'apartment' | 'tomorrow-engine' | 'great-atrium';
 
 const canvas = (page: Page) => page.locator('.tqw-corridor-canvas');
+
+// Twenty observed simulation frames per second retain the doorway's sampling and pace guards.
+const DOOR_FRAME_MS = 50;
+const doorwayClocks = new WeakSet<Page>();
+const doorwayTest = test.extend({
+  page: async ({ page }, runTest) => {
+    await page.clock.install();
+    try {
+      await runTest(page);
+    } finally {
+      doorwayClocks.delete(page);
+      if (!page.isClosed()) await page.clock.resume();
+    }
+  },
+});
+
+async function advanceDoorwayClock(page: Page, ms: number): Promise<void> {
+  for (let advanced = 0; advanced < ms; advanced += DOOR_FRAME_MS) {
+    await page.clock.fastForward(Math.min(DOOR_FRAME_MS, ms - advanced));
+  }
+}
 
 /** Camera assertions begin after baked geometry and the first visible draw have finished preparing. */
 async function waitForWorld(page: Page): Promise<void> {
@@ -53,6 +75,21 @@ async function targets(page: Page): Promise<Partial<Record<Id, [number, number]>
 
 /** Waits until no frame has been drawn for `quietMs`: the camera and doors are at rest. */
 async function settle(page: Page, quietMs = 500): Promise<void> {
+  if (doorwayClocks.has(page)) {
+    let last = await frames(page);
+    let quiet = 0;
+    while (quiet < quietMs) {
+      await advanceDoorwayClock(page, DOOR_FRAME_MS);
+      const now = await frames(page);
+      quiet = now === last ? quiet + DOOR_FRAME_MS : 0;
+      last = now;
+    }
+    return;
+  }
+  // A quiet polling window cannot precede the queued input frame and its next simulation step.
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   let last = await frames(page);
   let since = Date.now();
   while (Date.now() - since < quietMs) {
@@ -97,7 +134,10 @@ async function expectPoseSoon(
   tol = 0.02,
   yawTol = 0.2,
 ): Promise<void> {
-  await expect.poll(async () => near(await pose(page), want, tol, yawTol), { timeout, intervals: [100] }).toBe(true);
+  await expect.poll(async () => {
+    if (doorwayClocks.has(page)) await advanceDoorwayClock(page, DOOR_FRAME_MS);
+    return near(await pose(page), want, tol, yawTol);
+  }, { timeout, intervals: [100] }).toBe(true);
 }
 
 /** The yaw the hand-over view has on this screen: turned toward the Office door in portrait, straight otherwise. */
@@ -157,6 +197,7 @@ async function tap(page: Page, isMobile: boolean, x: number, y: number): Promise
 async function bringIntoView(page: Page, id: Id): Promise<void> {
   const width = page.viewportSize()!.width;
   const visible = async () => {
+    if (doorwayClocks.has(page)) await advanceDoorwayClock(page, DOOR_FRAME_MS);
     const at = (await targets(page))[id];
     return at !== undefined && at[0] > 48 && at[0] < width - 48;
   };
@@ -543,7 +584,7 @@ test.describe('doors', () => {
     await expect(page).toHaveURL(/\/certification-office$/);
   });
 
-  test('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', async ({
+  doorwayTest('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', async ({
     page,
     isMobile,
   }) => {
@@ -556,6 +597,8 @@ test.describe('doors', () => {
       await route.continue();
     });
     await scrollToHandOver(page);
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+    doorwayClocks.add(page);
     await bringIntoView(page, OFFICE);
     await clickDoor(page, isMobile, OFFICE);
     const frame = frameOf(OFFICE);
@@ -564,7 +607,11 @@ test.describe('doors', () => {
     await recordPoses(page);
     await clickDoor(page, isMobile, OFFICE);
     await expectSpine(page, 'threshold');
-    await expect.poll(async () => (await pose(page)).x, { timeout: 8000 }).toBeCloseTo(frame.x + 1.6, 2);
+    await Promise.all([
+      expect.poll(async () => (await pose(page)).x, { timeout: 8000 }).toBeCloseTo(frame.x + 1.6, 2),
+      advanceDoorwayClock(page, SPINE_TIMING.handleTurnMs + SPINE_TIMING.latchMs
+        + SPINE_TIMING.entryDelayMs + SPINE_TIMING.entryMs + 2 * DOOR_FRAME_MS),
+    ]);
     await settle(page, 800);
     const samples = await recorded(page);
     const through = samples.filter((s) => s.x > frame.x + 0.001);
@@ -581,6 +628,8 @@ test.describe('doors', () => {
     expect(walk).toBeLessThan(1700);
     // The visitor waits in the doorway, door open, until the chamber arrives behind the jamb.
     await expectSpine(page, 'threshold');
+    doorwayClocks.delete(page);
+    await page.clock.resume();
     release();
     await expectSpine(page, 'chamber');
   });
