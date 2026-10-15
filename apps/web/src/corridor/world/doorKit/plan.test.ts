@@ -30,8 +30,27 @@ describe('door plan: dimensions match the spec', () => {
     expect(pair.leaves.map((l) => l.hinge)).toEqual(['left', 'right']);
   });
 
-  it('every door stays inside the ADR size ranges (standard 0.85-1.25 x 2.1-2.7, doubles 1.6-2.2 x 2.6-3.2)', () => {
-    for (const spec of [...chamberDoors.map((d) => d.spec), ...blankSpecs]) {
+  it('keeps ordinary doors in their ADR ranges and reserves the Outline Room size for its custom leaves', () => {
+    for (const { id, spec } of chamberDoors) {
+      if (id === 'outline-room') {
+        expect(spec.width).toBe(2.2);
+        expect(spec.height).toBe(2.1);
+        expect(spec.width).toBeGreaterThanOrEqual(1.5);
+        continue;
+      }
+      if (spec.family === 'ceremonial-double') {
+        expect(spec.width).toBeGreaterThanOrEqual(1.6);
+        expect(spec.width).toBeLessThanOrEqual(2.2);
+        expect(spec.height).toBeGreaterThanOrEqual(2.6);
+        expect(spec.height).toBeLessThanOrEqual(3.2);
+      } else {
+        expect(spec.width).toBeGreaterThanOrEqual(0.85);
+        expect(spec.width).toBeLessThanOrEqual(1.25);
+        expect(spec.height).toBeGreaterThanOrEqual(2.1);
+        expect(spec.height).toBeLessThanOrEqual(2.7);
+      }
+    }
+    for (const spec of blankSpecs) {
       if (spec.family === 'ceremonial-double') {
         expect(spec.width).toBeGreaterThanOrEqual(1.6);
         expect(spec.width).toBeLessThanOrEqual(2.2);

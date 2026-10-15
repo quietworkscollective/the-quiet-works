@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { chambersForBuild, REPO_ROOT, sourceConstant } from './chamber-release.mjs';
+import { chambersForBuild, REPO_ROOT } from './chamber-release.mjs';
 
 const outputRoot = path.join(REPO_ROOT, 'apps/web/dist');
 const extraRoomCopy = new Map([
-  ['exchange', sourceConstant(REPO_ROOT, 'apps/web/src/discoverability.ts', 'EXCHANGE_TEXT_MODE_COPY')],
-  ['outline-room', sourceConstant(REPO_ROOT, 'apps/web/src/discoverability.ts', 'OUTLINE_TEXT_MODE_COPY')],
+  ['exchange', ['The room is ready as a set of places and actions.']],
+  ['outline-room', ['A small instrument workshop', 'A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', 'The tins are fictional workshop specimens. Nothing here describes a visitor.']],
 ]);
 
 function readOutput(relativePath) {

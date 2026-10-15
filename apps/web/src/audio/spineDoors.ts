@@ -97,8 +97,7 @@ export interface AirProfile {
 
 export const AIR: Record<ChamberId, AirProfile> = {
   // The Office: warm, dry, ventilated, with the duct resonance near D2 (73.42 Hz) and A2 that its
-  // own ambience carries. The other three doors stay sealed in this build; their profiles only
-  // keep a future door from borrowing the Office's room.
+  // own ambience carries. Sealed doors use these profiles only to avoid borrowing the Office's room.
   'certification-office': { lowpass: 850, level: 1, hum: [[73.42, 1], [110, 0.8]], wet: 0.05 },
   exchange: { lowpass: 780, level: 0.85, hum: [[60, 0.35], [120, 0.2]], wet: 0.16 },
   apartment: { lowpass: 1100, level: 0.7, hum: [], wet: 0.04 },

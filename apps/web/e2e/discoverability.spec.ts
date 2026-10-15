@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { ABOUT } from '@tqw/engine';
 import { openMenu } from './helpers.ts';
 import { chambersForBuild, REPO_ROOT } from '../scripts/chamber-release.mjs';
 
@@ -45,7 +46,7 @@ test('every public route has server HTML, canonical metadata and structured data
 test('Agents is a standalone static page with only public submission links', async ({ request }) => {
   const response = await request.get('/agents/');
   const html = await response.text();
-  expect(html).toContain('UNHELD is an interactive artwork');
+  expect(html).toContain(ABOUT.body[0]);
   expect(html).toContain('Read the public agent skill');
   expect(html).not.toMatch(/<script\b[^>]*\btype="module"/);
   const body = html.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
@@ -65,6 +66,7 @@ test('robot and language-model discovery files have usable content types and lin
   for (const route of SITEMAP_ROUTES) expect(xml).toContain(`https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`);
   for (const room of SEALED_CHAMBERS) expect(xml).not.toContain(`https://unheld.space/${room.slug}`);
   const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+  expect(new Set(locations).size).toBe(locations.length);
   expect(new Set(locations).size).toBe(SITEMAP_ROUTES.length);
   expect(new Set(locations)).toEqual(new Set(SITEMAP_ROUTES.map((route) => `https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`)));
 

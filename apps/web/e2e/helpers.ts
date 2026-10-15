@@ -130,9 +130,13 @@ export async function approachDesk(page: Page): Promise<void> {
   const wasOpen = await places.evaluate((node: HTMLDetailsElement) => node.open);
   if (!wasOpen) {
     await summary.focus();
-    await summary.click();
+    await page.keyboard.press('Enter');
   }
-  await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
+  await page.getByRole('button', { name: 'Approach the desk', exact: true }).focus();
+  await page.keyboard.press('Enter');
   await expect(app(page)).toHaveAttribute('data-station', 'desk');
-  if (!wasOpen) await summary.click();
+  if (!wasOpen) {
+    await summary.focus();
+    await page.keyboard.press('Enter');
+  }
 }

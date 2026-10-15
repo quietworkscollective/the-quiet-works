@@ -51,10 +51,9 @@ describe('what a door sounds like', () => {
   });
 
   it('reads the closure of a sealed door, and treats an unsaid closure as a bolt', () => {
-    expect(closureOf(door('apartment'))).toBe('bolt');
     expect(closureOf(door('tomorrow-engine'))).toBe('seal');
     expect(closureOf(door('great-atrium'))).toBe('chain');
-    const bare: DoorSpec = { ...door('apartment') };
+    const bare: DoorSpec = { ...door('tomorrow-engine') };
     delete bare.closure;
     expect(closureOf(bare)).toBe('bolt');
   });

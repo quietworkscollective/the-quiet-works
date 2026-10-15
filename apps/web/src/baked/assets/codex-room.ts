@@ -10,8 +10,16 @@ import geometry8 from './codex-room-geometry-8.json';
 import geometry9 from './codex-room-geometry-9.json';
 import geometry10 from './codex-room-geometry-10.json';
 import geometry11 from './codex-room-geometry-11.json';
+import geometry12 from './codex-room-geometry-12.json';
+import geometry13 from './codex-room-geometry-13.json';
+import geometry14 from './codex-room-geometry-14.json';
+import geometry15 from './codex-room-geometry-15.json';
+import geometry16 from './codex-room-geometry-16.json';
+import geometry17 from './codex-room-geometry-17.json';
+import geometry18 from './codex-room-geometry-18.json';
+import geometry19 from './codex-room-geometry-19.json';
 import manifest from './codex-room.manifest.json';
 import image0 from './codex-room-0.webp';
 import type { BakeAssets } from '../runtime.ts';
 
-export default { geometry: [geometry0, geometry1, geometry2, geometry3, geometry4, geometry5, geometry6, geometry7, geometry8, geometry9, geometry10, geometry11], manifest, images: [image0] } as BakeAssets;
+export default { geometry: [geometry0, geometry1, geometry2, geometry3, geometry4, geometry5, geometry6, geometry7, geometry8, geometry9, geometry10, geometry11, geometry12, geometry13, geometry14, geometry15, geometry16, geometry17, geometry18, geometry19], manifest, images: [image0] } as BakeAssets;

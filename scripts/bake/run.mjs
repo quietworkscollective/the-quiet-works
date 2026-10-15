@@ -15,7 +15,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
 const ansiEscape = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
 const checking = process.argv.includes('--check');
-const availableSpaces = ['corridor', 'office', 'codex-room', 'exchange'];
+const availableSpaces = ['corridor', 'office', 'codex-room', 'exchange', 'apartment'];
 const requested = process.argv.find(value => availableSpaces.includes(value));
 const spaces = checking ? (requested ? [requested] : availableSpaces) : [process.argv[2]];
 if (spaces.some(space => !availableSpaces.includes(space))) throw new Error(`Usage: pnpm bake ${availableSpaces.join('|')}`);
@@ -42,6 +42,39 @@ if (!checking && spaces[0] === 'codex-room') {
   const model = path.join(root, 'apps/web/src/assets/outline-room.glb.gz');
   await writeFile(model, compressed);
   console.log(`Outline Room model: ${(compressed.byteLength / 1024 / 1024).toFixed(2)} MiB gzip (${(await stat(webpSource)).size} bytes WebP-quantized GLB)`);
+}
+if (!checking && spaces[0] === 'apartment') {
+  const built = spawnSync('node', ['scripts/blender/rooms/apartment/run.ts'], { cwd: root, stdio: 'inherit' });
+  if (built.status !== 0) throw new Error(`Apartment Blender source failed: ${built.status}`);
+}
+
+// The Annex door uses the same reproducible Blender-to-quantized-glTF path as its chamber.
+// It has no image textures, so WebP conversion has no payload to process.
+if (!checking && spaces[0] === 'corridor') {
+  const dir = path.join(cache, 'corridor-door');
+  await mkdir(dir, { recursive: true });
+  const source = path.join(dir, 'outline-door-source.glb');
+  const blender = process.env.BLENDER ?? '/Applications/Blender.app/Contents/MacOS/Blender';
+  const built = spawnSync(blender, ['-b', '--factory-startup', '--python-exit-code', '1', '--python', 'scripts/blender/doors/outline-room/build.py', '--', source], { cwd: root, stdio: 'inherit' });
+  if (built.status !== 0) throw new Error(`Outline Room door Blender source failed: ${built.status}`);
+  const quantizedSource = path.join(dir, 'outline-door-quantized.glb');
+  const doorQuantize = ['--quantize-position', '14', '--quantize-normal', '10', '--quantize-texcoord', '14', '--quantize-color', '8'];
+  const quantized = spawnSync('pnpm', ['exec', 'gltf-transform', 'quantize', source, quantizedSource, ...doorQuantize], { cwd: root, stdio: 'inherit' });
+  if (quantized.status !== 0) throw new Error('Outline Room door source quantization failed');
+  const bytes = await readFile(quantizedSource);
+  if (bytes.readUInt32LE(0) !== 0x46546c67 || bytes.readUInt32LE(4) !== 2 || bytes.readUInt32LE(8) !== bytes.byteLength) {
+    throw new Error('Outline Room door export is not a valid binary glTF');
+  }
+  const jsonLength = bytes.readUInt32LE(12);
+  const document = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString('utf8'));
+  const unsupported = (document.extensionsRequired ?? []).filter(extension => extension !== 'KHR_mesh_quantization');
+  if (document.images?.length || document.buffers?.some(buffer => buffer.uri !== undefined) || unsupported.length) {
+    throw new Error(`Outline Room door must be texture-free and self-contained; unsupported extensions: ${unsupported.join(', ') || 'none'}`);
+  }
+  const compressed = gzipSync(bytes, { level: 9 });
+  const model = path.join(root, 'apps/web/src/assets/outline-door.glb.gz');
+  await writeFile(model, compressed);
+  console.log(`Outline Room door: ${(compressed.byteLength / 1024).toFixed(1)} KiB gzip (${bytes.byteLength} byte quantized GLB)`);
 }
 
 // Authored source bytes are checked independently of the deterministic scene capture.
@@ -97,6 +130,15 @@ try {
         if (attempt > 100 || server.exitCode !== null) throw new Error(`${error}\n${serverLog}`);
         await new Promise(resolve => setTimeout(resolve, 100));
       }
+    }
+    if (space === 'corridor') {
+      // The corridor's static world is bound after the visitor reaches its interactive view.
+      // Reproduce that normal entrance before waiting for its capture hook or the baked door frame.
+      await page.waitForFunction(() => document.querySelector('.tqw-site')?.getAttribute('data-spine') === 'entrance', null, { timeout: 60_000 });
+      await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+      await page.waitForFunction(() => document.querySelector('.tqw-site')?.getAttribute('data-spine') === 'corridor', null, { timeout: 60_000 });
+      await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
+      await page.waitForFunction(() => document.querySelector('.tqw-site')?.getAttribute('data-engaged') === 'true', null, { timeout: 60_000 });
     }
     await page.waitForFunction(() => !!window.__bake, null, { timeout: 180_000 });
 

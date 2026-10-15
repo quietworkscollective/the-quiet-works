@@ -9,7 +9,7 @@ const TOPICS = [
   },
   {
     title: CONTRIBUTIONS_COPY.topics[1].title,
-    body: 'Changes arrive as pull requests and a maintainer reviews each one. Project code is Apache 2.0; art and writing are CC BY 4.0. Personal stories need explicit consent.',
+    body: 'Changes arrive as pull requests and a maintainer reviews each one. Personal stories need explicit consent.',
   },
   {
     title: CONTRIBUTIONS_COPY.topics[2].title,
@@ -37,15 +37,17 @@ export function Details(_props: DetailsProps) {
           <p className="tqw-details__lead">{CONTRIBUTIONS_COPY.intro}</p>
         </div>
         <div className="tqw-details__topics">
-          {TOPICS.map((topic) => (
+          {TOPICS.map((topic, index) => (
             <div key={topic.title} className="tqw-details__topic">
               <h3 className="tqw-details__topic-title">{topic.title}</h3>
               <p className="tqw-details__topic-body">{topic.body}</p>
+              {index === 1 ? (
+                <a className="tqw-details__link" href={CONTRIBUTION_GUIDE}>
+                  Read the contribution guide
+                </a>
+              ) : null}
             </div>
           ))}
-          <a className="tqw-details__link" href={CONTRIBUTION_GUIDE}>
-            Read the contribution guide
-          </a>
         </div>
       </div>
     </section>

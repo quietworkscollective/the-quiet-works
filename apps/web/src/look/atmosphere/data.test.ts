@@ -167,7 +167,7 @@ describe('a little bit of smoke', () => {
         const [r, g, b] = hexToSrgb(layer.colour);
         expect(r, layer.id).toBeGreaterThanOrEqual(g);
         expect(g, `${layer.id} is not green`).toBeGreaterThanOrEqual(b);
-        if (space === 'exchange') expect((r - b) / r, `${layer.id} stays pale white-grey`).toBeLessThanOrEqual(0.2);
+        if (space === 'exchange' || space === 'apartment') expect((r - b) / r, `${layer.id} stays pale white-grey`).toBeLessThanOrEqual(0.2);
         else expect((r - b) / r, `${layer.id} is warm enough to read as gold`).toBeGreaterThan(0.2);
         expect(displayLuma(layer.colour), `${layer.id} adds light`).toBeGreaterThan(0.3);
       }
@@ -197,6 +197,17 @@ describe('a little bit of smoke', () => {
       expect(atmosphere.heightFog.some((l) => l.thins === 'down')).toBe(true);
     });
   }
+
+  it('keeps the Exchange air white-grey with a 2–4% veil across a 10 m view', () => {
+    const atmosphere = ATMOSPHERES.exchange;
+    const veil = 1 - Math.exp(-opticalDepth(atmosphere.heightFog, EYE_HEIGHT, 10));
+    expect(veil).toBeGreaterThanOrEqual(0.02);
+    expect(veil).toBeLessThanOrEqual(0.04);
+    expect(atmosphere.heightFog.every(layer => layer.colour === '#D5D5CF')).toBe(true);
+    expect(atmosphere.budget.drawCalls).toBe(2);
+    expect(atmosphere.cones.specs.find(spec => spec.lamp === 'desk-lamp')?.opacity).toBeLessThanOrEqual(0.03);
+    expect(atmosphere.cones.specs.find(spec => spec.lamp === 'window')?.opacity).toBeLessThanOrEqual(0.05);
+  });
 
   it('is thicker near the floor than at the eye, and thicker near the ceiling than at the eye', () => {
     const layers = ATMOSPHERES.corridor.heightFog;

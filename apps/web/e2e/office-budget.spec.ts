@@ -3,7 +3,8 @@ import { toggleOfficePlaces } from './officePlaces.ts';
 
 test.use({ reducedMotion: 'reduce' });
 test('Office keeps the finished arrival, desk and overload frames inside its budgets and rests without frames', async ({ page }) => {
- test.setTimeout(120_000);
+ // GitHub's runners render in software; the authored Office needs longer to reach its stations there.
+ test.setTimeout(process.env['CI'] ? 360_000 : 120_000);
  await page.goto('/certification-office?quality=high');
  const canvas=page.locator('.tqw-canvas');
  await expect(canvas).toHaveAttribute('data-ready','true',{timeout:60_000});

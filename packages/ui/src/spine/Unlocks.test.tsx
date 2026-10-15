@@ -8,6 +8,7 @@ import type { UnlocksProps } from './types.ts';
 
 const OFFICE = 'certification-office';
 const OFFICE_PAPERS = CHAMBERS.find((chamber) => chamber.id === OFFICE)?.findings.papers ?? 0;
+const APARTMENT_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'apartment')?.findings.papers ?? 0;
 const EXCHANGE_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'exchange')?.findings.papers ?? 0;
 const PAPERS = CHAMBERS.filter((chamber) => chamber.status === 'open').reduce((total, chamber) => total + chamber.findings.papers, 0);
 
@@ -68,8 +69,9 @@ describe('Unlocks: the archive section', () => {
   it('groups by room, and shows only rooms that have something to find', () => {
     const { section } = setup();
     const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((h) => h.textContent)).toEqual(['The Certification Office', 'The Exchange']);
+    expect(rooms.map((h) => h.textContent)).toEqual(['The Certification Office', 'The Apartment', 'The Exchange']);
     expect(within(section).getByText(`0 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(within(section).getByText(`0 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
     expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
   });
 
@@ -208,10 +210,12 @@ describe('Unlocks: found papers', () => {
     store.record(OFFICE, found('secret-1', 'secret'));
     const { view, section } = setup({}, store);
     expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 1 secret found.`)).toBeTruthy();
-    expect(section.textContent).not.toMatch(/of 5/);
+    expect(section.querySelector('.tqw-archive__room-count')?.textContent).toBe(`0 of ${OFFICE_PAPERS} papers found. 1 secret found.`);
+    expect(section.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
     act(() => store.record(OFFICE, found('secret-2', 'secret')));
     expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
-    expect(view.container.textContent).not.toMatch(/of 5|\/ ?5/);
+    expect(section.querySelector('.tqw-archive__room-count')?.textContent).toBe(`0 of ${OFFICE_PAPERS} papers found. 2 secrets found.`);
+    expect(view.container.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
   });
 
   it('lists a found secret among the papers, but never draws a sealed one', () => {

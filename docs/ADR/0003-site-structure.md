@@ -111,3 +111,15 @@ detached Menu control nor a trivia slot.
 This proposal amends the viewport-height treatment in decisions 4 and 5, and the menu and trivia
 items in decision 6. Existing content, route behavior, local progress and the shared renderer remain
 as recorded above. Its status stays proposed until maintainer review.
+
+## Proposed amendment — bounded poster handoff (for maintainer review)
+
+The poster fades for 400 ms after the first scene frame is ready. Its removal deadline is 3.5 seconds
+from the ready commit, including an observable transparent interval. Transition events cannot reset
+that deadline, and the deadline commits removal synchronously.
+
+On software renderers, readiness waits asynchronously for the first submitted frame's WebGL fence.
+Further hero draws pause through the handoff and for one second after removal, so rendering cannot
+keep GPU work queued ahead of the deadline or its observation. Scrolling or engaging the experience
+resumes drawing immediately. Hardware renderers retain their ambient motion. This changes scheduling,
+not the scene, its lighting or its assets. Maintainer review is required before merging.

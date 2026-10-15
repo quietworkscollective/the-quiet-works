@@ -2,6 +2,7 @@
 materials with Cycles into base colour, occlusion-roughness-metallic and normal images, and
 rebuild a single image-textured material the glTF exporter can carry.
 """
+import math
 import os
 import struct
 import time
@@ -52,41 +53,110 @@ def _enter_edit(objs):
     bpy.ops.mesh.select_all(action='SELECT')
 
 
-def unwrap_and_pack(parts, margin_px=6, size=1024, island_margin=0.004):
-    """Smart-project the faces that carry no authored UVs, equalise texel density, pack into 0..1."""
+def unwrap_and_pack(parts, margin_px=6, size=1024, island_margin=0.004, shape_method='CONCAVE'):
+    """Smart-project auto faces, then place each object's UV charts in one shared atlas.
+
+    Blender's multi-object UV pack can leave mesh UVs in their authored world-space range. Packing
+    each object into its own area-weighted atlas cell keeps the object and pivot boundaries intact
+    while making every exported UV usable by glTF.
+    """
     import bmesh
     ts = bpy.context.scene.tool_settings
     ts.use_uv_select_sync = True
     if bpy.context.object is not None and bpy.context.object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
+    uv_data = []
     for o in parts:
-        if o.data.uv_layers.get('UVMap') is None:
-            o.data.uv_layers.new(name='UVMap')
-        o.data.uv_layers.active = o.data.uv_layers['UVMap']
+        uv = o.data.uv_layers.get('UVMap') or o.data.uv_layers.new(name='UVMap')
+        o.data.uv_layers.active = uv
         attr = o.data.attributes.get('uvauto')
-        if attr is None:
-            continue
-        needs = [d.value for d in attr.data]
-        if not any(needs):
-            continue
+        if attr is not None and any(d.value for d in attr.data):
+            bpy.ops.object.select_all(action='DESELECT')
+            o.select_set(True)
+            bpy.context.view_layer.objects.active = o
+            bpy.ops.object.mode_set(mode='EDIT')
+            bm = bmesh.from_edit_mesh(o.data)
+            flag = bm.faces.layers.int.get('uvauto')
+            for f in bm.faces:
+                f.select_set(bool(f[flag]))
+            bm.select_flush_mode()
+            bmesh.update_edit_mesh(o.data)
+            bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=island_margin, area_weight=0.0,
+                                     correct_aspect=True, scale_to_bounds=False)
+            bpy.ops.object.mode_set(mode='OBJECT')
+
         bpy.ops.object.select_all(action='DESELECT')
         o.select_set(True)
         bpy.context.view_layer.objects.active = o
         bpy.ops.object.mode_set(mode='EDIT')
-        bm = bmesh.from_edit_mesh(o.data)
-        flag = bm.faces.layers.int.get('uvauto')
-        for f in bm.faces:
-            f.select_set(bool(f[flag]))
-        bm.select_flush_mode()
-        bmesh.update_edit_mesh(o.data)
-        bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=island_margin, area_weight=0.0, correct_aspect=True,
-                                 scale_to_bounds=False)
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.select_all(action='SELECT')
+        bpy.ops.uv.average_islands_scale()
+        bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=max(island_margin, 0.055),
+                                shape_method=shape_method)
         bpy.ops.object.mode_set(mode='OBJECT')
-    _enter_edit(list(parts))
-    bpy.ops.uv.select_all(action='SELECT')
-    bpy.ops.uv.average_islands_scale()
-    bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=margin_px / size, shape_method='CONCAVE')
-    bpy.ops.object.mode_set(mode='OBJECT')
+
+        uv = o.data.uv_layers['UVMap']
+        coords = [loop.uv.copy() for loop in uv.data]
+        if not coords:
+            continue
+        lo_u = min(value.x for value in coords)
+        hi_u = max(value.x for value in coords)
+        lo_v = min(value.y for value in coords)
+        hi_v = max(value.y for value in coords)
+        if hi_u - lo_u < 1e-8 or hi_v - lo_v < 1e-8:
+            raise RuntimeError(f'UV pack produced a degenerate chart on {o.name}')
+        area = sum(poly.area for poly in o.data.polygons)
+        uv_data.append((o, uv, coords, lo_u, hi_u, lo_v, hi_v, max(area, 1e-8)))
+
+    if not uv_data:
+        return
+
+    total_area = sum(entry[7] for entry in uv_data)
+    atlas_area = 0.70
+    minimum_cell = max(16 / size, margin_px / size * 2.0)
+    gap = max(2 / size, margin_px / size)
+    cells = []
+    for entry in uv_data:
+        side = max(minimum_cell, math.sqrt(entry[7] / total_area * atlas_area))
+        cells.append((side, entry))
+    cells.sort(key=lambda item: item[0], reverse=True)
+
+    def arrange(scale):
+        x = y = row_height = 0.0
+        placements = []
+        for base_side, entry in cells:
+            side = max(minimum_cell, base_side * scale)
+            if x + side > 1.0 + 1e-8:
+                x = 0.0
+                y += row_height + gap
+                row_height = 0.0
+            if y + side > 1.0 + 1e-8:
+                return None
+            placements.append((entry, x, y, side))
+            x += side + gap
+            row_height = max(row_height, side)
+        return placements
+
+    placements = next((layout for factor in (1.0, 0.97, 0.94, 0.91, 0.88, 0.85, 0.82, 0.79, 0.76, 0.73, 0.70)
+                       if (layout := arrange(factor)) is not None), None)
+    if placements is None:
+        raise RuntimeError('Could not fit material charts in the shared atlas')
+
+    inset = max(2 / size, min(margin_px, max(4, size // 128)) / size)
+    for entry, x, y, side in placements:
+        o, uv, coords, lo_u, hi_u, lo_v, hi_v, _area = entry
+        span = side - 2 * inset
+        if span <= 0:
+            raise RuntimeError(f'UV atlas cell is too small for {o.name}')
+        width, height = hi_u - lo_u, hi_v - lo_v
+        for item, value in zip(uv.data, coords):
+            item.uv = (x + inset + ((value.x - lo_u) / width) * span,
+                       y + inset + ((value.y - lo_v) / height) * span)
+
+    values = [component for o, uv, *_rest in uv_data for loop in uv.data for component in loop.uv]
+    if min(values) < -1e-6 or max(values) > 1.0 + 1e-6:
+        raise RuntimeError(f'UV atlas escaped 0..1: {min(values):.4f}..{max(values):.4f}')
 
 
 # ---------------------------------------------------------------------------------------------

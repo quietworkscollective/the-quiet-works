@@ -237,17 +237,52 @@ test.describe('privacy across the spine', () => {
 });
 
 test.describe('threshold', () => {
-  test('walking through a door mounts the chamber only at the seam, never mid-walk', async ({ page }) => {
+  test('preloads the chamber behind the corridor and reveals it at the seam', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
+    await page.evaluate(() => {
+      type Snapshot = { seam: string | null; ready: string | null; inert: boolean; opacity: string };
+      const states: Snapshot[] = [];
+      const capture = () => {
+        document.querySelectorAll<HTMLElement>('.tqw-chamber-host, .tqw-chamber-preload').forEach((host) => {
+          if (host.getAttribute('data-seam') !== 'false') return;
+          const state = {
+            seam: host.getAttribute('data-seam'),
+            ready: host.getAttribute('data-ready'),
+            inert: host.hasAttribute('inert'),
+            opacity: getComputedStyle(host).opacity,
+          };
+          if (!states.some((previous) => JSON.stringify(previous) === JSON.stringify(state))) states.push(state);
+        });
+      };
+      const observer = new MutationObserver(capture);
+      observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+      (window as Window & {
+        __tqwChamberPreloadProbe?: { states: Snapshot[]; observer: MutationObserver };
+      }).__tqwChamberPreloadProbe = { states, observer };
+      capture();
+    });
     await activateDoor(page, OFFICE, 'open');
     await expectSpine(page, 'threshold');
-    // The swing and the 1.6 m walk-through take about 1.9 s; the chamber's heavy first mount must
-    // not land inside it.
-    await expect(page.locator('.tqw-chamber-host')).toHaveCount(0);
+    // Record the hidden pre-seam state as it occurs: on a fast frame the seam may pass between
+    // separate Playwright assertions, even though the chamber was inert and invisible beforehand.
+    await expect.poll(() => page.evaluate(() => {
+      const probe = (window as Window & {
+        __tqwChamberPreloadProbe?: { states: Array<{ seam: string | null; ready: string | null; inert: boolean; opacity: string }> };
+      }).__tqwChamberPreloadProbe;
+      return probe?.states.some((state) => state.seam === 'false' && state.ready === 'false' && state.inert && state.opacity === '0') ?? false;
+    })).toBe(true);
     await expect(page.locator('.tqw-corridor-canvas')).toHaveCount(1);
     await expectSpine(page, 'chamber');
-    await expect(page.locator('.tqw-chamber-host')).toHaveCount(1);
+    const chamber = page.locator('.tqw-chamber-host');
+    await expect(chamber).toHaveAttribute('data-seam', 'true');
+    await expect(chamber).not.toHaveAttribute('inert', '');
+    await expect(chamber).toHaveCSS('opacity', '1');
+    await page.evaluate(() => {
+      (window as Window & {
+        __tqwChamberPreloadProbe?: { observer: MutationObserver };
+      }).__tqwChamberPreloadProbe?.observer.disconnect();
+    });
   });
 });

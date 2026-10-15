@@ -45,6 +45,9 @@
   --page-rule: #414741;
   --page-action: #d59b4a;
   --page-paper: #e2dacb;
+  --reading-ground: #171a17;
+  --reading-text: #eeeae1;
+  --reading-muted: #bdb8ae;
 
   /* The notice board: olive felt in an oak frame, brass pins, and three paper stocks. */
   --felt: #505247;
@@ -121,8 +124,8 @@ html {
 
 /* The one focus treatment, for the whole spine layer (styles.css only reaches inside .tqw-app). */
 :where(.tqw-site) :focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 2px;
+  outline: 2px solid var(--bone);
+  outline-offset: 3px;
 }
 
 /* Amber on paper is under 3 : 1, so anything on a clipping or a paper rings in ink. */
@@ -516,7 +519,7 @@ html {
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   letter-spacing: 0;
-  color: var(--bone);
+  color: #fff8ec;
   /* Local contrast protection over the live corridor, without darkening the whole scene. */
   text-shadow: 0 0 0.6em rgb(12 12 14 / 0.85), 0 1px 0.15em rgb(12 12 14 / 0.9);
 }
@@ -788,6 +791,20 @@ html {
   height: 100%;
 }
 
+.tqw-game .tqw-chamber-preload {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tqw-game .tqw-chamber-preload .tqw-app {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
 /*
  * The poster: a still of the hero view, there the instant the page paints and dissolved (400 ms)
  * once the live corridor has drawn its first frame. Over the canvas (later in the same layer), under
@@ -849,7 +866,8 @@ html {
   transition: opacity var(--tqw-seam-ms, 400ms) cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-.tqw-chamber-host[data-ready='false'] {
+.tqw-chamber-host[data-ready='false'],
+.tqw-chamber-host[data-seam='false'] {
   opacity: 0;
   pointer-events: none;
 }
@@ -1303,9 +1321,25 @@ html {
   background: transparent;
 }
 
-.tqw-board[open],
-.tqw-page[open] {
+.tqw-board[open] {
   animation: tqw-spine-in 220ms ease-out both;
+}
+
+.tqw-page {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  color: var(--reading-text);
+  background: var(--reading-ground);
+}
+
+@supports (height: 100dvh) {
+  .tqw-page {
+    height: 100dvh;
+  }
 }
 
 @keyframes tqw-spine-in {
@@ -1596,29 +1630,50 @@ html {
 
 /* ------------------------------------------------------------ site pages */
 
+.tqw-page__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 44px;
+  padding: calc(80px + env(safe-area-inset-top, 0px)) max(32px, env(safe-area-inset-right, 0px)) 0
+    max(24px, calc((100vw - 720px) / 2));
+}
+
+.tqw-page :focus-visible {
+  outline-color: var(--reading-text);
+}
+
+.tqw-page__nav {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+}
+
 .tqw-page__sheet {
   display: flex;
   flex-direction: column;
-  width: min(680px, calc(100% - 2 * var(--page-gutter)));
-  min-height: 100%;
+  width: min(720px, calc(100% - 48px));
   margin: 0 auto;
-  padding: clamp(2rem, 9vh, 6rem) 0 0;
+  padding: 24px 0 calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
 .tqw-page__masthead {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  margin: 0 0 clamp(2.5rem, 7vh, 4.5rem);
+  margin: 0 0 2rem;
   font-family: var(--font-public);
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--reading-muted);
 }
 
 .tqw-page__mark {
-  color: var(--muted);
+  color: var(--reading-muted);
 }
 
 .tqw-page__title {
@@ -1629,10 +1684,11 @@ html {
   line-height: 1.0833;
   letter-spacing: -0.02em;
   text-wrap: balance;
-  color: var(--bone);
+  color: var(--reading-text);
 }
 
-.tqw-page__title:focus-visible {
+/* The heading receives programmatic focus to announce the reading start, not to mark a control. */
+.tqw-page__title:focus {
   outline: none;
 }
 
@@ -1642,16 +1698,37 @@ html {
   font-size: var(--page-body-size);
   line-height: var(--page-body-leading);
   text-wrap: pretty;
-  color: var(--bone);
+  color: var(--reading-text);
 }
 
 /* A link inside a page is bone and underlined, not the browser's blue, and stays so after a visit. */
 .tqw-page__article a {
-  color: var(--bone);
+  color: var(--reading-text);
   text-decoration: underline;
   text-decoration-color: var(--muted);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
+}
+
+.tqw-page__credits-section + .tqw-page__credits-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--divider);
+}
+
+.tqw-page__credits-label,
+.tqw-page__assets-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-public);
+  font-size: var(--page-meta-size);
+  font-weight: 500;
+  line-height: var(--page-meta-leading);
+  letter-spacing: 0.04em;
+  color: var(--reading-muted);
+}
+
+.tqw-page__credits-section > p:last-child {
+  margin-bottom: 0;
 }
 
 /* The third-party models and surfaces on the Credits page: a quiet ruled list under the paragraphs. */
@@ -1662,12 +1739,7 @@ html {
 }
 
 .tqw-page__assets-title {
-  margin: 0 0 1rem;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 1.75rem;
-  line-height: 1.15;
-  color: var(--bone);
+  margin-bottom: 0.75rem;
 }
 
 .tqw-page__assets-provider {
@@ -1677,7 +1749,7 @@ html {
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--reading-muted);
 }
 
 /* A provider's name is set as it writes it (ambientCG), never in capitals. */
@@ -1697,25 +1769,12 @@ html {
   font-family: var(--font-public);
   font-size: var(--page-body-size);
   line-height: var(--page-body-leading);
-  color: var(--muted);
+  color: var(--reading-muted);
   overflow-wrap: anywhere;
 }
 
-.tqw-page__nav {
-  position: sticky;
-  bottom: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 1.75rem;
-  margin-top: auto;
-  padding: 1rem 0 max(1rem, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--divider);
-  background: var(--coal);
-}
-
 .tqw-page__article {
-  padding-bottom: clamp(2rem, 6vh, 3.5rem);
+  padding-bottom: 0;
 }
 
 .tqw-page__link {
@@ -1727,11 +1786,11 @@ html {
   border: 0;
   background: none;
   font-family: var(--font-public);
-  font-size: var(--page-control-size);
-  line-height: var(--page-control-leading);
+  font-size: 15px;
+  line-height: 20px;
   letter-spacing: 0;
   text-decoration: none;
-  color: var(--muted);
+  color: var(--reading-muted);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1739,7 +1798,7 @@ html {
 }
 
 .tqw-page__link[aria-current='page'] {
-  color: var(--bone);
+  color: var(--reading-text);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.55em;
@@ -1747,12 +1806,55 @@ html {
 
 @media (hover: hover) {
   .tqw-page__link:hover {
-    color: var(--bone);
+    color: var(--reading-text);
   }
 }
 
 .tqw-page__close {
-  margin-left: auto;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  gap: 0.25em;
+  min-width: 44px;
+  padding-inline: 0;
+  color: var(--reading-text);
+}
+
+.tqw-page__recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 40rem) {
+  .tqw-page__header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 0
+      max(24px, env(safe-area-inset-left, 0px));
+  }
+
+  .tqw-page__nav {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tqw-page__close {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tqw-page__sheet {
+    width: 100%;
+    padding: 24px max(24px, env(safe-area-inset-right, 0px)) calc(64px + env(safe-area-inset-bottom, 0px))
+      max(24px, env(safe-area-inset-left, 0px));
+  }
+
+  .tqw-page__title {
+    font-size: clamp(2.25rem, 8vw, 3rem);
+  }
 }
 
 /*
@@ -2338,12 +2440,12 @@ html {
 
 .tqw-details__topic-body {
   font-family: var(--font-public);
-  font-size: var(--page-body-size);
-  line-height: var(--page-body-leading);
+  font-size: 18px;
+  line-height: 28px;
 }
 
 .tqw-details__topic + .tqw-details__topic {
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 
 .tqw-details__topic-title {
@@ -2367,6 +2469,7 @@ html {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  margin-top: 0.75rem;
   font-family: var(--font-public);
   font-size: var(--page-control-size);
   line-height: var(--page-control-leading);
@@ -2452,6 +2555,7 @@ html {
   line-height: var(--page-meta-leading);
   color: var(--muted);
 }
+
 
 .tqw-footer__base {
   grid-column: 1 / -1;

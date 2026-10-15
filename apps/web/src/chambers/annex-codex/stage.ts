@@ -2,7 +2,7 @@ export const VISIBLE_HALF_ARC_DEG = 90;
 export const TURN_EASE_DEG = 20;
 export const PITCH_LIMIT_DEG = 18;
 export const DESKTOP_VERTICAL_FOV_DEG = 48;
-export const PORTRAIT_VERTICAL_FOV_DEG = 58;
+export const PORTRAIT_VERTICAL_FOV_DEG = 86;
 
 export interface StageLimits {
   verticalFovDeg: number;
@@ -18,6 +18,8 @@ export interface StageStation {
   z: number;
   /** Authored direction for this view; visitor yaw is still bounded relative to it. */
   headingDeg: number;
+  /** Authored sightline; arrival looks down far enough to read the bench on portrait screens. */
+  pitchDeg: number;
 }
 
 export interface StagePosition { x: number; z: number }
@@ -25,6 +27,7 @@ export interface StagePosition { x: number; z: number }
 /** Adapter contract for the current first-person controller branch, which has no shared Stage API. */
 export interface StageAdapter {
   limits(width: number, height: number): StageLimits;
+  stationPosition(station: StageStation, width: number, height: number): StagePosition;
   turn(yawDeg: number, deltaDeg: number, width: number, height: number): number;
   clampTurn(yawDeg: number, width: number, height: number): number;
   clampPitch(pitchDeg: number): number;
@@ -32,16 +35,16 @@ export interface StageAdapter {
 }
 
 export const STATIONS: readonly StageStation[] = [
-  { id: 'arrival', label: 'Entrance view', x: 0, z: 1.2, headingDeg: 180 },
-  { id: 'bench', label: 'Tracing bench', x: 0, z: 2.45, headingDeg: 180 },
-  { id: 'west', label: 'West inspection', x: -2.05, z: 3.6, headingDeg: 270 },
-  { id: 'rear', label: 'Rear display', x: 0, z: 6.85, headingDeg: 0 },
-  { id: 'east', label: 'East resting view', x: 2.05, z: 3.0, headingDeg: 90 },
+  { id: 'arrival', label: 'Entrance view', x: 0, z: 0.3, headingDeg: 180, pitchDeg: -13 },
+  { id: 'bench', label: 'Tracing bench', x: 0, z: 2.45, headingDeg: 180, pitchDeg: -8 },
+  { id: 'west', label: 'West inspection', x: -2.05, z: 3.6, headingDeg: 270, pitchDeg: -5 },
+  { id: 'rear', label: 'Forward side inspection', x: 2.05, z: 2.45, headingDeg: 135, pitchDeg: -7 },
+  { id: 'east', label: 'East resting view', x: 2.05, z: 3.0, headingDeg: 90, pitchDeg: -5 },
 ];
 
 export const WALKABLE_POLYGON = [
-  [-2.7, 0.55],
-  [2.7, 0.55],
+  [-2.7, 0.25],
+  [2.7, 0.25],
   [2.7, 6.95],
   [-2.7, 6.95],
 ] as const;
@@ -106,6 +109,10 @@ export function applyTurn(yawDeg: number, inputDeltaDeg: number, yawLimitDeg: nu
 
 export const stageAdapter: StageAdapter = {
   limits: limitsForViewport,
+  stationPosition(station, width, height) {
+    // Move the threshold view back while keeping the full bench centered in portrait framing.
+    return station.id === 'arrival' && height > width ? { x: station.x + 0.15, z: 0.3 } : { x: station.x, z: station.z };
+  },
   turn(yawDeg, deltaDeg, width, height) {
     return applyTurn(yawDeg, deltaDeg, limitsForViewport(width, height).yawLimitDeg);
   },

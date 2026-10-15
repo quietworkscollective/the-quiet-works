@@ -99,7 +99,7 @@ describe('the brand files\' licence is a decision, not a proposal', () => {
     entries: Array<{ name: string; pattern: string; source: string; licence: string; licenceFile: string; attribution: string }>;
   };
   const inRepo = manifest.entries.filter((entry) => entry.source === 'in-repo');
-  // In-repo files are the project's own work, CC BY 4.0: the brand files, the posters and the baked light.
+  // In-repo files are the project's own work, CC BY 4.0: the brand files, the posters and baked light atlases.
   const brand = inRepo.filter((entry) => entry.licence === 'CC-BY-4.0');
   // Third-party files kept in this repository name their provider (`third-party:ambientCG`); they are
   // not the project's work, so they are never counted as in-repo.
@@ -112,7 +112,7 @@ describe('the brand files\' licence is a decision, not a proposal', () => {
       '^icon-512\\.png$',
       '^poster-hero-(?:1440x900|412x915)\\.webp$',
       '^share-unheld-1200x630\\.png$',
-      '^(?:corridor|office|codex-room)-[0-9]+-[\\w-]+\\.webp$',
+      '^(?:corridor|office|codex-room|exchange|apartment)-[0-9]+-[\\w-]+\\.webp$',
     ]);
   });
 

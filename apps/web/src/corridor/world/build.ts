@@ -71,8 +71,11 @@ export function buildWorld(): WorldBuild {
   for (const p of places) {
     const built = buildDoor(p.spec, { lod: p.far ? 'far' : 'near', plaques, marks, animated: p.chamber !== null, seed: seedOf(p.key) });
     placeLocal(buckets, doorMatrix(p.side, p.z), (local) => {
-      buildOpening(local, p.spec, OPENING_STYLES);
-      mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
+      // The Outline Room's Blender model supplies both its custom static frame and moving leaf.
+      if (p.key !== 'outline-room') {
+        buildOpening(local, p.spec, OPENING_STYLES);
+        mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
+      }
     });
     if (p.chamber) chamberDoors.push({ placement: p, build: built });
   }

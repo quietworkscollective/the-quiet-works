@@ -2,20 +2,29 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useThree, type RootState } from '@react-three/fiber';
 import { ACESFilmicToneMapping, Color, Group, Mesh, MeshStandardMaterial, PerspectiveCamera, SRGBColorSpace } from 'three';
 import type { ExchangeState } from '../state.ts';
-import { EXCHANGE_FOV, EXCHANGE_STAGE, applyStageYaw, horizontalFov, stationYawLimit } from '../stage.ts';
+import { EXCHANGE_FOV, EXCHANGE_STAGE, applyStageYaw, horizontalFov, limitStagePose, stationYawLimit } from '../stage.ts';
 import { bytesFromPackedDataUrl, decodeGlb } from '../../../assets/gltf.ts';
 import { disposeResources } from '../../../assets/dispose.ts';
 import { BakedSpace } from '../../../baked/BakedSpace.tsx';
-import { EXCHANGE_LOOK, type AtmosphereLamp, LookStack } from '../../../look/index.ts';
+import { type AtmosphereLamp, LookStack } from '../../../look/index.ts';
 import exchangeModel from '../assets/exchange.glb.gz?url&inline';
 import { isDynamicExchangeNode } from '../nodes.ts';
 import { rendererName } from '../../../corridor/world/quality.ts';
+import { kelvinToLinear } from '../../../look/colour.ts';
+import { EXCHANGE_LIGHTING } from './lighting.ts';
+import { EXCHANGE_ROOM_LOOK } from './look.ts';
 
 const CAMERA = { fov: EXCHANGE_FOV.landscape, near: 0.035, far: 35, position: [0, 1.62, 0.48] } as const;
 const GL = { antialias: true, powerPreference: 'high-performance' } as const;
+const [deskRed, deskGreen, deskBlue] = kelvinToLinear(2700);
+const [clerestoryRed, clerestoryGreen, clerestoryBlue] = kelvinToLinear(5000);
+const [galleryRed, galleryGreen, galleryBlue] = kelvinToLinear(3500);
+const DESK_LIGHT_COLOUR = new Color(deskRed, deskGreen, deskBlue);
+const CLERESTORY_LIGHT_COLOUR = new Color(clerestoryRed, clerestoryGreen, clerestoryBlue);
+const GALLERY_LIGHT_COLOUR = new Color(galleryRed, galleryGreen, galleryBlue);
 const AMBIENCE: readonly AtmosphereLamp[] = [
   { id: 'clerestory', kind: 'window', position: [1.82, 11.17, -5.18], direction: [-0.3, -0.84, -0.57] },
-  { id: 'desk-pool', kind: 'desk-lamp', position: [-0.82, 1.115, -1.56], direction: [0, -1, 0] },
+  { id: 'desk-pool', kind: 'desk-lamp', position: [-0.24, 1.285, -5.31], direction: [0, -1, 0] },
 ];
 
 export interface ExchangeSceneProps {
@@ -51,7 +60,7 @@ function ExchangeModel({ state, loaded, onError }: { state: ExchangeState; loade
       for (const material of materials) {
         if (!(material instanceof MeshStandardMaterial)) continue;
         material.emissive = new Color(on ? '#E7A85E' : '#211C14');
-        material.emissiveIntensity = on ? 1.3 : 0.05;
+        material.emissiveIntensity = on ? EXCHANGE_LIGHTING.indicator.active : EXCHANGE_LIGHTING.indicator.idle;
         material.needsUpdate = true;
       }
     };
@@ -79,19 +88,22 @@ function ExchangeModel({ state, loaded, onError }: { state: ExchangeState; loade
 
 function RoomLighting() {
   return <>
-    <hemisphereLight args={['#E8E2D6', '#554332', 2.2]} />
-    <directionalLight color="#FFE5B7" position={[-3, 8, 3]} intensity={1.2} />
-    <pointLight color="#F2B96F" position={[-0.82, 1.2, -1.56]} intensity={14} distance={4} decay={2} />
-    <pointLight color="#D7DDD7" position={[1.82, 11.17, -5.18]} intensity={75} distance={12} decay={2} />
+    <hemisphereLight args={['#EEECE4', '#746E61', EXCHANGE_LIGHTING.warmReturn.intensity]} />
+    <pointLight color={DESK_LIGHT_COLOUR} position={EXCHANGE_LIGHTING.desk.position} intensity={EXCHANGE_LIGHTING.desk.intensity} distance={4} decay={2} />
+    <pointLight color={CLERESTORY_LIGHT_COLOUR} position={EXCHANGE_LIGHTING.clerestory.position} intensity={EXCHANGE_LIGHTING.clerestory.intensity} distance={12} decay={2} />
+    <pointLight color="#E0B987" position={EXCHANGE_LIGHTING.equipment.position} intensity={EXCHANGE_LIGHTING.equipment.intensity} distance={5} decay={2} />
+    <pointLight color="#D8A66E" position={EXCHANGE_LIGHTING.underDesk.position} intensity={EXCHANGE_LIGHTING.underDesk.intensity} distance={1.8} decay={2} />
+    <pointLight color={GALLERY_LIGHT_COLOUR} position={EXCHANGE_LIGHTING.galleryBounce.position} intensity={EXCHANGE_LIGHTING.galleryBounce.intensity} distance={6} decay={2} />
   </>;
 }
 
-function CameraRig({ stationId, yaw, pitch, onTurn, onPitch, onStation, onGesture }: {
+function CameraRig({ stationId, yaw, pitch, onTurn, onPitch, onClampYaw, onStation, onGesture }: {
   stationId: string;
   yaw: number;
   pitch: number;
   onTurn(delta: number, limit: number): void;
   onPitch(delta: number): void;
+  onClampYaw(yaw: number): void;
   onStation(index: number): void;
   onGesture(): void;
 }) {
@@ -102,23 +114,33 @@ function CameraRig({ stationId, yaw, pitch, onTurn, onPitch, onStation, onGestur
     if (!(camera instanceof PerspectiveCamera)) return;
     camera.aspect = size.width / Math.max(1, size.height);
     camera.fov = size.height > size.width ? EXCHANGE_FOV.portrait : EXCHANGE_FOV.landscape;
+    const fov = horizontalFov(camera.fov, size.width / Math.max(1, size.height));
+    const visibleHalfArcDeg = 'visibleHalfArcDeg' in station ? station.visibleHalfArcDeg : undefined;
+    const pose = limitStagePose({
+      x: station.x,
+      z: station.z,
+      yawDeg: station.yawDeg + yaw,
+      pitchDeg: station.pitchDeg + pitch,
+    }, fov, visibleHalfArcDeg ?? EXCHANGE_STAGE.visibleHalfArcDeg);
+    const yawOffset = pose.yawDeg - station.yawDeg;
+    if (Math.abs(yawOffset - yaw) > 0.005) onClampYaw(yawOffset);
     camera.position.set(station.x, station.eyeHeight, station.z);
     camera.rotation.order = 'YXZ';
-    camera.rotation.set((station.pitchDeg + pitch) * Math.PI / 180, -((station.yawDeg + yaw) * Math.PI / 180), 0);
+    camera.rotation.set(pose.pitchDeg * Math.PI / 180, -(pose.yawDeg * Math.PI / 180), 0);
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld(true);
     const host = gl.domElement.closest<HTMLElement>('.tqw-exchange-canvas');
     if (host) {
       host.dataset['cameraStation'] = station.id;
       host.dataset['renderer'] = rendererName(gl.getContext());
-      host.dataset['yawLimit'] = stationYawLimit(station, horizontalFov(camera.fov, size.width / Math.max(1, size.height))).toFixed(2);
-      host.dataset['horizontalFov'] = horizontalFov(camera.fov, size.width / Math.max(1, size.height)).toFixed(2);
-      host.dataset['cameraYaw'] = (station.yawDeg + yaw).toFixed(2);
-      host.dataset['cameraPitch'] = (station.pitchDeg + pitch).toFixed(2);
+      host.dataset['yawLimit'] = stationYawLimit(station, fov).toFixed(2);
+      host.dataset['horizontalFov'] = fov.toFixed(2);
+      host.dataset['cameraYaw'] = pose.yawDeg.toFixed(2);
+      host.dataset['cameraPitch'] = pose.pitchDeg.toFixed(2);
       host.dataset['lookPitch'] = String(pitch);
     }
     invalidate();
-  }, [camera, gl, invalidate, pitch, size.height, size.width, station, yaw]);
+  }, [camera, gl, invalidate, onClampYaw, pitch, size.height, size.width, station, yaw]);
   useEffect(() => {
     const canvas = gl.domElement;
     canvas.setAttribute('aria-label', 'The Exchange stage. Use arrow keys to turn, number keys one to four to change station, or drag to look.');
@@ -232,6 +254,7 @@ export default function ExchangeScene({ state, reducedMotion, onReady, onContext
   const turn = useCallback((delta: number, limit: number) => {
     setYaw(current => applyStageYaw(current, delta, limit));
   }, []);
+  const clampYaw = useCallback((nextYaw: number) => setYaw(nextYaw), []);
   const lookPitch = useCallback((delta: number) => setPitch(current => Math.max(-25, Math.min(25, current + delta))), []);
   const lamps = useMemo(() => AMBIENCE, []);
   const afterReady = useCallback(() => {
@@ -257,8 +280,8 @@ export default function ExchangeScene({ state, reducedMotion, onReady, onContext
       <RoomLighting />
       <ExchangeModel state={state} loaded={loaded} onError={onError} />
       {modelReady ? <BakedSpace space="exchange" onReady={afterReady} /> : null}
-      <CameraRig stationId={stationId} yaw={yaw} pitch={pitch} onTurn={turn} onPitch={lookPitch} onStation={onStation} onGesture={onGesture} />
-      <LookStack profile={EXCHANGE_LOOK} reducedMotion={reducedMotion} lamps={lamps} />
+      <CameraRig stationId={stationId} yaw={yaw} pitch={pitch} onTurn={turn} onPitch={lookPitch} onClampYaw={clampYaw} onStation={onStation} onGesture={onGesture} />
+      <LookStack profile={EXCHANGE_ROOM_LOOK} reducedMotion={reducedMotion} lamps={lamps} />
     </Canvas>
     {reducedMotion ? <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: '#211b14', opacity: stationDissolve ? 0.5 : 0, transition: 'opacity 60ms linear' }} /> : null}
   </div>;

@@ -6,7 +6,7 @@ licensed under the same terms as the files it changes (Apache-2.0 section 5 for 
 
 ## Before anything else
 
-Read `AGENTS.md`. Its ten constraints apply to every contribution, human or machine. In short:
+Read `AGENTS.md`. Its twelve constraints apply to every contribution, human or machine. In short:
 this is not therapy or diagnosis; no first-person testimony is presented as real without consent;
 no accounts, tracking or remote executable content; every interaction has an accessible
 equivalent; every asset is licensed and attributed.

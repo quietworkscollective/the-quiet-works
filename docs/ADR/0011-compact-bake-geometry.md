@@ -1,7 +1,7 @@
 # ADR 0011 — Compact baked geometry for the corridor startup budget
 
 - **Status:** accepted, 15 October 2026. Measured on the integration branch: the first visit stays under its 3 MB budget, and the bake freshness gate covers the compacted geometry.
-- **Supersedes:** the geometry-precision sentence in ADR 0008 while this proposal is under review.
+- **Amends:** ADR 0008, the paragraph beginning "Baked geometry is parsed from an inline gzip-compressed glTF import". This ADR stores baked glTF geometry quantised; the rest of that paragraph stands.
 
 ## Context
 

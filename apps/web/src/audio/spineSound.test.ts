@@ -88,7 +88,6 @@ const ALL_CUES: readonly SpineCue[] = [
   doorOpen('apartment'),
   doorOpen('tomorrow-engine'),
   doorOpen('great-atrium'),
-  { type: 'door-sealed', id: 'apartment' },
   { type: 'door-sealed', id: 'tomorrow-engine' },
   { type: 'door-sealed', id: 'great-atrium' },
   { type: 'chamber-leave', id: 'certification-office' },
@@ -466,7 +465,7 @@ describe('a sealed door', () => {
   it('rattles over rattleMs, shaped by what holds it: a bolt, a seal, a chain', () => {
     const length = ms(SPINE_TIMING.rattleMs);
     expect(SPINE_TIMING.rattleMs).toBe(420);
-    for (const [id, closure] of [['apartment', 'bolt'], ['tomorrow-engine', 'seal'], ['great-atrium', 'chain']] as const) {
+    for (const [id, closure] of [['tomorrow-engine', 'seal'], ['great-atrium', 'chain']] as const) {
       const { rig } = rattle(id);
       expect(rig.trace).toEqual([{ voice: `rattle-${closure}`, at: D, length }]);
     }
@@ -474,7 +473,7 @@ describe('a sealed door', () => {
 
   it('starts at the cue, never begins a sound after the rattle is over, and rings on no longer than a tenth of a second', () => {
     const length = ms(SPINE_TIMING.rattleMs);
-    for (const id of ['apartment', 'tomorrow-engine', 'great-atrium'] as const) {
+    for (const id of ['tomorrow-engine', 'great-atrium'] as const) {
       const { nodes } = rattle(id);
       const list = sources(nodes);
       expect(startsAt(list, D), id).toBe(true);
@@ -495,9 +494,20 @@ describe('a sealed door', () => {
     const bodyRings = (nodes: readonly FakeNode[], base: number): number =>
       oscillators(nodes).filter((o) => o.type === 'sine' && [2.2, 6.1, 11.4].some((r) => near(o.frequency.valueAt(0), base * r, base * r * 0.05))).length;
 
-    const bolt = rattle('apartment').nodes;
     const seal = rattle('tomorrow-engine').nodes;
     const chain = rattle('great-atrium').nodes;
+    const boltRig = build();
+    const boltEnv: voices.SpineEnv = {
+      ctx: boltRig.ctx as unknown as BaseAudioContext,
+      noise: createNoiseBuffers(boltRig.ctx as unknown as BaseAudioContext),
+      rand: createPrng(11),
+      out: boltRig.ctx.createGain() as unknown as AudioNode,
+      send: null,
+      begin: () => () => undefined,
+    };
+    const bolt = created(boltRig.ctx, () =>
+      voices.sealedRattle(boltEnv, 5, doorFeel(CHAMBER_MODULES.apartment.door), 'bolt', ms(SPINE_TIMING.rattleMs), { pan: 0, dry: 1, wet: 0 }),
+    );
     expect(links(chain)).toBeGreaterThanOrEqual(18);
     expect(links(bolt)).toBe(0);
     expect(links(seal)).toBe(0);

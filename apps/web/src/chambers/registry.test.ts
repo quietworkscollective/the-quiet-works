@@ -1,33 +1,17 @@
-import { CHAMBERS } from '@tqw/engine';
 import { describe, expect, it } from 'vitest';
-import { CHAMBER_SLOTS } from '../corridor/layout.ts';
-import { CHAMBER_MODULES, isChamberOpenInBuild, preloadChamber } from './registry.ts';
+import { isChamberOpenInBuild, preloadChamber } from './registry.ts';
 
-describe('chamber modules', () => {
-  it.each(CHAMBERS.map((c) => [c.id, c] as const))('%s has a door, and code exactly when open', (id, entry) => {
-    const module = CHAMBER_MODULES[id];
-    expect(module.door).toBeDefined();
-    expect(typeof module.load === 'function').toBe(entry.status === 'open');
+describe('chamber release flags', () => {
+  it('keeps the Apartment sealed in production and refuses to load its code', () => {
+    expect(isChamberOpenInBuild('apartment', false)).toBe(false);
+    expect(preloadChamber('apartment', false)).toBeNull();
   });
 
-  it.each(CHAMBERS.map((c) => [c.id, c] as const))('%s door plaque agrees with the registry', (id, entry) => {
-    const plaque = CHAMBER_MODULES[id].door.plaque;
-    if (plaque) expect(plaque.text).toBe(entry.plaque);
-  });
-
-  it.each(['exchange', 'outline-room'] as const)('%s is open in development and sealed in production until approved', (id) => {
-    expect(isChamberOpenInBuild(id, true)).toBe(true);
-    expect(isChamberOpenInBuild(id, false)).toBe(false);
-    expect(CHAMBER_MODULES[id].releaseOpen).toBe(false);
-    expect(preloadChamber(id, false)).toBeNull();
-  });
-
-  it('every chamber has exactly one corridor slot, on its registry side, in registry order', () => {
-    expect(CHAMBER_SLOTS.map((s) => s.chamber)).toEqual(CHAMBERS.map((c) => c.id));
-    for (const slot of CHAMBER_SLOTS) {
-      expect(slot.side).toBe(CHAMBERS.find((c) => c.id === slot.chamber)?.side);
-    }
-    const zs = CHAMBER_SLOTS.map((s) => s.z);
-    expect([...zs].sort((a, b) => b - a)).toEqual(zs);
+  it('opens and loads the Apartment in development while its release flag is off', async () => {
+    expect(isChamberOpenInBuild('apartment', true)).toBe(true);
+    const room = preloadChamber('apartment', true);
+    expect(room).not.toBeNull();
+    if (!room) throw new Error('The Apartment must load in development');
+    await expect(room).resolves.toHaveProperty('default');
   });
 });

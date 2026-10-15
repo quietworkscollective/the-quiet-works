@@ -53,6 +53,7 @@ const stats = readGlb(bytes);
 const document = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(12, true)))) as {
   nodes?: { mesh?: number; name?: string }[];
   meshes?: { primitives?: unknown[] }[];
+  materials?: { name?: string; emissiveFactor?: number[] }[];
   extensionsUsed?: string[];
   extensionsRequired?: string[];
 };
@@ -62,12 +63,17 @@ const required = [
   'inspect_handset', 'inspect_rulebook', 'inspect_wiring_diagram', 'inspect_ladder',
   'inspect_lamp_test', 'inspect_tea_flask', 'inspect_cardigan', 'inspect_shift_roster',
   'inspect_operator_frame', 'inspect_wanted_bell', 'operator_lamp', 'phone_handset',
+  'desk_lamp_emitter', 'clerestory_emitter',
   ...Array.from({ length: 12 }, (_, index) => `line_jack_${String(index + 1).padStart(2, '0')}`),
   ...Array.from({ length: 12 }, (_, index) => `line_lamp_${String(index + 1).padStart(2, '0')}`),
   ...Array.from({ length: 12 }, (_, index) => `line_card_${String(index + 1).padStart(2, '0')}`),
 ];
 const missing = required.filter(name => !names.has(name));
 if (missing.length) throw new Error(`Missing named interactive nodes: ${missing.join(', ')}`);
+for (const name of ['warm desk lamp glass', 'clerestory glass']) {
+  const emission = document.materials?.find(material => material.name === name)?.emissiveFactor;
+  if (!emission || Math.max(...emission) >= 0.2) throw new Error(`Lamp emission is missing or exceeds the clipping guard: ${name}`);
+}
 if (stats.triangles > MAX_TRIANGLES) throw new Error(`Triangle budget exceeded: ${stats.triangles}`);
 if (drawCalls > MAX_DRAW_CALLS) throw new Error(`Draw-call budget exceeded: ${drawCalls}`);
 if (stats.fileBytes > MAX_BYTES) throw new Error(`Room model exceeds 3 MB: ${stats.fileBytes}`);

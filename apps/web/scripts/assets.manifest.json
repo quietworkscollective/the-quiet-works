@@ -197,7 +197,7 @@
     },
     {
       "name": "Space indirect-light atlases",
-      "pattern": "^(?:corridor|office|codex-room)-[0-9]+-[\\w-]+\\.webp$",
+      "pattern": "^(?:corridor|office|codex-room|exchange|apartment)-[0-9]+-[\\w-]+\\.webp$",
       "source": "in-repo",
       "licence": "CC-BY-4.0",
       "licenceFile": "../../LICENSES/CC-BY-4.0.txt",

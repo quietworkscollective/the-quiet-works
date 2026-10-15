@@ -22,14 +22,14 @@ export const EXCHANGE_STAGE = {
     [-1.78, 0.72], [1.78, 0.72], [1.78, -8.35], [-1.78, -8.35],
   ] as const,
   stations: [
-    { id: 'threshold', title: 'Threshold', x: 0, z: -0.65, eyeHeight: 1.62, yawDeg: 0, pitchDeg: 2 },
-    { id: 'desk', title: 'Desk', x: -0.32, z: -0.10, eyeHeight: 1.62, yawDeg: 0, pitchDeg: -19, visibleHalfArcDeg: 55 },
-    { id: 'ladder', title: 'Ladder', x: 0.35, z: -7.15, eyeHeight: 4.65, yawDeg: 0, pitchDeg: 50 },
-    { id: 'window-seat', title: 'Window seat', x: 0.95, z: -6.38, eyeHeight: 5.05, yawDeg: 0, pitchDeg: 5, visibleHalfArcDeg: 58 },
+    { id: 'threshold', title: 'Threshold', x: 0, z: -0.65, eyeHeight: 1.62, yawDeg: 0, pitchDeg: 18, visibleHalfArcDeg: 45 },
+    { id: 'desk', title: 'Desk', x: -0.32, z: -2.40, eyeHeight: 1.62, yawDeg: 0, pitchDeg: -9, visibleHalfArcDeg: 55 },
+    { id: 'ladder', title: 'Ladder', x: 0.35, z: -5.20, eyeHeight: 4.65, yawDeg: 0, pitchDeg: 30 },
+    { id: 'window-seat', title: 'Window seat', x: 0.95, z: -4.20, eyeHeight: 5.05, yawDeg: 0, pitchDeg: -13, visibleHalfArcDeg: 58 },
   ] as const satisfies readonly ExchangeStation[],
 } as const;
 
-export const EXCHANGE_FOV = { landscape: 70, portrait: 78 } as const;
+export const EXCHANGE_FOV = { landscape: 48, portrait: 76 } as const;
 
 export function horizontalFov(verticalFovDeg: number, aspect: number): number {
   return (2 * Math.atan(Math.tan((verticalFovDeg * Math.PI) / 360) * aspect) * 180) / Math.PI;
@@ -68,7 +68,11 @@ export function containsStagePoint(polygon: readonly (readonly [number, number])
 }
 
 /** Horizontal FOV is recomputed on resize; the camera's current pose is kept inside the derived arc. */
-export function limitStagePose(pose: Pose, horizontalFovDeg: number): Pose {
-  const limit = stageYawLimit(horizontalFovDeg);
+export function limitStagePose(
+  pose: Pose,
+  horizontalFovDeg: number,
+  visibleHalfArcDeg: number = EXCHANGE_STAGE.visibleHalfArcDeg,
+): Pose {
+  const limit = stageYawLimit(horizontalFovDeg, visibleHalfArcDeg);
   return { ...pose, yawDeg: Math.max(-limit, Math.min(limit, pose.yawDeg)) };
 }

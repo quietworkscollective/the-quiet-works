@@ -101,8 +101,8 @@ const URL_ALLOWLIST = [
   { url: 'https://unheld.space/skill.md', reason: 'Public agent onboarding context linked from the Agents page and Markdown pages; navigation only.' },
   { url: 'https://unheld.space/?mode=text', reason: 'Link to the visitor-facing text mode from Markdown pages and agent onboarding; navigation only.' },
   { url: 'https://unheld.space/sitemap.xml', reason: 'Public sitemap address in robots.txt; metadata only, not fetched by the site.' },
-  { url: 'https://unheld.space/share-unheld-1200x630.png', reason: 'Static 1200 × 630 card derived from the shipped hero poster; not fetched by app code.' },
-  { url: 'https://unheld.space/third-party-notices.txt', reason: 'Bundled software licences linked from the Licences reading page; navigation only.' },
+  { url: 'https://unheld.space/share-unheld-1200x630.png', reason: 'Static 1200 × 630 Open Graph and X card derived from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/third-party-notices.txt', reason: 'Full bundled software licences linked from the Licences reading page; navigation only.' },
   { url: 'https://unheld.space/#website', reason: 'Schema.org JSON-LD identifier for the website; metadata only, not fetched by the site.' },
   { url: 'https://unheld.space/#the-quiet-works', reason: 'Schema.org JSON-LD identifier for the artwork; metadata only, not fetched by the site.' },
   { url: 'https://schema.org', reason: 'JSON-LD vocabulary identifier; metadata only, not fetched by the site.' },
@@ -520,6 +520,8 @@ function report({ entries, mediaRows, allowedSeen, mapUrls, mapFileCount, totalB
   console.log('\nDownload budgets (source maps excluded)');
   if (budgets) {
     console.log(`  first visit landing/corridor: ${formatBytes(budgets.initialGzipBytes)} gzip across ${budgets.initialFiles.size} files; limit ${formatBytes(INITIAL_DOWNLOAD_BUDGET_BYTES)}`);
+    console.log(`  Office direct-link first visit: ${formatBytes(budgets.officeFirstVisit.gzipBytes)} gzip across ${budgets.officeFirstVisit.files.size} files; limit ${formatBytes(INITIAL_DOWNLOAD_BUDGET_BYTES)}`);
+    console.log(`  Office full direct visit (including deferred models): ${formatBytes(budgets.officeFullVisit.gzipBytes)} gzip across ${budgets.officeFullVisit.files.size} files`);
     for (const route of budgets.roomRoutes) {
       console.log(`  ${route.label} expanded lazy route: ${formatBytes(route.gzipBytes)} gzip across ${route.files.size} new files; target ${formatBytes(ROOM_ROUTE_BUDGET_BYTES)}`);
     }

@@ -17,4 +17,13 @@ describe('The Exchange interactive model contract', () => {
     expect(isDynamicExchangeNode('operator_lamp')).toBe(true);
     expect(isDynamicExchangeNode('phone_handset')).toBe(true);
   });
+
+  it('keeps the arrival sign readable as a separately named live-lit node', () => {
+    expect(isDynamicExchangeNode('exchange_board_title')).toBe(true);
+  });
+
+  it('keeps only the inset gallery soffits outside the indirect lightmap', () => {
+    expect(isDynamicExchangeNode('gallery_soffits')).toBe(true);
+    expect(isDynamicExchangeNode('gallery_rails_and_walks')).toBe(false);
+  });
 });

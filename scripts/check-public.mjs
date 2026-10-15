@@ -23,6 +23,7 @@ import { extname } from 'node:path';
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 const BINARY = new Set(['.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.otf', '.glb', '.ktx2', '.bin', '.mp3', '.ogg', '.opus', '.wav', '.m4a', '.zip', '.pdf']);
+const isBinary = (file) => BINARY.has(extname(file).toLowerCase()) || file.toLowerCase().endsWith('.glb.gz');
 
 /** Email addresses that are fine in a public repository. */
 const EMAIL_ALLOWED = [
@@ -90,6 +91,7 @@ function reportedEmails(file, line) {
 
 function selfTest() {
   const broken = RULES.filter((rule) => !rule.pattern.test(rule.sample)).map((rule) => rule.id);
+  if (!isBinary('apps/web/src/assets/outline-room.glb.gz')) broken.push('binary-gzip-model');
   if (personalEmails('contact someone.private@gmail.com').length !== 1) broken.push('email');
   if (personalEmails('Author <1234+someone@users.noreply.github.com>').length !== 0) broken.push('email-allowlist');
   if (personalEmails('write to info@unheld.space').length !== 0) broken.push('email-project-contact');
@@ -158,7 +160,7 @@ function scan(files) {
       continue; // deleted in the working tree
     }
     if (size > MAX_FILE_BYTES) violations.push(`${file}: ${(size / 1048576).toFixed(1)} MB exceeds ${MAX_FILE_BYTES / 1048576} MB`);
-    if (BINARY.has(extname(file).toLowerCase()) || file === 'scripts/check-public.mjs') continue;
+    if (isBinary(file) || file === 'scripts/check-public.mjs') continue;
     const lines = readFileSync(file, 'utf8').split('\n');
     lines.forEach((line, index) => {
       for (const rule of RULES) {
@@ -179,7 +181,7 @@ if (release) {
   violations.push(...historyViolations());
   if (!files.includes('LICENSE')) violations.push('LICENSE: missing; the licence is a founder decision');
   for (const file of files) {
-    if (BINARY.has(extname(file).toLowerCase()) || file === 'scripts/check-public.mjs') continue;
+    if (isBinary(file) || file === 'scripts/check-public.mjs') continue;
     let text;
     try {
       text = readFileSync(file, 'utf8');

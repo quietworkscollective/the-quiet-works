@@ -4,6 +4,8 @@ export function isDynamicExchangeNode(name: string): boolean {
     name.startsWith('line_jack_') ||
     name.startsWith('line_lamp_') ||
     name.startsWith('line_card_') ||
+    name === 'exchange_board_title' ||
+    name === 'gallery_soffits' ||
     name === 'operator_lamp' ||
     name === 'operator_nameplate' ||
     name === 'phone_handset' ||

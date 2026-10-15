@@ -16,35 +16,76 @@ export function firstFrameDrawn(published: { frames?: string | undefined; pose?:
   return published.pose !== undefined && framesSincePose >= 2;
 }
 
-/** If the scene never says (a failed renderer falls back to text mode, which turns this off), the poster goes anyway. */
-export const SCENE_SIGNAL_FALLBACK_MS = 8000;
-
 /**
  * True once the corridor scene has drawn its first frame. Polls the scene's published attributes
- * once per animation frame until it has, then stops: a few frames' work, once per page load.
- * `enabled` is false where there is no scene (text mode).
+ * while its canvas exists. A held or still-loading scene must not count as a frame; a failed
+ * renderer switches to text mode, which turns this off. The observer does no work while the lazy
+ * corridor chunk has not mounted, and only uses two animation callbacks after a pose is published
+ * for the demand-rendered case that has not yet published a non-zero frame count.
  */
 export function useFirstSceneFrame(enabled: boolean): boolean {
   const [drawn, setDrawn] = useState(false);
   useEffect(() => {
     if (!enabled || drawn) return;
+    let target: HTMLElement | null = null;
     let raf = 0;
     let sincePose = 0;
+    let lastPose: string | undefined;
+    const inspect = () => {
+      if (!target) return;
+      const frames = target.dataset['frames'];
+      const pose = target.dataset['pose'];
+      if (firstFrameDrawn({ frames, pose }, sincePose)) {
+        setDrawn(true);
+        return;
+      }
+      if (pose === undefined) return;
+      if (pose !== lastPose) {
+        lastPose = pose;
+        sincePose = 0;
+        raf = window.requestAnimationFrame(tick);
+      }
+    };
     const tick = () => {
-      const el = document.querySelector<HTMLElement>('.tqw-corridor-canvas');
-      const pose = el?.dataset['pose'];
-      sincePose = pose === undefined ? 0 : sincePose + 1;
-      if (firstFrameDrawn({ frames: el?.dataset['frames'], pose }, sincePose)) {
+      if (!target) return;
+      const pose = target.dataset['pose'];
+      if (pose !== lastPose) {
+        lastPose = pose;
+        sincePose = 0;
+      } else {
+        sincePose += 1;
+      }
+      if (firstFrameDrawn({ frames: target.dataset['frames'], pose }, sincePose)) {
         setDrawn(true);
         return;
       }
       raf = window.requestAnimationFrame(tick);
     };
-    raf = window.requestAnimationFrame(tick);
-    const fallback = window.setTimeout(() => setDrawn(true), SCENE_SIGNAL_FALLBACK_MS);
+    const attributes = new MutationObserver(inspect);
+    const structure = new MutationObserver(() => {
+      const next = document.querySelector<HTMLElement>('.tqw-corridor-canvas');
+      if (next === target) return;
+      attributes.disconnect();
+      target = next;
+      lastPose = undefined;
+      sincePose = 0;
+      if (target) {
+        attributes.observe(target, { attributes: true, attributeFilter: ['data-frames', 'data-pose'] });
+        inspect();
+      }
+    });
+    structure.observe(document.documentElement, { childList: true, subtree: true });
+    structure.takeRecords();
+    const initial = document.querySelector<HTMLElement>('.tqw-corridor-canvas');
+    if (initial) {
+      target = initial;
+      attributes.observe(target, { attributes: true, attributeFilter: ['data-frames', 'data-pose'] });
+      inspect();
+    }
     return () => {
+      structure.disconnect();
+      attributes.disconnect();
       window.cancelAnimationFrame(raf);
-      window.clearTimeout(fallback);
     };
   }, [enabled, drawn]);
   return drawn;

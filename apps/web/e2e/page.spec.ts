@@ -238,7 +238,7 @@ test.describe('the hero', () => {
     await expect(site(page)).toHaveAttribute('data-engaged', 'false');
   });
 
-  test('draws one amber focus ring on the way in', async ({ page }) => {
+  test('draws one primary-text focus ring on the way in', async ({ page }) => {
     await page.goto('/');
     // Reached by keyboard, so the ring is the focus-visible one.
     for (let i = 0; i < 15 && !(await heroEnter(page).evaluate((el) => el === document.activeElement)); i += 1) await page.keyboard.press('Tab');
@@ -247,7 +247,7 @@ test.describe('the hero', () => {
       const s = getComputedStyle(el);
       return { style: s.outlineStyle, width: s.outlineWidth, colour: s.outlineColor };
     });
-    expect(ring).toEqual({ style: 'solid', width: '2px', colour: 'rgb(213, 155, 74)' });
+    expect(ring).toEqual({ style: 'solid', width: '2px', colour: 'rgb(238, 233, 223)' });
   });
 });
 
@@ -776,18 +776,18 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     await page.getByRole('button', { name: 'The Certification Office, open the door' }).focus();
     await page.keyboard.press('Enter');
     await expectSpine(page, 'threshold');
-    // Before the seam there is no room to hide: the corridor's doorway view is what is on screen.
-    await expect(page.locator('.tqw-chamber-host')).toHaveCount(0);
-    await expect(canvas(page)).toBeAttached();
-    // The seam passes, the room has not arrived: a veil, and still no room.
+    // The room may prepare behind the closed doorway, but it is hidden and out of reach.
     const host = page.locator('.tqw-chamber-host');
-    await expect(host).toHaveCount(1, { timeout: 15_000 });
+    await expect(host).toHaveCount(1);
+    await expect(host).toHaveAttribute('data-seam', 'false');
     await expect(host).toHaveAttribute('data-ready', 'false');
     expect(await host.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(0);
-    await expect(page.locator('.tqw-seam-veil')).toHaveAttribute('data-held', 'true');
+    await expect(page.locator('.tqw-seam-veil')).toHaveCount(0);
+    await expect(canvas(page)).toBeAttached();
     await page.waitForTimeout(700);
     await expectSpine(page, 'threshold');
     expect(await host.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(0);
+    await expect(host).toHaveAttribute('data-seam', 'false');
 
     await recordHost(page);
     release();
@@ -1712,9 +1712,9 @@ test.describe('the details and the footer', () => {
     const line = section.getByRole('listitem').filter({ has: page.getByRole('link', { name: desk.title, exact: true }) });
     await expect(line).toContainText(`by ${desk.author}`);
     await expect(line).toContainText('CC0 1.0 Universal');
-    // The project's own models are named as CC BY 4.0, after the lists, and the section follows the Credits paragraphs.
+    // The project's own models are named as CC BY 4.0, after the lists, and the asset region follows the grouped Credits sections.
     await expect(section.locator('p').last()).toContainText('CC BY 4.0');
-    expect(await credits.evaluate((dialog) => dialog.querySelector('.tqw-page__assets')!.previousElementSibling!.tagName)).toBe('P');
+    expect(await credits.evaluate((dialog) => dialog.querySelector('.tqw-page__assets')!.previousElementSibling!.classList.contains('tqw-page__credits'))).toBe(true);
     // Links, never requests: nothing is fetched from any provider.
     expect(requests.filter((url) => /polyhaven|ambientcg|creativecommons/.test(url))).toEqual([]);
   });

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 
-/** If the browser never reports the fade's end (a hidden tab, no transition), the poster goes anyway after this. */
-const GONE_FALLBACK_MS = 800;
+/** Includes the 400 ms fade and an observable transparent interval, independent of compositor events. */
+const REMOVE_AFTER_READY_MS = 3500;
 
 export interface PosterProps {
   /** The hero view, drawn by a script from the real build: landscape and portrait. */
@@ -23,15 +24,21 @@ export interface PosterProps {
  */
 export function Poster({ landscape, portrait, ready, onGone }: PosterProps) {
   const gone = useRef(false);
+  const onGoneRef = useRef(onGone);
+  useLayoutEffect(() => {
+    onGoneRef.current = onGone;
+  }, [onGone]);
   const finish = useCallback(() => {
     if (gone.current) return;
     gone.current = true;
-    onGone();
-  }, [onGone]);
+    // The deadline must commit DOM removal, not enqueue work behind a busy renderer.
+    flushSync(() => onGoneRef.current());
+  }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ready) return;
-    const timer = window.setTimeout(finish, GONE_FALLBACK_MS);
+    // Arm at the ready commit: a delayed paint or transition end cannot extend removal.
+    const timer = window.setTimeout(finish, REMOVE_AFTER_READY_MS);
     return () => window.clearTimeout(timer);
   }, [ready, finish]);
 
@@ -40,9 +47,6 @@ export function Poster({ landscape, portrait, ready, onGone }: PosterProps) {
       className="tqw-poster"
       data-ready={ready}
       aria-hidden="true"
-      onTransitionEnd={(event) => {
-        if (event.target === event.currentTarget && event.propertyName === 'opacity') finish();
-      }}
     >
       <source media="(orientation: portrait)" srcSet={portrait} type="image/webp" />
       <img src={landscape} alt="" width={1440} height={900} loading="eager" decoding="async" fetchPriority="high" draggable={false} />

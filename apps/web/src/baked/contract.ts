@@ -17,7 +17,7 @@ export interface BakeLight {
 }
 export interface BakeManifest {
   version: 1;
-  space: 'corridor' | 'office' | 'codex-room' | 'exchange';
+  space: 'corridor' | 'office' | 'codex-room' | 'exchange' | 'apartment';
   hash: string;
   sourceHash?: string;
   materialHash?: string;

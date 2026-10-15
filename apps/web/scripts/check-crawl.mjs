@@ -4,7 +4,7 @@ import https from 'node:https';
 import { runnerImport } from 'vite';
 
 const { module: { ABOUT, CHAMBERS, PRIVACY } } = await runnerImport(new URL('../../../packages/engine/src/index.ts', import.meta.url).pathname, { configFile: false, root: new URL('..', import.meta.url).pathname });
-const base = process.env.TQW_CRAWL_URL ?? 'http://127.0.0.1:4192';
+const base = process.env.TQW_CRAWL_URL ?? 'http://127.0.0.1:4190';
 const agents = ['OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'PerplexityBot', 'Googlebot', 'Bingbot'];
 function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/([\w:-]+)=["']([^"']*)["']/g)].map(match => [match[1], match[2]]));

@@ -42,6 +42,9 @@ export type DirectorEvent =
 /** Quiet (stillness) hatch opening: slow, no bell, no shake. */
 export const QUIET_HATCH_MS = 900;
 
+/** Cavity light rise after the hatch lands, in either motion mode. */
+export const OVERLOAD_LIGHT_RISE_MS = 800;
+
 /**
  * Offsets inside the fifth-stamp overload, in ms after the printer finishes (S + printMs).
  * Latch and landing follow the shared choreography in TIMING, which the sound desk
@@ -69,10 +72,11 @@ export class Director {
   private printEnd = 0;
   private overloadAt = 0;
   private invalidateFn: (() => void) | null = null;
-  private response: { step: number; readyAt: number; generation: number } | null = null;
+  private response: { step: number; readyAt: number; reducedReadyAt: number; generation: number } | null = null;
   private responseWake: ReturnType<typeof setTimeout> | null = null;
   private generation = 0;
   private frameStartedAt = 0;
+  private reducedMotion = false;
 
   constructor(private readonly store: CertificationStore) {}
 
@@ -85,7 +89,7 @@ export class Director {
   attach(): () => void {
     this.detach?.();
     const state = this.store.getState();
-    if (state.processing && !state.pressing) this.response = { step: state.stamps, readyAt: 0, generation: this.generation };
+    if (state.processing && !state.pressing) this.response = { step: state.stamps, readyAt: 0, reducedReadyAt: 0, generation: this.generation };
     const off = this.store.onCue((cue) => this.handle(cue, performance.now()));
     this.detach = () => {
       off();
@@ -96,11 +100,22 @@ export class Director {
   }
 
   /** A clock deadline requests a frame; only the completed draw may release the idle clock. */
-  beginFrame(now: number): void { this.frameStartedAt = now; }
+  beginFrame(now: number, reducedMotion = false): void {
+    this.frameStartedAt = now;
+    if (this.reducedMotion !== reducedMotion) {
+      this.reducedMotion = reducedMotion;
+      this.wakeForResponse(now);
+    }
+  }
+
+  private responseReadyAt(): number {
+    if (!this.response) return Number.POSITIVE_INFINITY;
+    return this.reducedMotion ? this.response.reducedReadyAt : this.response.readyAt;
+  }
 
   afterFrame(): void {
     const response = this.response;
-    if (!response || this.frameStartedAt < response.readyAt) return;
+    if (!response || this.frameStartedAt < this.responseReadyAt()) return;
     this.response = null;
     if (this.responseWake !== null) clearTimeout(this.responseWake);
     this.responseWake = null;
@@ -118,7 +133,8 @@ export class Director {
 
   private wakeForResponse(now: number): void {
     if (this.responseWake !== null) clearTimeout(this.responseWake);
-    if (this.response) this.responseWake = setTimeout(() => { this.responseWake = null; this.invalidateFn?.(); }, Math.max(0, this.response.readyAt - now));
+    this.responseWake = null;
+    if (this.response) this.responseWake = setTimeout(() => { this.responseWake = null; this.invalidateFn?.(); }, Math.max(0, this.responseReadyAt() - now));
   }
 
   subscribe(listener: DirectorListener): () => void {
@@ -150,14 +166,19 @@ export class Director {
       case 'reply': {
         const printAt = this.liftAt + TIMING.replyDelayMs;
         this.printEnd = printAt + TIMING.printMs;
-        this.response = { step: cue.step, readyAt: Math.max(this.printEnd, printAt + beatDuration(cue.step)), generation: this.generation };
+        this.response = { step: cue.step, readyAt: Math.max(this.printEnd, printAt + beatDuration(cue.step)), reducedReadyAt: printAt + 120, generation: this.generation };
         this.wakeForResponse(now);
         this.emit({ type: 'reply', step: cue.step, line: cue.line, printAt, printEnd: this.printEnd });
         return;
       }
       case 'overload': {
         this.overloadAt = this.printEnd;
-        if (this.response) this.response.readyAt = Math.max(this.response.readyAt, this.overloadAt + TIMING.overloadMs - TIMING.printMs + TIMING.memoAfterLandMs + TIMING.memoSlideMs);
+        if (this.response) {
+          const landAt = this.overloadAt + TIMING.overloadMs - TIMING.printMs;
+          this.response.readyAt = Math.max(this.response.readyAt, landAt + TIMING.memoAfterLandMs + TIMING.memoSlideMs);
+          // Reduced paper appears at slideAt; the cavity light is the last visual to settle.
+          this.response.reducedReadyAt = Math.max(this.response.reducedReadyAt, landAt + TIMING.memoAfterLandMs, landAt + OVERLOAD_LIGHT_RISE_MS);
+        }
         this.wakeForResponse(now);
         this.emit({ type: 'overload', at: this.overloadAt });
         return;

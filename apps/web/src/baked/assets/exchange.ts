@@ -31,9 +31,12 @@ import geometry29 from './exchange-geometry-29.json';
 import geometry30 from './exchange-geometry-30.json';
 import geometry31 from './exchange-geometry-31.json';
 import geometry32 from './exchange-geometry-32.json';
+import geometry33 from './exchange-geometry-33.json';
+import geometry34 from './exchange-geometry-34.json';
+import geometry35 from './exchange-geometry-35.json';
 import manifest from './exchange.manifest.json';
 import image0 from './exchange-0.webp';
 import image1 from './exchange-1.webp';
 import type { BakeAssets } from '../runtime.ts';
 
-export default { geometry: [geometry0, geometry1, geometry2, geometry3, geometry4, geometry5, geometry6, geometry7, geometry8, geometry9, geometry10, geometry11, geometry12, geometry13, geometry14, geometry15, geometry16, geometry17, geometry18, geometry19, geometry20, geometry21, geometry22, geometry23, geometry24, geometry25, geometry26, geometry27, geometry28, geometry29, geometry30, geometry31, geometry32], manifest, images: [image0, image1] } as BakeAssets;
+export default { geometry: [geometry0, geometry1, geometry2, geometry3, geometry4, geometry5, geometry6, geometry7, geometry8, geometry9, geometry10, geometry11, geometry12, geometry13, geometry14, geometry15, geometry16, geometry17, geometry18, geometry19, geometry20, geometry21, geometry22, geometry23, geometry24, geometry25, geometry26, geometry27, geometry28, geometry29, geometry30, geometry31, geometry32, geometry33, geometry34, geometry35], manifest, images: [image0, image1] } as BakeAssets;

@@ -151,6 +151,15 @@ function routeMetadata(chambers: ReturnType<typeof chambersForBuild>, production
   };
 }
 
+const officeFallbackCss = readFileSync(new URL('./public/fallback.css', import.meta.url), 'utf8')
+  .replace(/url\('\/poster-hero-[^']+'\)/g, 'none');
+
+function officeStartupMarkup(html: string, pathname: string): string {
+  if (pathname.replace(/\/+$/, '') !== '/certification-office') return html;
+  return html.replace(/\s*<link\b[^>]*rel="preload"[^>]*as="image"[^>]*>/g, '')
+    .replace('href="/fallback.css"', 'href="/office-fallback.css"');
+}
+
 function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType<typeof chambersForBuild>, production: boolean): string {
   const metadata = metadataForPath(pathname, chambers, production);
   const jsonLd = JSON.stringify(jsonLdForPath(pathname, chambers, production)).replace(/</g, '\\u003c');
@@ -175,7 +184,7 @@ function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType
   if (['/agents', '/licences'].includes(pathname.replace(/\/+$/, ''))) {
     output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
   }
-  return output;
+  return officeStartupMarkup(output, pathname);
 }
 
 /** The agent index links only to UNHELD pages and public GitHub; other citations remain plain labels. */
@@ -190,6 +199,12 @@ function agentSafeMarkdown(markdown: string): string {
 function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, development: boolean): Plugin {
   return {
     name: 'tqw-static-route-pages',
+    configureServer(server) {
+      server.middlewares.use('/office-fallback.css', (_request, response) => {
+        response.setHeader('Content-Type', 'text/css');
+        response.end(officeFallbackCss);
+      });
+    },
     configurePreviewServer(server) {
       server.middlewares.use((request, _response, next) => {
         const url = new URL(request.url ?? '/', SITE.url);
@@ -207,12 +222,13 @@ function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, develop
         if (['/agents', '/licences'].includes(pathname.replace(/\/+$/, ''))) {
           output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
         }
-        return output;
+        return officeStartupMarkup(output, pathname);
       },
     },
     generateBundle: {
       order: 'post',
       handler(_options, bundle) {
+        this.emitFile({ type: 'asset', fileName: 'office-fallback.css', source: officeFallbackCss });
         const index = bundle['index.html'];
         if (!index || index.type !== 'asset') throw new Error('index.html is missing; cannot render public routes');
         const baseHtml = typeof index.source === 'string' ? index.source : Buffer.from(index.source).toString('utf8');
@@ -332,10 +348,10 @@ function thirdPartyNotices(): Plugin {
 const DEVELOPMENT_BUILD = process.env.NODE_ENV !== 'production';
 const BUILD_CHAMBERS = chambersForBuild(REPO_ROOT, DEVELOPMENT_BUILD);
 
-export default defineConfig({
+export default defineConfig(() => ({
   plugins: [react(), siteMetadata(), routeMetadata(BUILD_CHAMBERS, !DEVELOPMENT_BUILD), staticRoutePages(BUILD_CHAMBERS, DEVELOPMENT_BUILD), thirdPartyCredits(), contentSecurityPolicy(), thirdPartyNotices()],
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   preview: { host: '127.0.0.1', port: 4173, strictPort: true },
   build: { target: 'es2022', sourcemap: false, manifest: true },
   test: { include: ['src/**/*.test.ts', 'src/**/*.test.tsx'], environment: 'node' },
-});
+}));

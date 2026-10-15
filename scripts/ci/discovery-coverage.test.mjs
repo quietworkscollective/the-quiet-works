@@ -25,12 +25,12 @@ test('required core selects readable pages, crawler checks and the no-JavaScript
   assert.equal(reading.length, 12, 'all twelve public routes must run without JavaScript in core');
 });
 
-test('authored smoke retains its existing suite without inheriting production reading tests', () => {
+test('authored smoke retains full-tier and Office budgets without production reading tests', () => {
   const report = JSON.parse(execFileSync('pnpm', [
     '--filter', '@tqw/web', 'exec', 'playwright', 'test',
     '--config', 'playwright.artifact.config.ts', '--list', '--reporter=json',
   ], { encoding: 'utf8', env: { ...process.env, TQW_E2E_ARTIFACT: '0' }, maxBuffer: 4_000_000 }));
   assert.deepEqual(report.config.projects.map(project => project.name), ['desktop', 'mobile']);
   assert.ok(report.suites.length > 0);
-  assert.ok(report.suites.every(suite => suite.file.endsWith('full-tier.spec.ts')));
+  assert.deepEqual(new Set(report.suites.map(suite => suite.file.split('/').at(-1))), new Set(['full-tier.spec.ts', 'office-budget.spec.ts']));
 });

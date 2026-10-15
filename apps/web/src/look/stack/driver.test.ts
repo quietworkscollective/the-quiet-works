@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ACESFilmicToneMapping, Material, NoToneMapping, PerspectiveCamera, Scene, SRGBColorSpace, Texture, WebGLRenderTarget, type Vector2, type WebGLRenderer } from 'three';
 import { OFFICE_LOOK, CORRIDOR_LOOK, type LookProfile } from '../profiles.ts';
 import { BlendFunction } from 'postprocessing';
-import { BLOOM_GAIN, bloomRadius, LookDriver, type LookDriverOptions } from './driver.ts';
+import { BLOOM_GAIN, BLOOM_SMOOTHING, bloomRadius, LookDriver, type LookDriverOptions } from './driver.ts';
 import { collectGpuObjects, type GpuObject } from './inspect.ts';
 import { isOnScreenSceneTarget } from '../render.ts';
 
@@ -549,6 +549,10 @@ describe('the bloom calibration', () => {
   it('carries about half the energy of UnrealBloom at the profile’s numbers: stronger than a third, well under all of it', () => {
     expect(BLOOM_GAIN).toBeGreaterThanOrEqual(4);
     expect(BLOOM_GAIN).toBeLessThanOrEqual(6);
+  });
+
+  it('softens the transition into the lamp-core bloom by 0.2 linear luminance', () => {
+    expect(BLOOM_SMOOTHING).toBe(0.2);
   });
 });
 

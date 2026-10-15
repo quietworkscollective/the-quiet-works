@@ -113,6 +113,13 @@ const isEditable = (target: EventTarget | null): boolean => {
   return tag === 'input' || tag === 'textarea' || tag === 'select' || el?.isContentEditable === true;
 };
 
+/** A key used to operate the page is not a gesture in the 3D world. */
+const isKeyboardControl = (target: EventTarget | null): boolean =>
+  typeof (target as { closest?: unknown } | null)?.closest === 'function' &&
+  (target as Element).closest(
+    'button, a[href], input, textarea, select, summary, [role="button"], [role="link"], [role="menuitem"], [role="tab"], [role="dialog"], dialog, [contenteditable="true"], [data-fp-ignore]',
+  ) !== null;
+
 /** Controls drawn over the surface mark themselves with `data-fp-ignore`; a drag never starts on them. */
 export const IGNORE_ATTRIBUTE = 'data-fp-ignore';
 
@@ -174,6 +181,7 @@ export function bindInput(options: InputOptions): InputBinding {
       if (
         (mode === 'engaged' || mode === 'held') &&
         !event.repeat &&
+        !isKeyboardControl(event.target) &&
         event.key !== 'Shift' &&
         event.key !== 'Control' &&
         event.key !== 'Alt' &&
