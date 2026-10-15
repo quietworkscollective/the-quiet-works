@@ -76,6 +76,35 @@ def cylinder(name, radius, depth, at, mat, vertices=20, bucket='frame'):
     return obj
 
 
+def carrier_wheel(name, x, depth, height, bucket, wheel_material, hub_material):
+    bpy.ops.mesh.primitive_torus_add(
+        major_segments=20,
+        minor_segments=8,
+        major_radius=0.042,
+        minor_radius=0.01,
+        location=xyz(x, depth, height),
+        rotation=(math.pi / 2, 0, 0),
+    )
+    wheel = bpy.context.object
+    wheel.name = name
+    wheel.data.materials.append(wheel_material)
+    wheel['_door_bucket'] = bucket
+    for face in wheel.data.polygons:
+        face.use_smooth = True
+
+    bpy.ops.mesh.primitive_cylinder_add(
+        vertices=16,
+        radius=0.017,
+        depth=0.026,
+        location=xyz(x, depth + 0.018, height),
+        rotation=(math.pi / 2, 0, 0),
+    )
+    hub = bpy.context.object
+    hub.name = name + ' axle cap'
+    hub.data.materials.append(hub_material)
+    hub['_door_bucket'] = bucket
+
+
 def tube(name, points, depth, radius, mat, bucket='leaf'):
     curve = bpy.data.curves.new(name, 'CURVE')
     curve.dimensions = '3D'
@@ -166,13 +195,15 @@ def build(output):
     brass = material('Satin brass | roller and guide edges', '#9B794D', 0.34, 0.66)
     brass_light = material('Touched brass | fine track line', '#C1A16D', 0.34, 0.55)
     oxblood = material('Worn oxblood wood | sliding pull', '#67343B', 0.68, 0.02)
-    smoked_glass = material('Smoked ground glass | warm grey', '#555C57', 0.24, 0.08, alpha=0.84)
+    smoked_glass = material('Smoked ground glass | warm grey', '#999185', 0.32, 0.05, alpha=0.5)
     plaque = material('Warm enamel plaque', '#C9BFAE', 0.5, 0.08)
     lettering = material('Dark engraved lettering', '#2C2924', 0.64)
     etch = material('Glass edge etch', '#B7AD98', 0.38, 0.28)
 
     left_leaf = empty('OutlineDoorLeafLeft', (-PANEL_CENTRE, 0, 0))
     right_leaf = empty('OutlineDoorLeafRight', (PANEL_CENTRE, 0, 0))
+    left_leaf['hangerCarriers'] = 2
+    right_leaf['hangerCarriers'] = 2
 
     def frame_cube(*args, **kwargs):
         return cube(*args, bucket='frame', **kwargs)
@@ -220,12 +251,17 @@ def build(output):
     frame_text('Machine-made maker credit', 'MACHINE-MADE · CODEX / OPENAI', plaque_x, 0.102, plaque_y - 0.045, 0.022, lettering)
 
     # Each broad pane has a dark stile, visible ground-glass edge and an oxblood pull at the join.
-    for side, centre, panel_cube in ((-1, -PANEL_CENTRE, left_cube), (1, PANEL_CENTRE, right_cube)):
+    for side, centre, panel_cube, bucket in ((-1, -PANEL_CENTRE, left_cube, 'left-leaf'), (1, PANEL_CENTRE, right_cube, 'right-leaf')):
         panel_cube('Smoked ground-glass sliding leaf', (PANEL_WIDTH - 0.018, 0.072, HEIGHT - 0.03), (centre, -0.045, HEIGHT / 2), smoked_glass, 0.035)
         panel_cube('Leaf top blackened-brass rail', (PANEL_WIDTH, 0.09, 0.09), (centre, 0.008, HEIGHT - 0.055), blackened_brass, 0.025)
         panel_cube('Leaf bottom blackened-brass rail', (PANEL_WIDTH, 0.09, 0.10), (centre, 0.008, 0.07), blackened_brass, 0.025)
         panel_cube('Leaf outer stile', (0.075, 0.08, HEIGHT - 0.20), (centre + side * (PANEL_WIDTH / 2 - 0.038), 0.005, HEIGHT / 2), blackened_brass, 0.018)
         panel_cube('Leaf meeting stile', (0.062, 0.08, HEIGHT - 0.20), (centre - side * (PANEL_WIDTH / 2 - 0.031), 0.005, HEIGHT / 2), blackened_brass, 0.018)
+        for offset in (-0.36, 0.36):
+            wheel_x = centre + offset
+            panel_cube('Leaf hanger drop strap', (0.052, 0.032, 0.17), (wheel_x, 0.16, 2.145), blackened_brass, 0.008)
+            panel_cube('Rail contact saddle', (0.11, 0.075, 0.028), (wheel_x, 0.105, 2.205), blackened_brass, 0.006)
+            carrier_wheel('Brass hanger wheel', wheel_x, 0.155, 2.235, bucket, brass_light, blackened_brass)
         for height in (0.52, 1.05, 1.58):
             panel_cube('Horizontal glass edge etch', (PANEL_WIDTH - 0.17, 0.008, 0.009), (centre, 0.047, height), etch, 0.003)
         pull_x = centre - side * 0.11

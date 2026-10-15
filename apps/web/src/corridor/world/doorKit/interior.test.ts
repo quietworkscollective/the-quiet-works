@@ -11,4 +11,15 @@ describe('Outline Room doorway proxy', () => {
       expect(room.glow.col[index]).toBeGreaterThanOrEqual(room.glow.col[index + 2] ?? 0);
     }
   });
+
+  it('warms the back wall and shows the task lamp as a light source', () => {
+    const room = buildInterior(DOOR, 'outline-room');
+    const backWallRed = room.lamp.col[72] ?? 0;
+    const backWallBlue = room.lamp.col[74] ?? 0;
+    expect(backWallRed).toBeGreaterThan(backWallBlue * 1.2);
+    expect(room.glow.pos.some((_, index) => index % 3 === 0 && (room.glow.pos[index] ?? 0) > 0.6 && (room.glow.pos[index + 1] ?? 0) > 2.4)).toBe(true);
+    const wallWashVertex = room.glow.pos.findIndex((_, index) => index % 3 === 2 && Math.abs((room.glow.pos[index] ?? 0) + 6.98) < 0.001);
+    expect(wallWashVertex).toBeGreaterThanOrEqual(0);
+    expect(room.glow.col[wallWashVertex - 2]).toBeGreaterThan(0.35);
+  });
 });

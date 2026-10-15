@@ -133,6 +133,15 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
     materials.own(set.clippings);
     return set;
   }, [fontsReady, world, materials, gl]);
+  const annexSignGeometry = useMemo(() => world.annexSign.toGeometry(), [world]);
+  const annexSignMaterial = useMemo(() => {
+    const material = materials.beaconMaterial('#ffffff', art ? { map: art.plaque } : {});
+    // The baked corridor has dense overlapping wall surfaces. Keep this small, front-most face
+    // legible through that coarse depth field from the far approach as well as at the door.
+    material.depthTest = false;
+    material.depthWrite = false;
+    return material;
+  }, [art, materials]);
 
   // Locked exposure: ACES at 1, as in the Office. No automatic exposure, no flicker.
   useLayoutEffect(() => {
@@ -232,6 +241,7 @@ export function CorridorWorld({ animation, reducedMotion, decorActive, onDoorPoi
       {entries.map(([key, geometry]) => (
         <mesh key={key} name={key} geometry={geometry} material={materials.byKey[key]} renderOrder={RENDER_ORDER[key] ?? 0} />
       ))}
+      <mesh name="annex-wayfinding" geometry={annexSignGeometry} material={annexSignMaterial} renderOrder={2} userData={{ bake: 'dynamic' }} />
       {outlineDoorReady ? <BakedSpace key={decorReady ? 'decorated' : 'landing'} space="corridor" onReady={markBakeReady} allowLazyMissing={!decorReady} /> : null}
       {Dressing ? <Dressing onReady={markDecorReady} /> : null}
       <Fixtures materials={materials} />

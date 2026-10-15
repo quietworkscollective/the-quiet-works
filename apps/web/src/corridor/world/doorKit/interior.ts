@@ -17,9 +17,9 @@ import { FRAME } from './frame.ts';
 const FLOOR: Rgb = [0.012, 0.019, 0.02];
 const WALL: Rgb = [0.006, 0.009, 0.01];
 const CEILING: Rgb = [0.004, 0.006, 0.007];
-const OUTLINE_FLOOR: Rgb = [0.075, 0.08, 0.075];
-const OUTLINE_WALL: Rgb = [0.095, 0.1, 0.095];
-const OUTLINE_CEILING: Rgb = [0.06, 0.065, 0.06];
+const OUTLINE_FLOOR: Rgb = [0.105, 0.072, 0.043];
+const OUTLINE_WALL: Rgb = [0.12, 0.082, 0.047];
+const OUTLINE_CEILING: Rgb = [0.062, 0.044, 0.028];
 const OUTLINE_WOOD: Rgb = [0.028, 0.022, 0.018];
 const OUTLINE_BRASS: Rgb = [0.26, 0.18, 0.08];
 const OUTLINE_JOINT: Rgb = [0.025, 0.025, 0.023];
@@ -106,6 +106,24 @@ export function buildInterior(spec: DoorSpec, style: 'default' | 'outline-room' 
     stroke(b, [-1.35, 0.84], [1.35, 0.84], 0.025, -3.33, OUTLINE_BRASS);
     const ivory: Rgb = [0.2, 0.19, 0.17];
     quad(b.lamp, [-0.65, 0.875, -3.62], [-0.25, 0.875, -3.62], [-0.25, 0.89, -3.82], [-0.65, 0.89, -3.82], { colour: ivory }, [0, 1, 0]);
+
+    // The proxy carries the real room's task lamp and warm bounce, rather than a grey hold screen.
+    const lampX = 0.82;
+    const lampY = 2.63;
+    const lampZ = -4.12;
+    stroke(b, [lampX, 3.08], [lampX, 2.82], 0.028, lampZ, OUTLINE_BRASS);
+    stroke(b, [lampX - 0.22, lampY + 0.11], [lampX + 0.22, lampY + 0.11], 0.045, lampZ + 0.025, OUTLINE_WOOD);
+    quad(b.lamp,
+      [lampX - 0.2, lampY - 0.07, lampZ + 0.03],
+      [lampX + 0.2, lampY - 0.07, lampZ + 0.03],
+      [lampX + 0.2, lampY + 0.07, lampZ + 0.03],
+      [lampX - 0.2, lampY + 0.07, lampZ + 0.03],
+      { colour: [0.78, 0.64, 0.42] }, [0, 0, 1]);
+    stroke(b, [lampX - 0.26, lampY - 0.1], [lampX + 0.26, lampY - 0.1], 0.018, lampZ + 0.035, OUTLINE_BRASS);
+    glow(b, lampX, lampY, lampZ + 0.04, 0.34, mulRgb(warm, 1.4));
+    glow(b, lampX, lampY, lampZ + 0.05, 0.13, mulRgb(warm, 2.8));
+    glow(b, 0.2, 1.85, zBack + 0.02, 1.45, mulRgb(warm, 0.42));
+    pool(b, 0.48, -4.15, 1.25, 1.55, mulRgb(warm, 0.36), -0.08);
   }
 
   // The desk lamp's light on the floor: a long pool from the lamp ahead and to the left stretching
@@ -120,7 +138,7 @@ export function buildInterior(spec: DoorSpec, style: 'default' | 'outline-room' 
     glow(b, 1.02, 0.78, -4.54, 0.8, mulRgb(teal, 0.16));
     pool(b, 1.02, -4.1, 0.95, 0.95, mulRgb(teal, 0.28), -0.2);
   } else {
-    glow(b, -1.78, 1.12, -4.34, 0.3, mulRgb(warm, 0.68));
+    glow(b, 0.82, 1.18, -4.24, 0.28, mulRgb(warm, 0.58));
   }
   return b;
 }

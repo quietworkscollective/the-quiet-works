@@ -120,10 +120,14 @@ describe('no long bare walls', () => {
 
   it('sets an enamel Annex sign directly above the bay 6 door', () => {
     const buckets = createBuckets();
-    buildAnnexSign(buckets, new PlaqueLayout([{ text: 'ANNEX', code: 'BAY 6' }]));
+    const face = buildAnnexSign(buckets, new PlaqueLayout([{ text: 'ANNEX', code: 'BAY 6' }]));
     const enamel = buckets.enamel.bounds();
     expect(buckets.enamel.triangleCount).toBeGreaterThan(0);
-    expect(buckets.plaque.triangleCount).toBeGreaterThan(0);
+    expect(face.triangleCount).toBe(2);
+    expect(face.bounds().min[1]).toBeCloseTo(ANNEX.sign.y - 0.095, 3);
+    expect(face.bounds().max[1]).toBeCloseTo(ANNEX.sign.y + 0.095, 3);
+    expect(face.uv).toHaveLength(8);
+    expect(face.col).toEqual(Array(face.vertexCount * 3).fill(1));
     expect(enamel.min[1]).toBeCloseTo(ANNEX.sign.y - 0.145, 3);
     expect(enamel.max[1]).toBeCloseTo(ANNEX.sign.y + 0.145, 3);
     expect((enamel.min[2] + enamel.max[2]) / 2).toBeCloseTo(bayCentreZ(ANNEX.bay), 3);

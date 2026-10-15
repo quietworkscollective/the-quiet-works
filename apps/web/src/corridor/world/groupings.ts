@@ -1,4 +1,4 @@
-import { quad, type Style } from './builder.ts';
+import { Bucket, quad, type Style } from './builder.ts';
 import { ART, ART_ATLAS, quadUvs, uvRect, type PlaqueLayout, type Rect } from './artLayout.ts';
 import type { Buckets } from './buckets.ts';
 import { sideFrame } from './architecture/corridor.ts';
@@ -86,7 +86,7 @@ export function framedPrint(b: Buckets, side: Side, s: number, y: number, w: num
 }
 
 /** The shared enamel wayfinding sign above the Annex door. */
-export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): void {
+export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): Bucket {
   const side: Side = 'left';
   const s = bayCentreZ(ANNEX.bay);
   const y = ANNEX.sign.y;
@@ -95,13 +95,16 @@ export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): void {
   const halfH = 0.145;
   wallBox(b.enamel, f, [s - halfW, s + halfW], [y - halfH, y + halfH], [0, 0.045], 0.008, { colour: linear('#743E49') });
   wallBox(b.brass, f, [s - 0.445, s + 0.445], [y - 0.105, y + 0.105], [0.045, 0.049], 0.002, { colour: BRASS_TINT });
-  panel(b, 'plaque', side, f, 0.050, s, y, 0.86, 0.19, quadUvs(plaques.uv('ANNEX')));
+  const face = new Bucket();
+  const [a, c, d, e] = corners(side, f, 0.055, s, y, 0.86, 0.19);
+  quad(face, a, c, d, e, { colour: [1, 1, 1] }, f.normal, quadUvs(plaques.uv('ANNEX')));
   for (const ds of [-0.43, 0.43]) {
     for (const dy of [-0.095, 0.095]) {
       const screw = at(f, 0.054, y + dy, s + ds);
       sphere(b.brass, { at: [screw[0], screw[1], screw[2]] }, 0.009, 10, 5, { colour: BRASS_TINT });
     }
   }
+  return face;
 }
 
 /** A glazed directory case: black enamel box, the lettered board behind a hinged glass door, a lock. */

@@ -1,9 +1,9 @@
 {
   "version": 1,
   "space": "corridor",
-  "hash": "afa096a585f1f1b068591b9a05d23a9a98b5bb761d62426744f1ae4d2c760655",
-  "materialHash": "b88c1794d8cbfd82114d0e66b082d3368edb81571a1f618e75c03df6761e232e",
-  "baselineHash": "86d1a6d2da11453aa13b14e721abf483490381336a61928e687a243d89fdf538",
+  "hash": "33bd927004fc555c77f426e66c411d2e531939557ce89a8b2d6c7f9438a0ff97",
+  "materialHash": "edc0b1430c9f1d3464140831e6ffce1356261e67433546b8d45ae0c014d66fde",
+  "baselineHash": "cbebb8f5da28c434ff9e4aabe15aa0255a72a85ca354dd19c9a87df3b7ba03ba",
   "meshes": [
     "0080191774253b264cb20ac58f45f1041d31cc226a62b7ac1cbfa2373423f923",
     "0a96dd3fc8c0fc07bc726440cf32975a71002b8cb6272226a9b678464f4e3ab5",
@@ -34,7 +34,6 @@
     "846637c251fffa7fabeeab4329a08088da61d1133471bd6e5570253343a408e0",
     "85384aa24ff35318a0302523c9bccab4512d0be05bc11bcc4b9f14752c0159bf",
     "8b9607e9f8da9f7229d4c13832d9e171c2121b0fabc934776f5233f86ac5bd83",
-    "8ee567334b4e811070e230b6845afbb88fef6683859c942b951b528837df90a4",
     "92650ac01fe92b9724c5ffef2ca77dee2cbd9186942688bf4651cceb950e43cc",
     "99c9c8ec14cb24607221ee3f3d2487303a0a53d93d721b145f748811a1958eb7",
     "9cb7cae7ddae840ea7dca84f384c07c5190e2d99e88a55d9269dfa56c0f6c536",
@@ -743,18 +742,18 @@
       "file": "corridor-0.webp",
       "width": 1760,
       "height": 880,
-      "scale": 8,
+      "scale": 11.939265251159668,
       "encoding": "srgb-scale",
-      "bytes": 326642,
+      "bytes": 297402,
       "density": {
         "near": {
-          "min": 16.78450417244925,
-          "max": 16.805089249693875,
-          "area": 866.6951326245324,
+          "min": 16.60820769483894,
+          "max": 16.628349215197666,
+          "area": 866.5317324656676,
           "target": 24
         }
       }
     }
   ],
-  "sourceHash": "f5c7071b4dc7996b37226f2361576bbc880f58b8d12a8fb39b2418e5c092a4b5"
+  "sourceHash": "202eb36403faf1c7365276d68303f114de688891fc0a39e2c2bd9fd455d29720"
 }

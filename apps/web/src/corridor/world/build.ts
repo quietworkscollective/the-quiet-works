@@ -1,4 +1,5 @@
 import { Matrix4 } from 'three';
+import type { Bucket } from './builder.ts';
 import { createBuckets, mergeBuckets, placeLocal, triangleTotal, type Buckets } from './buckets.ts';
 import { PlaqueLayout } from './artLayout.ts';
 import { MarksLayout } from './marksLayout.ts';
@@ -31,6 +32,8 @@ export interface ChamberDoorBuild {
 
 export interface WorldBuild {
   buckets: Buckets;
+  /** The Annex wayfinding face uses the fog-free beacon material so its lettering survives distance. */
+  annexSign: Bucket;
   lamps: Lamp[];
   places: Placement[];
   plaques: PlaqueLayout;
@@ -63,7 +66,7 @@ export function buildWorld(): WorldBuild {
   buildClock(buckets);
   buildBoardStatic(buckets);
   buildGroupings(buckets);
-  buildAnnexSign(buckets, plaques);
+  const annexSign = buildAnnexSign(buckets, plaques);
   buildCare(buckets);
 
   const chamberDoors: ChamberDoorBuild[] = [];
@@ -102,5 +105,5 @@ export function buildWorld(): WorldBuild {
     const lamp = p.spec.character?.lamp;
     return lamp && !p.far ? [{ key: p.key, side: p.side, z: p.z, top: holeOf(p.spec).height, kelvin: lamp.kelvin, strength: lamp.strength }] : [];
   });
-  return { buckets, lamps: buildLamps(doorLamps), places, plaques, marks, chamberDoors, triangles: triangleTotal(buckets) };
+  return { buckets, annexSign, lamps: buildLamps(doorLamps), places, plaques, marks, chamberDoors, triangles: triangleTotal(buckets) };
 }

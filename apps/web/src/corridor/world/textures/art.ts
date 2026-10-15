@@ -56,9 +56,12 @@ function drawPlaque(ctx: CanvasRenderingContext2D, r: Rect, title: string, code:
   ctx.fillStyle = INK;
   ctx.textBaseline = 'alphabetic';
   const maxW = w - 78;
-  const size = fitFont(ctx, title, (s) => `600 ${s}px ${FONTS.cond}`, maxW, hasCode ? 58 : 66, 0.07, 18);
+  const annexWayfinding = title === 'ANNEX';
+  const weight = annexWayfinding ? 700 : 600;
+  const tracking = annexWayfinding ? 0.025 : 0.07;
+  const size = fitFont(ctx, title, (s) => `${weight} ${s}px ${FONTS.cond}`, maxW, hasCode ? (annexWayfinding ? 78 : 58) : 66, tracking, 18);
   const baseline = hasCode ? h * 0.52 : h * 0.6;
-  drawTracked(ctx, title, w / 2, baseline, 0.07 * size, 'center');
+  drawTracked(ctx, title, w / 2, baseline, tracking * size, 'center');
   if (code) {
     ctx.strokeStyle = 'rgba(29,35,38,0.55)';
     ctx.lineWidth = 1.4;

@@ -348,6 +348,23 @@ def build(output):
         for z in (0.22, 1.9, 2.28):
             cylinder('Bead repair fastener', 0.012, 0.006, (x, 0.09, z), brass, 10, direction=(0, 1, 0), parent=doorway)
 
+    # The reverse face carries the same workshop joinery, so the leaf never reads as a blank slab.
+    for x in (-0.57, 0.57):
+        cube('Entry reverse door stile', (0.064, 0.025, 2.38), (x, 0.174, 1.28), oak, 0.01, doorway)
+    for height in (0.19, 1.28, 2.37):
+        cube('Entry reverse cross rail', (1.14, 0.028, 0.07), (0, 0.174, height), oak, 0.01, doorway)
+    cube('Entry reverse panel upper', (0.86, 0.018, 0.86), (0, 0.174, 1.91), red_repair, 0.014, doorway)
+    cube('Entry reverse panel lower', (0.86, 0.018, 0.94), (0, 0.174, 0.68), red_repair, 0.014, doorway)
+    cube('Entry reverse upper glass field', (0.74, 0.018, 0.68), (0, 0.193, 1.92), glass, 0.008, doorway)
+    for x in (-0.38, 0, 0.38):
+        cube('Entry reverse glazing bead', (0.016, 0.026, 0.7), (x, 0.194, 1.92), brass, 0.004, doorway)
+    cube('Entry reverse lower panel inset', (0.68, 0.02, 0.72), (0, 0.194, 0.68), red, 0.012, doorway)
+    for x in (-0.41, 0.41):
+        for height in (0.32, 0.99):
+            cylinder('Entry reverse panel pin', 0.009, 0.009, (x, 0.211, height), brass, 10, direction=(0, 1, 0), parent=doorway)
+    cube('Entry reverse handle backing', (0.075, 0.026, 0.16), (0.43, 0.195, 1.0), oak, 0.01, doorway)
+    rod('Entry reverse brass lever', (0.36, 0.212, 1.0), (0.5, 0.212, 1.0), 0.011, brass, doorway)
+
     # The bench turns slightly at the threshold. Its broad top exposes the tool's side build and
     # carries the diagonal through the lower third of the arrival frame.
     # The camera is turned 13 degrees right; counter-turning the bench gives the top a clear

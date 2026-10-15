@@ -12,7 +12,7 @@ const isDesktop = (info: TestInfo) => info.project.name === 'desktop';
 
 /** The host has a timer fallback; only the Office scene publishes completed resource preparation. */
 async function officePrepared(page: Page): Promise<void> {
-  await expect(page.locator('.tqw-chamber-host .tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
+  await expect(page.locator('.tqw-chamber-host .tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: process.env['CI'] ? 150_000 : 45_000 });
   await roomReady(page);
 }
 

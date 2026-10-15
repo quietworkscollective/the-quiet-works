@@ -57,6 +57,7 @@ const FONT_FACES = [
   '600 40px "IBM Plex Mono"',
   '400 40px "IBM Plex Sans Condensed"',
   '600 40px "IBM Plex Sans Condensed"',
+  '700 40px "IBM Plex Sans Condensed"',
   '400 40px Newsreader',
   '600 40px Newsreader',
   'italic 400 40px Newsreader',
