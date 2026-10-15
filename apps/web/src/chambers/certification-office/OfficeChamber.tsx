@@ -122,7 +122,7 @@ export default function OfficeChamber(props: ChamberProps) {
   }, [textMode]);
 
   const wait = useCallback((gesture = false) => {
-    if (store.getState().pressing || shadow) return;
+    if (store.getState().processing || shadow) return;
     if (gesture) sound.unlock();
     const known = store.getState().memo.revealed;
     store.dispatch({ type: 'STILLNESS' });
@@ -136,10 +136,14 @@ export default function OfficeChamber(props: ChamberProps) {
     });
   }, [store, sound, shadow, office, archive]);
   useEffect(() => {
-    if ((!roomReady && !textMode) || state.pressing || shadow) return;
+    if ((!roomReady && !textMode) || state.processing || shadow) return;
     const timer = window.setTimeout(wait, STILLNESS_MS);
     return () => window.clearTimeout(timer);
-  }, [wait, state.stamps, state.pressing, shadow, roomReady, textMode]);
+  }, [wait, state.stamps, state.processing, shadow, roomReady, textMode]);
+  // HTML has no pending scene animation: its committed reply is the completed response.
+  useEffect(() => {
+    if (textMode && state.processing && !state.pressing) store.dispatch({ type: 'RESPONSE_SETTLED', step: state.stamps });
+  }, [store, textMode, state.processing, state.pressing, state.stamps]);
   useEffect(() => {
     let previous = office.getState().response;
     return office.subscribe(() => {
@@ -250,6 +254,7 @@ export default function OfficeChamber(props: ChamberProps) {
       data-stamps={state.stamps}
       data-phase={state.phase}
       data-pressing={state.pressing}
+      data-processing={state.processing}
       data-memo={state.memo.revealed ? (state.memo.source ?? '') : 'hidden'}
       data-muted={settings.muted}
       data-reduced-motion={settings.reducedMotion}

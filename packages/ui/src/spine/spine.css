@@ -517,6 +517,8 @@ html {
   line-height: var(--page-meta-leading);
   letter-spacing: 0;
   color: var(--bone);
+  /* Local contrast protection over the live corridor, without darkening the whole scene. */
+  text-shadow: 0 0 0.6em rgb(12 12 14 / 0.85), 0 1px 0.15em rgb(12 12 14 / 0.9);
 }
 
 .tqw-hero__sep {

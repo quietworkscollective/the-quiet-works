@@ -1,22 +1,22 @@
 {
   "version": 1,
   "space": "codex-room",
-  "hash": "43d8913b9959ef7cb2657c0b8c66906d28228b7bd494081f16031ab806ec3d5f",
-  "materialHash": "9452425c816f283ec98a9ba74ac385194db39ac0edc414d1fa5ffcec3b52d059",
-  "baselineHash": "b9e830f691a602b820ffed5b0a076e3b2c143a982ff8ac847a3500d9571dcc8b",
+  "hash": "a353f5d426728c9d59ba422eabf297bd142757c25bffbcd4276f1b8ce209fe64",
+  "materialHash": "5f48bf7709147ca47a29fe385bdb5f15b59a9bbf30609cd6e50d0e2102c43e6d",
+  "baselineHash": "6a991f150d52a1e7c3c698cf92f018e6c1dc130c10fb0bdd6057dea1628c49d8",
   "meshes": [
-    "33d5363109bca0aeffa626908e67d9fa84208e885b7febaaec34c2a65b171e93",
-    "3bf915889d0f7ee89b7145e288b189ac40dad3a0320fce4ff86280133263d090",
-    "43fd245d962ac31993798613756fdf9c2ba13c60855a23a6b39be6e79ca4ec5d",
-    "4c745d02882c79eda259eb3d40c908f1d04186b010562dbbf2dd16886de1171a",
-    "50ab029f0e317f6506201d6c81992f86d9b40082a6a6169ddcf1a8363b525955",
-    "5ca93e91d51b8c093c97b6f6c38e739be75aa41d721eebd80fc9b0d7cf3254ab",
-    "8931085ab50af54d64d893927a98b17aa7e2ba8eeaa93076a4f993ed0f040d7f",
-    "8b20b7422483cfc7b3caf1264f39c9dcc7bebf1cb80796aaaf7a913a5f63825a",
-    "cf50f007e38a5282aad9ef6bcab6654585fa0850fba8c6c07cb72550f871c229",
-    "db057c7f120b4232950cb9e2d9c26920a6c0f91a9a2d4e13fa51ca9aaee0162d",
-    "ef246c3a06363e3896745210a6f6c5678516c6d60ffe5d5f0171fae3803e2561",
-    "f8761809c2a11f05389a2f9e5d905a1e40ba173907413deb3ed38b35b95ecbdc"
+    "075215c4c084cce7f04763366bc23d7fa8bae80e2a978a64a5d0adf0675a537e",
+    "3192709d1f387a3884a2bd99f3304c97ffb26d83c81692b08a1ec5562329d10e",
+    "48d9f37d6d44234aaa9f7cf9c4ffeac4a522a77cfb6769bca0cb2f3b4e073476",
+    "4f16a9f3c636c229772d2faf2af314937ce4263af72aafa903f42c111629dfa4",
+    "6ab00839cbd374876acebf4d21b2f8ad99ae1507b040a86e6ea5e9fbbf98a3c8",
+    "6fe805d291c26b54b036d5e2a27af77bb26d402537adf9809c7de3bc66996a4d",
+    "73bb3ffac932e12a86c19865b4c1c84b51c84659f00047eef08e51b3bd854e9e",
+    "83cce99c56cfe529e67c143555fbdf2a433cd5714a820286fa185d468d2959b8",
+    "b616f00779e2c117d0ad10de53cbcfdf7fbf612800115ff47f9897893f556cc4",
+    "bf938c37f8a4b0dd82cfbd82a18fea6d7ebf86b6cce54d467f02b3d23d195faf",
+    "c39cc7e422e3f1993dadfd2b2b691b25ec77f73446c4c171ca57a0c2161f86b4",
+    "c8a4f7a814dc7ab2ffcf8d1239b7ffe0cccc84b8941c981f6f8f5e57deae5460"
   ],
   "lazyMeshes": [],
   "lights": [
@@ -76,24 +76,24 @@
       "file": "codex-room-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 24.844470977783203,
+      "scale": 22.830228805541992,
       "encoding": "srgb-scale",
-      "bytes": 322532,
+      "bytes": 326620,
       "density": {
         "desk": {
-          "min": 63.97632628212077,
-          "max": 64.00199954533979,
+          "min": 63.937734189424546,
+          "max": 64.00396217638753,
           "area": 0.9581398721785127,
           "target": 64
         },
         "foreground": {
-          "min": 31.996009940025214,
-          "max": 32.005493734766844,
-          "area": 508.69943673295904,
+          "min": 31.993215457457396,
+          "max": 37.329098359161215,
+          "area": 508.69943673328794,
           "target": 32
         }
       }
     }
   ],
-  "sourceHash": "e82181d7bfe94b5aea1cbe66db945e47e8c411e28c6cb408f9240aed0ec3eafa"
+  "sourceHash": "7c568c8f63e1eebed63b2901366fc128b6c05a0dca837e342650c07d264b3009"
 }

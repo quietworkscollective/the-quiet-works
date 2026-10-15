@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect, useSyncExternalStore } from 'react';
-import { Canvas, useThree, type RootState } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, type RootState } from '@react-three/fiber';
 import { ACESFilmicToneMapping, NoToneMapping } from 'three';
 import { DESK, type Navigation } from './navigation.ts';
 import { officeAssetPose } from './assetSlots.ts';
@@ -116,6 +116,7 @@ function OfficeScene(props: OfficeSceneProps) {
       const metrics: typeof previous = (...args) => {
         previous.apply(state.scene, args);
         if (args[1] !== state.scene || args[2] !== state.camera) return;
+        director.afterFrame();
         queueMicrotask(() => {
           if (!mounted.current || !containerRef.current) return;
           let lights = 0; state.scene.traverse(object => { if ('isLight' in object && object.isLight) lights++; });
@@ -256,6 +257,8 @@ function pressHandlers(handlers: React.RefObject<OfficeSceneProps>): Pick<SceneC
 }
 
 function Scene({ assets, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
+  // Sample before pose updates; a slow draw must not claim it presented a later resting pose.
+  useFrame(() => director.beginFrame(performance.now()), -100);
   const mountedScene=useRef(false);
   useLayoutEffect(()=>{mountedScene.current=true;return ()=>{mountedScene.current=false;};},[]);
   const certification = useSyncExternalStore(store.subscribe, store.getState);
