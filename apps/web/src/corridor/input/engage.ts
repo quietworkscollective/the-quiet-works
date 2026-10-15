@@ -1,5 +1,7 @@
 import type { ChamberId } from '@tqw/engine';
 import type { Vec2 } from '../../firstPerson/bounds.ts';
+import type { CueTarget } from '../camera/cueText.ts';
+import type { PropId } from '../props.ts';
 
 /**
  * Where a click or tap in the scene goes (ADR 0003). Engaged, it does what it always did: a door
@@ -17,12 +19,24 @@ export interface ClickRouterOptions {
   clickDoor(id: ChamberId): void;
   clickClipping(id: ChamberId): void;
   clickFloor(point: Vec2): void;
+  /** A prop (ADR 0004): glide to it, or do its action. */
+  clickProp(id: PropId): void;
+  /** The notice board's surface: glide to it, or read it. */
+  clickBoard(): void;
+  /** The "Places and actions" list: glide to the prop and do its action. */
+  actProp(id: PropId): void;
+  /** The "Places and actions" list: glide to the notice board and open it. */
+  actBoard(): void;
 }
 
 export interface ClickRouter {
   door(id: ChamberId): void;
   clipping(id: ChamberId): void;
   floor(point: Vec2): void;
+  prop(id: PropId): void;
+  board(): void;
+  /** A place or action chosen from the "Places and actions" list. */
+  place(target: CueTarget): void;
   /** A click on nothing in particular (not a door, the board or a floor point): only ever an engage request. */
   background(): void;
 }
@@ -43,6 +57,18 @@ export function createClickRouter(options: ClickRouterOptions): ClickRouter {
     },
     floor(point) {
       if (!resting()) options.clickFloor(point);
+    },
+    prop(id) {
+      if (!resting()) options.clickProp(id);
+    },
+    board() {
+      if (!resting()) options.clickBoard();
+    },
+    place(target) {
+      if (resting()) return;
+      if (target.kind === 'board') options.actBoard();
+      else if (target.kind === 'prop') options.actProp(target.id);
+      else options.clickDoor(target.id);
     },
     background() {
       resting();

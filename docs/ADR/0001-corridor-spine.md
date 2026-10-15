@@ -176,6 +176,11 @@ Inside a chamber the visitor is also first person, with the same camera numbers,
 - **Text mode:** the corridor in prose (`TEXT_MODE_CORRIDOR`), the door list, the board and the pages. Chambers keep their own text modes.
 - **Sound:**
   - No audio before a deliberate gesture. Scrolling is not a gesture for audio; the first click, tap or key press is.
+  - The lobby gramophone is the music source. A filtered, softly reverberant bed of the same record
+    carries it through the walkable corridor. The diffuse path levels quiet and loud passages to a
+    soft background: about −22 dBFS RMS beside the gramophone and never below about −30 dBFS along
+    the route. Footsteps, doors and captions stay in front; the Sound setting, first-gesture start
+    and 3 s fade apply to both paths. Music fades out over 1.5 s in a chamber.
   - Meaningful corridor sounds are captioned (`SPINE_CAPTIONS`).
 - **Targets:** at least 44 px everywhere, and 48 px on the board. 4.5:1 contrast for body text over the scene. Check on a real phone in daylight.
 

@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { BOARD, MENU_COPY, PAGE_NAV, type PageId } from '@tqw/engine';
+import { BOARD, CORRIDOR_COPY, MENU_COPY, PAGE_NAV, type PageId } from '@tqw/engine';
 import { SettingsBar } from '../SettingsBar.tsx';
 import type { MenuPanelProps } from './types.ts';
 import { useModalDialog } from './useModalDialog.ts';
@@ -15,7 +15,18 @@ const PAGE_LINKS: readonly (readonly [PageId, string])[] = [
  * motion, text mode), which no longer sit on every screen. A dialog, so Escape closes it before it
  * does anything else, including releasing the game window.
  */
-export function MenuPanel({ open, settings, onToggle, canLeaveTextMode, onOpenBoard, onOpenPage, onClose }: MenuPanelProps) {
+export function MenuPanel({
+  open,
+  settings,
+  onToggle,
+  canLeaveTextMode,
+  inChamber,
+  onReturnToCorridor,
+  onBackToEntrance,
+  onOpenBoard,
+  onOpenPage,
+  onClose,
+}: MenuPanelProps) {
   const ref = useModalDialog(open, onClose);
   const titleId = useId();
   const settingsId = useId();
@@ -31,6 +42,28 @@ export function MenuPanel({ open, settings, onToggle, canLeaveTextMode, onOpenBo
           </button>
         </header>
         <nav aria-label="Pages" className="tqw-menu-panel__nav">
+          {inChamber ? (
+            <button
+              type="button"
+              className="tqw-menu-panel__link"
+              onClick={() => {
+                onClose();
+                onReturnToCorridor();
+              }}
+            >
+              {CORRIDOR_COPY.backToCorridor}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="tqw-menu-panel__link"
+            onClick={() => {
+              onClose();
+              onBackToEntrance();
+            }}
+          >
+            {CORRIDOR_COPY.backToEntrance}
+          </button>
           <button type="button" className="tqw-menu-panel__link" onClick={onOpenBoard}>
             {BOARD.title}
           </button>

@@ -2,7 +2,7 @@ import { breaks, grid, quad, type Style } from '../builder.ts';
 import type { Buckets } from '../buckets.ts';
 import type { Rgb } from '../colour.ts';
 import { CORRIDOR } from '../../layout.ts';
-import { END_Z } from '../stage.ts';
+import { CORRIDOR_END_Z } from '../extent.ts';
 import { BRASS_TINT } from '../palette.ts';
 
 /**
@@ -24,6 +24,8 @@ export const FLOOR_WARMTH: Rgb = [1.18, 1.0, 0.78];
 export const BORDER_TONE = 0.64;
 const BORDER_WIDTH = 0.34;
 const INLAY = 0.008;
+/** A small terrazzo tuck under the vertical trim keeps the wall-floor join closed at any yaw. */
+export const WALL_FLOOR_OVERLAP = 0.045;
 
 /** A floor rectangle: x0..x1 by z0..z1 (z1 < z0 is fine: the corridor runs toward -z). */
 function floorRect(
@@ -35,6 +37,7 @@ function floorRect(
   zStep: number,
   nearEdges: readonly number[],
   bucket: 'terrazzo' | 'terrazzoWalk' = 'terrazzo',
+  surfaceY = 0,
 ): void {
   const colour: Rgb = [tone * FLOOR_WARMTH[0], tone * FLOOR_WARMTH[1], tone * FLOOR_WARMTH[2]];
   const zLo = Math.min(z[0], z[1]);
@@ -43,7 +46,7 @@ function floorRect(
   const zs = breaks(zLo, zHi, zStep);
   const style: Style = { colour, ...(shade ? { shade } : {}) };
   // Axes chosen so the normal is +y: x then z gives x cross z = -y, so run z then x.
-  grid(b[bucket], [0, 0, 0], [0, 0, 1], [1, 0, 0], zs, xs, style);
+  grid(b[bucket], [0, surfaceY, 0], [0, 0, 1], [1, 0, 0], zs, xs, style);
 }
 
 function brassStrip(b: Buckets, x: readonly [number, number], z: readonly [number, number]): void {
@@ -55,14 +58,17 @@ export interface FloorOptions {
   shade: Style['shade'];
 }
 
-/** The corridor floor from the lobby's end wall to the far fog. */
+/** The corridor floor from the lobby's inner doors to the far fog. */
 export function buildCorridorFloor(b: Buckets, o: FloorOptions): void {
   const hw = CORRIDOR.width / 2;
+  const floorHalf = hw + WALL_FLOOR_OVERLAP;
   const zNear = CORRIDOR.innerDoorZ;
-  const zFar = END_Z;
+  const zFar = CORRIDOR_END_Z;
   const edge = [-hw + 0.06, -hw + 0.15, -hw + 0.26, hw - 0.26, hw - 0.15, hw - 0.06];
-  floorRect(b, [-hw, -hw + BORDER_WIDTH], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
-  floorRect(b, [hw - BORDER_WIDTH, hw], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
+  // A shared underlay closes sub-pixel seams between the differently finished floor strips.
+  floorRect(b, [-floorHalf, floorHalf], [zNear, zFar], 1, o.shade, 1.8, edge, 'terrazzo', -0.004);
+  floorRect(b, [-floorHalf, -hw + BORDER_WIDTH], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
+  floorRect(b, [hw - BORDER_WIDTH, floorHalf], [zNear, zFar], BORDER_TONE, o.shade, 1.8, edge);
   const fieldLeft = -hw + BORDER_WIDTH;
   const fieldRight = hw - BORDER_WIDTH;
   const walkHalf = 0.58;
@@ -74,18 +80,21 @@ export function buildCorridorFloor(b: Buckets, o: FloorOptions): void {
   brassStrip(b, [hw - BORDER_WIDTH - INLAY / 2, hw - BORDER_WIDTH + INLAY / 2], [zNear, zFar]);
   for (let k = 1; zNear - CORRIDOR.bay * k > zFar; k += 1) {
     const z = zNear - CORRIDOR.bay * k;
-    brassStrip(b, [-hw, hw], [z + 0.003, z - 0.003]);
+    brassStrip(b, [-floorHalf, floorHalf], [z + 0.003, z - 0.003]);
   }
 }
 
 /** The lobby floor: a field inside a border band, joined to the corridor at the inner doors. */
 export function buildLobbyFloor(b: Buckets, o: FloorOptions, halfWidth: number, zNear: number, zFar: number): void {
   const w = halfWidth;
+  const floorHalf = w + WALL_FLOOR_OVERLAP;
   const band = 0.42;
   const edge = [-w + 0.06, -w + 0.16, -w + 0.3, w - 0.3, w - 0.16, w - 0.06];
+  // The lobby's separate border and field grids share one buried floor so their edges stay closed.
+  floorRect(b, [-w - WALL_FLOOR_OVERLAP, w + WALL_FLOOR_OVERLAP], [zNear, zFar], 1, o.shade, 1.6, edge, 'terrazzo', -0.004);
   // Side bands, then the end bands, then the field.
-  floorRect(b, [-w, -w + band], [zNear, zFar], BORDER_TONE, o.shade, 1.6, edge);
-  floorRect(b, [w - band, w], [zNear, zFar], BORDER_TONE, o.shade, 1.6, edge);
+  floorRect(b, [-floorHalf, -w + band], [zNear, zFar], BORDER_TONE, o.shade, 1.6, edge);
+  floorRect(b, [w - band, floorHalf], [zNear, zFar], BORDER_TONE, o.shade, 1.6, edge);
   floorRect(b, [-w + band, w - band], [zFar - band, zFar], BORDER_TONE, o.shade, 1.6, []);
   floorRect(b, [-w + band, w - band], [zNear + band, zFar - band], 1, o.shade, 1.6, []);
   // Near end: the band stops at the inner-door opening so the floor runs on into the corridor.

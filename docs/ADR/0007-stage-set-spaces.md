@@ -1,27 +1,35 @@
-# ADR 0007 — Stage-set spaces: a view of 180° or less, built and lit only where it is seen
+# ADR 0007 — Stage-set rooms: a view of 180° or less, built and lit where it is seen
 
 - **Status:** accepted, 14 October 2026. Founder direction: "make rooms only 180 or lower. Only light
   the corner and make sure everything is done properly so you don't have to fill the whole room.
   Other areas you block from access and camera view, while retaining the motion and without making
   the user feel restricted. There should be enough real things in the viewport so they don't have to
   look around."
+- **Ruling, 15 October 2026:** "You should not add 180 rule for the corridor." The corridor and
+  lobby remain free-look spaces and are built in every direction a visitor can see, including the
+  lobby's entrance doors behind the starting view.
 - **Amends:**
   - ADR 0001: free look, first-person camera.
   - ADR 0004: starting view and budgets.
   - ADR 0006: baking and atmosphere.
   - ADR 0008: bake atlas coverage follows the visible stage.
-- **Applies to:** the corridor, every chamber, and Room Kit rooms (ADR 0005).
+- **Applies to:** chambers behind the corridor doors and Room Kit rooms (ADR 0005). It does not
+  apply to the corridor or lobby.
 
 ## Context
 
-A space a visitor can turn all the way around in must be built, dressed, lit, baked and textured
+A room a visitor can turn all the way around in must be built, dressed, lit, baked and textured
 through 360°. Most of that effort lands where nobody is looking, and it costs phones draw calls,
 texture memory and lightmap bytes. Film and theatre sets solve this. They build what the camera
 sees, light one corner richly, and frame the edges so the audience never wonders what lies beyond.
 
+The corridor and lobby have a different job. Visitors can turn around there, so the entire lobby,
+its entrance wall and doors, the inner doorway partition, and the corridor's visible length must
+remain built from every direction. The camera keeps free look through this shared public route.
+
 ## Decision
 
-### Every space declares a stage
+### Every room declares a stage
 - **The stage:**
   - a forward axis;
   - a walkable area (a polygon on the floor);
@@ -33,18 +41,14 @@ sees, light one corner richly, and frame the edges so the audience never wonders
   Desktop at 16:10 shows about 71° horizontally, a portrait phone about 29°. The hidden part stays out
   of frame on every screen shape and at every pixel ratio.
 - **Pitch** keeps the shared limits.
-- **The corridor's forward axis** runs along the corridor, away from the entrance. Walking back toward
-  the lobby moves the visitor backwards, still facing forward. Returning to the entrance uses the
-  existing return-to-entrance path.
-- **The Office's forward axis** points inward from its door. The door wall is never in view, and every
-  station, object and exit lies within the stage.
+- **Room doors, stations and exits** stay in view and the room's entry wall remains out of sight.
 
 ### The limit never feels like a wall
 - **Turning eases in the last 20°.** Pointer, touch and keyboard turning all scale smoothly to zero at
   the limit. No snap, no bounce-back, no visible indicator. The same easing applies under reduced
   motion.
-- **The edges are framed by real things,** as a set wall is: a tall cabinet, a pillar, a door frame,
-  a drape, a stack of archive boxes. They sit at each limit, so the stop reads as the room's shape
+- **The edges are framed by real things,** as a set wall is: a tall cabinet, a pillar, a door frame, a
+  drape, a stack of archive boxes. They sit at each limit, so the stop reads as the room's shape
   rather than the camera's.
 - **Movement stays free** within the walkable area. Furniture and architecture shape that area. There
   are no invisible walls in open floor.
@@ -60,31 +64,33 @@ sees, light one corner richly, and frame the edges so the audience never wonders
 - **The visitor never needs to look around** to understand a station: its action, its joke and its
   exit cue are all in the default view.
 
-### Built and lit only where it is seen
+### Built and lit only where a room is seen
 - **Built:** geometry, props, textures and lightmaps exist only inside the union of the visible
-  regions, from every point of the walkable area at both yaw limits, plus a 10° margin.
+  regions, from every point of the room's walkable area at both yaw limits, plus a 10° margin.
 - **Lit:** the key light concentrates on the hero corner, and the rest falls into warm, graded
   darkness. The "welcoming, never creepy" rule still holds: pools of warm light, warm shadows, and no
   stretch of the walkable route in black.
-- **Baked:** lightmap atlases cover only the stage, which shrinks bake time and bytes.
+- **Baked:** lightmap atlases cover only the room stage, which shrinks bake time and bytes.
 
 ### Accessibility is unchanged
 - Keyboard, screen readers and text mode reach every place and action through the "Places and
   actions" disclosure.
-- Every place lies within the stage.
+- Every place lies within its room's stage.
 
 ## Verification
-- **A hole sweep for each space.** Render with a magenta clear colour from a grid of walkable
+- **A hole sweep for each room.** Render with a magenta clear colour from a grid of walkable
   positions (0.5 m spacing) at both yaw limits, both pitch limits and centre, on desktop and portrait
   aspect ratios. Fail on any magenta pixel. The guard must be shown failing by widening the limit or
   removing an edge-framing object.
-- **Controller unit guards,** each shown failing on a broken implementation:
+- **A separate free-look sweep for the corridor and lobby.** Cover the full walkable route, 360° yaw
+  and pitch range on desktop and phone; no magenta pixel may remain.
+- **Controller unit guards,** each shown failing on a broken room implementation:
   - the derived yaw limit for each field of view;
   - easing to zero at the limit for every input;
   - no snap, and no movement through the walkable boundary.
 - **Measured budgets before and after:** draw calls, triangles, texture memory and lightmap bytes.
-- **Captures of every station at rest,** judged on two questions: is the frame full, and does the edge
-  read as the room's shape?
+- **Captures of every room station at rest,** judged on two questions: is the frame full, and does
+  the edge read as the room's shape?
 
 ## Alternatives rejected
 - **Full 360° rooms.** All the build, light and memory cost lands where nobody looks.

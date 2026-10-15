@@ -1,4 +1,4 @@
-import { FOOTER_COPY, PAGE_NAV } from '@tqw/engine';
+import { FOOTER_COPY, MENU_COPY, PAGE_NAV } from '@tqw/engine';
 import { Mark } from './Mark.tsx';
 import { BRAND } from './brand.ts';
 import type { FooterProps } from './types.ts';
@@ -13,7 +13,7 @@ const PAGES = [
  * The footer (ADR 0003): a colophon with the UNHELD lockup, its tagline, creator credit, one group
  * of site links, the licence lines and the copyright. Its height follows its content.
  */
-export function Footer({ onOpenPage }: FooterProps) {
+export function Footer({ onOpenPage, onOpenMenu }: FooterProps) {
   const licenceLines = FOOTER_COPY.licencesNote.split(/(?<=\.)\s+(?=[A-Z])/);
   return (
     <footer className="tqw-footer" aria-label={FOOTER_COPY.label}>
@@ -44,6 +44,11 @@ export function Footer({ onOpenPage }: FooterProps) {
           <a className="tqw-footer__link" href="/third-party-notices.txt">
             {FOOTER_COPY.licences}
           </a>
+          {onOpenMenu ? (
+            <button type="button" className="tqw-footer__link" aria-haspopup="dialog" onClick={onOpenMenu}>
+              {MENU_COPY.menu}
+            </button>
+          ) : null}
         </nav>
         <div className="tqw-footer__base">
           <p className="tqw-footer__note">

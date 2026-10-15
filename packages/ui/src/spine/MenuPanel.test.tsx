@@ -1,10 +1,23 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MenuPanel } from './MenuPanel.tsx';
 import { SETTINGS } from './testHelpers.ts';
+import type { MenuPanelProps } from './types.ts';
 
-function setup(open = true, settings = SETTINGS, canLeaveTextMode = true) {
-  const handlers = { onToggle: vi.fn(), onOpenBoard: vi.fn(), onOpenPage: vi.fn(), onClose: vi.fn() };
-  const props = { open, settings, canLeaveTextMode, ...handlers };
+function setup(
+  open = true,
+  settings = SETTINGS,
+  canLeaveTextMode = true,
+  extras: { inChamber?: boolean; onReturnToCorridor?: () => void; onBackToEntrance?: () => void } = {},
+) {
+  const handlers = {
+    onToggle: vi.fn(),
+    onOpenBoard: vi.fn(),
+    onOpenPage: vi.fn(),
+    onClose: vi.fn(),
+    onReturnToCorridor: vi.fn(),
+    onBackToEntrance: vi.fn(),
+  };
+  const props = { open, settings, canLeaveTextMode, ...handlers, ...extras } as unknown as MenuPanelProps;
   const view = render(<MenuPanel {...props} />);
   return { ...handlers, view, props };
 }
@@ -26,7 +39,7 @@ describe('MenuPanel', () => {
   it('lists the places the page can go: the notice board, About, Credits and Privacy', () => {
     setup();
     const pages = within(screen.getByRole('navigation', { name: 'Pages' }));
-    expect(pages.getAllByRole('button').map((b) => b.textContent)).toEqual(['Notice board']);
+    expect(pages.getAllByRole('button').map((b) => b.textContent)).toEqual(['Back to the entrance', 'Notice board']);
     expect(pages.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/about', '/credits', '/privacy']);
     expect(pages.getAllByRole('link').map((a) => a.textContent)).toEqual(['About', 'Credits', 'Privacy']);
   });
@@ -38,6 +51,26 @@ describe('MenuPanel', () => {
     const credits = screen.getByRole('link', { name: 'Credits' });
     expect(fireEvent.click(credits)).toBe(false);
     expect(onOpenPage).toHaveBeenCalledWith('credits');
+  });
+
+  it('offers the corridor return first only inside a chamber, closes the menu, then leaves', () => {
+    const room = setup(true, SETTINGS, true, { inChamber: true });
+    const pages = within(screen.getByRole('navigation', { name: 'Pages' }));
+    const back = pages.getByRole('button', { name: 'Return to the corridor' });
+    expect(pages.getAllByRole('button')[0]).toBe(back);
+    fireEvent.click(back);
+    expect(room.onClose.mock.invocationCallOrder[0]).toBeLessThan(room.onReturnToCorridor.mock.invocationCallOrder[0]!);
+    expect(room.onReturnToCorridor).toHaveBeenCalledTimes(1);
+
+    room.view.unmount();
+    setup(true, SETTINGS, true, { inChamber: false });
+    expect(screen.queryByRole('button', { name: 'Return to the corridor' })).toBeNull();
+  });
+
+  it('offers a way to the entrance and calls it', () => {
+    const { onBackToEntrance } = setup();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the entrance' }));
+    expect(onBackToEntrance).toHaveBeenCalledTimes(1);
   });
 
   it('holds Settings, with sound, reduced motion, captions and text mode, as a labelled group', () => {

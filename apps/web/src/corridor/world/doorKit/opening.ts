@@ -126,6 +126,29 @@ export function buildOpening(b: Buckets, spec: DoorSpec, s: OpeningStyles): void
   );
 }
 
+/** A finished plaster return for a custom door model that supplies its own front frame. */
+export function buildOpeningReveal(b: Buckets, spec: DoorSpec, style: Style): void {
+  const plan = planDoor(spec);
+  const half = plan.hole.width / 2;
+  const innerHalf = half - plan.lining;
+  const innerHeight = plan.hole.height - plan.lining;
+  const holeHeight = plan.hole.height;
+  const reveal = FRAME.reveal + 0.04;
+  // Jambs and head run behind the corridor wall return to close oblique sightlines through it.
+  quad(b.plaster, [-innerHalf, 0, 0], [-innerHalf, 0, -reveal], [-innerHalf, innerHeight, -reveal], [-innerHalf, innerHeight, 0], style, [1, 0, 0]);
+  quad(b.plaster, [innerHalf, 0, -reveal], [innerHalf, 0, 0], [innerHalf, innerHeight, 0], [innerHalf, innerHeight, -reveal], style, [-1, 0, 0]);
+  quad(b.plaster, [-innerHalf, innerHeight, 0], [-innerHalf, innerHeight, -reveal], [innerHalf, innerHeight, -reveal], [innerHalf, innerHeight, 0], style, [0, -1, 0]);
+  // The custom frame supplies the visible joinery, but unlike buildOpeningFrame it does not
+  // automatically close the 35 mm lining margins at the wall plane. Finish those margins behind
+  // the frame so grazing views cannot see the clear colour around its feet or head.
+  const faceDepth = -0.002;
+  quad(b.plaster, [-half, 0, faceDepth], [-innerHalf, 0, faceDepth], [-innerHalf, innerHeight, faceDepth], [-half, innerHeight, faceDepth], style, [0, 0, 1]);
+  quad(b.plaster, [innerHalf, 0, faceDepth], [half, 0, faceDepth], [half, innerHeight, faceDepth], [innerHalf, innerHeight, faceDepth], style, [0, 0, 1]);
+  quad(b.plaster, [-half, innerHeight, faceDepth], [half, innerHeight, faceDepth], [half, holeHeight, faceDepth], [-half, holeHeight, faceDepth], style, [0, 0, 1]);
+  // Run the threshold right to the reveal's outside corners; the door itself keeps its clearance.
+  box(b.brass, [0, 0.006, -reveal / 2], [2 * half, 0.012, reveal], 0.002, { colour: BRASS_TINT });
+}
+
 /** Build the lining, reveal, architrave, blocks and threshold around a hole into door-local buckets. */
 export function buildOpeningFrame(b: Buckets, hole: { width: number; height: number }, o: FrameOptions, s: OpeningStyles): void {
   const { width: hw2, height: hh } = hole;
@@ -160,7 +183,7 @@ export function buildOpeningFrame(b: Buckets, hole: { width: number; height: num
   // Behind the leaf: whatever shows through glass is dark, never the fog colour.
   if (o.backed) quad(b.glass, [-iw, 0, -reveal], [iw, 0, -reveal], [iw, ih, -reveal], [-iw, ih, -reveal], s.dark, [0, 0, 1]);
   // Threshold: a brass plate across the opening at the foot of the reveal.
-  box(b.brass, [0, 0.006, -reveal / 2], [2 * iw, 0.012, reveal], 0.002, { colour: BRASS_TINT });
+  box(b.brass, [0, 0.006, -reveal / 2], [2 * hw, 0.012, reveal], 0.002, { colour: BRASS_TINT });
 
   // Architrave: both jambs from the plinth up, and the head between them.
   const profile = kind === 'ceremonial-double' ? ARCHITRAVE_FLUTED : painted ? ARCHITRAVE_PAINTED : ARCHITRAVE;

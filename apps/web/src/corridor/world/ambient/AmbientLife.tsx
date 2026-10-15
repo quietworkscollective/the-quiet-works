@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, Color, DataTexture, LinearFilter, PlaneGeometry, RedFormat, RepeatWrapping, type Group, type Material, type Mesh, type Points } from 'three';
 import { useWorldAmbient as useAmbient, useWorldFrame } from './useWorldAmbient.ts';
 import { bayCentreZ, CORRIDOR } from '../../layout.ts';
@@ -281,13 +282,24 @@ export function AmbientLife(props: LifeProps & { desktop: boolean }) {
 /** Starts the scheduler once the world is drawn, and stops it (and every timer) when the world goes. */
 export function AmbientDirector({ reducedMotion, desktop, scheduler }: { reducedMotion: boolean; desktop: boolean; scheduler: MutableRefObject<AmbientScheduler | null> }) {
   const clock = useAmbient();
+  const canvas = useThree((state) => state.gl.domElement);
+  const started = useRef(false);
+  // Asset and bake readiness can precede the first usable frame by many seconds on a phone. Start
+  // the hero's clock in the first frame the live world can draw, so its first ten seconds begin
+  // when the visitor can actually see them.
+  useFrame(() => {
+    const active = scheduler.current;
+    if (started.current || !active || canvas.dataset['world'] !== 'ready') return;
+    active.start();
+    started.current = true;
+  }, -1);
   useEffect(() => {
     const s = new AmbientScheduler(clock, { reducedMotion, desktop, random: Math.random });
     scheduler.current = s;
-    s.start();
     return () => {
       s.stop();
       scheduler.current = null;
+      started.current = false;
     };
   }, [clock, reducedMotion, desktop, scheduler]);
   return null;

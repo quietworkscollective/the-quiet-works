@@ -1,0 +1,78 @@
+
+> the-quiet-works@ ci:local <worktree>
+> node scripts/ci/local.mjs
+
+
+> the-quiet-works@ lint <worktree>
+> pnpm -r --parallel lint
+
+Scope: 3 of 4 workspace projects
+apps/web lint$ eslint .
+packages/engine lint$ eslint .
+packages/ui lint$ eslint .
+packages/engine lint: Done
+packages/ui lint: Done
+apps/web lint: Done
+lint: 37.6s
+
+> the-quiet-works@ typecheck <worktree>
+> pnpm -r typecheck
+
+Scope: 3 of 4 workspace projects
+packages/engine typecheck$ tsc -p tsconfig.json
+packages/engine typecheck: Done
+packages/ui typecheck$ tsc -p tsconfig.json
+packages/ui typecheck: Done
+apps/web typecheck$ tsc -p tsconfig.json
+apps/web typecheck: Done
+typecheck: 32.6s
+
+> the-quiet-works@ test <worktree>
+> pnpm -r test && node --test scripts/bake/*.test.mjs scripts/audit-assets-budget.test.mjs scripts/blender/props/*.test.mjs && pnpm check:bakes && pnpm check:commons
+
+Scope: 3 of 4 workspace projects
+packages/engine test$ vitest run
+packages/engine test:  RUN  v5.0.4 <worktree>/packages/engine
+packages/engine test:  Test Files  14 passed (14)
+packages/engine test:       Tests  563 passed (563)
+packages/engine test:    Start at  11:06:41
+packages/engine test:    Duration  54.45s (tests 97%, transform 2%, import 1%)
+packages/engine test: Done
+packages/ui test$ vitest run
+packages/ui test:  RUN  v5.0.4 <worktree>/packages/ui
+packages/ui test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+packages/ui test:  ❯ src/spine/smokeNoise.test.ts (8 tests | 1 failed) 7708ms
+packages/ui test:    ❯ smokeNoise (7)
+packages/ui test:      × is smoke-coloured everywhere and only its density varies: no white edges 7063ms
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+packages/ui test:  FAIL  src/spine/smokeNoise.test.ts > smokeNoise > is smoke-coloured everywhere and only its density varies: no white edges
+packages/ui test: Error: Test timed out in 5000ms.
+packages/ui test: If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+packages/ui test:  ❯ src/spine/smokeNoise.test.ts:18:3
+packages/ui test:      16|   });
+packages/ui test:      17|
+packages/ui test:      18|   it('is smoke-coloured everywhere and only its density varies: no whi…
+packages/ui test:        |   ^
+packages/ui test:      19|     for (let i = 0; i < pixels.length; i += 4) {
+packages/ui test:      20|       expect([pixels[i], pixels[i + 1], pixels[i + 2]]).toEqual([...SM…
+packages/ui test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+packages/ui test:  Test Files  1 failed | 34 passed (35)
+packages/ui test:       Tests  1 failed | 661 passed (662)
+packages/ui test:    Start at  11:07:37
+packages/ui test:    Duration  48.86s (environment 49%, tests 41%, import 6%, transform 2%, worker 1%, setup 1%)
+packages/ui test: Environment  jsdom was created 35 times · 207.76s total, 49% of tracked time
+packages/ui test:              create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+packages/ui test:              learn more: https://vitest.dev/guide/improving-performance#test-environments
+packages/ui test: Failed
+<worktree>/packages/ui:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @tqw/ui@0.0.0 test: `vitest run`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.
+test: 107.1s
+ ELIFECYCLE  Command failed with exit code 1.

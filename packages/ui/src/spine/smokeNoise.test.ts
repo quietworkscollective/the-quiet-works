@@ -16,9 +16,14 @@ describe('smokeNoise', () => {
   });
 
   it('is smoke-coloured everywhere and only its density varies: no white edges', () => {
+    let firstWrongColour = -1;
     for (let i = 0; i < pixels.length; i += 4) {
-      expect([pixels[i], pixels[i + 1], pixels[i + 2]]).toEqual([...SMOKE_RGB]);
+      if (pixels[i] !== SMOKE_RGB[0] || pixels[i + 1] !== SMOKE_RGB[1] || pixels[i + 2] !== SMOKE_RGB[2]) {
+        firstWrongColour = i;
+        break;
+      }
     }
+    expect(firstWrongColour, 'the first RGB mismatch is a byte offset in the texture').toBe(-1);
     const brightest = Math.max(...SMOKE_RGB);
     expect(brightest).toBeLessThan(0x40);
   });

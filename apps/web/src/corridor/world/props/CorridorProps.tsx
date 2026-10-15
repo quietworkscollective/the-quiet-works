@@ -72,12 +72,11 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
     invalidate();
   }, [reducedMotion, invalidate]);
 
-  // The props' own two small motions: windows asked of the scheduler now and then, none under reduced motion.
+  // The props' own two small motions: start their timers with the live world, so a slow bake or
+  // asset load cannot make an idle prop take one of the hero's first-ten-second windows.
   useEffect(() => {
-    const running = startTouches(ambient, reducedMotion);
-    touches.current = running;
     return () => {
-      running.stop();
+      touches.current?.stop();
       touches.current = null;
     };
   }, [ambient, reducedMotion]);
@@ -146,6 +145,9 @@ export function CorridorProps({ animation, reducedMotion, onPointer }: CorridorP
   }, [assembly, visuals, scene, gl, invalidate, animation, modelKit]);
 
   useFrame(() => {
+    if (!touches.current && !reduced.current && gl.domElement.dataset['world'] === 'ready') {
+      touches.current = startTouches(ambient, false);
+    }
     const current = built.current;
     if (!current) return;
     // The world binds its reflection environment after the props mount: take it as soon as it is there.

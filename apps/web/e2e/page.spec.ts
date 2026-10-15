@@ -1,7 +1,7 @@
 import { sceneTimeout } from './timeouts.ts';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { HANDOVER } from '../src/corridor/layout.ts';
+import { startView } from './corridor-view.ts';
 import { closeMenu, expectSpine, openMenu, site } from './helpers.ts';
 import { contrast, decodePng, luminance, parseColour } from './png.ts';
 
@@ -38,7 +38,7 @@ async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> 
  */
 async function settledPose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   // The pose is published to three decimals: arrived is exactly the hand-over (0.204 is still on its way).
-  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
+  await expect.poll(async () => Math.abs((await pose(page)).z - startView(page).z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
   return pose(page);
 }
 
@@ -963,7 +963,7 @@ test.describe('the game window: resting', () => {
     expect(await page.evaluate(() => document.querySelector('.tqw-game__window')!.getAttribute('data-engaged'))).toBe('false');
   });
 
-  test('a real wheel scrolls the page through the window and on; the camera does not walk', async ({ page }, info) => {
+  test('a real wheel enters at the hand-over, then walks while the page holds still', async ({ page }, info) => {
     test.skip(!isDesktop(info), 'a mouse wheel');
     await page.goto('/');
     await worldReady(page);
@@ -975,13 +975,13 @@ test.describe('the game window: resting', () => {
       if ((await site(page).getAttribute('data-spine')) === 'corridor') break;
     }
     await expectSpine(page, 'corridor');
-    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
+    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
     const before = await settledPose(page);
     const y = await scrollY(page);
     await page.mouse.wheel(0, 500);
-    await expect.poll(() => scrollY(page)).toBeGreaterThan(y + 300);
-    expect(await pose(page)).toEqual(before);
-    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
+    await expect.poll(async () => (await pose(page)).z).toBeLessThan(before.z - 0.08);
+    expect(await scrollY(page)).toBe(y);
+    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
   });
 
   test('the walking keys belong to the page: W does not walk, and the arrow keys still scroll', async ({ page }, info) => {

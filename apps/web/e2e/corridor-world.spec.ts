@@ -1,5 +1,6 @@
+import { startView } from './corridor-view.ts';
 import { expect, test, type Page } from '@playwright/test';
-import { door, expectSpine, site } from './helpers.ts';
+import { expectSpine, site } from './helpers.ts';
 
 /**
  * The corridor world (lobby, architecture, doors, board, light) as the visitor meets it: it
@@ -94,8 +95,24 @@ test.describe('corridor world', () => {
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await worldReady(page);
+    await expect.poll(async () => {
+      const values = (await page.locator('.tqw-corridor-canvas').getAttribute('data-pose'))!.split(',').map(Number);
+      return { x: values[0], z: values[1], yaw: values[2] };
+    }).toEqual(startView(page));
     // The portrait hand-over faces the Office; look toward the left wall before testing its door.
     if (isMobile) {
+      await page.keyboard.down('KeyD');
+      try {
+        await expect.poll(async () => Number((await page.locator('.tqw-corridor-canvas').getAttribute('data-pose'))!.split(',')[2]), { intervals: [50] }).toBeGreaterThanOrEqual(-1);
+      } finally {
+        await page.keyboard.up('KeyD');
+      }
+      await page.keyboard.down('KeyW');
+      try {
+        await expect.poll(async () => Number((await page.locator('.tqw-corridor-canvas').getAttribute('data-pose'))!.split(',')[1]), { timeout: 30_000, intervals: [50] }).toBeLessThan(0.5);
+      } finally {
+        await page.keyboard.up('KeyW');
+      }
       const width = page.viewportSize()!.width;
       await page.keyboard.down('KeyA');
       try {
@@ -107,6 +124,10 @@ test.describe('corridor world', () => {
         await page.keyboard.up('KeyA');
       }
     }
+    // Let input easing finish before measuring one fixed door target; never chase a moving hover.
+    await expect.poll(() => page.locator('.tqw-corridor-canvas').evaluate((el) =>
+      performance.now() - Number((el as HTMLElement).dataset['poseTime']),
+    )).toBeGreaterThan(500);
     const targets = await doorTargets(page);
     const apartment = targets['apartment'];
     expect(apartment, 'the Apartment door is on screen for the pointer interaction').toBeDefined();
@@ -136,7 +157,7 @@ test.describe('corridor world', () => {
     await expectSpine(page, 'corridor');
     for (let i = 0; i < 2; i += 1) {
       await worldReady(page);
-      await door(page, 'The Certification Office', 'open').focus();
+      await page.locator('.tqw-doors').getByRole('button', { name: 'The Certification Office, open the door' }).focus();
       await page.keyboard.press('Enter');
       // The Office's own scene is slow to start on a software rasteriser: allow it.
       // CI runners render in software and load the Office several times slower than a GPU machine.

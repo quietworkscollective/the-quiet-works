@@ -58,7 +58,7 @@ import { isChamberOpenInBuild, preloadChamber, VISIBLE_CHAMBERS } from './chambe
 import type { ChamberComponent, CoreSettings, TextReason } from './chambers/types.ts';
 import { createProgress } from './corridor/progress.ts';
 import { detectWebGL2, prefersReducedMotion, requestedTextMode } from './environment.ts';
-import { escapeReleases, progressAt, scrollAction } from './pageScroll.ts';
+import { escapeReleases, LEAVE_SLACK_PX, progressAt, scrollAction } from './pageScroll.ts';
 import { hrefFor, parseRoute } from './routes.ts';
 import { SceneBoundary } from './SceneBoundary.tsx';
 import { THIRD_PARTY_CREDITS } from './credits/index.ts';
@@ -71,6 +71,7 @@ const CorridorScene = lazy(() => import('./corridor/CorridorScene.tsx'));
 
 const CAPTION_LIFETIME_MS = 4500;
 const MAX_CAPTIONS = 3;
+const HANDOVER_SCROLL_INTENT_MS = 5000;
 /**
  * If the corridor never reports the seam (a failed scene), the threshold completes anyway. A safety
  * net only: it must not beat a real seam on a slow device, or the chamber mounts mid-walk, so it
@@ -277,6 +278,7 @@ export function App() {
           setSeamReached(seam);
           if (!textModeRef.current) {
             window.scrollTo(0, gameTop());
+            engagedRef.current = true;
             setEngaged(true);
           }
         } else if (next.phase !== 'threshold' && lastPhase.current === 'threshold') {
@@ -389,29 +391,86 @@ export function App() {
     if (arrivedEngaged.current) window.scrollTo(0, gameTop());
   }, []);
 
-  // Native scroll writes the progress (no scroll-jacking, no snapping) and carries the spine:
-  // reaching the game window's top hands over to the corridor; scrolling back above it, while not
-  // engaged, returns to the entrance. Holding the window (engaged) pins the page, so nothing here
-  // moves the visitor.
+  // Native scroll writes the progress and carries the spine. A deliberate downward wheel or swipe
+  // through the smoke hands over at the camera's authored hand-over point; keyboard scrolling,
+  // reduced motion and scrollbar movement leave the invitation in view.
   useEffect(() => {
     if (textMode) return;
+    let autoEngageUntil = 0;
+    let touchY: number | null = null;
+    const notePageScroll = () => {
+      // Preserve a deliberate gesture through smoke easing and slow first-frame work.
+      autoEngageUntil = performance.now() + HANDOVER_SCROLL_INTENT_MS;
+    };
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey) return;
+      if (event.deltaY > 0) notePageScroll();
+      else autoEngageUntil = 0;
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      touchY = event.touches[0]?.clientY ?? null;
+      autoEngageUntil = 0;
+    };
+    const onTouchMove = (event: TouchEvent) => {
+      const y = event.touches[0]?.clientY;
+      if (y === undefined || touchY === null) return;
+      if (touchY - y >= SITE_SCROLL.gestureThresholdPx) {
+        notePageScroll();
+        touchY = null;
+      }
+    };
+    const onTouchEnd = () => {
+      touchY = null;
+    };
+    const onKeyDown = () => {
+      autoEngageUntil = 0;
+    };
     const onScroll = () => {
       const top = gameTop();
       if (top <= 0) return;
       const y = window.scrollY;
-      progress.set(progressAt(y, top));
-      const action = scrollAction({ y, top, phase: spine.getState().phase, engaged: engagedRef.current });
+      const journey = progressAt(y, top);
+      progress.set(journey);
+      const phase = spine.getState().phase;
+      if (
+        phase === 'entrance' &&
+        !engagedRef.current &&
+        !settings.reducedMotion &&
+        performance.now() <= autoEngageUntil &&
+        journey >= SITE_SCROLL.handoverAt
+      ) {
+        autoEngageUntil = 0;
+        progress.set(1);
+        engagedRef.current = true;
+        setEngaged(true);
+        window.scrollTo(0, top);
+        spine.dispatch({ type: 'ENTRANCE_DONE' });
+        return;
+      }
+      const action = scrollAction({ y, top, phase, engaged: engagedRef.current });
       if (action === 'handover') spine.dispatch({ type: 'ENTRANCE_DONE' });
       else if (action === 'return') spine.dispatch({ type: 'RETURN_TO_ENTRANCE' });
     };
+    window.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    window.addEventListener('touchstart', onTouchStart, { capture: true, passive: true });
+    window.addEventListener('touchmove', onTouchMove, { capture: true, passive: true });
+    window.addEventListener('touchend', onTouchEnd, { capture: true, passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { capture: true, passive: true });
+    window.addEventListener('keydown', onKeyDown, { capture: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     onScroll();
     return () => {
+      window.removeEventListener('wheel', onWheel, { capture: true });
+      window.removeEventListener('touchstart', onTouchStart, { capture: true });
+      window.removeEventListener('touchmove', onTouchMove, { capture: true });
+      window.removeEventListener('touchend', onTouchEnd, { capture: true });
+      window.removeEventListener('touchcancel', onTouchEnd, { capture: true });
+      window.removeEventListener('keydown', onKeyDown, { capture: true });
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [spine, progress, textMode, runViewports]);
+  }, [spine, progress, textMode, runViewports, settings.reducedMotion]);
 
   // While engaged the page does not scroll: it is held at the game window.
   useEffect(() => {
@@ -428,12 +487,80 @@ export function App() {
   useRestingInputGate(engaged, !textMode);
 
   /** Browser fullscreen was left (by any route): the window no longer holds the page. */
-  const release = useCallback(() => setEngaged(false), []);
+  const release = useCallback(() => {
+    engagedRef.current = false;
+    setEngaged(false);
+  }, []);
   /** Leave, or Escape: hand scrolling back, and come out of fullscreen if that is where the visitor is. */
   const leaveWindow = useCallback(() => {
-    setEngaged(false);
+    release();
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+  }, [release]);
+
+  const releaseAtHandover = useCallback((distance: number) => {
+    engagedRef.current = false;
+    setEngaged(false);
+    const travel = Math.max(LEAVE_SLACK_PX + 1, Math.min(distance, window.innerHeight));
+    window.requestAnimationFrame(() => window.scrollTo(0, Math.max(0, gameTop() - travel)));
   }, []);
+
+  // Once the visitor has walked back to the hand-over, another upward wheel or downward swipe
+  // means “back to the page”. The scene keeps the gesture unless the camera is at that exact seam.
+  useEffect(() => {
+    if (textMode) return;
+    const worldAtHandover = () =>
+      document.querySelector<HTMLElement>('.tqw-corridor-canvas')?.dataset['atHandover'] === 'true';
+    const onWheel = (event: WheelEvent) => {
+      const target = event.target as Element | null;
+      if (
+        !engagedRef.current ||
+        event.ctrlKey ||
+        event.deltaY >= 0 ||
+        !target?.closest('.tqw-corridor-canvas') ||
+        target.closest('button, a, input, textarea, select, [data-fp-ignore]') ||
+        !worldAtHandover()
+      ) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      releaseAtHandover(Math.abs(event.deltaY));
+    };
+    let touchStart: { id: number; x: number; y: number } | null = null;
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      touchStart =
+        engagedRef.current &&
+        event.pointerType === 'touch' &&
+        target?.closest('.tqw-corridor-canvas') &&
+        !target.closest('button, a, input, textarea, select, [data-fp-ignore]')
+          ? { id: event.pointerId, x: event.clientX, y: event.clientY }
+          : null;
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!touchStart || event.pointerId !== touchStart.id) return;
+      const dx = event.clientX - touchStart.x;
+      const dy = event.clientY - touchStart.y;
+      if (dy < SITE_SCROLL.gestureThresholdPx || dy <= Math.abs(dx) || !worldAtHandover()) return;
+      touchStart = null;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      releaseAtHandover(dy);
+    };
+    const clearTouch = () => {
+      touchStart = null;
+    };
+    window.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    window.addEventListener('pointerdown', onPointerDown, { capture: true });
+    window.addEventListener('pointermove', onPointerMove, { capture: true, passive: false });
+    window.addEventListener('pointerup', clearTouch, { capture: true });
+    window.addEventListener('pointercancel', clearTouch, { capture: true });
+    return () => {
+      window.removeEventListener('wheel', onWheel, { capture: true });
+      window.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      window.removeEventListener('pointermove', onPointerMove, { capture: true });
+      window.removeEventListener('pointerup', clearTouch, { capture: true });
+      window.removeEventListener('pointercancel', clearTouch, { capture: true });
+    };
+  }, [releaseAtHandover, textMode]);
 
   // Escape releases the window, but a dialog closes first: if one is open, the browser closes it and
   // this does nothing. (Leaving browser fullscreen is Escape's other meaning; that releases too, below.)
@@ -459,6 +586,7 @@ export function App() {
       return;
     }
     window.scrollTo(0, gameTop());
+    engagedRef.current = true;
     setEngaged(true);
     if (spine.getState().phase === 'entrance') spine.dispatch({ type: 'ENTRANCE_DONE' });
   }, [spine, unlockSound]);
@@ -546,6 +674,36 @@ export function App() {
   const openMenu = useCallback(() => setMenuOpen(true), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const leave = useCallback(() => spine.dispatch({ type: 'LEAVE_CHAMBER' }), [spine]);
+  const backToEntrance = useCallback(() => {
+    setMenuOpen(false);
+    leaveWindow();
+
+    let current = spine.getState();
+    if (current.page) {
+      spine.dispatch({ type: 'CLOSE_PAGE' });
+      current = spine.getState();
+    }
+    if (current.boardOpen) {
+      spine.dispatch({ type: 'CLOSE_BOARD' });
+      current = spine.getState();
+    }
+    if (current.phase === 'chamber' || current.phase === 'threshold') {
+      spine.dispatch({ type: 'LEAVE_CHAMBER' });
+      current = spine.getState();
+    }
+    if (current.phase === 'corridor') spine.dispatch({ type: 'RETURN_TO_ENTRANCE' });
+
+    // The camera settles from its current pose once the scroll position and phase both describe
+    // the landing view. Let the dialog close and restore focus before moving the page; then move
+    // focus to the top menu without letting it pull the visitor back to the old button.
+    progress.set(0);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>('.tqw-site nav[aria-label="Top links"] button[aria-haspopup="dialog"]')?.focus({ preventScroll: true });
+        window.scrollTo(0, 0);
+      });
+    });
+  }, [leaveWindow, progress, spine]);
 
   const focusDoor = useCallback(
     (id: ChamberId) => {
@@ -740,7 +898,7 @@ export function App() {
 
       <Unlocks store={discoveries} chambers={VISIBLE_CHAMBERS} onReplaced={session.rebaseline} />
       <Details onOpenPage={openPage} />
-      <Footer menu={menu('footer')} onOpenPage={openPage} trivia={trivia} />
+      <Footer menu={menu('footer')} onOpenPage={openPage} onOpenMenu={openMenu} trivia={trivia} />
 
       {settings.captions ? <Captions lines={captions} /> : null}
       <MenuPanel
@@ -748,6 +906,9 @@ export function App() {
         settings={fullSettings}
         onToggle={toggle}
         canLeaveTextMode={webgl}
+        inChamber={inChamber}
+        onReturnToCorridor={leave}
+        onBackToEntrance={backToEntrance}
         onOpenBoard={openBoard}
         onOpenPage={openPage}
         onClose={closeMenu}

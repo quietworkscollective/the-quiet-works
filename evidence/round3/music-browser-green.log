@@ -1,0 +1,15 @@
+
+Running 2 tests using 1 worker
+
+the lobby, one metre from the gramophone                   -2.09,3.06,-89   1.01 m  model    3.5 dB   total  -19.2 dBFS  bed -Infinity dBFS  peak   -6.7 dBFS
+the first bay, at its centre                               -0.59,-0.89,2    3.26 m  model   -8.3 dB   total  -28.0 dBFS  bed  -29.4 dBFS  peak   -9.0 dBFS
+the third bay, at its centre                               -0.30,-8.10,2    10.3 m  model  -17.9 dB   total  -26.4 dBFS  bed  -27.7 dBFS  peak   -6.7 dBFS
+the sixth bay, at its centre                               0.14,-18.97,2   21.13 m  model  -22.2 dB   total  -26.9 dBFS  bed  -28.4 dBFS  peak  -10.4 dBFS
+the far end of the walk                                    0.33,-22.54,2   24.69 m  model    -23 dB   total  -28.2 dBFS  bed  -29.6 dBFS  peak  -12.5 dBFS
+  ✓  1 [desktop] › e2e/gramophone-listening.spec.ts:163:1 › the lobby gramophone and corridor bed stay within their level targets (4.4m)
+{"thirdBay":{"playingRmsDbfs":-27.1,"roomToneRmsDbfs":-45.9,"musicAloneRmsDbfs":-27.2,"elements":{"count":1,"paused":[false],"time":[149.2]}},"office":{"rmsDbfs":-40.7,"peakDbfs":-20.8,"elements":{"count":1,"paused":[true],"time":[59.3]}}}
+  ✓  2 [desktop] › e2e/gramophone-listening.spec.ts:219:1 › the third bay against its own room tone, and the music's element inside the Office (4.2m)
+
+  Slow test file: [desktop] › e2e/gramophone-listening.spec.ts (8.6m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 passed (8.6m)

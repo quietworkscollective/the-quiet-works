@@ -141,12 +141,14 @@ export function buildGauge(c: Ctx, part: PlanPart): void {
   quad(b.art, [cx - r, cy + 0.02 - r, z], [cx + r, cy + 0.02 - r, z], [cx + r, cy + 0.02 + r, z], [cx - r, cy + 0.02 + r, z], dial, [0, 0, 1], quadUvs(rect));
   // Over the dial: a faint sheen of glass (the glass itself is clear, so the dial reads).
   quad(b.pane, [cx - r, cy + 0.02 - r, 0.1435], [cx + r, cy + 0.02 - r, 0.1435], [cx + r, cy + 0.02 + r, 0.1435], [cx - r, cy + 0.02 + r, 0.1435], undefined, [0, 0, 1], [[0, 0], [1, 0], [1, 1], [0, 1]]);
-  // And the plant-room pipe it is plumbed to: a vertical run on the wall, floor to ceiling, held off by brackets.
+  // The plant-room riser stays visible from down the corridor: a narrow warm-metal tube, held
+  // close to the wall by small clamps so it reads as pipework rather than a dark edge-on slab.
   const x = cx + 0.12;
-  cylinder(b.iron, { at: [x, 1.9, 0.06] }, 0.03, 0.03, 3.8, 14, { colour: mulRgb(HANDLE_IRON, 1.1) });
+  cylinder(b.brass, { at: [x, 1.9, 0.06] }, 0.017, 0.017, 3.8, 16, { colour: mulRgb(c.tints.metal, 1.3) });
   for (const y of [0.3, 1.2, 2.1, 3.0]) {
-    span(b.iron, [x - 0.036, x + 0.036], [y - 0.012, y + 0.012], [0, 0.07], 0.002, iron);
-    cylinder(b.iron, { at: [x, y, 0.06], rot: [Math.PI / 2, 0, 0] }, 0.036, 0.036, 0.012, 14, iron);
+    const clamp = { colour: mulRgb(c.tints.metal, 1.1) };
+    span(b.brass, [x - 0.027, x + 0.027], [y - 0.008, y + 0.008], [0, 0.055], 0.0015, clamp);
+    cylinder(b.brass, { at: [x, y, 0.06], rot: [Math.PI / 2, 0, 0] }, 0.024, 0.024, 0.009, 14, clamp);
   }
 }
 

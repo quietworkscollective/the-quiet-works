@@ -26,6 +26,8 @@ const SKIRTING = 0.17;
 const RAIL_LOW = 0.3;
 const STILE = 0.07;
 const PANEL_TARGET = 0.9;
+const PLASTER_TRIM_OVERLAP = 0.025;
+export const WALL_CEILING_OVERLAP = 0.04;
 
 export function buildWallRun(b: Buckets, s0: number, s1: number, o: RunOptions): void {
   const length = s1 - s0;
@@ -36,7 +38,9 @@ export function buildWallRun(b: Buckets, s0: number, s1: number, o: RunOptions):
   const bevel = (b: number): number => (full ? b : 0);
 
   // Plaster above the dado: breakpoints near the ceiling so the cove's contact shading has vertices.
-  const ys = [o.dado, o.dado + 0.35, o.dado + 1.0, o.ceiling - 1.0, o.ceiling - 0.55, o.ceiling - 0.28, o.ceiling];
+  // Let the plaster sit just behind the oak cap instead of meeting it edge-to-edge. The overlap
+  // closes a grazing-angle raster seam without changing the visible trim line.
+  const ys = [o.dado - PLASTER_TRIM_OVERLAP, o.dado, o.dado + 0.35, o.dado + 1.0, o.ceiling - 1.0, o.ceiling - 0.55, o.ceiling - 0.28, o.ceiling + WALL_CEILING_OVERLAP];
   const holes = o.holes ?? [];
   // Grid lines fall on the edges of every opening, so its reveal and the plaster meet cleanly.
   const sBreaks = breaks(s0, s1, 1.0, holes.flatMap((h) => [h.s[0], h.s[1]]));

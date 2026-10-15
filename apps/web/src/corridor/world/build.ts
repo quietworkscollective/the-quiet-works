@@ -3,7 +3,7 @@ import type { Bucket } from './builder.ts';
 import { createBuckets, mergeBuckets, placeLocal, triangleTotal, type Buckets } from './buckets.ts';
 import { PlaqueLayout } from './artLayout.ts';
 import { MarksLayout } from './marksLayout.ts';
-import { buildLobby, END_WALL_MATRIX } from './architecture/lobby.ts';
+import { buildLobby, BACK_WALL_MATRIX, END_WALL_MATRIX } from './architecture/lobby.ts';
 import { buildCorridor } from './architecture/corridor.ts';
 import { buildClock, buildFanSwitch, buildPendants } from './architecture/lobbyDecor.ts';
 import { buildFascia, buildHallTable } from './architecture/lobbyFixtures.ts';
@@ -13,8 +13,8 @@ import { buildCare } from './care.ts';
 import { buildAnnexSign, buildGroupings } from './groupings.ts';
 import { LETTERING_ASPECT } from './textures/lettering.ts';
 import { buildDoor, type DoorBuild } from './doorKit/build.ts';
-import { INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
-import { buildOpening, doorMatrix, type OpeningStyles } from './doorKit/opening.ts';
+import { ENTRANCE_DOORS, INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
+import { buildOpening, buildOpeningReveal, doorMatrix, type OpeningStyles } from './doorKit/opening.ts';
 import { buildLamps, type DoorLamp, type Lamp } from './lighting.ts';
 import { hash2 } from './math.ts';
 import { holeOf, placements, type Placement } from './openings.ts';
@@ -69,16 +69,18 @@ export function buildWorld(): WorldBuild {
   const annexSign = buildAnnexSign(buckets, plaques);
   buildCare(buckets);
 
-  const chamberDoors: ChamberDoorBuild[] = [];
   const identity = new Matrix4();
+  const entranceDoor = buildDoor(ENTRANCE_DOORS, { lod: 'near', plaques, animated: false, seed: 11 });
+  mergeBuckets(buckets, entranceDoor.flat, BACK_WALL_MATRIX);
+
+  const chamberDoors: ChamberDoorBuild[] = [];
   for (const p of places) {
     const built = buildDoor(p.spec, { lod: p.far ? 'far' : 'near', plaques, marks, animated: p.chamber !== null, seed: seedOf(p.key) });
     placeLocal(buckets, doorMatrix(p.side, p.z), (local) => {
       // The Outline Room's Blender model supplies both its custom static frame and moving leaf.
-      if (p.key !== 'outline-room') {
-        buildOpening(local, p.spec, OPENING_STYLES);
-        mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
-      }
+      if (p.key === 'outline-room') buildOpeningReveal(local, p.spec, OPENING_STYLES.plaster);
+      else buildOpening(local, p.spec, OPENING_STYLES);
+      if (p.key !== 'outline-room') mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
     });
     if (p.chamber) chamberDoors.push({ placement: p, build: built });
   }

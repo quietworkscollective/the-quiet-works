@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Canvas, type RootState } from '@react-three/fiber';
 import { CHAMBERS, type ChamberId } from '@tqw/engine';
+import { AmbientContext } from './ambient.ts';
 import { createCorridorAnimation } from './animation.ts';
+import { createAmbientScheduler } from './camera/ambientClock.ts';
+import { BoardMotionContext, createBoardMotion } from './camera/boardMotion.ts';
 import { CameraRig, type RigApi } from './camera/CameraRig.tsx';
 import { LANDING_POSE } from './camera/viewpoints.ts';
 import { CorridorWorld } from './CorridorWorld.tsx';
+import { CueLayer } from './input/CueLayer.tsx';
+import { createCueStore } from './input/cues.ts';
 import { TouchControls } from './input/TouchControls.tsx';
 import { CORRIDOR } from './layout.ts';
 import { createPropAnimation, type PropId } from './props.ts';
@@ -14,16 +19,19 @@ import { corridorSconceSlots, LOBBY_SCONCES } from './world/lighting.ts';
 import { shouldLoadCorridorDecor } from './world/decor/activation.ts';
 
 /**
- * The lobby and corridor as a first-person view (ADR 0001, ADR 0003). The Canvas renders on
- * demand: a frame is drawn only while the camera or a door is moving, the hero's ambient drift is
- * drawn at 15 frames a second, and nothing at all while the scene is off screen or the tab hidden.
- * `CameraRig` (inside the Canvas) owns the walk, the doors' choreography and the input; this
- * component is the shell around it: the container tests and styles hook into, the lost-context
- * pattern, and the touch controls (shown only while engaged).
+ * The lobby and corridor as a first-person view (ADR 0001, ADR 0003, ADR 0004). The Canvas renders
+ * on demand: a frame is drawn only while the camera, a door or a prop is moving, the hero's drift
+ * and the ambient windows the world asks for (a fan, a paper corner) at 15 frames a second, and
+ * nothing at all while the scene is off screen, the tab hidden, or nothing is moving.
+ * `CameraRig` (inside the Canvas) owns the walk, the doors' choreography, the things to touch and
+ * the input; this component is the shell around it: the container tests and styles hook into, the
+ * lost-context pattern, the touch controls (shown only while engaged) and the DOM cues over the
+ * scene (verb labels, the "Things nearby" list, the first hint).
  *
- * The container carries what tests read: `data-pose` ("x,z,yawDeg"), `data-door-targets` (the
- * on-screen centre of each visible door in CSS px), `data-frames` (frames drawn so far), and, for
- * styles, `data-phase` and `data-engaged`.
+ * The container carries what tests read: `data-pose` ("x,z,yawDeg"), `data-pitch`, `data-door-targets`
+ * (the on-screen centre of each visible door in CSS px), `data-frames` (frames drawn so far),
+ * `data-ambient` (the ambient windows open now) and, for styles, `data-phase`, `data-engaged` and
+ * `data-over` (set only while the pointer is on a door, a prop or the board).
  */
 const CAMERA = {
   fov: 48,
@@ -99,12 +107,24 @@ export default function CorridorScene(props: CorridorSceneProps) {
     current.invalidate();
   }, []);
   const step = useCallback((dir: -1 | 1) => rig.current?.director.stepViewpoint(dir), []);
-  // ADR 0004 contract: prop state and pointer events; the camera lane wires interaction here.
+  // ADR 0004: the props' per-frame state and pointer events, the ambient scheduler the world asks
+  // for render windows, the notice board pin's glint, and the DOM cues drawn over the scene.
   const propAnimation = useMemo(() => createPropAnimation(), []);
-  const onPropPointer = useCallback((id: PropId, kind: 'over' | 'out' | 'click') => {
-    void id;
-    void kind;
-  }, []);
+  const boardMotion = useMemo(() => createBoardMotion(), []);
+  const cues = useMemo(() => createCueStore(), []);
+  const ambient = useMemo(() => createAmbientScheduler(), []);
+  useEffect(() => {
+    // A window opening is a reason to draw a frame now, not at the next scroll or hover.
+    ambient.setOnChange(() => rig.current?.invalidate());
+    return () => {
+      ambient.setOnChange(null);
+      ambient.dispose();
+    };
+  }, [ambient]);
+  const onPropPointer = useCallback(
+    (id: PropId, kind: 'over' | 'out' | 'click') => rig.current?.propPointer(id, kind),
+    [],
+  );
 
   return (
     <>
@@ -119,20 +139,28 @@ export default function CorridorScene(props: CorridorSceneProps) {
           <Canvas frameloop="demand" dpr={[1, 1.5]} camera={CAMERA} onCreated={onCreated}>
             <color attach="background" args={[CORRIDOR.fog.colour]} />
             <fog attach="fog" args={[CORRIDOR.fog.colour, CORRIDOR.fog.near, CORRIDOR.fog.far]} />
-            <CorridorWorld
-              animation={animation}
-              focus={state.focus}
-              reducedMotion={props.reducedMotion}
-              decorActive={decorActive}
-              onDoorPointer={onDoorPointer}
-              onClipping={onClipping}
-              propAnimation={propAnimation}
-              onPropPointer={onPropPointer}
-            />
+            <AmbientContext.Provider value={ambient.clock}>
+              <BoardMotionContext.Provider value={boardMotion}>
+                <CorridorWorld
+                  animation={animation}
+                  focus={state.focus}
+                  reducedMotion={props.reducedMotion}
+                  decorActive={decorActive}
+                  onDoorPointer={onDoorPointer}
+                  onClipping={onClipping}
+                  propAnimation={propAnimation}
+                  onPropPointer={onPropPointer}
+                />
+              </BoardMotionContext.Provider>
+            </AmbientContext.Provider>
             <CameraRig
               spine={spine}
               progress={progress}
               animation={animation}
+              propAnimation={propAnimation}
+              boardMotion={boardMotion}
+              ambient={ambient}
+              cues={cues}
               readyChamber={props.readyChamber}
               handlers={handlers}
               container={container}
@@ -151,6 +179,7 @@ export default function CorridorScene(props: CorridorSceneProps) {
           onHold={hold}
           onStep={step}
         />
+        <CueLayer store={cues} reducedMotion={props.reducedMotion} />
       </div>
       {/* Outside the container, so the container holds exactly one canvas: the scene's. */}
       <canvas ref={overlay} className="tqw-dissolve" aria-hidden="true" />

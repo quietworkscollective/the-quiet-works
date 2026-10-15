@@ -6,6 +6,7 @@ import { LOBBY } from '../layout.ts';
 import { at, wallBox, wallQuad, type WallFrame } from './architecture/wall.ts';
 import { cylinder, sphere } from './shapes.ts';
 import { BRASS_TINT } from './palette.ts';
+import { BOARD_HINGE_CLEARANCE_M } from '../boardGeometry.ts';
 
 /**
  * The notice board in the lobby (contract: LOBBY.board): a 1.25 x 0.85 m oak frame, 35 mm, round
@@ -25,7 +26,7 @@ import { BRASS_TINT } from './palette.ts';
 export const BOARD_DEPTH = { back: 0, felt: 0.014, clipping: 0.0158, frontOfFrame: 0.035 } as const;
 
 /** The back of the board stands this far off the lobby wall at its hinged end (the dado cap is 50 mm). */
-export const HINGE_CLEARANCE = 0.056;
+export const HINGE_CLEARANCE = BOARD_HINGE_CLEARANCE_M;
 
 export const CLIPPING_SIZE = 0.22;
 

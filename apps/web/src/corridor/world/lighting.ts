@@ -1,5 +1,5 @@
 import { CHAMBER_SLOTS, BLANK_DOORS, blankDoorAt, CORRIDOR, LOBBY } from '../layout.ts';
-import { END_Z, STAGE } from './stage.ts';
+import { CORRIDOR_END_Z, CORRIDOR_WINDOW, CORRIDOR_END_BAYS } from './extent.ts';
 import { BANKER_LAMP_SOURCE, LOBBY_WINDOW, PENDANTS } from './architecture/lobbyPlan.ts';
 import { boardLampPosition } from './board.ts';
 import { kelvinToLinear, type Rgb } from './colour.ts';
@@ -45,7 +45,7 @@ export interface SconceSlot {
  * first on the left at the pier just past the first bay. Positions are bay boundaries, which
  * always fall on a pier between doors (checked by the layout tests).
  */
-export function corridorSconceSlots(farZ: number = Math.max(LAMP_CULL_Z, END_Z)): SconceSlot[] {
+export function corridorSconceSlots(farZ: number = Math.max(LAMP_CULL_Z, CORRIDOR_END_Z)): SconceSlot[] {
   const { spacing, stagger } = CORRIDOR.sconce;
   const first = CORRIDOR.innerDoorZ - CORRIDOR.bay;
   const slots: SconceSlot[] = [];
@@ -189,12 +189,12 @@ export function buildLamps(doorLamps: readonly DoorLamp[], tuning: LampTuning = 
   lamps.push({
     id: 'corridor-window',
     kind: 'lobby',
-    position: [STAGE.window.x, STAGE.window.bottom + STAGE.window.height * 0.55, END_Z + 0.22],
-    colour: lampColour(STAGE.window.kelvin, tuning.corridorIntensity * 1.05),
+    position: [CORRIDOR_WINDOW.x, CORRIDOR_WINDOW.bottom + CORRIDOR_WINDOW.height * 0.55, CORRIDOR_END_Z + 0.22],
+    colour: lampColour(CORRIDOR_WINDOW.kelvin, tuning.corridorIntensity * 1.05),
     soft: 2.8,
     range: 10.5,
   });
-  for (const s of [...corridorSconceSlots(END_Z), ...PROP_SCONCES.filter((slot) => slot.z > END_Z)]) {
+  for (const s of [...corridorSconceSlots(CORRIDOR_END_Z), ...PROP_SCONCES.filter((slot) => slot.z > CORRIDOR_END_Z)]) {
     const wall = s.side === 'left' ? -CORRIDOR.width / 2 : CORRIDOR.width / 2;
     const x = wall + (s.side === 'left' ? SCONCE_STANDOFF : -SCONCE_STANDOFF);
     lamps.push({ id: s.id, kind: 'sconce', position: [x, y, s.z], colour: lampColour(kelvin, tuning.corridorIntensity), soft: tuning.corridorSoft, range: 6.2 });
@@ -215,7 +215,7 @@ export function buildLamps(doorLamps: readonly DoorLamp[], tuning: LampTuning = 
       range: 3.6,
     });
   }
-  return lamps.filter((l) => l.position[2] > Math.max(LAMP_CULL_Z, END_Z)).slice(0, MAX_LAMPS);
+  return lamps.filter((l) => l.position[2] > Math.max(LAMP_CULL_Z, CORRIDOR_END_Z)).slice(0, MAX_LAMPS);
 }
 
 /** Every door opening on a side, for placement checks: [z0, z1] extents including any surround. */
@@ -228,7 +228,7 @@ export function doorExtents(side: 'left' | 'right', specOf: (slotKey: string) =>
     const w = spec.surround?.width ?? spec.width;
     out.push([slot.z - w / 2, slot.z + w / 2]);
   }
-  for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
+  for (let bay = CORRIDOR.walkableBays; bay < CORRIDOR_END_BAYS; bay += 1) {
     const spec = blankDoorAt(bay, side);
     if (!spec) continue;
     const z = CORRIDOR.innerDoorZ - CORRIDOR.bay * (bay + 0.5);

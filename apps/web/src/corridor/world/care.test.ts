@@ -7,7 +7,7 @@ import { PROPS } from '../props.ts';
 import { RADIATOR, RADIATOR_SLOTS } from './fixtures.ts';
 import { buildAnnexSign, farPrintSlots, PIER_PRINTS } from './groupings.ts';
 import { gapOf, FRAME, placements } from './openings.ts';
-import { STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS } from './extent.ts';
 
 /**
  * Founder feedback: show present-day care, not abandonment, and no long bare walls. A coat and cap
@@ -108,7 +108,7 @@ describe('no long bare walls', () => {
     const slots = farPrintSlots();
     const doors = placements();
     expect(slots.length).toBeGreaterThan(1);
-    for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
+    for (let bay = CORRIDOR.walkableBays; bay < CORRIDOR_END_BAYS; bay += 1) {
       for (const side of ['left', 'right'] as const) {
         const has = slots.some((s) => s.bay === bay && s.side === side);
         const hasDoor = doors.some((d) => d.side === side && Math.abs(d.z - bayCentreZ(bay)) < CORRIDOR.bay / 2);

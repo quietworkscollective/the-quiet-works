@@ -24,7 +24,8 @@ pitch within 25 deg, and no head bob, roll or sprint. A room does not retune the
 | `bindings.ts` | DOM input: keys, wheel, drag-to-look, the vertical swipe. `bindInput(options)` | a surface element |
 | `three.ts` | `applyPose`, `lensFor`, `lookScale`, `floorPoint`, `wrapYaw` | three.js |
 | `dissolve.ts` | A 120 ms dissolve between two views, for reduced motion | a canvas and an overlay canvas |
-| `bounds.ts`, `easing.ts` | Walkable ground as rectangles; the CSS cubic-bezier | nothing |
+| `bounds.ts`, `polygon.ts`, `walkable.ts`, `easing.ts` | Walkable ground as rectangles or as a polygon (and the one interface over both); the CSS cubic-bezier | nothing |
+| `stage.ts` | The stage contract (ADR 0007): forward axis, visible half-arc, soft edge, walkable polygon; the yaw limit and its easing | nothing |
 
 The controller is deterministic given its inputs and the `dtMs` it is stepped with, so a room
 can test its walk against a fake clock (see `controller.test.ts`).
@@ -38,6 +39,7 @@ const view = createFirstPerson({
   start: { x: 0, z: 3, yawDeg: 0, pitchDeg: 0 },
   // Where the visitor may stand. A union of rectangles; margins from the walls are already
   // taken off. A room is one rectangle; a room that opens into another is two that overlap.
+  // (Or give a `stage` instead: see "A stage" below.)
   bounds: [{ minX: -3.9, maxX: 3.9, minZ: -3.7, maxZ: 3.7 }],
   // Optional. Slow to a stop over this distance before a boundary, per axis (0 is a hard stop).
   softStopM: { x: 0.3, z: 0.6 },
@@ -54,6 +56,37 @@ applyPose(camera, view.pose, EYE_HEIGHT);
 if (moving) invalidate();
 ```
 
+### A room stage (ADR 0007)
+
+A room that shows no more than 180 degrees gives the controller a `Stage` in place of `bounds`:
+
+```ts
+const view = createFirstPerson({
+  start,
+  stage: {
+    forwardYawDeg: 0,        // the axis the space is looked at along (0 is -z)
+    visibleHalfArcDeg: 90,   // half of what may be seen, at most 90
+    softEdgeDeg: 20,         // optional; turning eases to nothing over the last 20 degrees
+    walkable: [{ x: -2.15, z: 9.8 }, ... ],   // a simple polygon on the floor, either winding
+  },
+});
+view.setLens(horizontalFovDeg(camera.fov, camera.aspect)); // whenever the viewport changes
+```
+
+The controller then keeps the picture's edge, not the view direction, inside the half-arc:
+`yawLimit = visibleHalfArc - horizontalFov / 2` (about 54.5 degrees on a 16:10 screen, 51.6 on 16:9,
+75 on a portrait phone), re-derived on every `setLens`. Turning by pointer, touch or key is scaled
+by a smoothstep to nothing over the last `softEdgeDeg` before the limit (no snap, no bounce back,
+the same under reduced motion); a cut, `setPose` or a glide's framing target is held inside the
+limit; a view left past a new limit (the screen narrowed) eases back over about a tenth of a second.
+`yawLimitDeg` reports it. Without a stage the yaw is unlimited, as before.
+
+Movement is clamped to the polygon by sliding along the edge it meets (the soft stop measures the
+distance to the polygon's edge); a visitor who is off the floor (a scripted walk that ends in a
+doorway) is left where they are. Scripted views (a door's frame, a framing station) must be
+chosen inside the limit by the space: the controller will not turn a glide past it, so a view
+beyond it would simply be framed short.
+
 ### `FirstPerson`
 
 | Member | Meaning |
@@ -64,7 +97,8 @@ if (moving) invalidate();
 | `hold(source, dir)` | Walk forward (+1) or back (-1) while held. `source` ('key', 'button') lets two inputs hold at once without cancelling. |
 | `turn(source, dir)` | Turn right (+1) or left (-1) while held. |
 | `nudge(metres)` | Wheel or swipe: walk this far, through the same easing. A notch of about 0.35 m. Banks at most about 1 m, and a reversal drops what was banked. |
-| `look(dYaw, dPitch)` | Look. Never moves the camera. |
+| `look(dYaw, dPitch)` | Look. Never moves the camera. With a stage, eases to nothing at the yaw limit. |
+| `setLens(horizontalFovDeg)` / `yawLimitDeg` | With a stage: tell the controller the screen's horizontal field of view; the limit it derives (Infinity without a stage). |
 | `glideTo(target, opts?)` | Assisted travel at 0.8 m/s to `{ x, z, yawDeg?, pitchDeg? }`. The view turns on the way, rate-limited, and the last turn (at most 12 deg over 350 ms) frames the destination. Omit `yawDeg` to leave the view alone. `opts.onDone` fires once on arrival. |
 | `advance(dir, metres, ms, opts?)` | Scripted travel along a direction in exactly `ms`, ignoring bounds and input, ending at rest. For walking through a doorway. |
 | `cancelGlide()` | Hands a glide back to the visitor; its speed carries on into walking and decays. |

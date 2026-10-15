@@ -77,7 +77,7 @@ if space == 'office':
     scene.cycles.sample_clamp_indirect = 1
     scene.cycles.samples = 128
 # Corridor uses a single rectangular image equivalent to two 1K tiles: no extra draws.
-groups = ([(meshes, 1760, 880)] if space == 'corridor' else
+groups = ([(meshes, 1860, 930)] if space == 'corridor' else
           [(meshes, 2048, 2048)] if space == 'apartment' else
           [(meshes, 2048, 2048)] if space == 'codex-room' else
           [([], 2048, 2048), ([], 1152 if space == 'office' else 1024, 1152 if space == 'office' else 1024)])

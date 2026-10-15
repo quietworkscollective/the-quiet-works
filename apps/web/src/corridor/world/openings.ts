@@ -2,7 +2,7 @@ import type { ChamberId } from '@tqw/engine';
 import { CHAMBER_MODULES } from '../../chambers/registry.ts';
 import type { DoorSpec } from '../doorKit.ts';
 import { BLANK_DOORS, blankDoorAt, CHAMBER_SLOTS, CORRIDOR } from '../layout.ts';
-import { STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS } from './extent.ts';
 import { FRAME } from './doorKit/frame.ts';
 import { holeFor } from './doorKit/plan.ts';
 
@@ -30,7 +30,15 @@ export const holeOf = holeFor;
 /** The gap a door leaves in the dado and skirting: the hole and its architrave. */
 export function gapOf(spec: DoorSpec): { width: number; height: number } {
   const hole = holeOf(spec);
-  return { width: hole.width + 2 * FRAME.architrave, height: hole.height + FRAME.architrave };
+  // Let the wall carry a hidden overlap under the outer half of the architrave. Independently
+  // triangulated wall runs and trim can leave a hairline raster gap at an oblique viewing angle.
+  const wallOverlap = 0.09;
+  // A surround insertion has no timber lining at the old opening edge. Let the wall run tuck
+  // 20 mm behind the inner edge of its architrave; the repair infill and the closed leaf cover
+  // that overlap, while a grazing view can no longer see a clear slit beside the frame.
+  if (spec.surround) return { width: hole.width - 0.04, height: hole.height + 0.01 };
+  const trimCover = Math.max(0, FRAME.architrave - wallOverlap);
+  return { width: hole.width + 2 * trimCover, height: hole.height + trimCover };
 }
 
 export function placements(): Placement[] {
@@ -41,7 +49,7 @@ export function placements(): Placement[] {
   }
   for (const door of BLANK_DOORS) out.push({ key: door.key, side: door.side, z: door.z, spec: door.spec, chamber: null, far: false });
   // Whole bays only: a door whose opening would run past the far wall is not built.
-  for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
+  for (let bay = CORRIDOR.walkableBays; bay < CORRIDOR_END_BAYS; bay += 1) {
     for (const side of ['left', 'right'] as const) {
       const spec = blankDoorAt(bay, side);
       if (!spec) continue;

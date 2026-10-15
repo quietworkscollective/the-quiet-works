@@ -1,0 +1,13 @@
+Excerpt from the pre-fix baseline run. Other unrelated baseline failures followed in the original full test output.
+
+Music graph estimate (−22 dBFS lobby reference): lobby -22.0 dBFS, first bay -30.5 dBFS, third bay -39.0 dBFS, sixth bay -43.4 dBFS, far end -44.2 dBFS
+
+FAIL  src/audio/music/musicDesk.test.ts > where the visitor stands > keeps the continuous record bed above -30 dBFS from the lobby through the far end
+AssertionError: expected -44.22070367863623 to be greater than or equal to -30
+ ❯ src/audio/music/musicDesk.test.ts:328:56
+    326|     const route = measured.filter(({ label }) => label.startsWith('cor…
+    327|     console.info(`Music graph estimate (−22 dBFS lobby reference): ${n…
+    328|     expect(Math.min(...route.map(({ dbfs }) => dbfs))).toBeGreaterThan…
+       |                                                        ^
+    329|   });
+    330|

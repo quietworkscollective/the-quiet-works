@@ -17,6 +17,16 @@ moves its suite into required authored core shards automatically. Full-tier's `@
 run in the authored extended selection as well. Dry-run coverage guards execute the workflow's
 actual Playwright selections and require all four suites to appear in the appropriate tier.
 
+The 16 October release reconciliation keeps the entire unchanged `luna-exit.spec.ts` required
+on the authored fixture, on desktop, Pixel 7 and iPhone WebKit. Its raw chamber-status loop
+checks all six rooms, including the Menu/return assertions for authored sealed rooms. Every
+other case in that file also remains on production. The raw authored route case alone is
+retargeted; additional production route/Menu checks cover all six addresses, with every
+unreleased direct URL required to be not-found. CI and `ci:local` both run the authored contract
+configuration, and a dry-run guard verifies every case and browser selection. Known sealed
+routes reach the spine in development so it can present their corridor doors; production
+continues to use the existing release gate before creating a chamber route.
+
 Explicit `@extended` metadata selects corridor camera trajectory, sampling and frame-count
 diagnostics, including authored full-tier paths. Those tests still run on every pull request in four visible extended jobs, with every
 failure written to the job summary. A failure alone never justifies moving a test out of core.

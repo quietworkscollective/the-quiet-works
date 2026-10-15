@@ -132,8 +132,8 @@ describe('contrast', () => {
 
   it('the plate is attached to the lockup, so it follows the type at every width: solid across it, fading to nothing', () => {
     const plate = declarationsOf('.tqw-hero__lockup::before');
-    expect(plate).toMatch(/radial-gradient\(\s*ellipse closest-side at 50% 50%/);
-    expect(plate).toMatch(/rgba\(23, 25, 24, var\(--hero-plate, 0\.7\)\) var\(--plate-solid, 62%\)/);
+    expect(plate).toMatch(/radial-gradient\(\s*ellipse at 50% 50%/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, var\(--hero-plate, 0\.92\)\) var\(--plate-solid, 90%\)/);
     expect(plate).toMatch(/rgba\(23, 25, 24, 0\) 100%/);
     expect(plate).toMatch(/pointer-events:\s*none/);
     expect(plate).toMatch(/z-index:\s*-1/);

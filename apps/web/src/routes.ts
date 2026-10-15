@@ -1,4 +1,4 @@
-import { chamberBySlug, chamberById, type PageId, type Route } from '@tqw/engine';
+import { chamberBySlug, chamberById, type ChamberId, type PageId, type Route } from '@tqw/engine';
 import { isChamberOpenInBuild } from './chambers/registry.ts';
 
 /**
@@ -12,7 +12,11 @@ const PAGE_PATHS: Record<Exclude<PageId, 'not-found'>, string> = {
   privacy: '/privacy',
 };
 
-export function parseRoute(pathname: string, isOpen = isChamberOpenInBuild): Route {
+// Authored fixtures pass known sealed doors to the spine, which keeps them in the corridor.
+// Production still rejects every route whose release gate is closed.
+const routeAvailable = (id: ChamberId) => import.meta.env.DEV || isChamberOpenInBuild(id);
+
+export function parseRoute(pathname: string, isOpen = routeAvailable): Route {
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path === '/') return { kind: 'home' };
   for (const [page, pagePath] of Object.entries(PAGE_PATHS)) {

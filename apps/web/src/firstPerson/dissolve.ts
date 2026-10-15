@@ -27,13 +27,19 @@ export function createDissolve({ overlay, source, render, ms }: DissolveOptions)
   let raf = 0;
 
   const clear = () => {
+    window.clearTimeout(timer);
+    timer = 0;
     overlay.style.opacity = '0';
     overlay.style.transition = 'none';
     // Shrinking the bitmap releases its memory between dissolves.
     overlay.width = 1;
     overlay.height = 1;
   };
+  const onTransitionEnd = (event: TransitionEvent) => {
+    if (event.target === overlay && event.propertyName === 'opacity') clear();
+  };
   clear();
+  overlay.addEventListener('transitionend', onTransitionEnd);
 
   return {
     capture() {
@@ -53,12 +59,15 @@ export function createDissolve({ overlay, source, render, ms }: DissolveOptions)
       raf = window.requestAnimationFrame(() => {
         overlay.style.transition = `opacity ${ms}ms linear`;
         overlay.style.opacity = '0';
-        timer = window.setTimeout(clear, ms + 80);
+        // This is a cleanup fallback for suspended or throttled frames. The listener releases the
+        // captured image as soon as the fade has rendered.
+        timer = window.setTimeout(clear, ms + 1500);
       });
     },
     dispose() {
       window.clearTimeout(timer);
       window.cancelAnimationFrame(raf);
+      overlay.removeEventListener('transitionend', onTransitionEnd);
     },
   };
 }

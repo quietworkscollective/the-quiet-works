@@ -1,6 +1,8 @@
 import { SPINE_TIMING, WALK_EASING } from '../timing.ts';
-import { contains, extent, nearestWalkable, segmentInside, slide, type Bounds, type Vec2 } from './bounds.ts';
+import type { Bounds, Vec2 } from './bounds.ts';
 import { clamp, cubicBezier, integrate01, lerp, smoothstep01, type Bezier, type EasingFn } from './easing.ts';
+import { DEFAULT_SOFT_EDGE_DEG, edgeScale, yawLimitDeg, yawRelative, type Stage } from './stage.ts';
+import { polygonWalkable, rectWalkable, type Walkable } from './walkable.ts';
 
 /**
  * A chamber-agnostic first-person controller: pose, walking, turning, looking, assisted glides
@@ -68,8 +70,16 @@ export const DEFAULT_TUNING: Tuning = {
 
 export interface FirstPersonConfig {
   start: Pose;
-  /** Where the visitor may stand. The start pose and every glide target must be inside. */
-  bounds: Bounds;
+  /**
+   * Where the visitor may stand, as a union of rectangles. The start pose and every glide target
+   * must be inside. Give this or a `stage`.
+   */
+  bounds?: Bounds;
+  /**
+   * The space's stage (ADR 0007): a walkable polygon in place of `bounds`, and a limit on the yaw
+   * so that no more than 180 degrees of the space is ever in view. Without one the view turns freely.
+   */
+  stage?: Stage;
   /**
    * Waypoints for glides whose straight line would leave the bounds (a doorway between two
    * rooms). The nearest one that makes both legs walkable is used.
@@ -113,6 +123,18 @@ export interface FirstPerson {
   /** Ground speed over the last step, m/s (0 when still). */
   readonly speed: number;
   readonly gliding: boolean;
+  /**
+   * How far either side of the stage's forward axis the view direction may turn on the current
+   * screen, in degrees (Infinity without a stage). Derived from the lens: `visibleHalfArc - hfov / 2`.
+   */
+  readonly yawLimitDeg: number;
+  /**
+   * Tells the controller the screen's horizontal field of view (call it before the first frame and
+   * whenever the viewport changes). The yaw limit follows; a view now past it eases back inside,
+   * with no snap. Until it is called the field of view is taken as nothing, so the limit is the
+   * whole half-arc: a stage whose screen is not yet known does not clamp early.
+   */
+  setLens(horizontalFovDeg: number): void;
   /** True while another `step` is needed; false means the view is at rest and no frame is due. */
   readonly active: boolean;
   /** Advances by `dtMs` (clamped to 50 ms so a stalled tab never lurches). Returns `active`. */
@@ -208,6 +230,8 @@ interface Glide {
     yawFrom: number;
     yawMain: number;
     yawFrame: number;
+    /** Where the turn ends: the target's own yaw when it is a plain turn to it, so the landing is exact. */
+    yawTo: number;
     pitchFrom: number;
     pitchTo: number;
     yawOffset: number;
@@ -226,6 +250,8 @@ const MIN_GLIDE_MPS = 0.12;
 /** Scripted advances start and stop a little faster than a glide so the cruise stays near walking pace. */
 const ADVANCE_ACCEL_MS = 250;
 const ADVANCE_SETTLE_MS = 400;
+/** A view left past a new yaw limit comes back inside with this time constant. */
+const EXCESS_TAU_S = 0.12;
 const MAX_FREE_STEP_MS = 50;
 const MAX_SCRIPTED_STEP_MS = 400;
 const SUBSTEP_MS = 25;
@@ -262,6 +288,49 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
   };
 
   const soft = config.softStopM ?? { x: 0, z: 0 };
+  if (!config.stage && !config.bounds) throw new Error('createFirstPerson needs bounds or a stage');
+  const ground: Walkable = config.stage ? polygonWalkable(config.stage.walkable) : rectWalkable(config.bounds ?? []);
+  const stage = config.stage ?? null;
+  /** The screen's horizontal field of view: the yaw limit is derived from it. */
+  let hfov = 0;
+  const softEdge = stage?.softEdgeDeg ?? DEFAULT_SOFT_EDGE_DEG;
+  const yawLimit = (): number => (stage ? yawLimitDeg(stage, hfov) : Number.POSITIVE_INFINITY);
+  /** Brings an absolute yaw inside the stage's limit (continuously: a yaw past it goes to the limit it is nearest). */
+  const clampYaw = (yaw: number): number => {
+    if (!stage) return yaw;
+    const rel = yawRelative(stage, yaw);
+    const limit = yawLimit();
+    if (Math.abs(rel) <= limit) return yaw;
+    return yaw + (Math.sign(rel) * limit - rel);
+  };
+  /** How far the view is past the stage's limit, in degrees (0 when inside it, or without a stage). */
+  const yawExcess = (): number => (stage ? Math.max(0, Math.abs(yawRelative(stage, pose.yawDeg)) - yawLimit()) : 0);
+  /**
+   * Turns the view by `deltaDeg`, scaled smoothly to nothing over the last `softEdge` degrees before
+   * the limit (smoothstep), in steps of at most a degree so a big turn is eased through the zone too.
+   */
+  const turnBy = (deltaDeg: number): void => {
+    if (!stage) {
+      pose.yawDeg += deltaDeg;
+      return;
+    }
+    const limit = yawLimit();
+    let left = deltaDeg;
+    while (Math.abs(left) > 1e-9) {
+      const step = Math.sign(left) * Math.min(1, Math.abs(left));
+      const rel = yawRelative(stage, pose.yawDeg);
+      const scale = edgeScale(rel, step, limit, softEdge);
+      if (scale === 0) break;
+      pose.yawDeg += step * scale;
+      left -= step;
+      // A turn that was inside the limit never ends outside it (a stage with no soft edge is a hard
+      // stop). A view already outside it (the screen narrowed) is left to ease back; it is never clamped here.
+      if (Math.abs(rel) <= limit && Math.abs(yawRelative(stage, pose.yawDeg)) > limit) {
+        pose.yawDeg = clampYaw(pose.yawDeg);
+        break;
+      }
+    }
+  };
   const pose: Pose = { ...config.start };
   const fwd = new Ramp(ease);
   const turnRamp = new Ramp(ease);
@@ -300,7 +369,7 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
   };
 
   const setView = (target: { yawDeg?: number | undefined; pitchDeg?: number | undefined }) => {
-    if (target.yawDeg !== undefined) pose.yawDeg = target.yawDeg;
+    if (target.yawDeg !== undefined) pose.yawDeg = clampYaw(target.yawDeg);
     if (target.pitchDeg !== undefined)
       pose.pitchDeg = clamp(target.pitchDeg, -tuning.pitchLimitDeg, tuning.pitchLimitDeg);
   };
@@ -353,11 +422,11 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
   }
 
   function buildPath(from: Vec2, to: Vec2): Vec2[] {
-    if (segmentInside(config.bounds, from, to)) return [from, to];
+    if (ground.segmentInside(from, to)) return [from, to];
     let best: Vec2[] | null = null;
     let bestLength = Infinity;
     for (const gate of config.gates ?? []) {
-      if (!segmentInside(config.bounds, from, gate) || !segmentInside(config.bounds, gate, to)) continue;
+      if (!ground.segmentInside(from, gate) || !ground.segmentInside(gate, to)) continue;
       const length = Math.hypot(gate.x - from.x, gate.z - from.z) + Math.hypot(to.x - gate.x, to.z - gate.z);
       if (length < bestLength) {
         bestLength = length;
@@ -415,19 +484,25 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
       options.onDone?.();
       return;
     }
-    const goal = nearestWalkable(config.bounds, target);
+    const goal = ground.nearest(target);
     const from = { x: pose.x, z: pose.z };
     const path = buildPath(from, goal);
     let view: Glide['view'] = null;
     const wantsView = target.yawDeg !== undefined || target.pitchDeg !== undefined;
     if (wantsView) {
-      const delta = target.yawDeg !== undefined ? wrap180(target.yawDeg - pose.yawDeg) : 0;
+      // The way round to the framed heading, kept inside the stage's limit (a glide never frames a view
+      // beyond it). Where nothing is limited the glide lands on exactly the heading it was given.
+      const around = target.yawDeg === undefined ? undefined : pose.yawDeg + wrap180(target.yawDeg - pose.yawDeg);
+      const goalYaw = around === undefined ? undefined : clampYaw(around);
+      const delta = goalYaw !== undefined ? goalYaw - pose.yawDeg : 0;
       const framing =
         options.frame === false ? 0 : clamp(delta, -tuning.glide.framingMaxDeg, tuning.glide.framingMaxDeg);
+      const exact = target.yawDeg !== undefined && goalYaw !== undefined && Math.abs(goalYaw - target.yawDeg) < 1e-9;
       view = {
         yawFrom: pose.yawDeg,
         yawMain: delta - framing,
         yawFrame: framing,
+        yawTo: exact ? (target.yawDeg as number) : (goalYaw ?? pose.yawDeg),
         pitchFrom: pose.pitchDeg,
         pitchTo: clamp(target.pitchDeg ?? pose.pitchDeg, -tuning.pitchLimitDeg, tuning.pitchLimitDeg),
         yawOffset: 0,
@@ -472,6 +547,7 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
             yawFrom: pose.yawDeg,
             yawMain: 0,
             yawFrame: 0,
+            yawTo: pose.yawDeg,
             pitchFrom: pose.pitchDeg,
             pitchTo: clamp(options.pitchDeg, -tuning.pitchLimitDeg, tuning.pitchLimitDeg),
             yawOffset: 0,
@@ -500,7 +576,7 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
     pose.x = end.x;
     pose.z = end.z;
     if (g.view && !g.viewFree) {
-      pose.yawDeg = g.view.yawFrom + g.view.yawMain + g.view.yawFrame;
+      pose.yawDeg = g.view.yawTo;
       pose.pitchDeg = g.view.pitchTo;
     }
     glide = null;
@@ -593,14 +669,14 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
     let dx = vx * dt;
     let dz = vz * dt;
     if (dx !== 0) {
-      const e = extent(config.bounds, here, 'x');
+      const e = ground.extent(here, 'x');
       dx *= allowed(dx > 0 ? e.hi - here.x : here.x - e.lo, soft.x);
     }
     if (dz !== 0) {
-      const e = extent(config.bounds, here, 'z');
+      const e = ground.extent(here, 'z');
       dz *= allowed(dz > 0 ? e.hi - here.z : here.z - e.lo, soft.z);
     }
-    const next = slide(config.bounds, here, { x: dx, z: dz });
+    const next = ground.slide(here, { x: dx, z: dz });
     pose.x = next.x;
     pose.z = next.z;
     const moved = { x: next.x - here.x, z: next.z - here.z };
@@ -624,9 +700,19 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
     turnRamp.retarget(turning, rampMs(turnRamp.value, turning));
     turnRamp.step(dt);
     if (turnRamp.value !== 0 && glide?.view) glide.viewFree = true;
-    pose.yawDeg += turnRamp.value * dt;
+    turnBy(turnRamp.value * dt);
     if (glide) stepGlide(glide, dt);
     else stepFree(dt);
+    // A screen that turned (a phone laid on its side) can leave the view past its new limit: ease
+    // back inside over about a tenth of a second, never snapping.
+    if (stage) {
+      const excess = yawExcess();
+      if (excess > 0) {
+        const back = excess < 0.01 ? excess : excess * (1 - Math.exp(-dt / EXCESS_TAU_S));
+        pose.yawDeg -= Math.sign(yawRelative(stage, pose.yawDeg)) * back;
+        if (glide?.view) glide.viewFree = true;
+      }
+    }
   }
 
   const controller: FirstPerson = {
@@ -646,11 +732,18 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
         sumHolds(turns) !== 0 ||
         !fwd.settled ||
         !turnRamp.settled ||
-        pending !== 0
+        pending !== 0 ||
+        yawExcess() > 1e-6
       );
     },
     get reducedMotion() {
       return reduced;
+    },
+    get yawLimitDeg() {
+      return yawLimit();
+    },
+    setLens(horizontalFovDeg) {
+      hfov = Math.max(0, horizontalFovDeg);
     },
 
     step(dtMs) {
@@ -695,7 +788,7 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
 
     look(dYawDeg, dPitchDeg) {
       if (locked) return;
-      pose.yawDeg += dYawDeg;
+      turnBy(dYawDeg);
       pose.pitchDeg = clamp(pose.pitchDeg + dPitchDeg, -tuning.pitchLimitDeg, tuning.pitchLimitDeg);
       if (glide?.view) glide.viewFree = true;
     },
@@ -737,8 +830,8 @@ export function createFirstPerson(config: FirstPersonConfig): FirstPerson {
     },
   };
 
-  if (!contains(config.bounds, { x: pose.x, z: pose.z })) {
-    const p = nearestWalkable(config.bounds, { x: pose.x, z: pose.z });
+  if (!ground.contains({ x: pose.x, z: pose.z })) {
+    const p = ground.nearest({ x: pose.x, z: pose.z });
     pose.x = p.x;
     pose.z = p.z;
   }

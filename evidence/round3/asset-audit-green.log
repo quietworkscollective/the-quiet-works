@@ -1,0 +1,414 @@
+
+> the-quiet-works@ audit:assets <worktree>
+> pnpm --filter @tqw/web audit:assets
+
+
+> @tqw/web@0.0.0 audit:assets <worktree>/apps/web
+> pnpm build && node scripts/audit-assets.mjs
+
+
+> @tqw/web@0.0.0 build <worktree>/apps/web
+> tsc -p tsconfig.json && node ../../scripts/bake/run.mjs --check && vite build && node ../../scripts/check-production-probes.mjs
+
+corridor: source fingerprint matches 1ae5f83be4cc22eff4930c053fb9d17936a114f618b0fd813fc187864d315e57 (529 files)
+office: source fingerprint matches d5a0a328525e7ccca96ce52b9550e9c9aebd8ad330e51b655f6a2c4d3dda9fff (448 files)
+codex-room: source fingerprint matches 1377e867915ccedb7f57caec8c236c2cd8f9be2d5388492f68534d8ce128f940 (338 files)
+exchange: source fingerprint matches ad1ca459cdee90f8701d72917a85bf5bd85ff8c1d05947a9a49c4b74e741ebd8 (339 files)
+apartment: source fingerprint matches 51116a3efb0fbde00afe86a1dc268a9ea5e10d9cf26ae4a906b0806ac6d01506 (339 files)
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 810 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/sitemap.xml                                                         0.68 kB │ gzip:     0.22 kB
+dist/_headers                                                            0.92 kB
+dist/llms.txt                                                            1.60 kB │ gzip:     0.71 kB
+dist/great-atrium.md                                                     1.74 kB
+dist/apartment.md                                                        1.74 kB
+dist/tomorrow-engine.md                                                  1.74 kB
+dist/the-exchange.md                                                     1.75 kB
+dist/outline-room.md                                                     1.76 kB
+dist/skill.md                                                            1.98 kB
+dist/about.md                                                            2.09 kB
+dist/licences.md                                                         2.13 kB
+dist/certification-office.md                                             2.14 kB
+dist/index.md                                                            2.24 kB
+dist/privacy.md                                                          2.27 kB
+dist/agents.md                                                           2.64 kB
+dist/assets/concrete-orm-CyDQJP2Y.webp                                   5.07 kB
+dist/assets/cardboard-orm-B4-hfaGc.webp                                  5.36 kB
+dist/assets/felt-normal-CqN6UTNF.webp                                    5.56 kB
+dist/assets/leather-orm-Cn9W4B_S.webp                                    5.80 kB
+dist/assets/plaster-clean-orm-DrlCwL4_.webp                              6.58 kB
+dist/assets/paper-albedo-DAJJEGaB.webp                                   6.71 kB
+dist/assets/concrete-albedo-BOzvay5G.webp                                7.25 kB
+dist/credits.md                                                          7.74 kB
+dist/assets/leather-albedo-DDkp-wuc.webp                                 8.09 kB
+dist/assets/oak-floor-orm-DZ5LU9cS.webp                                  9.42 kB
+dist/assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff                13.14 kB
+dist/assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff                13.20 kB
+dist/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2               14.70 kB
+dist/assets/oak-panelling-orm-BV78jJHG.webp                             15.61 kB
+dist/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2               15.62 kB
+dist/assets/ibm-plex-sans-condensed-latin-700-normal-D3enqrvP.woff      17.96 kB
+dist/assets/ibm-plex-sans-condensed-latin-400-normal-5i361Byk.woff      18.35 kB
+dist/assets/ibm-plex-sans-condensed-latin-600-normal-6XnkKYvF.woff      18.75 kB
+dist/assets/ibm-plex-sans-condensed-latin-700-normal-D8r4s4aS.woff2     19.35 kB
+dist/assets/ibm-plex-sans-condensed-latin-400-normal-DKyD6XsY.woff2     19.79 kB
+dist/assets/ibm-plex-sans-condensed-latin-600-normal-CRd5VyFf.woff2     19.81 kB
+dist/assets/painted-timber-normal-B0dDshTT.webp                         21.95 kB
+dist/assets/felt-orm-Bj1SAPYF.webp                                      22.09 kB
+dist/assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff                22.10 kB
+dist/assets/ibm-plex-sans-latin-700-normal-Bth3BMcD.woff                22.28 kB
+dist/assets/newsreader-latin-400-normal-BFBkh4jY.woff2                  22.48 kB
+dist/assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2               22.58 kB
+dist/assets/ibm-plex-sans-latin-700-normal-Bxkt5Cjx.woff2               22.83 kB
+dist/assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff                23.91 kB
+dist/assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2               24.18 kB
+dist/assets/newsreader-latin-400-italic-CEihAR-f.woff2                  24.34 kB
+dist/assets/oak-panelling-albedo-I2ju3Al1.webp                          24.67 kB
+dist/assets/newsreader-latin-400-normal-gRTjlS2D.woff                   28.28 kB
+dist/apartment/index.html                                               29.23 kB │ gzip:     2.91 kB
+dist/the-exchange/index.html                                            29.24 kB │ gzip:     2.91 kB
+dist/great-atrium/index.html                                            29.25 kB │ gzip:     2.91 kB
+dist/assets/concrete-normal-DbTbVg9R.webp                               29.25 kB
+dist/outline-room/index.html                                            29.27 kB │ gzip:     2.91 kB
+dist/tomorrow-engine/index.html                                         29.28 kB │ gzip:     2.92 kB
+dist/certification-office/index.html                                    29.44 kB │ gzip:     3.06 kB
+dist/licences/index.html                                                29.44 kB │ gzip:     3.10 kB
+dist/index.html                                                         29.67 kB │ gzip:     3.14 kB
+dist/about/index.html                                                   29.76 kB │ gzip:     3.21 kB
+dist/privacy/index.html                                                 29.95 kB │ gzip:     3.30 kB
+dist/agents/index.html                                                  29.97 kB │ gzip:     3.33 kB
+dist/llms-full.txt                                                      30.25 kB │ gzip:     4.47 kB
+dist/assets/newsreader-latin-400-italic-CNZoH1hn.woff                   30.87 kB
+dist/credits/index.html                                                 36.37 kB │ gzip:     4.80 kB
+dist/assets/plaster-worn-albedo-Bnalw2h-.webp                           36.75 kB
+dist/assets/felt-albedo-Al20wONo.webp                                   37.85 kB
+dist/third-party-notices.txt                                            38.06 kB │ gzip:     6.14 kB
+dist/assets/painted-timber-albedo-C54KDum4.webp                         38.46 kB
+dist/assets/leather-normal-CHnkgd29.webp                                38.50 kB
+dist/assets/office-1-terC3TiZ.webp                                      40.77 kB
+dist/assets/plaster-clean-normal-CE8GkUbV.webp                          54.65 kB
+dist/.vite/manifest.json                                                70.87 kB │ gzip:     7.51 kB
+dist/assets/plaster-worn-normal-C1-maHlY.webp                           73.10 kB
+dist/assets/linoleum-albedo-MYz4Zu2F.webp                               74.25 kB
+dist/assets/oak-floor-albedo-Dxlze3Cc.webp                              84.82 kB
+dist/assets/terrazzo-albedo-BeZbZ4Hd.webp                              106.22 kB
+dist/assets/plaster-clean-albedo-DOOjR5K0.webp                         119.55 kB
+dist/assets/apartment-0-CsqZFXyL.webp                                  216.58 kB
+dist/assets/schumann-at-the-fireside-BKmsQdlR.webm                     222.13 kB
+dist/assets/office-0-DnEh-X60.webp                                     286.43 kB
+dist/assets/schumann-at-the-fireside-CJmiCqQ6.m4a                      295.37 kB
+dist/assets/corridor-0-D_uZb_o-.webp                                   343.32 kB
+dist/assets/chopin-waltz-a-minor-6i4Iyawe.webm                         395.59 kB
+dist/assets/codex-room-0-CNG5hmh9.webp                                 437.80 kB
+dist/assets/chopin-waltz-a-minor-BbEnKyoi.m4a                          531.02 kB
+dist/assets/satie-gymnopedie-1-BcHqjMpL.webm                           552.94 kB
+dist/assets/satie-gymnopedie-1-DFv9EokG.m4a                            738.83 kB
+dist/assets/annex-codex-DsS_oent.css                                     4.12 kB │ gzip:     1.26 kB
+dist/assets/apartment-CKioGHD8.css                                       5.13 kB │ gzip:     1.64 kB
+dist/office-fallback.css                                                 5.15 kB │ gzip:     1.47 kB
+dist/assets/CorridorScene-UgYm8RtU.css                                   8.91 kB │ gzip:     2.13 kB
+dist/assets/index-DO7JKmv5.css                                          86.49 kB │ gzip:    17.27 kB
+dist/assets/felt-orm-BYIiTq0w.js                                         0.06 kB │ gzip:     0.08 kB
+dist/assets/felt-albedo-r48qcVHP.js                                      0.06 kB │ gzip:     0.08 kB
+dist/assets/felt-normal-CARlPI9S.js                                      0.06 kB │ gzip:     0.08 kB
+dist/assets/leather-orm-B7Rwcnsz.js                                      0.06 kB │ gzip:     0.08 kB
+dist/assets/concrete-orm-B6zLGv8U.js                                     0.06 kB │ gzip:     0.08 kB
+dist/assets/paper-albedo-CW_e1oDo.js                                     0.06 kB │ gzip:     0.08 kB
+dist/assets/cardboard-orm-BQOaQaO7.js                                    0.06 kB │ gzip:     0.08 kB
+dist/assets/oak-floor-orm-9XaaIUjm.js                                    0.06 kB │ gzip:     0.08 kB
+dist/assets/leather-albedo-CYpxoCcv.js                                   0.06 kB │ gzip:     0.08 kB
+dist/assets/leather-normal-EgIR2Ozi.js                                   0.06 kB │ gzip:     0.08 kB
+dist/assets/concrete-albedo-DKPYDwwr.js                                  0.06 kB │ gzip:     0.08 kB
+dist/assets/concrete-normal-BgYq3mDn.js                                  0.06 kB │ gzip:     0.08 kB
+dist/assets/linoleum-albedo-2EBKqpGV.js                                  0.06 kB │ gzip:     0.08 kB
+dist/assets/terrazzo-albedo-DqYLXs6j.js                                  0.06 kB │ gzip:     0.08 kB
+dist/assets/oak-floor-albedo-CF4bEAP5.js                                 0.06 kB │ gzip:     0.08 kB
+dist/assets/oak-panelling-orm-CS8aTtPK.js                                0.06 kB │ gzip:     0.08 kB
+dist/assets/plaster-clean-orm-C-8a8aiN.js                                0.06 kB │ gzip:     0.08 kB
+dist/assets/plaster-worn-albedo-9i25LBul.js                              0.07 kB │ gzip:     0.08 kB
+dist/assets/plaster-worn-normal-DX0BHdhq.js                              0.07 kB │ gzip:     0.09 kB
+dist/assets/oak-panelling-albedo-Dpj3mXb6.js                             0.07 kB │ gzip:     0.09 kB
+dist/assets/plaster-clean-albedo-wPMK4K5p.js                             0.07 kB │ gzip:     0.09 kB
+dist/assets/plaster-clean-normal-DhMSDhPe.js                             0.07 kB │ gzip:     0.09 kB
+dist/assets/painted-timber-albedo-DEMwiXde.js                            0.07 kB │ gzip:     0.09 kB
+dist/assets/painted-timber-normal-Bx7xdMDz.js                            0.07 kB │ gzip:     0.09 kB
+dist/assets/paper-orm-Ck0Nt0Hd.js                                        0.48 kB │ gzip:     0.41 kB
+dist/assets/brass-normal-Cc911l-x.js                                     0.85 kB │ gzip:     0.33 kB
+dist/assets/sealed-BtTER2A0.js                                           0.92 kB │ gzip:     0.52 kB
+dist/assets/corridor-geometry-34-B2M6lskn.js                             1.18 kB │ gzip:     0.94 kB
+dist/assets/dispose-cEwfefdZ.js                                          1.42 kB │ gzip:     0.73 kB
+dist/assets/oak-floor-normal-DsC1innu.js                                 1.44 kB │ gzip:     1.08 kB
+dist/assets/corridor-geometry-37-CVwAzkN4.js                             1.45 kB │ gzip:     1.14 kB
+dist/assets/corridor-geometry-0-D1fYNbHm.js                              1.46 kB │ gzip:     1.16 kB
+dist/assets/preload-helper-BLdHbfdN.js                                   1.51 kB │ gzip:     0.79 kB
+dist/assets/corridor-geometry-18-BRz0Arsm.js                             1.80 kB │ gzip:     1.41 kB
+dist/assets/brass-orm-CCrwcrmV.js                                        1.82 kB │ gzip:     1.42 kB
+dist/assets/linoleum-normal-BzcIhsAK.js                                  2.06 kB │ gzip:     1.60 kB
+dist/assets/cardboard-normal-CTL8FMfe.js                                 2.26 kB │ gzip:     1.75 kB
+dist/assets/corridor-geometry-49-CaZWKfc_.js                             2.29 kB │ gzip:     1.77 kB
+dist/assets/corridor-geometry-12-CDICjUTQ.js                             2.43 kB │ gzip:     1.88 kB
+dist/assets/enamel-steel-normal-BpAtOPD8.js                              2.74 kB │ gzip:     2.11 kB
+dist/assets/Dressing-Csp0WWpf.js                                         2.79 kB │ gzip:     1.17 kB
+dist/assets/oak-panelling-normal-JgaOaqbu.js                             3.02 kB │ gzip:     2.31 kB
+dist/assets/enamel-steel-orm-D5dVf7jj.js                                 3.10 kB │ gzip:     2.38 kB
+dist/assets/cardboard-albedo-D-hsjFaZ.js                                 3.26 kB │ gzip:     2.51 kB
+dist/assets/corridor-geometry-28-O3v8w_nh.js                             3.38 kB │ gzip:     2.59 kB
+dist/assets/corridor-geometry-40-BZNpArTW.js                             3.40 kB │ gzip:     2.61 kB
+dist/assets/linoleum-orm-BWGFgAEB.js                                     3.58 kB │ gzip:     2.75 kB
+dist/assets/terrazzo-normal-DKjoUCLH.js                                  3.61 kB │ gzip:     2.77 kB
+dist/assets/corridor-geometry-26-Dk9OOZYw.js                             3.81 kB │ gzip:     2.91 kB
+dist/assets/corridor-geometry-11-DW-qs8CU.js                             3.81 kB │ gzip:     2.91 kB
+dist/assets/corridor-geometry-16-Bba5jAoW.js                             3.83 kB │ gzip:     2.93 kB
+dist/assets/corridor-geometry-41-BzErpzqk.js                             3.83 kB │ gzip:     2.93 kB
+dist/assets/corridor-geometry-50-4pVr7Um-.js                             3.83 kB │ gzip:     2.93 kB
+dist/assets/src-AqXPMuLE.js                                              3.94 kB │ gzip:     1.84 kB
+dist/assets/corridor-geometry-32-B0fmRW9C.js                             4.24 kB │ gzip:     3.24 kB
+dist/assets/corridor-geometry-13-mA3Qr3ge.js                             4.41 kB │ gzip:     3.37 kB
+dist/assets/painted-timber-orm-DMelKFHh.js                               4.51 kB │ gzip:     3.45 kB
+dist/assets/plaster-worn-orm-DUrbaex0.js                                 4.77 kB │ gzip:     3.64 kB
+dist/assets/brass-albedo-IRB_M9NV.js                                     4.84 kB │ gzip:     3.69 kB
+dist/assets/three-BsQZ31nE.js                                            5.00 kB │ gzip:     2.24 kB
+dist/assets/enamel-steel-albedo-CZJg_8HA.js                              5.25 kB │ gzip:     4.00 kB
+dist/assets/corridor-geometry-21-OVVOFnXR.js                             5.32 kB │ gzip:     4.05 kB
+dist/assets/terrazzo-orm-Tg65H63E.js                                     5.36 kB │ gzip:     4.08 kB
+dist/assets/corridor-geometry-33-fg9HQcr1.js                             6.15 kB │ gzip:     4.67 kB
+dist/assets/corridor-geometry-42-CL_kdmt7.js                             8.35 kB │ gzip:     6.30 kB
+dist/assets/notepads.glb-2_y7wDOV.js                                     8.39 kB │ gzip:     6.36 kB
+dist/assets/jsx-runtime-D3jfb0Ew.js                                      8.90 kB │ gzip:     3.38 kB
+dist/assets/cricket-ball-kWeD7fSW.js                                    10.06 kB │ gzip:     6.65 kB
+dist/assets/corridor-geometry-9-DEhIe0OY.js                             11.36 kB │ gzip:     8.60 kB
+dist/assets/registry-DQRe1jEt.js                                        11.49 kB │ gzip:     4.63 kB
+dist/assets/corridor-geometry-36-Ddc5CsAJ.js                            12.36 kB │ gzip:     9.35 kB
+dist/assets/controller-C3Bux9h4.js                                      13.13 kB │ gzip:     5.30 kB
+dist/assets/corridor-geometry-29-l-zFWX4s.js                            13.81 kB │ gzip:    10.34 kB
+dist/assets/corridor-geometry-39-f2o5Npqw.js                            13.85 kB │ gzip:    10.38 kB
+dist/assets/corridor-geometry-1-DzDXMKli.js                             14.90 kB │ gzip:    11.25 kB
+dist/assets/certificate-sign.glb-Beo3Cr0X.js                            16.97 kB │ gzip:    12.62 kB
+dist/assets/corridor-geometry-27-mNOj41eu.js                            17.60 kB │ gzip:    13.29 kB
+dist/assets/corridor-geometry-6-ygJo2NkY.js                             18.03 kB │ gzip:    13.43 kB
+dist/assets/corridor-geometry-35-IpX1GW87.js                            18.05 kB │ gzip:    13.47 kB
+dist/assets/corridor-geometry-17-CJoFBflo.js                            18.06 kB │ gzip:    13.55 kB
+dist/assets/corridor-geometry-20-CPDbMlZA.js                            18.06 kB │ gzip:    13.43 kB
+dist/assets/ledger-b.glb-DwK5MfFd.js                                    23.49 kB │ gzip:    17.73 kB
+dist/assets/certification-office-VkyFuP8z.js                            25.53 kB │ gzip:    13.50 kB
+dist/assets/exchange-DW18sFEB.js                                        25.54 kB │ gzip:    13.21 kB
+dist/assets/corridor-geometry-44-CKuHi61k.js                            26.59 kB │ gzip:    20.05 kB
+dist/assets/ledger-a.glb-C0gXKqqw.js                                    26.63 kB │ gzip:    20.06 kB
+dist/assets/apartment-DxT0Yxlq.js                                       27.18 kB │ gzip:    12.13 kB
+dist/assets/box-file-b.glb--yW-T8CA.js                                  27.50 kB │ gzip:    20.74 kB
+dist/assets/scorebook-BRnMkn4D.js                                       27.74 kB │ gzip:    18.52 kB
+dist/assets/employee-window.glb-qdcOz_lN.js                             30.08 kB │ gzip:    21.97 kB
+dist/assets/box-file-a.glb-D5S0lJ-i.js                                  30.32 kB │ gzip:    22.85 kB
+dist/assets/trophy-cup-squat-D0XQPFfS.js                                31.85 kB │ gzip:    21.19 kB
+dist/assets/corridor-geometry-4-C3jF-r1p.js                             33.88 kB │ gzip:    25.56 kB
+dist/assets/glove-work-DAIBS8kh.js                                      36.90 kB │ gzip:    26.15 kB
+dist/assets/book-row-60.glb-_ZH0cuWN.js                                 37.05 kB │ gzip:    27.91 kB
+dist/assets/ledger-c.glb-BqwSakR_.js                                    37.17 kB │ gzip:    28.01 kB
+dist/assets/archive-bay-distant.glb-B95ZJtkX.js                         37.23 kB │ gzip:    28.01 kB
+dist/assets/trophy-plinth-small-DfLX6dzz.js                             37.74 kB │ gzip:    24.74 kB
+dist/assets/clock-wall-COOy8l7c.js                                      38.69 kB │ gzip:    23.20 kB
+dist/assets/cricket-stumps-BBniWX6G.js                                  43.68 kB │ gzip:    28.08 kB
+dist/assets/bench-painted-wood-BNesqglw.js                              47.86 kB │ gzip:    32.14 kB
+dist/assets/book-row-90.glb-BDpQbQn2.js                                 48.05 kB │ gzip:    36.17 kB
+dist/assets/trophy-shield-tydAT1ME.js                                   48.24 kB │ gzip:    32.36 kB
+dist/assets/frame-photo-white-oHRdAaiy.js                               50.38 kB │ gzip:    32.78 kB
+dist/assets/trophy-cup-tall-CS6KWKbA.js                                 52.71 kB │ gzip:    35.80 kB
+dist/assets/application-board.glb-8OTf4Y6D.js                           54.25 kB │ gzip:    39.44 kB
+dist/assets/cricket-bat-PgJNJe4K.js                                     56.46 kB │ gzip:    39.41 kB
+dist/assets/service-bell.glb-CefeUr30.js                                57.64 kB │ gzip:    43.34 kB
+dist/assets/stationery-set.glb-BXS8engd.js                              63.53 kB │ gzip:    47.83 kB
+dist/assets/desk.glb-HI6iuCRU.js                                        63.60 kB │ gzip:    46.87 kB
+dist/assets/filing-cabinet-4.glb-BRRe722O.js                            66.98 kB │ gzip:    50.35 kB
+dist/assets/press.glb-BceFTIZ1.js                                       67.21 kB │ gzip:    49.21 kB
+dist/assets/banker-lamp.glb-CrxbUBzt.js                                 67.72 kB │ gzip:    50.63 kB
+dist/assets/toolbox-metal-6cHmhPhA.js                                   68.06 kB │ gzip:    38.20 kB
+dist/assets/column-radiator-6-9i4T2G2S.js                               68.26 kB │ gzip:    41.70 kB
+dist/assets/banker-lamp-CBVWE14H.js                                     71.76 kB │ gzip:    39.36 kB
+dist/assets/ledger-binders.glb-Dz9RVz1K.js                              72.24 kB │ gzip:    54.42 kB
+dist/assets/timing-BhLKRaqv.js                                          72.41 kB │ gzip:    23.27 kB
+dist/assets/plant-succulent.glb-C8ioFZj8.js                             74.16 kB │ gzip:    55.88 kB
+dist/assets/watering-can-CzrJchhO.js                                    76.34 kB │ gzip:    54.12 kB
+dist/assets/clock-wall.glb-B7eMIY1u.js                                  77.29 kB │ gzip:    58.04 kB
+dist/assets/stapler-teal.glb-De4V3uqt.js                                77.95 kB │ gzip:    58.72 kB
+dist/assets/machine.glb-V6K8Kude.js                                     80.27 kB │ gzip:    59.68 kB
+dist/assets/column-radiator-10-ForacfWv.js                              80.80 kB │ gzip:    48.03 kB
+dist/assets/stamp-rack.glb-dplKfgQb.js                                  86.62 kB │ gzip:    64.45 kB
+dist/assets/typewriter.glb-BFAfn0ID.js                                  89.32 kB │ gzip:    66.86 kB
+dist/assets/column-radiator-10.glb-BsTtAm-a.js                          92.53 kB │ gzip:    69.39 kB
+dist/assets/chair-painted-wood-dQs9tsyM.js                              98.66 kB │ gzip:    68.90 kB
+dist/assets/kettle-vintage-DVzaW3Er.js                                 102.10 kB │ gzip:    64.15 kB
+dist/assets/rotary-telephone.glb-PqYlC4Zg.js                           106.53 kB │ gzip:    80.04 kB
+dist/assets/archive-bay.glb-Lg-YwI_m.js                                108.11 kB │ gzip:    78.02 kB
+dist/assets/plant-large-DHctM470.js                                    110.82 kB │ gzip:    71.79 kB
+dist/assets/scorebook-C7TOubej.js                                      120.63 kB │ gzip:    81.57 kB
+dist/assets/book-stack-CqLmCn9Z.js                                     131.03 kB │ gzip:    94.31 kB
+dist/assets/trophy-plinth-empty-_AyFB3Pn.js                            138.63 kB │ gzip:    93.57 kB
+dist/assets/ledger-b-DvfaJp8j.js                                       150.58 kB │ gzip:   100.09 kB
+dist/assets/box-file-a-BAsuSNXq.js                                     159.89 kB │ gzip:   105.22 kB
+dist/assets/book-open-wHake9Lu.js                                      163.67 kB │ gzip:   100.90 kB
+dist/assets/box-file-b-BFWis_Bn.js                                     166.70 kB │ gzip:   111.51 kB
+dist/assets/ledger-a-B2EzPXx6.js                                       168.84 kB │ gzip:   109.51 kB
+dist/assets/lamp-anglepoise-lD6YHRGx.js                                171.30 kB │ gzip:   110.65 kB
+dist/assets/ledger-c-CRerxr6i.js                                       171.70 kB │ gzip:   106.17 kB
+dist/assets/OfficeScene-BSxVYfJo.js                                    190.86 kB │ gzip:    58.03 kB
+dist/assets/trophy-plinth-small-ChbBka6f.js                            215.54 kB │ gzip:   125.25 kB
+dist/assets/cricket-stumps-CL1kalHU.js                                 221.24 kB │ gzip:   141.52 kB
+dist/assets/service-bell-Cckk-UGj.js                                   222.56 kB │ gzip:   146.89 kB
+dist/assets/trophy-shield-CeoGKi36.js                                  225.65 kB │ gzip:   136.03 kB
+dist/assets/trophy-cup-squat-BQgThkB9.js                               232.81 kB │ gzip:   150.22 kB
+dist/assets/cricket-ball-BSyOEr9Y.js                                   261.70 kB │ gzip:   180.47 kB
+dist/assets/driver-lqtOmB3S.js                                         269.91 kB │ gzip:   112.71 kB
+dist/assets/cart-tool-green-COJJwytz.js                                273.38 kB │ gzip:   165.85 kB
+dist/assets/index-DBbhFRwK.js                                          306.48 kB │ gzip:    97.22 kB
+dist/assets/CorridorScene-DN3s7B1K.js                                  310.38 kB │ gzip:   144.50 kB
+dist/assets/book-row-60-BTS7dnVM.js                                    376.05 kB │ gzip:   264.62 kB
+dist/assets/three.core-Dp-eO7LC.js                                     377.28 kB │ gzip:   100.66 kB
+dist/assets/book-row-90-DKSeXyJ7.js                                    399.18 kB │ gzip:   274.88 kB
+dist/assets/office-DvH2quFM.js                                         400.83 kB │ gzip:   298.12 kB
+dist/assets/filing-cabinet-4-CtpJ-Hzv.js                               515.90 kB │ gzip:   313.65 kB
+dist/assets/stamp-rack-CzyCdqhA.js                                     517.33 kB │ gzip:   337.84 kB
+dist/assets/banker-lamp-CBj8iGSb.js                                    528.31 kB │ gzip:   351.18 kB
+dist/assets/cricket-bat-C-R-v0Tm.js                                    554.98 kB │ gzip:   384.20 kB
+dist/assets/desk-globe-BK3dUaLP.js                                     593.19 kB │ gzip:   401.57 kB
+dist/assets/rotary-telephone-BGRL16pL.js                               622.84 kB │ gzip:   381.64 kB
+dist/assets/column-radiator-6-KGO2Mirp.js                              667.67 kB │ gzip:   428.38 kB
+dist/assets/column-radiator-10-YUiQF5Ep.js                             709.01 kB │ gzip:   425.03 kB
+dist/assets/profiles-qp7MIZZ5.js                                       713.45 kB │ gzip:   202.58 kB
+dist/assets/typewriter-BmxfrRP_.js                                     747.12 kB │ gzip:   457.25 kB
+dist/assets/ExchangeScene-hbWYch86.js                                  769.08 kB │ gzip:   520.65 kB
+dist/assets/exchange-1XNT8Hgq.js                                       918.72 kB │ gzip:   679.34 kB
+dist/assets/trophy-cup-tall-DSIgoXFx.js                                944.51 kB │ gzip:   670.60 kB
+dist/assets/apartment-JTXMzlVy.js                                    1,116.97 kB │ gzip:   834.72 kB
+dist/assets/codex-room-Beq8Znea.js                                   1,205.08 kB │ gzip:   902.10 kB
+dist/assets/ApartmentScene-BI3-9ym3.js                               1,210.34 kB │ gzip:   849.49 kB
+dist/assets/annex-codex-4KTOzLsU.js                                  1,408.38 kB │ gzip: 1,032.06 kB
+dist/assets/corridor-Ydvwl8Nm.js                                     1,651.24 kB │ gzip: 1,225.05 kB
+
+✓ built in 1.69s
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+Production probe scan: zero identifiers across 196 bundle files.
+audit:assets  apps/web/dist  (277 files)
+
+Media files (61)
+  FILE                                                            SIZE      LICENCE                   SOURCE
+  --------------------------------------------------------------  --------  ------------------------  -----------------------------------
+  apple-touch-icon.png                                            0.6 kB    CC-BY-4.0                 in-repo
+  assets/apartment-0-CsqZFXyL.webp                                216.6 kB  CC-BY-4.0                 in-repo
+  assets/cardboard-orm-B4-hfaGc.webp                              5.4 kB    CC0-1.0                   third-party:ambientCG
+  assets/chopin-waltz-a-minor-6i4Iyawe.webm                       395.6 kB  CC0-1.0                   third-party:Musopen
+  assets/chopin-waltz-a-minor-BbEnKyoi.m4a                        531.0 kB  CC0-1.0                   third-party:Musopen
+  assets/codex-room-0-CNG5hmh9.webp                               437.8 kB  CC-BY-4.0                 in-repo
+  assets/concrete-albedo-BOzvay5G.webp                            7.3 kB    CC0-1.0                   third-party:ambientCG
+  assets/concrete-normal-DbTbVg9R.webp                            29.3 kB   CC0-1.0                   third-party:ambientCG
+  assets/concrete-orm-CyDQJP2Y.webp                               5.1 kB    CC0-1.0                   third-party:ambientCG
+  assets/corridor-0-D_uZb_o-.webp                                 343.3 kB  CC-BY-4.0                 in-repo
+  assets/felt-albedo-Al20wONo.webp                                37.9 kB   CC0-1.0                   third-party:ambientCG
+  assets/felt-normal-CqN6UTNF.webp                                5.6 kB    CC0-1.0                   third-party:ambientCG
+  assets/felt-orm-Bj1SAPYF.webp                                   22.1 kB   CC0-1.0                   third-party:ambientCG
+  assets/ibm-plex-mono-latin-400-normal-CvHOgSBP.woff             13.1 kB   OFL-1.1                   @fontsource/ibm-plex-mono
+  assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2            14.7 kB   OFL-1.1                   @fontsource/ibm-plex-mono
+  assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2            15.6 kB   OFL-1.1                   @fontsource/ibm-plex-mono
+  assets/ibm-plex-mono-latin-600-normal-DWFSQ4vo.woff             13.2 kB   OFL-1.1                   @fontsource/ibm-plex-mono
+  assets/ibm-plex-sans-condensed-latin-400-normal-5i361Byk.woff   18.4 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-condensed-latin-400-normal-DKyD6XsY.woff2  19.8 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-condensed-latin-600-normal-6XnkKYvF.woff   18.8 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-condensed-latin-600-normal-CRd5VyFf.woff2  19.8 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-condensed-latin-700-normal-D3enqrvP.woff   18.0 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-condensed-latin-700-normal-D8r4s4aS.woff2  19.4 kB   OFL-1.1                   @fontsource/ibm-plex-sans-condensed
+  assets/ibm-plex-sans-latin-400-normal-CDDApCn2.woff2            22.6 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/ibm-plex-sans-latin-400-normal-CYLoc0-x.woff             22.1 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/ibm-plex-sans-latin-500-normal-6ng42L7E.woff2            24.2 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/ibm-plex-sans-latin-500-normal-BgVn5rGT.woff             23.9 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/ibm-plex-sans-latin-700-normal-Bth3BMcD.woff             22.3 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/ibm-plex-sans-latin-700-normal-Bxkt5Cjx.woff2            22.8 kB   OFL-1.1                   @fontsource/ibm-plex-sans
+  assets/leather-albedo-DDkp-wuc.webp                             8.1 kB    CC0-1.0                   third-party:ambientCG
+  assets/leather-normal-CHnkgd29.webp                             38.5 kB   CC0-1.0                   third-party:ambientCG
+  assets/leather-orm-Cn9W4B_S.webp                                5.8 kB    CC0-1.0                   third-party:ambientCG
+  assets/linoleum-albedo-MYz4Zu2F.webp                            74.3 kB   CC0-1.0                   third-party:Poly Haven
+  assets/newsreader-latin-400-italic-CEihAR-f.woff2               24.3 kB   OFL-1.1                   @fontsource/newsreader
+  assets/newsreader-latin-400-italic-CNZoH1hn.woff                30.9 kB   OFL-1.1                   @fontsource/newsreader
+  assets/newsreader-latin-400-normal-BFBkh4jY.woff2               22.5 kB   OFL-1.1                   @fontsource/newsreader
+  assets/newsreader-latin-400-normal-gRTjlS2D.woff                28.3 kB   OFL-1.1                   @fontsource/newsreader
+  assets/oak-floor-albedo-Dxlze3Cc.webp                           84.8 kB   CC0-1.0                   third-party:Poly Haven
+  assets/oak-floor-orm-DZ5LU9cS.webp                              9.4 kB    CC0-1.0                   third-party:Poly Haven
+  assets/oak-panelling-albedo-I2ju3Al1.webp                       24.7 kB   CC0-1.0                   third-party:Poly Haven
+  assets/oak-panelling-orm-BV78jJHG.webp                          15.6 kB   CC0-1.0                   third-party:Poly Haven
+  assets/office-0-DnEh-X60.webp                                   286.4 kB  CC-BY-4.0                 in-repo
+  assets/office-1-terC3TiZ.webp                                   40.8 kB   CC-BY-4.0                 in-repo
+  assets/painted-timber-albedo-C54KDum4.webp                      38.5 kB   CC0-1.0                   third-party:ambientCG
+  assets/painted-timber-normal-B0dDshTT.webp                      22.0 kB   CC0-1.0                   third-party:ambientCG
+  assets/paper-albedo-DAJJEGaB.webp                               6.7 kB    CC0-1.0                   third-party:ambientCG
+  assets/plaster-clean-albedo-DOOjR5K0.webp                       119.6 kB  CC0-1.0                   third-party:ambientCG
+  assets/plaster-clean-normal-CE8GkUbV.webp                       54.7 kB   CC0-1.0                   third-party:ambientCG
+  assets/plaster-clean-orm-DrlCwL4_.webp                          6.6 kB    CC0-1.0                   third-party:ambientCG
+  assets/plaster-worn-albedo-Bnalw2h-.webp                        36.8 kB   CC0-1.0                   third-party:ambientCG
+  assets/plaster-worn-normal-C1-maHlY.webp                        73.1 kB   CC0-1.0                   third-party:ambientCG
+  assets/satie-gymnopedie-1-BcHqjMpL.webm                         552.9 kB  LicenseRef-Public-Domain  third-party:Musopen
+  assets/satie-gymnopedie-1-DFv9EokG.m4a                          738.8 kB  LicenseRef-Public-Domain  third-party:Musopen
+  assets/schumann-at-the-fireside-BKmsQdlR.webm                   222.1 kB  LicenseRef-Public-Domain  third-party:Musopen
+  assets/schumann-at-the-fireside-CJmiCqQ6.m4a                    295.4 kB  LicenseRef-Public-Domain  third-party:Musopen
+  assets/terrazzo-albedo-BeZbZ4Hd.webp                            106.2 kB  CC0-1.0                   third-party:ambientCG
+  favicon.svg                                                     0.3 kB    CC-BY-4.0                 in-repo
+  icon-512.png                                                    2.0 kB    CC-BY-4.0                 in-repo
+  poster-hero-1440x900.webp                                       77.8 kB   CC-BY-4.0                 in-repo
+  poster-hero-412x915.webp                                        77.9 kB   CC-BY-4.0                 in-repo
+  share-unheld-1200x630.png                                       652.0 kB  CC-BY-4.0                 in-repo
+
+Third-party notices
+  third-party-notices.txt: 16 package section(s)
+
+Attributions
+  IBM Plex Mono, copyright 2017 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource.
+  IBM Plex Sans, copyright 2019 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource.
+  IBM Plex Sans Condensed, copyright 2019 IBM Corp., SIL Open Font License 1.1, bundled via Fontsource.
+  Newsreader, copyright 2020 The Newsreader Project Authors (Production Type), SIL Open Font License 1.1, bundled via Fontsource.
+  UNHELD mark artwork (favicon.svg), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md).
+  UNHELD mark artwork (apple-touch-icon.png), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md).
+  UNHELD mark artwork (icon-512.png), (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md).
+  UNHELD hero posters (poster-hero-1440x900.webp, poster-hero-412x915.webp): stills of the corridor scene captured from the build by scripts/capture-poster.mjs, (c) 2026 Asiri Dalugoda, CC BY 4.0 (LICENSING.md); re-captured whenever the corridor's art changes.
+  UNHELD share card, derived from the hero poster by scripts/share-card.mjs, (c) 2026 Asiri Dalugoda, CC BY 4.0; the name and mark as the project's identity are reserved (LICENSING.md).
+  Created using Plaster 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Plaster 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Wood Floor by Dimitrios Savva (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/wood_floor
+  Oak Veneer 01 by Jenelle van Heerden (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/oak_veneer_01
+  Created using Terrazzo 005 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Concrete 030 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Linoleum Brown by Rob Tuytel (Poly Haven), CC0 1.0 Universal, https://polyhaven.com/a/linoleum_brown
+  Created using Painted Wood 009 C from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Fabric 034 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Leather 014 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Cardboard 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  Created using Paper 002 from ambientCG.com, licensed under the Creative Commons CC0 1.0 Universal License.
+  UNHELD baked scene lighting (indirect-light atlases), (c) 2026 Asiri Dalugoda, CC BY 4.0; see LICENSING.md.
+  Gymnopédie No. 1 by Erik Satie (1888), performed by Robin Alciatore, recording from Musopen (musopen.org), public domain.
+  Waltz in A minor, B. 150 by Frédéric Chopin, performed by Aya Higuchi, recording from Musopen (musopen.org), CC0 1.0 Universal.
+  At the Fireside (Kinderszenen, Op. 15, No. 8) by Robert Schumann (1838), performed by Donald Betts, recording from Musopen (musopen.org), public domain.
+
+Remote references
+  code: 3371 occurrence(s), 118 distinct URL(s) on the allowlist, 0 not allowed
+  source maps: 0 distinct URL(s) across 0 map file(s), 0 host(s); reported, not enforced
+
+Download budgets (source maps excluded)
+  first visit landing/corridor: 2.98 MB gzip across 50 files; limit 3.00 MB
+  Office direct-link first visit: 2.93 MB gzip across 78 files; limit 3.00 MB
+  Office full direct visit (including deferred models): 3.24 MB gzip across 81 files
+  Annex / Codex expanded lazy route: 2.38 MB gzip across 5 new files; target 3.00 MB
+  Apartment expanded lazy route: 868.5 kB gzip across 4 new files; target 3.00 MB
+  Office expanded lazy route: 2.46 MB gzip across 52 new files; target 3.00 MB
+  Annex / Exchange expanded lazy route: 1.22 MB gzip across 4 new files; target 3.00 MB
+  shared gramophone records: 2.74 MB raw across 6 files; limit 3.00 MB
+  whole build backstop: 31.32 MB raw; limit 36.00 MB
+  all shipped files: 31.32 MB raw, 22.28 MB gzipped
+
+Warnings (2)
+  warn: manifest entry "Surface: enamel-steel" matches no shipped file (stale, or the font is no longer imported)
+  warn: manifest entry "Surface: brass" matches no shipped file (stale, or the font is no longer imported)
+
+audit:assets passed

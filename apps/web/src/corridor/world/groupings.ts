@@ -8,7 +8,7 @@ import { BRASS_TINT } from './palette.ts';
 import { cylinder, sphere, stud } from './shapes.ts';
 import type { Vec2, Vec3 } from './math.ts';
 import { ANNEX, bayCentreZ, CORRIDOR } from '../layout.ts';
-import { END_Z, STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS, CORRIDOR_END_Z } from './extent.ts';
 import { placements } from './openings.ts';
 
 /**
@@ -230,7 +230,7 @@ export function buildGroupings(b: Buckets): void {
   for (const p of PIER_PRINTS) framedPrint(b, p.side, p.s, p.y, p.w, p.h, p.art === 'plan' ? ART.plan : ART.section);
   // The far corridor: a framed print on the pier at every other bay boundary, alternating sides,
   // on the wall that has no sconce there (sconces sit on the opposite wall, 3.6 m apart).
-  for (let k = 0; -24.2 - 14.4 * k > END_Z + 1; k += 1) {
+  for (let k = 0; -24.2 - 14.4 * k > CORRIDOR_END_Z + 1; k += 1) {
     framedPrint(b, 'right', -24.2 - 14.4 * k, 1.74, 0.62, 0.4, ART.section, false);
     framedPrint(b, 'left', -27.8 - 14.4 * k, 1.74, 0.5, 0.4, ART.plan, false);
   }
@@ -248,7 +248,7 @@ export function buildGroupings(b: Buckets): void {
  * door" even for a bay that has an authored one, which hung a print over the double doors at bay 7.
  */
 export function farPrintSlots(): { bay: number; side: Side; z: number }[] {
-  const lastBay = STAGE.bays - 1;
+  const lastBay = CORRIDOR_END_BAYS - 1;
   const doors = placements();
   const out: { bay: number; side: Side; z: number }[] = [];
   for (let bay = CORRIDOR.walkableBays; bay <= lastBay; bay += 1) {

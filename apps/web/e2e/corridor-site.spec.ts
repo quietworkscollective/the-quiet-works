@@ -1,3 +1,4 @@
+import { startView } from './corridor-view.ts';
 import { expect, test, type CDPSession, type Page } from '@playwright/test';
 import { entranceZ } from '../src/corridor/camera/entrance.ts';
 import { ENTRANCE_KEYS, HANDOVER, HANDOVER_PORTRAIT_TURN_DEG } from '../src/corridor/layout.ts';
@@ -225,7 +226,7 @@ test.describe('who owns the page input', () => {
     await hero(page);
     await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
-    await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
+    await expect.poll(async () => Math.abs((await pose(page)).z - startView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
     // Arrived by scrolling and not yet engaged: still the page's.
     expect(await prevented(page)).toEqual({ wheel: false, key: false, arrow: false });
     await engage(page);
@@ -322,10 +323,11 @@ test.describe('touch gestures while engaged', () => {
     await hero(page);
     await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
-    await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
+    await expect.poll(async () => Math.abs((await pose(page)).z - startView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
     await page.waitForTimeout(500);
     await engage(page);
-    await page.waitForTimeout(300);
+    // Pose telemetry rounds x/z to millimetres and yaw to hundredths; START_VIEW is exact at that precision.
+    await expect.poll(() => pose(page), { timeout: 10_000 }).toEqual(startView(page));
   }
 
   test('wait 12 px before choosing an axis: a finger under it neither walks nor looks, one over it does', async ({

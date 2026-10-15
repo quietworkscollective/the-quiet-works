@@ -80,6 +80,13 @@ in core on desktop and Pixel 7; the no-JavaScript project reads all twelve publi
 guard checks seven user agents against the same production preview. CI selection tests verify these
 cases with Playwright `--list`, alongside authored Office-budget coverage.
 
+The unchanged `luna-exit.spec.ts` also gates against the authored fixture on desktop, Pixel 7
+and iPhone WebKit. Its all-chamber route case uses authored status; production retains the
+other cases and adds release/return/Menu checks for all six URLs. Unreleased production URLs
+remain not-found. The required core shards and `ci:local` both run
+`playwright.chamber-contract.config.ts`; dry-run guards ensure that no chamber or assertion
+is omitted by the retargeting.
+
 The twelve core shards distribute individual cases (`fullyParallel`) by count, with one worker
 per runner. Playwright does not schedule from historical durations; measure the slowest shard
 on the next public run before claiming the 15–20 minute PR target is met. Core has a 45-minute

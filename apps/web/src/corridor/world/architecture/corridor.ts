@@ -2,15 +2,15 @@ import { box, breaks, grid, quad, type Style } from '../builder.ts';
 import type { Buckets } from '../buckets.ts';
 import { linear, type Rgb } from '../colour.ts';
 import { CORRIDOR } from '../../layout.ts';
-import { END_Z } from '../stage.ts';
+import { CORRIDOR_END_Z } from '../extent.ts';
 import { darkness } from '../darkness.ts';
 import { corridorSconceSlots } from '../lighting.ts';
 import { bayOffset, bayTone, cornerShade } from '../shading.ts';
-import { gapOf, type Placement } from '../openings.ts';
+import { FRAME, gapOf, holeOf, type Placement } from '../openings.ts';
 import { TILE } from '../tiles.ts';
 import { buildCorridorFloor } from './floor.ts';
-import { buildWallRun } from './run.ts';
-import { cornice, wallGrid, type WallFrame } from './wall.ts';
+import { buildWallRun, WALL_CEILING_OVERLAP } from './run.ts';
+import { cornice, wallGrid, type WallFrame, type WallHole } from './wall.ts';
 
 /** The corridor's wall faces start here: the lobby end wall is 0.3 m thick, from z = 1.0 to 0.7. */
 export const CORRIDOR_START_Z = 0.7;
@@ -28,6 +28,7 @@ const ROOM = { x0: -HW, x1: HW, y0: 0, y1: CORRIDOR.height };
 export const CORRIDOR_DARKNESS = { radius: 2.4, floor: 0.46, fallFrom: 2.6, ceilingValue: 0.52 } as const;
 
 export const CORRIDOR_CORNICE = { projection: CORRIDOR.corniceDepth, height: 0.3 } as const;
+const CEILING_OVERLAP = 0.06;
 
 /** The wall frame of a corridor side: s runs along +z, depth out of the wall into the corridor. */
 export function sideFrame(side: 'left' | 'right'): WallFrame {
@@ -40,6 +41,9 @@ interface Gap {
   s0: number;
   s1: number;
   height: number;
+  aperture0: number;
+  aperture1: number;
+  apertureHeight: number;
 }
 
 /**
@@ -52,7 +56,7 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
   // Value bands (see darkness.ts): each sconce's pool at full value, the piers and the upper wall
   // and ceiling falling into the dark between and above them.
   const dark = darkness({
-    pools: corridorSconceSlots(END_Z).map((s) => ({ x: s.side === 'left' ? -HW : HW, z: s.z })),
+    pools: corridorSconceSlots(CORRIDOR_END_Z).map((s) => ({ x: s.side === 'left' ? -HW : HW, z: s.z })),
     radius: CORRIDOR_DARKNESS.radius,
     floor: CORRIDOR_DARKNESS.floor,
     fallFrom: CORRIDOR_DARKNESS.fallFrom,
@@ -63,8 +67,11 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
 
   buildCorridorFloor(b, { shade: shadeRoom });
 
-  const zNear = CORRIDOR_START_Z;
-  const zFar = END_Z;
+  // Carry the side walls 120 mm into the lobby end wall so the stepped cap has no raster seam.
+  const zNear = CORRIDOR_START_Z + 0.12;
+  // The authored corridor ends after thirteen full bays, where the terrazzo and the warm
+  // destination already meet. Keep its side walls, ceiling and cap on that same line.
+  const zFar = CORRIDOR_END_Z;
 
   for (const side of ['left', 'right'] as const) {
     const frame = sideFrame(side);
@@ -72,7 +79,15 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
       .filter((p) => p.side === side)
       .map((p) => {
         const g = gapOf(p.spec);
-        return { s0: p.z - g.width / 2, s1: p.z + g.width / 2, height: g.height };
+        const aperture = holeOf(p.spec);
+        return {
+          s0: p.z - g.width / 2,
+          s1: p.z + g.width / 2,
+          height: g.height,
+          aperture0: p.z - aperture.width / 2,
+          aperture1: p.z + aperture.width / 2,
+          apertureHeight: aperture.height,
+        };
       })
       .sort((a, c) => a.s0 - c.s0);
 
@@ -97,8 +112,34 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
     for (const g of gaps) {
       run(cursor, g.s0);
       // Plaster above the gap: the architrave covers the rest.
-      const ys = [g.height, g.height + 0.2, CORRIDOR.height - 0.8, CORRIDOR.height - 0.45, CORRIDOR.height - 0.2, CORRIDOR.height].filter((y) => y <= CORRIDOR.height);
+      const ys = [g.height, g.height + 0.2, CORRIDOR.height - 0.8, CORRIDOR.height - 0.45, CORRIDOR.height - 0.2, CORRIDOR.height + WALL_CEILING_OVERLAP]
+        .filter((y) => y <= CORRIDOR.height + WALL_CEILING_OVERLAP)
+        .sort((a, b) => a - b);
       wallGrid(b.plaster, frame, 0, [g.s0, g.s1], [...new Set(ys)], { shade: wallShade, uv: { du: 0.3, dv: 0.7 } });
+      // The corridor wall is a shell, not a single face. Behind the architrave, return the plaster
+      // through its 200 mm reveal so an oblique phone view cannot look through the thin wall at the
+      // edge of an opening. Leave the true aperture clear for an open door and its leaf.
+      // The wall return tucks 50 mm behind each jamb and the head: the visible opening stays
+      // clear, while the back of the reveal closes the raster seam at an extreme viewing angle.
+      const returnMargin = 0.075;
+      const returnS0 = g.aperture0 + returnMargin;
+      const returnS1 = g.aperture1 - returnMargin;
+      const returnY1 = Math.max(0, g.apertureHeight - returnMargin);
+      const returns: readonly WallHole[] = [
+        {
+          s: [returnS0, returnS1],
+          y: [0, returnY1],
+        },
+      ];
+      wallGrid(
+        b.plaster,
+        frame,
+        -FRAME.reveal,
+        [g.s0, returnS0, returnS1, g.s1],
+        [0, returnY1, CORRIDOR.height],
+        { shade: wallShade, uv: { du: 0.3, dv: 0.7 } },
+        returns,
+      );
       cursor = g.s1;
     }
     run(cursor, zNear);
@@ -108,10 +149,10 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
 
   // Ceiling: pale plaster, with a shallow rib at every bay boundary for the rhythm of the bays.
   const ceilStyle: Style = { colour: CEILING_TINT, shade: wallShade, uv: { du: 0.5, dv: 1.1 } };
-  const xs = breaks(-HW, HW, 0.8, [-HW + 0.18, -HW + 0.34, HW - 0.34, HW - 0.18]);
+  const xs = breaks(-HW - CEILING_OVERLAP, HW + CEILING_OVERLAP, 0.8, [-HW + 0.18, -HW + 0.34, HW - 0.34, HW - 0.18]);
   const ribZ: number[] = [];
   for (let k = 1; CORRIDOR.innerDoorZ - CORRIDOR.bay * k > zFar; k += 1) ribZ.push(CORRIDOR.innerDoorZ - CORRIDOR.bay * k);
-  const zs = breaks(zFar, zNear, 1.2, ribZ.flatMap((z) => [z - 0.13, z + 0.13]));
+  const zs = breaks(zFar - CEILING_OVERLAP, zNear + CEILING_OVERLAP, 1.2, ribZ.flatMap((z) => [z - 0.13, z + 0.13]));
   grid(b.plaster, [0, CORRIDOR.height, 0], [1, 0, 0], [0, 0, 1], xs, zs, ceilStyle);
   // The ribs sit in the ceiling's own corner, so they take a milder contact shade than the walls.
   const ribShade = cornerShade({ ...ROOM, y1: CORRIDOR.height }, { strength: 0.22, radius: 0.22 });

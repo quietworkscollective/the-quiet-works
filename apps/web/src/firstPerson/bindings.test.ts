@@ -503,6 +503,25 @@ describe('drag', () => {
     expect(r.gestures).toBe(1);
   });
 
+  for (const pointer of ['mouse', 'touch'] as const) {
+    for (const mode of ['engaged', 'look'] as const) {
+      it(`does not unlock audio for the trailing click after a ${pointer} drag in ${mode} mode`, () => {
+        const r = rig();
+        r.options.mode = mode;
+        down(r, 100, 100, pointer);
+        move(r, 160, 100, 1);
+        up(r);
+        fire(r.surface, 'click');
+        expect(r.gestures).toBe(0);
+        // A subsequent deliberate click still works.
+        down(r, 100, 100, pointer);
+        up(r);
+        fire(r.surface, 'click');
+        expect(r.gestures).toBe(1);
+      });
+    }
+  }
+
   it('swipes under reduced motion step between viewpoints, once per swipe', () => {
     const r = rig();
     r.options.reduced = true;

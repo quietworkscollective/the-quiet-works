@@ -106,7 +106,7 @@ export function GameWindow({
               <p className="tqw-game__title">{GAME_WINDOW_COPY.title}</p>
             )}
             <div className="tqw-game__tools">
-              {engaged && onReturn ? (
+              {onReturn ? (
                 <button type="button" className="tqw-game__tool" onClick={onReturn}>
                   {CORRIDOR_COPY.backToCorridor}
                 </button>

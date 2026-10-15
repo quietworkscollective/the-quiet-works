@@ -8,10 +8,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSoundDesk } from '../soundDesk.ts';
 import type { SoundRoom } from '../types.ts';
-import { audibleGain, FakeAudioContext, FakeBiquad, FakeBufferSource, FakeConvolver, FakeGain, FakeOscillator, FakePanner } from '../spineTestAudio.ts';
+import { audibleGain, FakeAudioContext, FakeBiquad, FakeBufferSource, FakeCompressor, FakeConvolver, FakeGain, FakeOscillator, FakePanner } from '../spineTestAudio.ts';
 import { gramophone } from './index.ts';
 import { LEAD_IN_MS, RUN_OUT_MS, SWAP_MS } from './needle.ts';
-import { GRAMOPHONE, mixAt } from './space.ts';
+import { bayCentreZ, LOBBY, WALK_LIMITS } from '../../corridor/layout.ts';
+import { BED_DRIVE_DB, BED_RATIO, BED_THRESHOLD_DB, GRAMOPHONE, GRAMOPHONE_SOURCE, bedLevelDbfs, modeledMusicDbfs, mixAt } from './space.ts';
 import { FakeAudioElement, FakeMediaSource, installMusicAudio, musicContext, type MusicFakeContext } from './testAudio.ts';
 import { FIRST_FADE_IN_S, LIFT_FADE_OUT_S, ROOM_FADE_IN_S, ROOM_FADE_OUT_S } from './musicSound.ts';
 
@@ -270,34 +271,62 @@ describe('rooms', () => {
 });
 
 describe('where the visitor stands', () => {
-  async function levelAt(ctx: MusicFakeContext, x: number, z: number): Promise<number> {
-    gramophone.setListener({ x, z, yawDeg: 0 });
-    await advance(ctx, 0.4);
-    return level(ctx);
-  }
+  it('keeps the local gramophone voice and adds a separate diffuse bed beyond it', () => {
+    const local = mixAt({ x: GRAMOPHONE_SOURCE.x + 0.5, z: GRAMOPHONE.z, yawDeg: 0 });
+    const firstBay = mixAt({ x: 0, z: bayCentreZ(0), yawDeg: 0 });
+    const farEnd = mixAt({ x: 0, z: WALK_LIMITS.minZ, yawDeg: 0 });
+    expect(local.bed).toBe(0);
+    expect(firstBay.gain).toBeLessThan(local.gain);
+    expect(firstBay.bed).toBeGreaterThan(0);
+    expect(farEnd.bed).toBeGreaterThanOrEqual(firstBay.bed);
+  });
 
-  it('is quieter at every step down the corridor from the gramophone to the far end, and never silent', async () => {
+  it('gently compresses only the diffuse bed so a quiet passage carries without lifting the gramophone', async () => {
     const { ctx } = await playing();
-    let last = Number.POSITIVE_INFINITY;
-    for (const z of [GRAMOPHONE.z, 0, -4, -8, -12, -16, -19]) {
-      const now = await levelAt(ctx, 0, z);
-      expect(now, `at z = ${z}`).toBeGreaterThan(0.0005);
-      if (z !== GRAMOPHONE.z) expect(now, `at z = ${z}`).toBeLessThan(last);
-      last = now;
+    const bedCompressor = ctx.of(FakeCompressor).find((node) =>
+      [...node.outputs].some((output) => output instanceof FakeGain),
+    );
+    expect(bedCompressor).toBeDefined();
+    expect(bedCompressor?.threshold.valueAt(ctx.currentTime)).toBe(BED_THRESHOLD_DB);
+    expect(bedCompressor?.knee.valueAt(ctx.currentTime)).toBe(0);
+    expect(bedCompressor?.ratio.valueAt(ctx.currentTime)).toBe(BED_RATIO);
+    expect(bedCompressor?.attack.valueAt(ctx.currentTime)).toBe(0.15);
+    expect(bedCompressor?.release.valueAt(ctx.currentTime)).toBe(0.8);
+    expect(ctx.nodes.filter((node) => node instanceof FakeGain && ctx.inputsOf(node).includes(bedCompressor!))).toHaveLength(2);
+    const drive = ctx.inputsOf(bedCompressor!).find((node): node is FakeGain => node instanceof FakeGain);
+    expect(drive?.gain.valueAt(ctx.currentTime)).toBeCloseTo(10 ** (BED_DRIVE_DB / 20), 8);
+  });
+
+  it('keeps quiet, typical and loud record passages in the soft corridor-bed range', () => {
+    const far = mixAt({ x: 0, z: WALK_LIMITS.minZ, yawDeg: 0 });
+    for (const sourceDbfs of [-37, -22, -8]) {
+      const bedDbfs = bedLevelDbfs(sourceDbfs, far);
+      expect(bedDbfs, `source passage ${sourceDbfs} dBFS`).toBeGreaterThanOrEqual(-30);
+      expect(bedDbfs, `source passage ${sourceDbfs} dBFS`).toBeLessThanOrEqual(-24);
     }
   });
 
-  it('follows the same fall-off the space model gives: the first bay clearly lower than beside it, the third bay lower again', async () => {
-    const { ctx } = await playing();
-    const near = await levelAt(ctx, -1.6, GRAMOPHONE.z);
-    const first = await levelAt(ctx, 0, -0.8);
-    const third = await levelAt(ctx, 0, -8);
-    const ratioDb = (a: number, b: number) => 20 * Math.log10(a / b);
-    // The direct sound and the room add, so the graph is within about 3 dB of the model's figure.
-    expect(ratioDb(first, near)).toBeLessThan(-5);
-    expect(ratioDb(third, near)).toBeLessThan(ratioDb(first, near) - 4);
-    expect(Math.abs(ratioDb(first, near) - mixAt({ x: 0, z: -0.8, yawDeg: 0 }).gainDb)).toBeLessThan(3.5);
-    expect(Math.abs(ratioDb(third, near) - mixAt({ x: 0, z: -8, yawDeg: 0 }).gainDb)).toBeLessThan(3.5);
+  it('keeps the continuous record bed above -30 dBFS from the lobby through the far end', async () => {
+    await playing();
+    const sourceDbfs = -25.5;
+    const points = [
+      { label: 'lobby', x: 0, z: 6.5 },
+      { label: 'first bay', x: 0, z: bayCentreZ(0) },
+      { label: 'third bay', x: 0, z: bayCentreZ(2) },
+      { label: 'sixth bay', x: 0, z: bayCentreZ(5) },
+      { label: 'far end', x: 0, z: WALK_LIMITS.minZ },
+    ] as const;
+    const routePoints: { label: string; x: number; z: number; dbfs: number }[] = [];
+    for (let z = LOBBY.startZ; z >= WALK_LIMITS.minZ; z -= 0.5) {
+      routePoints.push({ label: `corridor z=${z.toFixed(1)}`, x: 0, z, dbfs: modeledMusicDbfs(sourceDbfs, { x: 0, z, yawDeg: 0 }) });
+    }
+    const named = points.map((point) => ({
+      label: point.label,
+      dbfs: modeledMusicDbfs(sourceDbfs, { x: point.x, z: point.z, yawDeg: 0 }),
+    }));
+    console.info(`Music model (−22 dBFS near-source reference): ${named.map(({ label, dbfs }) => `${label} ${dbfs.toFixed(1)} dBFS`).join(', ')}`);
+    expect(modeledMusicDbfs(sourceDbfs, { x: GRAMOPHONE_SOURCE.x + 0.5, z: GRAMOPHONE.z, yawDeg: 0 })).toBeCloseTo(-22, 1);
+    expect(Math.min(...routePoints.map(({ dbfs }) => dbfs))).toBeGreaterThanOrEqual(-30);
   });
 
   it('retargets the air filter by cancel, set and ramp, never by holding a ramp: a held biquad frequency was measured to burst by 33 dB', async () => {

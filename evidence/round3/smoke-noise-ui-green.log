@@ -1,0 +1,17 @@
+
+ RUN  v5.0.4 <worktree>/packages/ui
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > is one 256 x 256 RGBA texture 1ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > is the same on every device: seeded, so a seed always gives the same bytes 12ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > is smoke-coloured everywhere and only its density varies: no white edges 3ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > is about half smoke and half gap, so it reads as a few large masses rather than a haze 2ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > is soft: no pixel differs sharply from its neighbour 9ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > tiles: the left and right edges, and the top and bottom, meet as softly as any neighbours 0ms
+ ✓ src/spine/smokeNoise.test.ts > smokeNoise > never exceeds 94% opacity: the opaque backing, not the texture, closes the seam 0ms
+ ✓ src/spine/smokeNoise.test.ts > smokeTextureUrl > resolves to null where there is no 2D canvas, rather than throwing 2ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  11:10:40
+   Duration  1.86s (environment 86%, setup 6%, transform 3%, tests 2%, import 1%, worker 1%)

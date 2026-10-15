@@ -4,18 +4,27 @@ import type { InputMode } from '../../firstPerson/bindings.ts';
 import { createFirstPerson, type FirstPerson, type Pose } from '../../firstPerson/controller.ts';
 import { SPINE_TIMING } from '../../timing.ts';
 import type { CorridorAnimation } from '../animation.ts';
-import { HANDOVER, HANDOVER_PORTRAIT_TURN_DEG } from '../layout.ts';
+import type { AmbientClock } from '../ambient.ts';
+import { createPropAnimation, type PropAnimation, type PropId } from '../props.ts';
 import type { ProgressSource } from '../progress.ts';
 import { ambientDrift, driftWeight } from './ambient.ts';
+import type { BoardMotion } from './boardMotion.ts';
+import { cueText, type CueTarget } from './cueText.ts';
+import { horizontalFov, type Lens } from './framing.ts';
+import { candidates as findable, find } from './context.ts';
+import { createCueTracker } from './cueTracker.ts';
+import { createInterest, DOOR_GLINT_LEVEL, type Interest, type Place } from './interest.ts';
 import { approach, CLOSING_END_MS, closingAt, ENTRY_START_MS, openingAt, rattleAt } from './doorMotion.ts';
-import { createEntranceFollower, entranceYaw, entranceZ, walkT } from './entrance.ts';
+import { createEntranceFollower, entrancePose, walkT } from './entrance.ts';
 import {
   corridorBounds,
   doorFrame,
+  doorwayAdvanceM,
   doorwayDirection,
   GATES,
+  FOV,
   handoverPose,
-  LANDING_POSE,
+  landingPose,
   SOFT_STOP,
   viewpointOrder,
 } from './viewpoints.ts';
@@ -65,6 +74,33 @@ export interface DirectorOptions {
   beforeCut?(): void;
   /** Something changed that needs a frame (the shell calls `invalidate`). */
   requestFrame(): void;
+  /** The things to touch (ADR 0004): their per-frame state, written here and read by the props lane. */
+  propAnimation?: PropAnimation;
+  /** Where ambient render windows are asked for; the idle glint needs one. */
+  ambient?: AmbientClock;
+  /** The notice board's pin glint, read by the world. */
+  boardMotion?: BoardMotion;
+  /** The lens now in use (field of view and aspect), for framing stations; the screen's shape by default. */
+  lens?(): Lens;
+  /** A prop's action has begun: the shell may show what it reveals. */
+  onPropAct?(id: PropId): void;
+  /** The visitor has arrived at the starting view and can act (once per director). */
+  onArrive?(): void;
+  /** For tests: the real clock and the dice. */
+  nowMs?: () => number;
+  random?: () => number;
+}
+
+/** What the DOM cue near an object says and how it behaves (see `Director.cue`). */
+export interface Cue {
+  target: CueTarget;
+  text: string;
+  /** The visitor was sent to this object, or stands at it: its verb is an action to press. */
+  framed: boolean;
+  /** Keyboard (or assistive) focus is on this object. */
+  focused: boolean;
+  /** False while a label that has just been dropped fades out. */
+  visible: boolean;
 }
 
 export interface Director {
@@ -94,10 +130,25 @@ export interface Director {
   clickFloor(point: Vec2): void;
   /** Reduced motion: forward and back step between named viewpoints. */
   stepViewpoint(dir: -1 | 1): void;
+  /** The things to touch: props and the notice board. */
+  readonly interest: Interest;
+  /** What the cue near an object should say now, or null for none. */
+  cue(): Cue | null;
+  /** The viewer's keyboard focus is on a door (by its list), a prop (by the nearby list), or nothing. */
+  setFocusTarget(target: CueTarget | null): void;
+  /** Every place and action the visitor can be taken to, nearest first (the "Places and actions" list). */
+  places(): Place[];
+  /**
+   * Polls what happens with no frame drawn (a glint is due, a held action ends); true while a
+   * frame is needed. The shell calls it when `nextWakeMs` elapses.
+   */
+  wake(): boolean;
+  /** Milliseconds until `wake` would change anything, or null when nothing is pending. */
+  nextWakeMs(): number | null;
   dispose(): void;
 }
 
-type Mode = 'scrub' | 'settle' | 'free';
+type Mode = 'scrub' | 'settle' | 'return' | 'hero' | 'free';
 
 interface Opening {
   id: ChamberId;
@@ -112,26 +163,42 @@ export function createDirector(options: DirectorOptions): Director {
   const bounds = corridorBounds();
   let reduced = options.reducedMotion;
   const controller = createFirstPerson({
-    start: LANDING_POSE,
+    start: landingPose(options.portrait()),
     bounds,
     gates: GATES,
     softStopM: SOFT_STOP,
     reducedMotion: reduced,
     beforeCut: () => options.beforeCut?.(),
   });
-  /** The hand-over view for this screen: straight in landscape, turned toward the Office door in portrait. */
+  /** The starting view for this screen (ADR 0004): back in the lobby, the board and the corridor both in the picture. */
   const handover = () => handoverPose(options.portrait());
-  const turnNow = () => (options.portrait() ? HANDOVER_PORTRAIT_TURN_DEG : 0);
-  const follower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, entranceZ(walkT(progress.get())));
-  /** The scroll's turn, smoothed like its walk: portrait only, over the settle beat. */
-  const yawFollower = createEntranceFollower(
-    SPINE_TIMING.scrollSmoothingMs,
-    entranceYaw(walkT(progress.get()), turnNow()),
-  );
-  /** The hero's sideways drift, smoothed like the rest so a scroll never nudges the view. */
-  const xFollower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, 0);
+  const landing = () => landingPose(options.portrait());
+  const entranceNow = () => entrancePose(walkT(progress.get()), options.portrait());
+  /**
+   * The scroll's walk-in, one smoothed follower per pose component: the walk (z), the sideways
+   * drift and glide to the starting view (x), the turn toward the board (yaw) and the pitch.
+   * Smoothed like the rest so a scroll never nudges the view.
+   */
+  const follower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, entranceNow().z);
+  const yawFollower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, entranceNow().yawDeg);
+  const xFollower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, entranceNow().x);
+  const pitchFollower = createEntranceFollower(SPINE_TIMING.scrollSmoothingMs, entranceNow().pitchDeg);
+  const followed = (): Pose => ({
+    x: xFollower.z,
+    z: follower.z,
+    yawDeg: yawFollower.z,
+    pitchDeg: pitchFollower.z,
+  });
+  const resetFollowers = (pose: Pose): void => {
+    follower.reset(pose.z);
+    yawFollower.reset(pose.yawDeg);
+    xFollower.reset(pose.x);
+    pitchFollower.reset(pose.pitchDeg);
+  };
   /** Drift time: advances only while a frame is drawn at the hero, so pausing offscreen pauses the arc. */
   let driftClock = 0;
+  /** Progress at the last hero frame, so scrolling down again resumes the authored walk-in. */
+  let heroProgress = progress.get();
   let ambientBusy = false;
   let engaged = false;
   /** Under reduced motion the walk-in is two static views; which one is showing. */
@@ -150,14 +217,62 @@ export function createDirector(options: DirectorOptions): Director {
 
   const motion = (id: ChamberId) => animation[id];
 
+  /** Without a screen to ask, the lens is the portrait or landscape one at a typical shape. */
+  const lens = (): Lens =>
+    options.lens?.() ?? (options.portrait() ? { vfovDeg: FOV.portrait, aspect: 0.49 } : { vfovDeg: FOV.landscape, aspect: 1.6 });
+  /** Station framing follows the current screen shape; the corridor itself has no yaw clamp. */
+  const syncLens = (): void => controller.setLens(horizontalFov(lens()));
+  syncLens();
+  /** The visitor can reach for things: in the corridor, free, nothing scripted, nothing covering the scene. */
+  const canAct = (): boolean => {
+    const state = spine.getState();
+    return (
+      phase === 'corridor' &&
+      mode === 'free' &&
+      opening === null &&
+      closing === null &&
+      !state.boardOpen &&
+      state.page === null
+    );
+  };
+  const interest: Interest = createInterest({
+    controller,
+    bounds,
+    spine,
+    animation: options.propAnimation ?? createPropAnimation(),
+    lens,
+    reduced: () => reduced,
+    canAct,
+    beforeMove: () => {
+      leaveScrub();
+      framed = null;
+    },
+    requestFrame: () => options.requestFrame(),
+    doorIds: () => CHAMBERS.map((c) => c.id),
+    doorBusy: (id) => hover === id || focus === id || framed === id,
+    ...(options.ambient ? { ambient: options.ambient } : {}),
+    ...(options.boardMotion ? { boardMotion: options.boardMotion } : {}),
+    ...(options.onPropAct ? { onAct: options.onPropAct } : {}),
+    ...(options.nowMs ? { nowMs: options.nowMs } : {}),
+    ...(options.random ? { random: options.random } : {}),
+  });
+  /** What the visitor has found, held steady before it is shown, and how it fades. */
+  const tracker = createCueTracker({ ...(options.nowMs ? { nowMs: options.nowMs } : {}), reduced: () => reduced });
+  const contextList = findable();
+  /** The keyboard (or assistive technology) is on a door's or a prop's DOM equivalent. */
+  let focusTarget: CueTarget | null = null;
+  /** The visitor has arrived at the starting view, once: the board pin's glint is then due. */
+  let arrivedOnce = false;
+
   function leaveScrub(): void {
     if (mode === 'free') return;
-    controller.setPose({ x: xFollower.z, z: follower.z, yawDeg: yawFollower.z, pitchDeg: 0 });
+    controller.setPose(followed());
     mode = 'free';
   }
 
   function frameDoor(id: ChamberId): void {
     leaveScrub();
+    interest.forgetFramed();
     // Already on its way there: let the glide finish rather than restarting it.
     if (!reduced && framed === id && controller.gliding) return;
     framed = id;
@@ -168,11 +283,11 @@ export function createDirector(options: DirectorOptions): Director {
 
   // Initial placement: the landing, the hand-over, a deep-linked door, or the door we just left.
   const initial = spine.getState();
-  controller.setPose(LANDING_POSE);
+  controller.setPose(landing());
   const startDoor = initial.focus ?? initial.chamber;
   if (initial.phase === 'entrance') {
     mode = 'scrub';
-    controller.setPose({ x: xFollower.z, z: follower.z, yawDeg: yawFollower.z, pitchDeg: 0 });
+    controller.setPose(followed());
   } else if (startDoor) {
     const frame = doorFrame(startDoor);
     controller.setPose(frame);
@@ -228,7 +343,7 @@ export function createDirector(options: DirectorOptions): Director {
 
   const controllerMovable = (): boolean => {
     const state = spine.getState();
-    const settling = mode === 'settle' && Math.abs(follower.z - HANDOVER.z) > SETTLE_INPUT_M;
+    const settling = mode === 'settle' && Math.abs(follower.z - handover().z) > SETTLE_INPUT_M;
     return (
       phase === 'corridor' &&
       mode !== 'scrub' &&
@@ -240,9 +355,7 @@ export function createDirector(options: DirectorOptions): Director {
   };
 
   function resumeScrub(): void {
-    follower.reset(controller.pose.z);
-    yawFollower.reset(controller.pose.yawDeg);
-    xFollower.reset(controller.pose.x);
+    resetFollowers(controller.pose);
     mode = 'scrub';
   }
 
@@ -295,9 +408,30 @@ export function createDirector(options: DirectorOptions): Director {
     phase = state.phase;
     focus = state.focus;
     if (opening && phase === 'corridor') abortOpening();
+    if (phase !== 'corridor' && previousPhase === 'corridor') {
+      interest.reset();
+      tracker.reset();
+    }
     // A door opening locks the camera itself, once it has been placed in front of the door.
     controller.lock(phase === 'entrance' || phase === 'chamber' || opening !== null);
     if (previousPhase === 'entrance' && phase !== 'entrance') handOver();
+    if (previousPhase === 'corridor' && phase === 'entrance') {
+      // Returning through the smoke restores the landing view directly. Following the scroll
+      // backwards here would replay the whole corridor walk in view of the visitor.
+      framed = null;
+      driftClock = 0;
+      if (reduced) {
+        const view = landing();
+        reducedView = 'landing';
+        controller.cutTo(view);
+        resetFollowers(view);
+        mode = 'hero';
+        heroProgress = progress.get();
+      } else {
+        resetFollowers(controller.pose);
+        mode = 'return';
+      }
+    }
     if (phase === 'corridor' && focus && focus !== previousFocus) {
       options.onDoorIntent(focus);
       frameDoor(focus);
@@ -333,10 +467,20 @@ export function createDirector(options: DirectorOptions): Director {
     const dt = Math.min(Math.max(dtMs, 0), MAX_STEP_MS);
     let busy: boolean;
     let speed: number;
+    syncLens();
 
     // A scroll that carries on past the hand-over must not stall for the settle: the first input
     // ends it, and the walk goes on from where the camera is.
     if (mode === 'settle' && controller.active) mode = 'free';
+
+    // Keep the landing pose as the visitor scrolls back up through the veil. A later downward
+    // scroll hands the camera back to the authored entrance walk-in.
+    if (mode === 'hero') {
+      const nextProgress = progress.get();
+      const scrollingDown = nextProgress > heroProgress + 1e-6;
+      heroProgress = nextProgress;
+      if (scrollingDown) resumeScrub();
+    }
 
     // Scrolled back up over a hand-over nobody has touched: the scroll owns the camera again.
     if (mode === 'free' && walkT(progress.get()) < 1 && pristineAtHandover()) resumeScrub();
@@ -357,48 +501,75 @@ export function createDirector(options: DirectorOptions): Director {
       if (mode === 'scrub' && phase !== 'entrance' && t >= 1) mode = 'settle';
       if (reduced) {
         // Two static views, a cut between them (the veil covers it): no travel, no drift.
-        const next = t >= 1 ? 'handover' : 'landing';
+        const next = mode !== 'scrub' && mode !== 'settle' ? 'landing' : t >= 1 ? 'handover' : 'landing';
         if (next !== reducedView) {
           reducedView = next;
-          const view = next === 'handover' ? handover() : LANDING_POSE;
+          const view = next === 'handover' ? handover() : landing();
           controller.cutTo(view);
           follower.reset(view.z);
           yawFollower.reset(view.yawDeg);
           xFollower.reset(view.x);
+          pitchFollower.reset(view.pitchDeg);
         }
       }
-      const view = reducedView === 'handover' ? handover() : LANDING_POSE;
-      const weight = mode === 'scrub' && !reduced ? driftWeight(progress.get()) : 0;
+      const view = reducedView === 'handover' ? handover() : landing();
+      const weight = (mode === 'scrub' || mode === 'hero') && !reduced ? driftWeight(progress.get()) : 0;
       if (weight > 0) driftClock += dt;
       const drift = ambientDrift(driftClock);
-      const target = mode === 'settle' ? HANDOVER.z : reduced ? view.z : entranceZ(t);
-      const baseYaw = mode === 'settle' ? handover().yawDeg : reduced ? view.yawDeg : entranceYaw(t, turnNow());
-      const targetYaw = baseYaw + drift.yawDeg * weight;
-      const targetX = mode === 'settle' || reduced ? 0 : drift.x * weight;
+      // Where the walk-in puts the camera now: the settle holds the starting view exactly, reduced
+      // motion holds one of the two static views, and otherwise the scroll's progress says.
+      const base = mode === 'settle' ? handover() : mode === 'return' || mode === 'hero' ? landing() : reduced ? view : entrancePose(t, options.portrait());
+      const target = base.z;
+      const targetYaw = base.yawDeg + drift.yawDeg * weight;
+      const targetX = base.x + (mode === 'settle' || reduced ? 0 : drift.x * weight);
+      const targetPitch = base.pitchDeg;
       follower.step(dt, target);
       yawFollower.step(dt, targetYaw);
       xFollower.step(dt, targetX);
-      controller.setPose({ x: xFollower.z, z: follower.z, yawDeg: yawFollower.z, pitchDeg: 0 });
+      pitchFollower.step(dt, targetPitch);
+      controller.setPose(followed());
       speed = dt > 0 ? Math.abs(before - follower.z) / (dt / 1000) : 0;
       if (
         mode === 'settle' &&
-        follower.settled(HANDOVER.z) &&
+        follower.settled(target) &&
         yawFollower.settled(targetYaw) &&
-        xFollower.settled(targetX)
+        xFollower.settled(targetX) &&
+        pitchFollower.settled(targetPitch)
       ) {
-        controller.setPose(handover());
+        const start = handover();
+        controller.setPose(start);
+        resetFollowers(start);
         mode = 'free';
+      }
+      if (
+        mode === 'return' &&
+        follower.settled(target) &&
+        yawFollower.settled(targetYaw) &&
+        xFollower.settled(targetX) &&
+        pitchFollower.settled(targetPitch)
+      ) {
+        controller.setPose(landing());
+        mode = 'hero';
+        heroProgress = progress.get();
       }
       // While the drift runs, followers trail their moving targets by a fraction of a millimetre
       // and never settle exactly; that is not work. The camera is busy for any other reason, or
       // when a follower is further behind than drift can explain.
       const drifting = weight > 0;
       const behind = drifting
-        ? Math.abs(yawFollower.z - targetYaw) > DRIFT_LAG_DEG || Math.abs(xFollower.z - targetX) > DRIFT_LAG_M
-        : !yawFollower.settled(targetYaw) || !xFollower.settled(targetX);
-      busy = mode === 'settle' || !follower.settled(target) || behind;
+        ? Math.abs(yawFollower.z - targetYaw) > DRIFT_LAG_DEG ||
+          Math.abs(xFollower.z - targetX) > DRIFT_LAG_M ||
+          !pitchFollower.settled(targetPitch)
+        : !yawFollower.settled(targetYaw) || !xFollower.settled(targetX) || !pitchFollower.settled(targetPitch);
+      busy = mode === 'settle' || mode === 'return' || !follower.settled(target) || behind;
       ambientBusy = drifting && !busy;
       busy = busy || drifting;
+    }
+
+    if (!arrivedOnce && phase === 'corridor' && mode === 'free') {
+      arrivedOnce = true;
+      interest.arrived();
+      options.onArrive?.();
     }
 
     if (opening?.ready) {
@@ -410,7 +581,7 @@ export function createDirector(options: DirectorOptions): Director {
       if (!opening.advancing && opening.t >= ENTRY_START_MS && !controller.gliding) {
         opening.advancing = true;
         const state = opening;
-        controller.advance(doorwayDirection(opening.id), SPINE_TIMING.entryAdvanceM, SPINE_TIMING.entryMs, {
+        controller.advance(doorwayDirection(opening.id), doorwayAdvanceM(opening.id), SPINE_TIMING.entryMs, {
           pitchDeg: 0,
           onDone: () => {
             state.seamed = true;
@@ -443,9 +614,14 @@ export function createDirector(options: DirectorOptions): Director {
       }
     }
 
+    // Things to touch: props' hover, actions and glints, and what the idle glint lights.
+    if (interest.step(dt)) busy = true;
+    const glint = interest.glint;
     for (const chamber of CHAMBERS) {
       const door = motion(chamber.id);
-      const target = hover === chamber.id || focus === chamber.id ? 1 : 0;
+      // A door that glints takes a gentler attention than one the pointer is on.
+      const glow = glint && glint.target.kind === 'door' && glint.target.id === chamber.id ? glint.value * DOOR_GLINT_LEVEL : 0;
+      const target = Math.max(hover === chamber.id || focus === chamber.id ? 1 : 0, glow);
       if (door.attention !== target) {
         door.attention = approach(door.attention, target, dt, ATTENTION_TAU_MS);
         if (door.attention !== target) busy = true;
@@ -492,6 +668,8 @@ export function createDirector(options: DirectorOptions): Director {
       reduced = next;
       controller.setReducedMotion(next);
       if (next) {
+        interest.reset();
+        tracker.reset();
         rattles.clear();
         for (const chamber of CHAMBERS) {
           motion(chamber.id).rattle = 0;
@@ -506,6 +684,14 @@ export function createDirector(options: DirectorOptions): Director {
             framed = null;
             controller.cutTo(handover());
           }
+        }
+        if (phase === 'entrance' && (mode === 'return' || mode === 'hero')) {
+          const view = landing();
+          reducedView = 'landing';
+          controller.cutTo(view);
+          resetFollowers(view);
+          mode = 'hero';
+          heroProgress = progress.get();
         }
       }
       options.requestFrame();
@@ -540,6 +726,7 @@ export function createDirector(options: DirectorOptions): Director {
       const { pose } = controller;
       if (Math.hypot(goal.x - pose.x, goal.z - pose.z) < FLOOR_PICK_MIN_M) return;
       framed = null;
+      interest.forgetFramed();
       controller.glideTo(goal);
       options.requestFrame();
     },
@@ -555,9 +742,70 @@ export function createDirector(options: DirectorOptions): Director {
       else spine.dispatch({ type: 'BLUR_DOOR' });
     },
 
+    interest,
+
+    setFocusTarget(target) {
+      focusTarget = target;
+      interest.focusProp(target?.kind === 'prop' ? target.id : null);
+      options.requestFrame();
+    },
+
+    cue() {
+      const state = spine.getState();
+      if (phase !== 'corridor' || opening || closing || state.boardOpen || state.page !== null || mode !== 'free') {
+        tracker.reset();
+        return null;
+      }
+      const make = (target: CueTarget, flags: { framed?: boolean; focused?: boolean; visible?: boolean }): Cue => ({
+        target,
+        text: cueText(target),
+        framed: flags.framed ?? false,
+        focused: flags.focused ?? false,
+        visible: flags.visible ?? true,
+      });
+      // Keyboard focus is never taken away by a timer; then what the visitor was sent to and has arrived at.
+      if (focusTarget) {
+        tracker.reset();
+        return make(focusTarget, { focused: true });
+      }
+      if (!controller.gliding) {
+        if (interest.framed) {
+          tracker.reset();
+          return make(interest.framed, { framed: true });
+        }
+        if (framed) {
+          tracker.reset();
+          return make({ kind: 'door', id: framed }, { framed: true });
+        }
+      }
+      // Otherwise only what the visitor has found: within reach, near the centre of the view, held steady a moment.
+      const shown = tracker.view();
+      const found = find({ ...controller.pose }, contextList, {
+        previous: shown.visible ? shown.target : null,
+        lens: lens(),
+      });
+      const view = tracker.update(found);
+      return view.target ? make(view.target, { visible: view.visible }) : null;
+    },
+
+    places: () => interest.places(),
+
+    wake() {
+      return step(0);
+    },
+
+    nextWakeMs() {
+      const a = interest.nextWakeMs();
+      const b = tracker.nextWakeMs();
+      if (a === null) return b;
+      if (b === null) return a;
+      return Math.min(a, b);
+    },
+
     dispose() {
       offState();
       offCue();
+      interest.reset();
       report(0);
     },
   };

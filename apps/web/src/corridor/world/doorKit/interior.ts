@@ -5,11 +5,11 @@ import type { DoorSpec } from '../../doorKit.ts';
 import { FRAME } from './frame.ts';
 
 /**
- * A proxy for the room behind an open chamber's door, seen as the door swings: dark walls, a
- * dim floor, a pool of 2900 K desk light, a teal reflection and darkness beyond. It is only
- * what the camera sees for the second it takes to walk through the doorway, until the chamber's
- * own scene appears behind the jamb; it matches the Office's own staging (the lamp on the desk
- * ahead and to the left, the teal machine ahead and to the right) so the hand-over is seamless.
+ * A proxy for the room behind a chamber's door: dark walls, a dim floor, a pool of 2900 K desk
+ * light, a teal reflection and darkness beyond. It fills the wired glazing and the fine reveal
+ * gaps while the leaf is closed, and remains behind the swinging door until the chamber's own
+ * scene appears at the jamb. Its staging (the lamp ahead and to the left, the teal machine ahead
+ * and to the right) makes the hand-over seamless.
  *
  * Door-local space (see plan.ts): the room lies behind the wall, so z is negative.
  */

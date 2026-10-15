@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SITE_SCROLL, SPINE_TIMING } from '../../timing.ts';
-import { ENTRANCE_KEYS, HANDOVER } from '../layout.ts';
-import { entranceZ } from './entrance.ts';
+import { ENTRANCE_KEYS, START_VIEW } from '../layout.ts';
+import { entrancePose } from './entrance.ts';
 import { FRAME, inCorridor, OFFICE, rig } from './testkit.ts';
 import { doorFrame, HANDOVER_POSE, LANDING_POSE } from './viewpoints.ts';
 
@@ -52,7 +52,7 @@ describe('hero drift', () => {
   it('never creeps forward, rises or falls, rolls, or turns more than 0.3 degrees', () => {
     const { samples } = drift(PERIOD_MS);
     for (const s of samples) {
-      expect(s.z).toBe(ENTRANCE_KEYS[0]!.z);
+      expect(s.z).toBe(LANDING_POSE.z);
       expect(s.pitch).toBe(0);
       expect(Math.abs(s.yaw)).toBeLessThanOrEqual(0.3);
     }
@@ -99,8 +99,9 @@ describe('hero drift', () => {
     const done = rig();
     done.progress.set(SITE_SCROLL.driftBlendOut);
     done.run(PERIOD_MS / 4);
-    expect(done.d.pose.x).toBe(0);
-    expect(done.d.pose.yawDeg).toBe(0);
+    const authored = entrancePose(SITE_SCROLL.driftBlendOut / SITE_SCROLL.handoverAt, false);
+    expect(done.d.pose.x).toBe(authored.x);
+    expect(done.d.pose.yawDeg).toBeCloseTo(authored.yawDeg, 6);
     expect(done.d.ambientOnly).toBe(false);
     expect(done.d.step(FRAME)).toBe(false);
   });
@@ -112,7 +113,7 @@ describe('hero drift', () => {
     r.progress.set(at(0.3));
     r.settle();
     expect(r.d.pose.x).toBe(0);
-    expect(r.d.pose.z).toBeCloseTo(entranceZ(0.3), 4);
+    expect(r.d.pose.z).toBeCloseTo(entrancePose(0.3, false).z, 4);
     for (let i = 0; i < 30; i += 1) expect(r.d.step(FRAME)).toBe(false);
   });
 
@@ -160,11 +161,11 @@ describe('the walk-in over the page scroll', () => {
     const r = rig();
     r.progress.set(0.5);
     r.settle();
-    expect(r.d.pose.z).toBeGreaterThan(HANDOVER.z + 0.05);
+    expect(r.d.pose.z).toBeGreaterThan(START_VIEW.desktop.z + 0.05);
     for (const key of ENTRANCE_KEYS) {
       r.progress.set(at(key.t));
       r.settle();
-      expect(r.d.pose.z).toBeCloseTo(key.z, 4);
+      expect(r.d.pose.z).toBeCloseTo(entrancePose(key.t, false).z, 4);
     }
   });
 
@@ -190,6 +191,8 @@ describe('the walk-in over the page scroll', () => {
   it('walks in at walking pace when the page hands over from short of the hand-over (the skip)', () => {
     const r = rig({ progress: 0.2 });
     r.run(100);
+    // The page engages the window the moment the visitor is in the corridor.
+    r.d.setEngaged(true);
     r.spine.dispatch({ type: 'ENTRANCE_DONE' });
     expect(r.d.controller.gliding).toBe(true);
     let peak = 0;
@@ -262,18 +265,19 @@ describe('who owns the input', () => {
     r.run(100);
     r.d.setEngaged(false);
     r.settle();
-    expect(HANDOVER.z - r.d.pose.z).toBeLessThan(0.5);
+    expect(START_VIEW.desktop.z - r.d.pose.z).toBeLessThan(0.5);
   });
 
   it('keeps the scene as it was when the window is left: the view stays where the visitor put it', () => {
     const r = inCorridor();
     r.settle();
     r.d.setEngaged(true);
+    const { yawDeg, pitchDeg } = r.d.pose;
     r.d.controller.look(30, 10);
     r.d.setEngaged(false);
     r.run(500);
-    expect(r.d.pose.yawDeg).toBe(30);
-    expect(r.d.pose.pitchDeg).toBe(10);
+    expect(r.d.pose.yawDeg).toBe(yawDeg + 30);
+    expect(r.d.pose.pitchDeg).toBe(pitchDeg + 10);
   });
 });
 
@@ -284,7 +288,7 @@ describe('scrolling back up over a hand-over nobody has touched', () => {
     r.progress.set(at(0.5));
     r.settle();
     expect(r.d.inputMode()).toBe('page');
-    expect(r.d.pose.z).toBeCloseTo(entranceZ(0.5), 3);
+    expect(r.d.pose.z).toBeCloseTo(entrancePose(0.5, false).z, 3);
     r.progress.set(1);
     r.settle();
     expect(r.d.pose).toEqual(HANDOVER_POSE);

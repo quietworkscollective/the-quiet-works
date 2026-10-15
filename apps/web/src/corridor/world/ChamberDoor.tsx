@@ -189,8 +189,6 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
     own.handleBrass.emissive.setRGB(0.22 * a, 0.14 * a, 0.05 * a);
     own.handleIron.emissive.setRGB(0.08 * a, 0.07 * a, 0.05 * a);
 
-    // The room behind the leaf is only drawn while the door is open enough to see into it.
-    if (interiorRef.current) interiorRef.current.visible = m.open > 0.004;
     if (light) {
       const o = smoothstep(0, 0.06, m.open);
       const lit = smoothstep(0.02, 0.5, m.open);
@@ -246,7 +244,7 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
           )}
         </group>
       ))}
-      <group ref={interiorRef} visible={false}>
+      <group ref={interiorRef}>
         <Meshes geometries={interior} materials={materials} />
       </group>
       {light && (

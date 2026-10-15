@@ -1,0 +1,461 @@
+
+> the-quiet-works@ bake <worktree>
+> node scripts/bake/run.mjs corridor
+
+<worktree>/scripts/blender/doors/outline-room/build.py:32: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  result.use_nodes = True
+OUTLINE_DOOR_TRIANGLES 7520
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+10:16:35 | INFO: Starting glTF 2.0 export
+10:16:35 | INFO: Extracting primitive: OutlineDoor Frame Blackened_brass_|_workshop_track mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Frame Dark_engraved_lettering mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Frame Satin_brass_|_roller_and_guide_edges mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Frame Warm_enamel_plaque mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Left-Leaf Blackened_brass_|_workshop_track mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Left-Leaf Glass_edge_etch mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Left-Leaf Satin_brass_|_roller_and_guide_edges mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Left-Leaf Smoked_ground_glass_|_warm_grey mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Left-Leaf Worn_oxblood_wood_|_sliding_pull mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Right-Leaf Blackened_brass_|_workshop_track mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Right-Leaf Glass_edge_etch mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Right-Leaf Satin_brass_|_roller_and_guide_edges mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Right-Leaf Smoked_ground_glass_|_warm_grey mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Extracting primitive: OutlineDoor Right-Leaf Worn_oxblood_wood_|_sliding_pull mesh
+10:16:35 | INFO: Primitives created: 1
+10:16:35 | INFO: Finished glTF 2.0 export in 0.02314591407775879 s
+
+OUTLINE_DOOR_SOURCE <worktree>/.bake-cache/corridor-door/outline-door-source.glb
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit
+info: prune: Removed types... Accessor (42)
+info: outline-door-source.glb (374.8 KB) → outline-door-quantized.glb (225.22 KB)
+Outline Room door: 63.1 KiB gzip (225216 byte quantized GLB)
+<worktree>/scripts/bake/calibrate.py:11: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+<worktree>/scripts/bake/calibrate.py:16: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: Baking map saved to internal image, save it externally or pack it
+CALIBRATION {"irradiance": 2.499361598728503, "expected": 2.5, "relativeError": 0.00025536050859873425, "tolerance": 0.03}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit
+Calibration point: three 2.499541923862626, Blender 2.499361598728503, difference 0.007%
+<worktree>/scripts/bake/calibrate.py:11: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+<worktree>/scripts/bake/calibrate.py:16: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: Baking map saved to internal image, save it externally or pack it
+CALIBRATION {"irradiance": 2.499361598728503, "expected": 2.5, "relativeError": 0.00025536050859873425, "tolerance": 0.03}
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit
+Calibration spot: three 2.499541923862626, Blender 2.499361598728503, difference 0.007%
+10:16:44 | INFO: Data are loaded, start creating Blender stuff
+10:16:44 | INFO: Blender create Mesh node 0
+10:16:44 | INFO: Blender create Mesh node 1
+10:16:44 | INFO: Blender create Mesh node 2
+10:16:44 | INFO: Blender create Mesh node 3
+10:16:44 | INFO: Blender create Mesh node 4
+10:16:44 | INFO: Blender create Mesh node 5
+10:16:44 | INFO: Blender create Mesh node 6
+10:16:44 | INFO: Blender create Mesh node 7
+10:16:44 | INFO: Blender create Mesh node 8
+10:16:44 | INFO: Blender create Mesh node 9
+10:16:44 | INFO: Blender create Mesh node 10
+10:16:44 | INFO: Blender create Mesh node 11
+10:16:44 | INFO: Blender create Mesh node 12
+10:16:44 | INFO: Blender create Mesh node 13
+10:16:44 | INFO: Blender create Mesh node 14
+10:16:44 | INFO: Blender create Mesh node 15
+10:16:44 | INFO: Blender create Mesh node 16
+10:16:44 | INFO: Blender create Mesh node 17
+10:16:44 | INFO: Blender create Mesh node 18
+10:16:44 | INFO: Blender create Mesh node 19
+10:16:44 | INFO: Blender create Mesh node 20
+10:16:44 | INFO: Blender create Mesh node 21
+10:16:44 | INFO: Blender create Mesh node 22
+10:16:44 | INFO: Blender create Mesh node 23
+10:16:44 | INFO: Blender create Mesh node 24
+10:16:44 | INFO: Blender create Mesh node 25
+10:16:44 | INFO: Blender create Mesh node 26
+10:16:44 | INFO: Blender create Mesh node 27
+10:16:44 | INFO: Blender create Mesh node 28
+10:16:44 | INFO: Blender create Mesh node 29
+10:16:44 | INFO: Blender create Mesh node 30
+10:16:44 | INFO: Blender create Mesh node 31
+10:16:44 | INFO: Blender create Mesh node 32
+10:16:44 | INFO: Blender create Mesh node 33
+10:16:44 | INFO: Blender create Mesh node 34
+10:16:44 | INFO: Blender create Mesh node 35
+10:16:44 | INFO: Blender create Mesh node 36
+10:16:44 | INFO: Blender create Mesh node 37
+10:16:44 | INFO: Blender create Mesh node 38
+10:16:44 | INFO: Blender create Mesh node 39
+10:16:44 | INFO: Blender create Mesh node 40
+10:16:44 | INFO: Blender create Mesh node 41
+10:16:44 | INFO: Blender create Mesh node 42
+10:16:44 | INFO: Blender create Mesh node 43
+10:16:44 | INFO: Blender create Mesh node 44
+10:16:44 | INFO: Blender create Mesh node 45
+10:16:44 | INFO: Blender create Mesh node 46
+10:16:44 | INFO: Blender create Mesh node 47
+10:16:44 | INFO: Blender create Mesh node 48
+10:16:44 | INFO: Blender create Mesh node 49
+10:16:44 | INFO: Blender create Mesh node 50
+10:16:44 | INFO: Blender create Mesh node 51
+10:16:44 | INFO: Blender create Mesh node 52
+10:16:44 | INFO: Blender create Mesh node 53
+10:16:44 | INFO: Blender create Mesh node 54
+10:16:44 | INFO: Blender create Mesh node 55
+10:16:44 | INFO: Blender create Mesh node 56
+10:16:44 | INFO: Blender create Mesh node 57
+10:16:44 | INFO: Blender create Mesh node 58
+10:16:44 | INFO: Blender create Mesh node 59
+10:16:44 | INFO: Blender create Mesh node 60
+10:16:44 | INFO: Blender create Mesh node 61
+10:16:44 | INFO: Blender create Mesh node 62
+10:16:44 | INFO: Blender create Mesh node 63
+10:16:44 | INFO: Blender create Mesh node 64
+10:16:44 | INFO: Blender create Mesh node 65
+10:16:44 | INFO: Blender create Mesh node 66
+10:16:44 | INFO: Blender create Mesh node 67
+10:16:44 | INFO: Blender create Mesh node 68
+10:16:44 | INFO: Blender create Mesh node 69
+10:16:44 | INFO: Blender create Mesh node 70
+10:16:44 | INFO: Blender create Mesh node 71
+10:16:44 | INFO: Blender create Mesh node 72
+10:16:44 | INFO: Blender create Mesh node 73
+10:16:44 | INFO: Blender create Mesh node 74
+10:16:44 | INFO: Blender create Mesh node 75
+10:16:44 | INFO: Blender create Mesh node 76
+10:16:44 | INFO: Blender create Mesh node 77
+10:16:44 | INFO: Blender create Mesh node 78
+10:16:44 | INFO: Blender create Mesh node 79
+10:16:44 | INFO: Blender create Mesh node 80
+10:16:44 | INFO: Blender create Mesh node 81
+10:16:44 | INFO: Blender create Mesh node 82
+10:16:44 | INFO: Blender create Mesh node 83
+10:16:44 | INFO: Blender create Mesh node 84
+10:16:44 | INFO: Blender create Mesh node 85
+10:16:44 | INFO: Blender create Mesh node 86
+10:16:44 | INFO: Blender create Mesh node 87
+10:16:44 | INFO: Blender create Mesh node 88
+10:16:44 | INFO: Blender create Mesh node 89
+10:16:44 | INFO: Blender create Mesh node 90
+10:16:44 | INFO: Blender create Mesh node 91
+10:16:44 | INFO: Blender create Mesh node 92
+10:16:44 | INFO: Blender create Mesh node 93
+10:16:44 | INFO: Blender create Mesh node 94
+10:16:44 | INFO: Blender create Mesh node 95
+10:16:44 | INFO: Blender create Mesh node 96
+10:16:44 | INFO: Blender create Mesh node 97
+10:16:44 | INFO: Blender create Mesh node 98
+10:16:44 | INFO: Blender create Mesh node 99
+10:16:44 | INFO: Blender create Mesh node 100
+10:16:44 | INFO: Blender create Mesh node 101
+10:16:44 | INFO: Blender create Mesh node 102
+10:16:44 | INFO: Blender create Mesh node 103
+10:16:44 | INFO: Blender create Mesh node 104
+10:16:44 | INFO: Blender create Mesh node 105
+10:16:44 | INFO: Blender create Mesh node 106
+10:16:44 | INFO: Blender create Mesh node 107
+10:16:44 | INFO: Blender create Mesh node 108
+10:16:44 | INFO: Blender create Mesh node 109
+10:16:44 | INFO: Blender create Mesh node 110
+10:16:44 | INFO: Blender create Mesh node 111
+10:16:44 | INFO: Blender create Mesh node 112
+10:16:44 | INFO: Blender create Mesh node 113
+10:16:44 | INFO: Blender create Mesh node 114
+10:16:44 | INFO: Blender create Mesh node 115
+10:16:44 | INFO: Blender create Mesh node 116
+10:16:44 | INFO: Blender create Mesh node 117
+10:16:44 | INFO: Blender create Mesh node 118
+10:16:44 | INFO: Blender create Mesh node 119
+10:16:44 | INFO: Blender create Mesh node 120
+10:16:44 | INFO: Blender create Mesh node 121
+10:16:44 | INFO: Blender create Mesh node 122
+10:16:44 | INFO: Blender create Mesh node 123
+10:16:44 | INFO: Blender create Mesh node 124
+10:16:44 | INFO: Blender create Mesh node 125
+10:16:44 | INFO: Blender create Mesh node 126
+10:16:44 | INFO: Blender create Mesh node 127
+10:16:44 | INFO: glTF import finished in 0.58s
+<worktree>/scripts/bake/bake.py:38: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.use_nodes = True
+<worktree>/scripts/bake/bake.py:109: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material.use_nodes = True
+Info: Removed 71837 vertices
+STAGE 0: smart UV
+STAGE 0: UV density
+STAGE 0: UV packing
+CHARTS 2950 AREA 1162.2773357095937 MAX_AREA 79.5778490848808
+LARGEST CHARTS [('near', 17.22305761399064, [0.6913204491138458, 0.008295849431306124]), ('near', 3.977755690601384, [0.4479384645819664, 0.5174105614423752]), ('near', 3.977755690601384, [0.4479336068034172, 0.517405092716217]), ('near', 0.37440077271055705, [0.3530871272087097, 0.00035310228122398257]), ('near', 0.37440077271055705, [0.35308651626110077, 0.00035310289240442216])]
+MEASURED DENSITY {'near': {'min': 16.022630392335792, 'max': 16.04561929625449, 'area': 1162.277335709594, 'target': 24}}
+DENSITY {"near": {"min": 16.022630392335792, "max": 16.04561929625449, "area": 1162.277335709594, "target": 24}}
+STAGE 0: indirect bake
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+STAGE 0: denoise
+STAGE 0: contact AO
+<worktree>/scripts/bake/bake.py:162: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  neutral.use_nodes = True
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+10:17:35 | INFO: Starting glTF 2.0 export
+10:17:35 | INFO: Extracting primitive: Mesh_24
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_17
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_13
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_47
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_23
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_1
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_40
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_6
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_15
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_29
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_10
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_37
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_25
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_22
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_12
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_5
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_41
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_32
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_46
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_2
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_30
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_21
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_0
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_14
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_48
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_4
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_33
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_43
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_35
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_34
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_51
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_11
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_18
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_44
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_28
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_36
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_27
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_26
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_3
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_38
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_39
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_31
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_45
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_9
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_20
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_49
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_16
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_50
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_8
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_42
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_19
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_7
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Extracting primitive: Mesh_52
+10:17:35 | INFO: Primitives created: 1
+10:17:35 | INFO: Finished glTF 2.0 export in 0.14418601989746094 s
+
+Blender 5.2.2 LTS (hash d13f752e3b9c built 2026-09-15 01:49:19)
+
+Blender quit
+Saving file '<worktree>/.bake-cache/corridor/corridor-0.webp'
+File:      <worktree>/.bake-cache/corridor/corridor-0.png
+Dimension: 1860 x 930
+Output:    343320 bytes (1.59 bpp)
+Lossless-ARGB compressed size: 343320 bytes
+  * Header size: 6131 bytes, image data size: 337164
+  * Lossless features used: PREDICTION CROSS-COLOR-TRANSFORM
+  * Precision Bits: histogram=5 prediction=4 cross-color=4 cache=10
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+warn: quantize: Skipping TEXCOORD_0; out of [0,1] range.
+info: prune: Removed types... Accessor (215)
+info: baked.glb (9.42 MB) → quantized.glb (5.37 MB)
+corridor: 343320 lightmap bytes; 66.8s; hash 6abb95c7d63c1509bcda542d4d0c881ed03533cdd8f99b21a81185a79b90ecda

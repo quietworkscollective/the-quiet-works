@@ -50,31 +50,40 @@ export const recipeDrawer: PropModel = {
 
     const top = H + HALF_H;
     const bottom = H - HALF_H;
+    // The dado cap carries a shallow oak shelf under the cabinet; two brass angle brackets make
+    // the support visible below its front edge instead of leaving the cabinet to float above it.
+    const shelfTop = bottom - 0.045;
+    a.span('wood', [-W / 2 - 0.025, W / 2 + 0.025], [shelfTop - 0.035, shelfTop], [0.018, D + 0.055], 0, PAINT_EDGE);
+    for (const x of [-0.16, 0.16]) {
+      a.box('brass', [x, shelfTop - 0.07, 0.045], [0.042, 0.13, 0.025], 0, METAL.brass);
+      a.rod('brass', [x, shelfTop - 0.125, D + 0.08], [x, shelfTop - 0.008, 0.055], 0.011, 3, METAL.brass);
+    }
     // Carcass: back, sides, top, bottom, and a rail between pinboard and drawer.
-    a.span('wood', [-W / 2, W / 2], [bottom, top], [0, 0.012], 0, PAINT_EDGE);
-    a.span('wood', [-W / 2, -W / 2 + 0.014], [bottom, top], [0.012, D], 0.002, PAINT);
-    a.span('wood', [W / 2 - 0.014, W / 2], [bottom, top], [0.012, D], 0.002, PAINT);
-    a.span('wood', [-W / 2, W / 2], [top - 0.014, top], [0.012, D + 0.008], 0.0015, PAINT);
-    a.span('wood', [-W / 2, W / 2], [bottom, bottom + 0.014], [0.012, D + 0.004], 0.002, PAINT);
+    // Omit faces enclosed by the wall or adjoining panels; visible surfaces keep their bevels.
+    a.span('wood', [-W / 2, W / 2], [bottom, top], [0, 0.012], 0, PAINT_EDGE, undefined, ['-z']);
+    a.span('wood', [-W / 2, -W / 2 + 0.014], [bottom, top], [0.012, D], 0.002, PAINT, undefined, ['-z', '-y', '+y']);
+    a.span('wood', [W / 2 - 0.014, W / 2], [bottom, top], [0.012, D], 0.002, PAINT, undefined, ['-z', '-y', '+y']);
+    a.span('wood', [-W / 2, W / 2], [top - 0.014, top], [0.012, D + 0.008], 0.0015, PAINT, undefined, ['-z']);
+    a.span('wood', [-W / 2, W / 2], [bottom, bottom + 0.014], [0.012, D + 0.004], 0.002, PAINT, undefined, ['-z']);
     const railY = H - 0.03;
-    a.span('wood', [-W / 2 + 0.014, W / 2 - 0.014], [railY - 0.007, railY + 0.007], [0.012, D - 0.002], 0.002, PAINT);
+    a.span('wood', [-W / 2 + 0.014, W / 2 - 0.014], [railY - 0.007, railY + 0.007], [0.012, D - 0.002], 0.002, PAINT, undefined, ['-z', '-x', '+x']);
 
     // The pinboard: cork in a frame, with three blank cards pinned to it.
     const cork = linear('#8E6C44');
     a.quad('matte', [-W / 2 + 0.014, railY + 0.007, 0.0145], [W / 2 - 0.014, railY + 0.007, 0.0145], [W / 2 - 0.014, top - 0.014, 0.0145], [-W / 2 + 0.014, top - 0.014, 0.0145], [0, 0, 1], (p) => mulRgb(cork, 0.85 + 0.3 * hash2(Math.floor(p[0] * 220), Math.floor(p[1] * 220))));
     const pinned: [number, number, number, number][] = [[-0.12, H + 0.09, 0.09, 0.062], [0.01, H + 0.08, 0.1, 0.07], [0.125, H + 0.095, 0.085, 0.056]];
     pinned.forEach(([x, y, w, h]) => {
-      a.box('matte', [x, y, 0.0165], [w, h, 0.0016], 0, CARD, undefined, []);
+      a.box('matte', [x, y, 0.0165], [w, h, 0.0016], 0, CARD, undefined, ['-z']);
       a.sphere('brass', { at: [x, y + h / 2 - 0.008, 0.0195] }, 0.0034, 6, 4, METAL.brass);
     });
 
     // The drawer: front, hollow box, two columns of cards standing in it.
     a.on(drawer, () => {
       a.span('wood', [-W / 2 + 0.018, W / 2 - 0.018], [dy0 - 0.004, dy1 + 0.014], [D - 0.014, D], 0.002, PAINT);
-      a.span('wood', [-W / 2 + 0.02, W / 2 - 0.02], [dy0, dy0 + 0.004], [dz0, dz1], 0, PAINT_EDGE);
-      a.span('wood', [-W / 2 + 0.02, -W / 2 + 0.024], [dy0, dy1], [dz0, dz1], 0, PAINT_EDGE);
-      a.span('wood', [W / 2 - 0.024, W / 2 - 0.02], [dy0, dy1], [dz0, dz1], 0, PAINT_EDGE);
-      a.span('wood', [-W / 2 + 0.02, W / 2 - 0.02], [dy0, dy1], [dz0, dz0 + 0.004], 0, PAINT_EDGE);
+      a.span('wood', [-W / 2 + 0.02, W / 2 - 0.02], [dy0, dy0 + 0.004], [dz0, dz1], 0, PAINT_EDGE, undefined, ['-x', '+x', '-z', '+z']);
+      a.span('wood', [-W / 2 + 0.02, -W / 2 + 0.024], [dy0, dy1], [dz0, dz1], 0, PAINT_EDGE, undefined, ['-z', '+z', '-y']);
+      a.span('wood', [W / 2 - 0.024, W / 2 - 0.02], [dy0, dy1], [dz0, dz1], 0, PAINT_EDGE, undefined, ['-z', '+z', '-y']);
+      a.span('wood', [-W / 2 + 0.02, W / 2 - 0.02], [dy0, dy1], [dz0, dz0 + 0.004], 0, PAINT_EDGE, undefined, ['-x', '+x', '-y']);
       // Cards: a row of thin boxes on edge in each column, tall dividers with coloured tabs now and then.
       for (const col of [-1, 1] as const) {
         for (let i = 0; i < 12; i += 1) {
@@ -82,8 +91,8 @@ export const recipeDrawer: PropModel = {
           const tall = i % 4 === 3;
           const h = tall ? 0.078 : 0.07;
           const z = dz1 - 0.008 - i * 0.0082;
-          a.box('matte', [col * 0.087, dy0 + 0.004 + h / 2, z], [CARD_W, h, 0.0022], 0, tall ? linear('#D6C9A2') : CARD, undefined, []);
-          if (tall) a.box('matte', [col * 0.087 + 0.04, dy0 + 0.004 + h + 0.004, z], [0.026, 0.008, 0.0022], 0, linear(['#7A3B2E', '#2F4A6B', '#4E6B4A'][(i - 3) / 4] ?? '#7A3B2E'), undefined, []);
+          a.box('matte', [col * 0.087, dy0 + 0.004 + h / 2, z], [CARD_W, h, 0.0022], 0, tall ? linear('#D6C9A2') : CARD, undefined, ['-y']);
+          if (tall) a.box('matte', [col * 0.087 + 0.04, dy0 + 0.004 + h + 0.004, z], [0.026, 0.008, 0.0022], 0, linear(['#7A3B2E', '#2F4A6B', '#4E6B4A'][(i - 3) / 4] ?? '#7A3B2E'), undefined, ['-y']);
         }
       }
       // Front: a brass-framed label, and the ivory pull below it.
@@ -107,10 +116,10 @@ export const recipeDrawer: PropModel = {
       a.quad('print', [CARD_X - fw / 2, yb, z], [CARD_X + fw / 2, yb, z], [CARD_X + fw / 2, yb + fh, z], [CARD_X - fw / 2, yb + fh, z], [0, 0, 1], undefined, atlasUvs('recipeCard'));
     });
 
-    // A jug of wooden spoons on the top.
+    // The jug's underside is enclosed by the cabinet top; the teal inset covers its inner base.
     const jx = -0.12;
     const jz = 0.08;
-    a.lathe('enamel', { at: [jx, top, jz] }, [[0, 0], [0.03, 0], [0.034, 0.004], [0.035, 0.05], [0.032, 0.075], [0.036, 0.082], [0.03, 0.079], [0.028, 0.06], [0.0, 0.004]], 12, linear('#E0D6BC'));
+    a.lathe('enamel', { at: [jx, top, jz] }, [[0.03, 0], [0.034, 0.004], [0.035, 0.05], [0.032, 0.075], [0.036, 0.082], [0.03, 0.079], [0.028, 0.06]], 12, linear('#E0D6BC'));
     a.torus('enamel', { at: [jx + 0.034, top + 0.045, jz], rot: [0, 0, -Math.PI / 2] }, 0.016, 0.0036, 4, 8, linear('#E0D6BC'), Math.PI);
     a.cyl('enamel', { at: [jx, top + 0.0735, jz] }, 0.0345, 0.0345, 0.0045, 12, linear('#3A6663'));
     for (const [dx, lean, hgt] of [[-0.01, -0.12, 0.12], [0.004, 0.05, 0.105], [0.014, 0.2, 0.115]] as const) {

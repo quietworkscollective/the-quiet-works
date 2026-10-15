@@ -29,8 +29,9 @@ UNHELD is one long page of full-viewport sections, in order:
      holds there.
    - **Clearing:** the smoke clears onto the game window.
 3. **Game window** (100 vh). The corridor at hand-over, framed as the page's centrepiece.
-   - **Engaging:** a click, a tap, Enter or "Enter The Quiet Works" captures input. Wheel, swipe and
-     keys walk, and the page stops scrolling.
+   - **Engaging:** a downward wheel or touch swipe through the smoke hand-over captures input. A
+     click, tap, Enter or "Enter The Quiet Works" also enters. Wheel, swipe and keys then walk, and
+     the page stops scrolling.
    - **Releasing:** "Leave" (and Escape, when no dialog is open) hands scrolling back to the page.
    - **Fullscreen:** a button puts the game window into fullscreen.
    - **Chambers:** they open inside the game window, fullscreen or not.
@@ -67,6 +68,12 @@ the visitor left.
   recognitions describe what was found, never how well someone did.
 - **R-4 Hero motion is the live engine,** not a video. The hero, the smoke walk-in and the game
   window share one renderer, so the page loads straight into the game.
+- **R-5 Scroll hand-over and release (founder ruling, 16 October 2026).** A downward wheel or touch
+  swipe through the smoke hand-over at `SITE_SCROLL.handoverAt` settles the page on the game window
+  and engages the corridor without a click. Scrolling then walks forward. A visitor who reaches the
+  hand-over again can scroll back up to release it; Leave and Escape also release it. Reduced-motion
+  visitors keep the invitation and enter with one press. Keyboard focus never auto-engages the
+  window. Scrolling does not unlock audio, and text mode keeps its reading flow unchanged.
 
 ## Consequences
 
@@ -105,8 +112,10 @@ text zoom or visitor settings.
 
 About, Credits, Privacy and Licences appear once in the footer. The Details section links to the
 contribution guidance instead of repeating site navigation. The footer is a colophon: the UNHELD
-lockup, tagline, creator credit, the four links, licence lines and copyright. It contains neither a
-detached Menu control nor a trivia slot.
+lockup, tagline, creator credit, site links, licence lines and copyright. A Menu action among those
+links opens the shell's existing dialog, including Back to the entrance. It does not repeat the
+dialog's navigation as a detached block, and there is no trivia slot. This retains the footer-return
+contract required for release on 16 October 2026.
 
 This proposal amends the viewport-height treatment in decisions 4 and 5, and the menu and trivia
 items in decision 6. Existing content, route behavior, local progress and the shared renderer remain

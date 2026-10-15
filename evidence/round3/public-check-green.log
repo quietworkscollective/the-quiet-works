@@ -1,0 +1,5 @@
+
+> the-quiet-works@ check:public <worktree>
+> node scripts/check-public.mjs
+
+check:public passed: 1501 files, 10 rules.

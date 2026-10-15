@@ -9,7 +9,7 @@ if (!process.argv.includes('--list') && !existsSync(new URL('./dist-authored/ind
   throw new Error('Missing authored artifact; run pnpm build:e2e-fixture first');
 }
 
-export default defineConfig({ ...production, projects: (production.projects ?? []).filter(project => project.name !== 'reading-no-js'), webServer: [] }, {
+export default defineConfig({ ...production, projects: (production.projects ?? []).filter(project => project.name === 'desktop' || project.name === 'mobile'), webServer: [] }, {
   testIgnore: [],
   testMatch: ['**/full-tier.spec.ts', '**/office-budget.spec.ts'],
   use: { baseURL },

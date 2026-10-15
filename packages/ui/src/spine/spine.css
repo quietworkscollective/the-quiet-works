@@ -257,6 +257,11 @@ html {
 
 /* The lockup's visual centre sits near 43% down: the row above the foot, centred. */
 .tqw-hero__lockup {
+  /* Cover the moving letters over the rebuilt lobby; keep the wash local to the type. */
+  --plate-x: 8rem;
+  --plate-y: 6rem;
+  --plate-solid: 80%;
+  --hero-plate: 0.55;
   position: relative;
   isolation: isolate;
   align-self: center;
@@ -279,8 +284,8 @@ html {
   inset: calc(4.5rem - var(--plate-y, 2.5rem)) calc(var(--plate-x, 4rem) * -1) calc(1rem - var(--plate-y, 2.5rem));
   pointer-events: none;
   background: radial-gradient(
-    ellipse closest-side at 50% 50%,
-    rgba(23, 25, 24, var(--hero-plate, 0.7)) var(--plate-solid, 62%),
+    ellipse at 50% 50%,
+    rgba(23, 25, 24, var(--hero-plate, 0.92)) var(--plate-solid, 90%),
     rgba(23, 25, 24, 0) 100%
   );
 }
@@ -670,7 +675,7 @@ html {
 .tqw-veil {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   overflow: hidden;
   pointer-events: none;
 }
@@ -2585,6 +2590,14 @@ html {
   letter-spacing: 0;
   text-decoration: none;
   color: var(--bone);
+}
+
+button.tqw-footer__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
 }
 
 @media (hover: hover) {

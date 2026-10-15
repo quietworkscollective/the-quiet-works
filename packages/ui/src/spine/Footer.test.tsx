@@ -34,6 +34,16 @@ describe('Footer', () => {
     expect(footer.querySelector('.tqw-footer__menu, .tqw-footer__trivia')).toBeNull();
   });
 
+  it('opens the shell Menu from the colophon without adding a detached navigation block', () => {
+    const onOpenMenu = vi.fn();
+    render(<Footer menu={null} onOpenPage={vi.fn()} onOpenMenu={onOpenMenu} />);
+    const footer = screen.getByRole('contentinfo', { name: FOOTER_COPY.label });
+    const menu = within(footer).getByRole('button', { name: /^Menu$/ });
+    expect(menu.getAttribute('aria-haspopup')).toBe('dialog');
+    fireEvent.click(menu);
+    expect(onOpenMenu).toHaveBeenCalledTimes(1);
+  });
+
   it('renders About, Credits, Privacy, Agents and Licences exactly once, at the footer', () => {
     const onOpenPage = vi.fn();
     render(

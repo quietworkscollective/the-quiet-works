@@ -122,6 +122,8 @@ test.describe('reading pages', () => {
 
   test('Escape and Close restore the opener focus and the previous document scroll', async ({ page }) => {
     await page.goto('/');
+    // Font swaps can shorten the lower page and clamp a scroll position measured before layout settles.
+    await page.evaluate(() => document.fonts.ready);
     const opener = page.locator('.tqw-footer__links a[href="/about"]');
     await opener.scrollIntoViewIfNeeded();
     await opener.focus();
