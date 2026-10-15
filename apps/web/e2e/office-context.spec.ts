@@ -1,10 +1,11 @@
+import { sceneTimeout } from './timeouts.ts';
 import { toggleOfficePlaces } from './officePlaces.ts';
 import { expect, test, type Page } from '@playwright/test';
 
 async function openOfficeAtArrival(page: Page) {
   await page.goto('/certification-office');
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1.62/, { timeout: 30_000 });
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1.62/, { timeout: sceneTimeout(30_000) });
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(30_000) });
   const app = page.locator('.tqw-app');
   await expect(app).toHaveAttribute('data-station', 'room');
   return app;
@@ -22,7 +23,7 @@ test('Office controls are contextual and its accessible stamp operates directly 
   await expect(app).toHaveAttribute('data-pressing', 'true');
   await page.keyboard.up('Space');
   await expect(app).toHaveAttribute('data-stamps', '1');
-  await expect(app).toHaveAttribute('data-station', 'desk', { timeout: 25_000 });
+  await expect(app).toHaveAttribute('data-station', 'desk', { timeout: sceneTimeout(25_000) });
   await toggleOfficePlaces(page);
   await expect(stamp).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeVisible();
@@ -36,7 +37,7 @@ test('a focused Office cue survives movement and clears when focus leaves its co
   await stamp.focus();
   await stamp.press('Space');
   await expect(app).toHaveAttribute('data-stamps', '1');
-  await expect(app).toHaveAttribute('data-station', 'desk', { timeout: 25_000 });
+  await expect(app).toHaveAttribute('data-station', 'desk', { timeout: sceneTimeout(25_000) });
   await page.getByText('Things nearby', { exact: true }).click();
   const ink = page.getByRole('button', { name: /^Ink pad:/ });
   await ink.focus();
@@ -69,5 +70,5 @@ test('preparing the room does not count as visitor stillness', async ({ page }) 
     await expect(page.locator('.tqw-app')).toHaveAttribute('data-memo', 'hidden');
     await expect(page.locator('.tqw-app')).toHaveAttribute('data-shadow', 'false');
   } finally { releaseFonts(); }
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(30_000) });
 });

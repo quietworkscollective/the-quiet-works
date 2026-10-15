@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { expect, test } from '@playwright/test';
 import {
   activateDoor,
@@ -124,7 +125,7 @@ test.describe('corridor doors', () => {
   test('context loss in the corridor falls back to the text corridor in the same place', async ({ page }) => {
     await door(page, 'The Apartment', 'sealed').focus();
     // Wait for a completed native frame; a valid view can have no door centre on screen.
-    await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveAttribute('data-world', 'ready', { timeout: 30_000 });
+    await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveAttribute('data-world', 'ready', { timeout: sceneTimeout(30_000) });
     await page.evaluate(() => {
       const canvas = document.querySelector<HTMLCanvasElement>('.tqw-corridor-canvas canvas');
       canvas?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();

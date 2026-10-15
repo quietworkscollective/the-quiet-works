@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { HANDOVER } from '../src/corridor/layout.ts';
@@ -22,7 +23,7 @@ const leaveButton = (page: Page) => page.getByRole('button', { name: 'Leave', ex
 
 /** Baked textures, model resources and lettering prepare before the first world frame. */
 async function worldReady(page: Page): Promise<void> {
-  await expect(canvas(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: 30_000 });
+  await expect(canvas(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: sceneTimeout(30_000) });
 }
 
 async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
@@ -37,7 +38,7 @@ async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> 
  */
 async function settledPose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   // The pose is published to three decimals: arrived is exactly the hand-over (0.204 is still on its way).
-  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: 30_000 }).toBe(true);
+  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
   return pose(page);
 }
 
@@ -648,7 +649,7 @@ test.describe('the hero\'s poster', () => {
     expect(covers.dh).toBeLessThanOrEqual(1);
 
     release();
-    await expect(site(page)).toHaveAttribute('data-scene-ready', 'true', { timeout: 30_000 });
+    await expect(site(page)).toHaveAttribute('data-scene-ready', 'true', { timeout: sceneTimeout(30_000) });
     await expect(poster).toHaveAttribute('data-ready', 'true');
     // Dissolved over 400 ms, then removed.
     expect(await poster.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.4s');
@@ -702,7 +703,7 @@ test.describe('the hero\'s poster', () => {
     await expect(poster).toHaveCount(1);
     expect(await poster.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.12s');
     release();
-    await expect(poster).toHaveCount(0, { timeout: 30_000 });
+    await expect(poster).toHaveCount(0, { timeout: sceneTimeout(30_000) });
   });
 });
 
@@ -797,15 +798,35 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
   });
 
   test('crosses over the seam: the room is part-way visible for a moment, not cut in', async ({ page }) => {
-    await page.goto(OFFICE);
-    await recordHost(page);
-    await expectSpine(page, 'chamber');
-    await expect.poll(async () => (await recorded(page)).some(([opacity]) => opacity === 1), FADED_IN).toBe(true);
-    const opacities = (await recorded(page)).map(([opacity]) => opacity);
-    expect(opacities.some((o) => o > 0 && o < 1), 'a crossfade, not a cut').toBe(true);
-    // Never brighter, then dimmer: a single rise.
-    const rising = opacities.filter((o) => o > 0);
-    for (let i = 1; i < rising.length; i += 1) expect(rising[i]!).toBeGreaterThanOrEqual(rising[i - 1]! - 0.001);
+    // Freeze the native CSS timeline before loading so a slow frame cannot skip the fade.
+    const animationClock = await page.context().newCDPSession(page);
+    await animationClock.send('Animation.enable');
+    await animationClock.send('Animation.setPlaybackRate', { playbackRate: 0 });
+    try {
+      await page.goto(OFFICE);
+      await recordHost(page);
+      await expectSpine(page, 'chamber');
+      const host = page.locator('.tqw-chamber-host');
+      for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+        await host.evaluate((element, fraction) => {
+          const transition = element.getAnimations().find(animation =>
+            animation instanceof CSSTransition && animation.transitionProperty === 'opacity');
+          if (!transition?.effect) return;
+          transition.pause();
+          transition.currentTime = Number(transition.effect.getComputedTiming().duration) * fraction;
+        }, progress);
+        await frames(page);
+      }
+      await expect.poll(async () => (await recorded(page)).some(([opacity]) => opacity === 1), FADED_IN).toBe(true);
+      const opacities = (await recorded(page)).map(([opacity]) => opacity);
+      expect(opacities.some((o) => o > 0 && o < 1), 'a crossfade, not a cut').toBe(true);
+      // Never brighter, then dimmer: a single rise.
+      const rising = opacities.filter((o) => o > 0);
+      for (let i = 1; i < rising.length; i += 1) expect(rising[i]!).toBeGreaterThanOrEqual(rising[i - 1]! - 0.001);
+    } finally {
+      await animationClock.send('Animation.setPlaybackRate', { playbackRate: 1 });
+      await animationClock.detach();
+    }
   });
 
   test('under reduced motion the room comes in over the short dissolve, and is still never seen early', async ({ page }) => {
@@ -814,7 +835,7 @@ test.describe('the door\'s seam: a room is never shown before it is ready', () =
     const host = page.locator('.tqw-chamber-host');
     await expect(host).toHaveCount(1);
     expect(await host.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0.12s');
-    await expect(host).toHaveAttribute('data-ready', 'true', { timeout: 30_000 });
+    await expect(host).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(30_000) });
     await expect.poll(() => host.evaluate((el) => Number(getComputedStyle(el).opacity)), FADED_IN).toBe(1);
   });
 
@@ -1022,7 +1043,7 @@ test.describe('the game window: engaging', () => {
     test.skip(!isDesktop(info), 'a mouse wheel and a keyboard');
     await engageWindow(page);
     const y = await scrollY(page);
-    const start = await pose(page);
+    const start = await settledPose(page);
     await page.mouse.move(720, 450);
     await page.mouse.wheel(0, 300);
     await expect.poll(async () => start.z - (await pose(page)).z).toBeGreaterThan(0.2);

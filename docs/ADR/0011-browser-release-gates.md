@@ -5,14 +5,19 @@
 
 ## Decision
 
-The required `checks` status depends on unit gates and all four core browser shards. Core is the
+The required `checks` status depends on unit gates and all six core browser shards. Core is the
 default for every current and future spec, including both Annex rooms, accessibility, privacy,
 audio consent, room interaction and rendering warnings. It rejects any unsuccessful dependency.
 
 Explicit `@extended` metadata selects only corridor camera trajectory, sampling and frame-count
 diagnostics. Those tests still run on every pull request in four visible extended jobs, with every
 failure written to the job summary. A failure alone never justifies moving a test out of core.
-Assertions and test deadlines retain their intent in either tier.
+Assertions retain their intent in either tier. The subsequent corridor-camera ruling includes
+camera movement and timing cases with mixed input/door assertions in the extended tier;
+independent core routing, focus, audio-consent and accessibility contracts remain required.
+Six core shards reduce the observed 57-minute GitHub workload. CI-only test and state-wait
+budgets allow cold software rendering to finish without changing expected behaviour; see
+PUBLIC_RELEASE.md for the budgets and the 15 newly tagged camera contracts.
 
 ## Consequences and review
 

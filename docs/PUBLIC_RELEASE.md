@@ -48,26 +48,39 @@ at this point; the once-per-pull-request design stays because it is also faster.
 
 The required status is still named exactly `checks`. It means the `unit` job and every `core`
 browser shard succeeded. It runs with `if: always()` and rejects failed, cancelled or skipped
-dependencies. The four core shards cover desktop Chromium and Pixel 7 against the production
+dependencies. The six core shards cover desktop Chromium and Pixel 7 against the production
 build, with the existing browser cache and a 90-minute job limit for software rendering and setup.
 Cases are distributed individually across shards; each runner retains one sequential worker.
-The limit leaves headroom above the previous slowest local shard of 52 minutes, including browser
-installation and cold scene preparation; it does not increase any assertion's deadline.
+Six smaller shards reduce the observed 57-minute GitHub software-rendering workload. The job
+limit retains browser-installation and cold-scene headroom. Production CI defaults allow
+five minutes per test, ordinary assertions 90 seconds, and explicit scene-state waits two minutes. Local
+budgets are unchanged; no expected value, contrast threshold, distance or speed limit is relaxed.
 
-Core includes every spec by default: full-tier rendering, Office budget/context/exploration/room
-and interaction specs, brand, page, spine, discoveries, robustness, gramophone music, Exchange,
-and the Outline Room cases in `full-tier.spec.ts`. Corridor clock, rendering warnings, remount,
-pointer, page-input, gesture/audio-consent and accessible touch-control checks also remain core.
+Core includes production-compatible specs by default: Office context/exploration/room and
+interaction specs, brand, page, spine, discoveries, robustness, gramophone music and both Annex
+release contracts. Corridor clock, rendering warnings, remount, page-input, gesture/audio-consent
+and accessible touch-control checks also remain core. The production configuration currently
+excludes the development-only `full-tier.spec.ts`, `exchange.spec.ts` and `office-budget.spec.ts`;
+use `playwright.dev.config.ts` to validate those authored scenes separately before release.
 New ordinary specs enter this gate automatically. A failing spec is repaired or reviewed; failure
 alone is never a reason to remove it from core.
 
 Only tests marked `@extended` sit outside that required status. They measure corridor camera
 trajectories and frame throughput: hero drift, scroll walk-in, off-screen/hidden-tab frame counts,
 camera pose/FOV/collision geometry, camera frame-loop budgets, reduced-motion camera cuts and
-the corridor idle draw count. Mixed cases that also check keyboard, pointer, touch, native scroll
-ownership, door routing or settings controls remain required in core. The metadata marks
-measurements without changing their assertions. These selected cases are in
+the corridor idle draw count. Under the subsequent corridor-camera ruling, the camera movement
+and timing cases in `corridor-walk.spec.ts` are extended even when they also exercise an input or
+a door. Their assertions remain intact; independent core specs still require focus restoration,
+room routing, native page-input ownership, audio consent and accessible controls. The metadata
+marks measurements without changing their assertions. These selected cases are in
 `corridor-site.spec.ts`, `corridor-walk.spec.ts` and `corridor-world.spec.ts`.
+
+The additional camera cases marked extended are: native wheel hand-over; W/S walking speed and
+stopping; A/D turning speed; wheel-notch distance; drag-to-look without travel; floor glides;
+two-click door framing and entry; the 1.6 m / 1.4 s doorway walk; Tab door framing; sealed-door
+rattle and camera position; return-from-Office camera position; hover attention and quiet frames;
+touch-button walking and stopping; native landing swipe with camera travel; and touch swipe,
+drag and floor glide. These are 15 contracts, selected by camera measurement rather than result.
 
 Every pull request runs four `extended` shards as well. Their failures remain visible as failed
 jobs, and each job summary lists every failed test and its error. Neither tier cancels its other

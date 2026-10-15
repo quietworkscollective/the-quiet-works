@@ -17,8 +17,9 @@ const baseURL = `http://127.0.0.1:${port}`;
 export default defineConfig({
   testDir: './e2e',
   testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts'],
-  timeout: 60_000,
-  expect: { timeout: 10_000 },
+  // Cold software renders and repeated room visits need a larger CI budget, not weaker predicates.
+  timeout: process.env.CI ? 300_000 : 60_000,
+  expect: { timeout: process.env.CI ? 90_000 : 10_000 },
   // Shard by individual case so large page/room files cannot monopolise a job. One worker
   // still runs cases sequentially within each runner; fixtures remain independent.
   fullyParallel: true,

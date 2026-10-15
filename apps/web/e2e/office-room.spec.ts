@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { toggleOfficePlaces } from './officePlaces.ts';
 import { expect, test } from '@playwright/test';
 import { app, audioContexts, closeMenu, countAudioContexts, expectStamps, openMenu, roomReady, stampTarget, stampWithKeyboard } from './helpers.ts';
@@ -43,7 +44,7 @@ test('movement keys release the desk while its DOM control has focus', async ({ 
 test('dragging from the distant physical press looks without approaching or stamping', async ({ page }, info) => {
   await page.goto('/certification-office');
   await roomReady(page);
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 });
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: sceneTimeout(25_000) });
   const target = await stampTarget(page);
   const canvas = page.locator('.tqw-canvas');
   const position = await canvas.getAttribute('data-position');
@@ -70,7 +71,7 @@ test('wheel travel stays silent and scrolling the DOM inspection leaves the came
   await countAudioContexts(page);
   await page.goto('/certification-office');
   await roomReady(page);
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 }); await stampTarget(page);
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: sceneTimeout(25_000) }); await stampTarget(page);
   const canvas = page.locator('.tqw-canvas');
   const before = await canvas.getAttribute('data-position');
   const point = await stampTarget(page);
@@ -79,7 +80,7 @@ test('wheel travel stays silent and scrolling the DOM inspection leaves the came
   await expect.poll(() => audioContexts(page)).toBe(0);
   await expectStamps(page, 0);
   // Let the shared 300 ms acceleration and 180 ms settling finish before inspecting.
-  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: 25_000 });
+  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: sceneTimeout(25_000) });
   await toggleOfficePlaces(page);
   await page.getByText('Things nearby', { exact: true }).click();
   const summary = await page.getByText('Things nearby', { exact: true }).boundingBox();
@@ -93,7 +94,7 @@ test('wheel travel stays silent and scrolling the DOM inspection leaves the came
 test('a reduced-motion station captures the outgoing image and cuts to a stationary view', async ({ page }) => {
   await page.goto('/certification-office');
   await roomReady(page);
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 }); await stampTarget(page);
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: sceneTimeout(25_000) }); await stampTarget(page);
   await roomReady(page);
   // Settings live in the Menu (ADR 0003).
   const menu = await openMenu(page);
@@ -132,7 +133,7 @@ test('a reduced-motion station captures the outgoing image and cuts to a station
 test('a nearby free view holds the press without reclaiming camera framing', async ({ page }, info) => {
   await page.goto('/certification-office');
   await roomReady(page);
-  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: 25_000 });
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: sceneTimeout(25_000) });
   await toggleOfficePlaces(page);
   await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
   await expect(app(page)).toHaveAttribute('data-station', 'desk');
@@ -140,12 +141,12 @@ test('a nearby free view holds the press without reclaiming camera framing', asy
   await page.keyboard.down('a'); await page.waitForTimeout(100); await page.keyboard.up('a');
   await expect(app(page)).toHaveAttribute('data-station', 'room');
   const canvas = page.locator('.tqw-canvas');
-  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: 25_000 });
+  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: sceneTimeout(25_000) });
   const origin = await canvas.getAttribute('data-position');
   const view = await stampTarget(page);
   await page.mouse.move(view.x, view.y); await page.mouse.wheel(0, -20);
   await expect(canvas).not.toHaveAttribute('data-position', origin ?? '');
-  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: 25_000 });
+  await expect(canvas).toHaveAttribute('data-moving', 'false', { timeout: sceneTimeout(25_000) });
   const before = await canvas.getAttribute('data-pose');
   const pose = (before ?? '').split(',').map(Number);
   expect(Math.hypot((pose[0] ?? 0) + 1, (pose[1] ?? 0) - 2.9)).toBeLessThan(0.3);

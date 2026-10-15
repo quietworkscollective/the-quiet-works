@@ -51,11 +51,12 @@ jobs:
     runs-on: ubuntu-latest
     # Core is every spec except explicitly tagged corridor camera/frame diagnostics.
     # New room, accessibility, privacy and interaction specs are required by default.
+    # Six smaller shards reduce the 57-minute software-rendered workload; retain setup headroom.
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -79,7 +80,7 @@ jobs:
         run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
       - if: steps.browsers.outputs.cache-hit == 'true'
         run: pnpm --filter @tqw/web exec playwright install-deps chromium
-      - run: pnpm --filter @tqw/web exec playwright test --grep-invert @extended --shard="$SHARD/4"
+      - run: pnpm --filter @tqw/web exec playwright test --grep-invert @extended --shard="$SHARD/6"
         env:
           CI: 'true'
           SHARD: ${{ matrix.shard }}

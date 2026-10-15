@@ -352,7 +352,7 @@ test.describe('landing walk-in', () => {
     expect(await pose(page)).toEqual(rested);
   });
 
-  test('real wheel scrolling on desktop walks the camera in and hands over; the wheel then scrolls the page on, it does not walk', async ({
+  test('real wheel scrolling on desktop walks the camera in and hands over; the wheel then scrolls the page on, it does not walk', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -394,7 +394,7 @@ test.describe('landing walk-in', () => {
 });
 
 test.describe('free walking and looking', () => {
-  test('W and S and the arrows walk, never faster than 1.1 m/s, and stop within a few centimetres', async ({
+  test('W and S and the arrows walk, never faster than 1.1 m/s, and stop within a few centimetres', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -428,7 +428,7 @@ test.describe('free walking and looking', () => {
     await settle(page);
   });
 
-  test('A and D and the arrows turn, never faster than 75 degrees a second, without moving the camera', async ({
+  test('A and D and the arrows turn, never faster than 75 degrees a second, without moving the camera', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -491,7 +491,7 @@ test.describe('free walking and looking', () => {
     expect(p.x).toBeGreaterThan(CORRIDOR.width / 2 - CORRIDOR.wallMargin - 0.05);
   });
 
-  test('a wheel notch in the corridor walks about 0.35 m, and the opposite notch walks back', async ({
+  test('a wheel notch in the corridor walks about 0.35 m, and the opposite notch walks back', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -509,7 +509,7 @@ test.describe('free walking and looking', () => {
     expect(Math.abs((await pose(page)).z - start)).toBeLessThan(0.1);
   });
 
-  test('dragging looks around without moving the camera, and is not a click on the floor', async ({
+  test('dragging looks around without moving the camera, and is not a click on the floor', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -537,7 +537,7 @@ test.describe('free walking and looking', () => {
     expect((await pose(page)).z).toBe(start.z);
   });
 
-  test('clicking the floor glides there and leaves the view alone', async ({ page, isMobile }) => {
+  test('clicking the floor glides there and leaves the view alone', { tag: '@extended' }, async ({ page, isMobile }) => {
     await scrollToHandOver(page);
     const start = await pose(page);
     // The bottom of the picture is the floor a few metres ahead.
@@ -555,7 +555,7 @@ test.describe('free walking and looking', () => {
 test.describe('doors', () => {
   // A glide is seconds of simulated time; a busy machine draws frames slowly and the simulation follows.
   test.describe.configure({ timeout: 150_000 });
-  test('a click glides to frame the door and a second click opens it and reaches the chamber', async ({
+  test('a click glides to frame the door and a second click opens it and reaches the chamber', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -584,7 +584,7 @@ test.describe('doors', () => {
     await expect(page).toHaveURL(/\/certification-office$/);
   });
 
-  doorwayTest('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', async ({
+  doorwayTest('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -634,7 +634,7 @@ test.describe('doors', () => {
     await expectSpine(page, 'chamber');
   });
 
-  test('Tab to a door frames it: the view glides there and the list marks it', async ({ page }) => {
+  test('Tab to a door frames it: the view glides there and the list marks it', { tag: '@extended' }, async ({ page }) => {
     await scrollToHandOver(page);
     await door(page, 'The Apartment', 'sealed').focus();
     await expect(site(page)).toHaveAttribute('data-focus', 'apartment');
@@ -651,7 +651,7 @@ test.describe('doors', () => {
     expectPose(await pose(page), frameOf('tomorrow-engine'));
   });
 
-  test('a sealed door rattles when tried and the visitor stays in the corridor in front of it', async ({
+  test('a sealed door rattles when tried and the visitor stays in the corridor in front of it', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -672,7 +672,7 @@ test.describe('doors', () => {
     expect(await pose(page)).toEqual(at);
   });
 
-  test('coming back from the Office stands the visitor in front of its door, facing it', async ({ page }) => {
+  test('coming back from the Office stands the visitor in front of its door, facing it', { tag: '@extended' }, async ({ page }) => {
     await scrollToHandOver(page);
     await door(page, OFFICE_TITLE, 'open').focus();
     await page.keyboard.press('Enter');
@@ -688,7 +688,7 @@ test.describe('doors', () => {
     expect(await frames(page)).toBe(before);
   });
 
-  test('hovering a door with a mouse lifts its attention and then the scene is quiet again', async ({
+  test('hovering a door with a mouse lifts its attention and then the scene is quiet again', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -832,7 +832,7 @@ test.describe('touch', () => {
     }
   });
 
-  test('holding the forward button walks; letting go stops; back walks back', async ({ page, isMobile }) => {
+  test('holding the forward button walks; letting go stops; back walks back', { tag: '@extended' }, async ({ page, isMobile }) => {
     test.skip(!isMobile, 'touch');
     await scrollToHandOver(page);
     const session = await cdp(page);
@@ -856,7 +856,7 @@ test.describe('touch', () => {
     await settle(page);
   });
 
-  test('on the landing a finger swipe scrolls the page natively and the camera walks with it', async ({
+  test('on the landing a finger swipe scrolls the page natively and the camera walks with it', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -880,7 +880,7 @@ test.describe('touch', () => {
     await expectSpine(page, 'entrance');
   });
 
-  test('a vertical swipe walks, a horizontal drag looks without moving, a tap on the floor glides', async ({
+  test('a vertical swipe walks, a horizontal drag looks without moving, a tap on the floor glides', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {

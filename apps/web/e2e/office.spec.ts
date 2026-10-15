@@ -196,8 +196,11 @@ test.describe('comfort and accessibility settings', () => {
     await menu.getByRole('button', { name: 'Captions' }).click();
     await closeMenu(page);
     await prepareDesk(page);
-    await stampWithKeyboard(page);
-    await expect(page.locator('.tqw-captions')).not.toBeEmpty();
+    // Observe the transient caption while the stamp runs, before a slow renderer can outlive it.
+    await Promise.all([
+      expect(page.locator('.tqw-captions')).not.toBeEmpty(),
+      stampWithKeyboard(page),
+    ]);
   });
 });
 

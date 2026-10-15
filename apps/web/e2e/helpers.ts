@@ -1,3 +1,4 @@
+import { sceneTimeout } from './timeouts.ts';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 export const app = (page: Page): Locator => page.locator('.tqw-app');
@@ -15,7 +16,7 @@ export async function expectStamps(page: Page, n: number): Promise<void> {
  * half-built room), so nothing in it can be focused or pressed; a test that acts on the room waits for this first.
  */
 export async function roomReady(page: Page): Promise<void> {
-  await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
+  await expect(page.locator('.tqw-chamber-host')).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(45_000) });
 }
 
 /** One full stamp through the keyboard path: Space down (contact), Space up (lift). */
@@ -82,7 +83,7 @@ export const site = (page: Page): Locator => page.locator('.tqw-site');
  */
 export async function expectSpine(page: Page, phase: 'entrance' | 'corridor' | 'threshold' | 'chamber'): Promise<void> {
   // Chamber entry can include both the door fallback and the room's readiness fallback on software WebGL.
-  const timeout = phase === 'chamber' ? 60_000 : phase === 'corridor' ? 25_000 : undefined;
+  const timeout = phase === 'chamber' ? sceneTimeout(60_000) : phase === 'corridor' ? sceneTimeout(25_000) : undefined;
   await expect(site(page)).toHaveAttribute('data-spine', phase, timeout ? { timeout } : {});
 }
 
