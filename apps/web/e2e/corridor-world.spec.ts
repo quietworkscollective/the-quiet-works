@@ -126,7 +126,7 @@ test.describe('corridor world', () => {
   });
 
   test('going through the Office and back twice leaves a working corridor each time', async ({ page }) => {
-    test.setTimeout(150_000);
+    test.setTimeout(process.env['CI'] ? 330_000 : 150_000);
     const noise: string[] = [];
     page.on('console', (m) => {
       if (['error', 'warning'].includes(m.type()) && !isKnownNoise(m.text())) noise.push(m.text());
@@ -139,7 +139,8 @@ test.describe('corridor world', () => {
       await door(page, 'The Certification Office', 'open').focus();
       await page.keyboard.press('Enter');
       // The Office's own scene is slow to start on a software rasteriser: allow it.
-      await expect(site(page)).toHaveAttribute('data-spine', 'chamber', { timeout: 45_000 });
+      // CI runners render in software and load the Office several times slower than a GPU machine.
+      await expect(site(page)).toHaveAttribute('data-spine', 'chamber', { timeout: process.env['CI'] ? 120_000 : 45_000 });
       await page.getByRole('button', { name: 'Return to the corridor' }).click();
       await expectSpine(page, 'corridor');
     }
