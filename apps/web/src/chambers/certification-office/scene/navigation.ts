@@ -1,3 +1,4 @@
+import { horizontalFov, stageLook, stagePose } from './stage.ts';
 import { contains, segmentInside, type Bounds, type Vec2 } from '../../../firstPerson/bounds.ts';
 import { createFirstPerson, type Hold, type Pose } from '../../../firstPerson/controller.ts';
 import type { InputControls } from '../../../firstPerson/bindings.ts';
@@ -15,8 +16,8 @@ export const VIEWPOINTS = {
   'reveal-wide': { x: -2.6, z: 4.2, yawDeg: 168, pitchDeg: -6 },
   certificate: { x: -2.6, z: 3.9, yawDeg: 170, pitchDeg: 0 },
   window: { x: -2.25, z: 6.7, yawDeg: 180, pitchDeg: 0 },
-  records: { x: -2.5, z: 5.9, yawDeg: 270, pitchDeg: -14 },
-  drawer: { x: -1.5, z: 1.35, yawDeg: 180, pitchDeg: -25 },
+  records: { x: -2.6, z: 4.4, yawDeg: 211, pitchDeg: -14 },
+  drawer: { x: -1.85, z: 1.35, yawDeg: 180, pitchDeg: -25 },
   ink: { x: -1.8, z: 2.2, yawDeg: 180, pitchDeg: -25 },
   lamp: { x: -1.9, z: 2.9, yawDeg: 180, pitchDeg: -12 },
   underside: { x: -0.45, z: 2.05, yawDeg: 180, pitchDeg: -25 },
@@ -24,15 +25,18 @@ export const VIEWPOINTS = {
   machine: { x: 1, z: 3.3, yawDeg: 180, pitchDeg: -25 },
   bell: { x: 1, z: 3.3, yawDeg: 192, pitchDeg: -2 },
   service: { x: 2.8, z: 5.3, yawDeg: 164, pitchDeg: -10 },
-  maintenance: { x: 2.8, z: 5.4, yawDeg: 90, pitchDeg: -20 },
-  stack: { x: -2, z: 6.9, yawDeg: 270, pitchDeg: -17 },
-  hook: { x: -2.5, z: 2, yawDeg: 270, pitchDeg: -3 },
-  exit: { x: 2.8, z: 1.8, yawDeg: 90, pitchDeg: 0 },
+  maintenance: { x: 2.7, z: 4.1, yawDeg: 140, pitchDeg: -20 },
+  stack: { x: -2, z: 5.4, yawDeg: 215, pitchDeg: -17 },
+  hook: { x: -2.5, z: 2, yawDeg: 218, pitchDeg: -3 },
+  exit: { x: 2.8, z: 4.7, yawDeg: 147, pitchDeg: 0 },
 } satisfies Record<string, Pose>;
 export type Viewpoint = keyof typeof VIEWPOINTS;
 
 // Standing clearance around the installed furniture, including the transformed machine.
 const FURNITURE: Bounds = [
+  { minX: -1.75, maxX: -.75, minZ: 1.2, maxZ: 2.2 },
+  { minX: -3.95, maxX: -3.1, minZ: 1.3, maxZ: 3.5 },
+  { minX: 3.1, maxX: 3.95, minZ: 1.3, maxZ: 3.5 },
   { minX: -2.35, maxX: 0.35, minZ: 3.2, maxZ: 4.8 },
   { minX: 0.15, maxX: 1.85, minZ: 4.25, maxZ: 5.55 },
   { minX: -3.95, maxX: -2.85, minZ: 5.4, maxZ: 6.4 },
@@ -53,6 +57,10 @@ export const isWalkable = (x: number, z: number): boolean => contains(ROOM_BOUND
 
 // Rectangle centres form a small visibility graph; shared segmentInside validates every leg.
 const GATES: readonly Vec2[] = ROOM_BOUNDS.map(r => ({ x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2 }));
+let gateLinks: readonly (readonly boolean[])[] | null = null;
+function links() {
+  return gateLinks ??= GATES.map(from => GATES.map(to => segmentInside(ROOM_BOUNDS, from, to, .01)));
+}
 export function routeBetween(start: Vec2, destination: Vec2): Vec2[] {
   if (!contains(ROOM_BOUNDS, start) || !contains(ROOM_BOUNDS, destination)) return [];
   if (segmentInside(ROOM_BOUNDS, start, destination, 0.01)) return [destination];
@@ -73,7 +81,8 @@ export function routeBetween(start: Vec2, destination: Vec2): Vec2[] {
     if (!from) return [];
     for (let next = 1; next < nodes.length; next++) {
       const to = nodes[next];
-      if (!to || visited.has(next) || !segmentInside(ROOM_BOUNDS, from, to, 0.01)) continue;
+      if (!to || visited.has(next)) continue;
+      if (!(at < 2 || next < 2 ? segmentInside(ROOM_BOUNDS, from, to, .01) : links()[at-2]?.[next-2])) continue;
       const length = (distance[at] ?? Infinity) + Math.hypot(to.x - from.x, to.z - from.z);
       if (length < (distance[next] ?? Infinity)) { distance[next] = length; previous[next] = at; }
     }
@@ -102,6 +111,7 @@ export interface Navigation {
   releaseInput(): void;
   advance(seconds: number): boolean;
   setReducedMotion(reduced: boolean): void;
+  setLens(verticalFov: number, aspect: number): void;
   setBeforeCut(callback: (() => void) | null): void;
   setWasDrag(callback: (() => boolean) | null): void;
   wasDrag(): boolean;
@@ -111,6 +121,9 @@ export function createNavigation(): Navigation {
   let beforeCut: (() => void) | null = null;
   let wasDrag: (() => boolean) | null = null;
   const controller = createFirstPerson({ start: ARRIVAL, bounds: ROOM_BOUNDS, beforeCut: () => beforeCut?.() });
+  let fov = horizontalFov(48, 1.6);
+  const turning = new Map<string, Hold>();
+  const turnInput = () => Math.sign([...turning.values()].reduce<number>((sum, dir) => sum + dir, 0));
   let station: Station = 'room';
   let requestedAt: number | null = null;
   let authored = false;
@@ -119,12 +132,13 @@ export function createNavigation(): Navigation {
   const listeners = new Set<() => void>();
   const notify = () => { for (const listener of listeners) listener(); };
   const wake = () => {
-    if (controller.active && requestedAt === null) requestedAt = performance.now();
+    if ((controller.active || turnInput()) && requestedAt === null) requestedAt = performance.now();
     notify();
   };
   const release = () => { station = 'room'; authored = false; generation++; };
+  const releaseTurn = () => turning.clear();
   const halt = () => {
-    release();
+    release(); releaseTurn();
     controller.lock(true);
     controller.setPose({});
     controller.lock(false);
@@ -136,8 +150,9 @@ export function createNavigation(): Navigation {
       controller.hold(source, dir); wake();
     },
     turn(source, dir) {
-      if (dir && !controller.reducedMotion) release();
-      controller.turn(source, dir); wake();
+      if (dir && !controller.reducedMotion) { release(); controller.cancelGlide(); }
+      controller.turn(source, 0);
+      turning.set(source, controller.reducedMotion ? 0 : dir); wake();
     },
     nudge(metres) {
       if (metres && !controller.reducedMotion) release();
@@ -145,19 +160,19 @@ export function createNavigation(): Navigation {
     },
     look(yaw, pitch) {
       if (yaw || pitch) release();
-      controller.look(yaw, pitch); wake();
+      controller.look(stageLook(controller.pose.yawDeg, yaw, fov), pitch); wake();
     },
   };
   const navigation: Navigation = {
     get pose() { return controller.pose; },
     get requestedAt() { return requestedAt; },
     get station() { return station; },
-    get moving() { return controller.active; },
+    get moving() { return controller.active || Boolean(turnInput()); },
     controls,
     subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     approach(point, cut) {
       halt(); named = point;
-      const destination = VIEWPOINTS[point];
+      const destination = stagePose(VIEWPOINTS[point], fov);
       const token = generation;
       const done = () => {
         if (token !== generation) return;
@@ -198,6 +213,7 @@ export function createNavigation(): Navigation {
     },
     stop() { const current = station; halt(); station = current; notify(); },
     releaseInput() {
+      releaseTurn();
       // A press or reader owns input, but an authored approach must still reach its station.
       controller.lock(true);
       if (!controller.gliding) controller.setPose({});
@@ -206,6 +222,7 @@ export function createNavigation(): Navigation {
       wake();
     },
     advance(seconds) {
+      if (turnInput()) controller.look(stageLook(controller.pose.yawDeg, turnInput() * 75 * Math.min(.05, Math.max(0, seconds)), fov), 0);
       const ms = Number.isFinite(seconds) ? Math.max(0, seconds * 1000) : 0;
       if (authored) {
         // Station travel follows its command clock through cold shader preparation.
@@ -217,12 +234,17 @@ export function createNavigation(): Navigation {
         }
       } else controller.step(ms);
       if (!controller.active) requestedAt = null;
-      return controller.active;
+      return controller.active || Boolean(turnInput());
+    },
+    setLens(vertical, aspect) {
+      fov = horizontalFov(vertical, aspect);
+      const pose = stagePose({...controller.pose}, fov);
+      if (Math.abs(pose.yawDeg - controller.pose.yawDeg) > 1e-9) controller.setPose(pose);
     },
     setReducedMotion(reduced) {
       if (reduced === controller.reducedMotion) return;
       const current = station;
-      release(); station = current;
+      release(); releaseTurn(); station = current;
       controller.setReducedMotion(reduced);
       if (!controller.active) requestedAt = null;
       wake();

@@ -1,6 +1,7 @@
 import { Bucket, quad } from './builder.ts';
 import { kelvinToLinear, type Rgb } from './colour.ts';
 import { CORRIDOR } from '../layout.ts';
+import { END_Z, STAGE } from './stage.ts';
 import { corridorSconceSlots } from './lighting.ts';
 import type { Vec3 } from './math.ts';
 
@@ -44,8 +45,8 @@ export interface GlowMount {
 /** Where the sconce glows go: at each sconce beyond `GLOW_FROM_Z`, just off the wall, at lamp height. */
 export function glowMounts(): GlowMount[] {
   const hw = CORRIDOR.width / 2;
-  const span = CORRIDOR.farZ - GLOW_FROM_Z;
-  return corridorSconceSlots(CORRIDOR.farZ)
+  const span = END_Z - GLOW_FROM_Z;
+  return corridorSconceSlots(END_Z)
     .filter((s) => s.z < GLOW_FROM_Z)
     .map((s) => ({
       position: [s.side === 'left' ? -hw + 0.28 : hw - 0.28, CORRIDOR.sconce.y, s.z] as Vec3,
@@ -59,8 +60,17 @@ export function beaconColour(): Rgb {
 }
 
 /** The pieces of the far door, each in its own bucket so each can take its own material. */
-export function buildBeacon(): { doorway: Bucket; leaf: Bucket; halo: Bucket; spill: Bucket } {
-  const z = CORRIDOR.farZ + 0.04;
+export function buildBeacon(): {
+  doorway: Bucket;
+  leaf: Bucket;
+  halo: Bucket;
+  spill: Bucket;
+  windowPane: Bucket;
+  windowFrame: Bucket;
+  floorBars: Bucket;
+  wallBars: Bucket;
+} {
+  const z = END_Z + 0.04;
   const { x, width, height } = BEACON;
   const doorway = new Bucket();
   quad(doorway, [x - width / 2, 0, z], [x + width / 2, 0, z], [x + width / 2, height, z], [x - width / 2, height, z], undefined, [0, 0, 1]);
@@ -83,7 +93,61 @@ export function buildBeacon(): { doorway: Bucket; leaf: Bucket; halo: Bucket; sp
   const y = 0.012;
   const half = BEACON.spillWidth / 2;
   quad(spill, [x - half, y, z], [x + half, y, z], [x + half, y, z + BEACON.spillDepth], [x - half, y, z + BEACON.spillDepth], undefined, [0, 1, 0], [[0, 1], [1, 1], [1, 0], [0, 0]]);
-  return { doorway, leaf, halo, spill };
+
+  // A low, off-axis window beside the door gives the far end a source that reads as a room, not a target.
+  const windowPane = new Bucket();
+  const windowFrame = new Bucket();
+  const frameWidth = STAGE.window.frame;
+  const wx0 = STAGE.window.x - STAGE.window.width / 2;
+  const wx1 = STAGE.window.x + STAGE.window.width / 2;
+  const wy0 = STAGE.window.bottom;
+  const wy1 = STAGE.window.bottom + STAGE.window.height;
+  const glassZ = END_Z + 0.035;
+  const frameZ = END_Z + 0.055;
+  quad(windowPane, [wx0, wy0, glassZ], [wx1, wy0, glassZ], [wx1, wy1, glassZ], [wx0, wy1, glassZ], undefined, [0, 0, 1]);
+  const mullion = (xa: number, xb: number, ya: number, yb: number): void => {
+    quad(windowFrame, [xa, ya, frameZ], [xb, ya, frameZ], [xb, yb, frameZ], [xa, yb, frameZ], undefined, [0, 0, 1]);
+  };
+  mullion(wx0 - frameWidth / 2, wx0 + frameWidth / 2, wy0 - frameWidth / 2, wy1 + frameWidth / 2);
+  mullion(wx1 - frameWidth / 2, wx1 + frameWidth / 2, wy0 - frameWidth / 2, wy1 + frameWidth / 2);
+  mullion(wx0, wx1, wy0 - frameWidth / 2, wy0 + frameWidth / 2);
+  mullion(wx0, wx1, wy1 - frameWidth / 2, wy1 + frameWidth / 2);
+  mullion(STAGE.window.x - frameWidth * 0.42, STAGE.window.x + frameWidth * 0.42, wy0, wy1);
+  mullion(wx0, wx1, (wy0 + wy1) / 2 - frameWidth * 0.42, (wy0 + wy1) / 2 + frameWidth * 0.42);
+
+  // Sunlight is a separate additive layer: soft bars reach the walked strip and rake the left wall.
+  const floorBars = new Bucket();
+  const patchNear = END_Z + 0.16;
+  const patchFar = Math.min(END_Z + 8.2, CORRIDOR.innerDoorZ - 1);
+  const patchHalfWidth = CORRIDOR.width / 2 - 0.34;
+  quad(
+    floorBars,
+    [-patchHalfWidth, 0.016, patchFar],
+    [patchHalfWidth, 0.016, patchFar],
+    [patchHalfWidth, 0.016, patchNear],
+    [-patchHalfWidth, 0.016, patchNear],
+    undefined,
+    [0, 1, 0],
+    [[0, 0], [1, 0], [1, 1], [0, 1]],
+  );
+  const wallBars = new Bucket();
+  const wallX = -CORRIDOR.width / 2 + 0.028;
+  const wallNear = END_Z + 0.16;
+  const wallFar = END_Z + 5.0;
+  const low = 0.62;
+  const high = Math.min(CORRIDOR.height - 0.45, 3.35);
+  quad(
+    wallBars,
+    [wallX, low, wallFar],
+    [wallX, low, wallNear],
+    [wallX, high, wallNear],
+    [wallX, high, wallFar],
+    undefined,
+    [1, 0, 0],
+    [[0, 0], [0, 1], [1, 1], [1, 0]],
+  );
+
+  return { doorway, leaf, halo, spill, windowPane, windowFrame, floorBars, wallBars };
 }
 
 /** One unit quad facing +z, for the instanced sconce glows. */

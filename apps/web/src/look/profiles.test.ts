@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { CORRIDOR_LOOK, LANDING_LOOK, LOOK_PROFILES, OFFICE_LOOK, type LookProfile } from './profiles.ts';
+import { CORRIDOR_LOOK, EXCHANGE_LOOK, LANDING_LOOK, LOOK_PROFILES, OFFICE_LOOK, type LookProfile } from './profiles.ts';
 import { hexToSrgb } from './colour.ts';
 import { AO_PRESETS, EXPOSURE, inRange, LOOK_RANGES } from './ranges.ts';
 
-const ALL: readonly LookProfile[] = [CORRIDOR_LOOK, LANDING_LOOK, OFFICE_LOOK];
+const ALL: readonly LookProfile[] = [CORRIDOR_LOOK, LANDING_LOOK, OFFICE_LOOK, EXCHANGE_LOOK];
 
 describe('look profiles', () => {
   it('keys each profile by the space it belongs to', () => {
     for (const [key, profile] of Object.entries(LOOK_PROFILES)) expect(profile.space).toBe(key);
-    expect(Object.keys(LOOK_PROFILES).sort()).toEqual(['corridor', 'landing', 'office']);
+    expect(Object.keys(LOOK_PROFILES).sort()).toEqual(['corridor', 'exchange', 'landing', 'office']);
   });
 
   for (const profile of ALL) {
@@ -36,6 +36,10 @@ describe('look profiles', () => {
         expect(inRange(profile.bloom.strength, LOOK_RANGES.bloomStrength), `strength ${profile.bloom.strength}`).toBe(true);
         expect(inRange(profile.bloom.radius, LOOK_RANGES.bloomRadius), `radius ${profile.bloom.radius}`).toBe(true);
         expect(inRange(profile.bloom.threshold, LOOK_RANGES.bloomThreshold), `threshold ${profile.bloom.threshold}`).toBe(true);
+      });
+
+      it('keeps the corridor bloom at two mip levels so the finished frame stays within 125 draws', () => {
+        if (profile.space === 'corridor') expect(profile.bloom.levels).toBe(2);
       });
 
       it('keeps the range’s own floor above 1, so no setting can make a lit surface bloom', () => {

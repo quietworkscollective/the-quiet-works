@@ -1,5 +1,6 @@
 import { CHAMBER_SLOTS, BLANK_DOORS, blankDoorAt, CORRIDOR, LOBBY } from '../layout.ts';
-import { LOBBY_WINDOW, PENDANTS } from './architecture/lobbyPlan.ts';
+import { END_Z, STAGE } from './stage.ts';
+import { BANKER_LAMP_SOURCE, LOBBY_WINDOW, PENDANTS } from './architecture/lobbyPlan.ts';
 import { boardLampPosition } from './board.ts';
 import { kelvinToLinear, type Rgb } from './colour.ts';
 import type { Vec3 } from './math.ts';
@@ -44,7 +45,7 @@ export interface SconceSlot {
  * first on the left at the pier just past the first bay. Positions are bay boundaries, which
  * always fall on a pier between doors (checked by the layout tests).
  */
-export function corridorSconceSlots(farZ: number = LAMP_CULL_Z): SconceSlot[] {
+export function corridorSconceSlots(farZ: number = Math.max(LAMP_CULL_Z, END_Z)): SconceSlot[] {
   const { spacing, stagger } = CORRIDOR.sconce;
   const first = CORRIDOR.innerDoorZ - CORRIDOR.bay;
   const slots: SconceSlot[] = [];
@@ -176,7 +177,24 @@ export function buildLamps(doorLamps: readonly DoorLamp[], tuning: LampTuning = 
     soft: 0.65,
     range: 3.4,
   });
-  for (const s of [...corridorSconceSlots(), ...PROP_SCONCES]) {
+  lamps.push({
+    id: 'lobby-banker-lamp',
+    kind: 'lobby',
+    position: BANKER_LAMP_SOURCE,
+    colour: lampColour(2900, tuning.lobbyIntensity * 0.42),
+    soft: 0.38,
+    range: 2.8,
+  });
+  // Low amber daylight enters at the far window and gives its bar-shaped floor patches a source.
+  lamps.push({
+    id: 'corridor-window',
+    kind: 'lobby',
+    position: [STAGE.window.x, STAGE.window.bottom + STAGE.window.height * 0.55, END_Z + 0.22],
+    colour: lampColour(STAGE.window.kelvin, tuning.corridorIntensity * 1.05),
+    soft: 2.8,
+    range: 10.5,
+  });
+  for (const s of [...corridorSconceSlots(END_Z), ...PROP_SCONCES.filter((slot) => slot.z > END_Z)]) {
     const wall = s.side === 'left' ? -CORRIDOR.width / 2 : CORRIDOR.width / 2;
     const x = wall + (s.side === 'left' ? SCONCE_STANDOFF : -SCONCE_STANDOFF);
     lamps.push({ id: s.id, kind: 'sconce', position: [x, y, s.z], colour: lampColour(kelvin, tuning.corridorIntensity), soft: tuning.corridorSoft, range: 6.2 });
@@ -197,7 +215,7 @@ export function buildLamps(doorLamps: readonly DoorLamp[], tuning: LampTuning = 
       range: 3.6,
     });
   }
-  return lamps.filter((l) => l.position[2] > LAMP_CULL_Z).slice(0, MAX_LAMPS);
+  return lamps.filter((l) => l.position[2] > Math.max(LAMP_CULL_Z, END_Z)).slice(0, MAX_LAMPS);
 }
 
 /** Every door opening on a side, for placement checks: [z0, z1] extents including any surround. */
@@ -210,8 +228,7 @@ export function doorExtents(side: 'left' | 'right', specOf: (slotKey: string) =>
     const w = spec.surround?.width ?? spec.width;
     out.push([slot.z - w / 2, slot.z + w / 2]);
   }
-  const bays = Math.floor((CORRIDOR.innerDoorZ - CORRIDOR.farZ) / CORRIDOR.bay);
-  for (let bay = CORRIDOR.walkableBays; bay < bays; bay += 1) {
+  for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
     const spec = blankDoorAt(bay, side);
     if (!spec) continue;
     const z = CORRIDOR.innerDoorZ - CORRIDOR.bay * (bay + 0.5);

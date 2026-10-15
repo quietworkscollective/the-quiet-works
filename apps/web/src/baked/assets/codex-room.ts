@@ -1,0 +1,17 @@
+import geometry0 from './codex-room-geometry-0.json';
+import geometry1 from './codex-room-geometry-1.json';
+import geometry2 from './codex-room-geometry-2.json';
+import geometry3 from './codex-room-geometry-3.json';
+import geometry4 from './codex-room-geometry-4.json';
+import geometry5 from './codex-room-geometry-5.json';
+import geometry6 from './codex-room-geometry-6.json';
+import geometry7 from './codex-room-geometry-7.json';
+import geometry8 from './codex-room-geometry-8.json';
+import geometry9 from './codex-room-geometry-9.json';
+import geometry10 from './codex-room-geometry-10.json';
+import geometry11 from './codex-room-geometry-11.json';
+import manifest from './codex-room.manifest.json';
+import image0 from './codex-room-0.webp';
+import type { BakeAssets } from '../runtime.ts';
+
+export default { geometry: [geometry0, geometry1, geometry2, geometry3, geometry4, geometry5, geometry6, geometry7, geometry8, geometry9, geometry10, geometry11], manifest, images: [image0] } as BakeAssets;

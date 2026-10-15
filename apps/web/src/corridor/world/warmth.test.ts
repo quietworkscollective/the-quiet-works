@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { CORRIDOR } from '../layout.ts';
+import { END_Z } from './stage.ts';
 import { FLOOR_WARMTH } from './architecture/floor.ts';
 import { BEACON, buildBeacon, glowMounts, GLOW_FROM_Z } from './beacon.ts';
+import { windowBarPixels } from './textures/glow.ts';
 import { kelvinToLinear, linear } from './colour.ts';
 import { buildLamps, corridorSconceSlots } from './lighting.ts';
 import { FILL_KELVIN, GROUND_KELVIN } from './palette.ts';
@@ -28,18 +30,18 @@ describe('warm shadows and a lit corridor', () => {
   });
 
   it('a sconce, in every other bay, all the way down: no stretch of the corridor goes four metres without a light', () => {
-    const zs = corridorSconceSlots(CORRIDOR.farZ).map((s) => s.z).sort((a, b) => b - a);
-    expect(zs.length).toBeGreaterThan(15);
+    const zs = corridorSconceSlots(END_Z).map((s) => s.z).sort((a, b) => b - a);
+    expect(zs.length).toBeGreaterThan(8);
     for (let i = 1; i < zs.length; i += 1) expect((zs[i - 1] as number) - (zs[i] as number), `gap before sconce ${i}`).toBeLessThanOrEqual(4);
     // And the last of them is close to the far end.
-    expect((zs[zs.length - 1] as number) - CORRIDOR.farZ).toBeLessThanOrEqual(8);
+    expect((zs[zs.length - 1] as number) - END_Z).toBeLessThanOrEqual(8);
   });
 
   it('every sconce beyond the doors keeps a glow that the fog cannot take, dimmer with distance', () => {
-    const far = corridorSconceSlots(CORRIDOR.farZ).filter((s) => s.z < GLOW_FROM_Z);
+    const far = corridorSconceSlots(END_Z).filter((s) => s.z < GLOW_FROM_Z);
     const glows = glowMounts();
     expect(glows).toHaveLength(far.length);
-    expect(glows.length).toBeGreaterThan(10);
+    expect(glows.length).toBeGreaterThan(5);
     const sorted = [...glows].sort((a, b) => b.position[2] - a.position[2]);
     for (let i = 1; i < sorted.length; i += 1) expect((sorted[i] as (typeof sorted)[number]).strength).toBeLessThanOrEqual((sorted[i - 1] as (typeof sorted)[number]).strength + 1e-9);
     expect((sorted[0] as (typeof sorted)[number]).strength).toBeGreaterThan(0.9);
@@ -58,8 +60,8 @@ describe('the far end is a warm destination', () => {
     expect(Math.abs(BEACON.x) + BEACON.width / 2).toBeLessThan(HW - 0.3);
     const b = buildBeacon();
     const door = b.doorway.bounds();
-    expect(door.min[2]).toBeGreaterThan(CORRIDOR.farZ);
-    expect(door.min[2]).toBeLessThan(CORRIDOR.farZ + 0.2);
+    expect(door.min[2]).toBeGreaterThan(END_Z);
+    expect(door.min[2]).toBeLessThan(END_Z + 0.2);
     expect(door.max[1] - door.min[1]).toBeGreaterThan(2);
     // The leaf narrows the lit gap: it covers part of the doorway, not all of it.
     const leaf = b.leaf.bounds();
@@ -70,6 +72,18 @@ describe('the far end is a warm destination', () => {
     const spill = b.spill.bounds();
     expect(spill.max[2] - spill.min[2]).toBeGreaterThanOrEqual(8);
     expect(spill.max[1]).toBeLessThan(0.05);
-    expect(spill.min[2]).toBeGreaterThan(CORRIDOR.farZ);
+    expect(spill.min[2]).toBeGreaterThan(END_Z);
+
+    const window = b.windowPane.bounds();
+    expect(window.max[0] - window.min[0]).toBeCloseTo(0.9, 5);
+    expect(window.max[1] - window.min[1]).toBeCloseTo(1.48, 5);
+    expect(window.min[2]).toBeGreaterThan(END_Z);
+    expect(b.windowFrame.bounds().min[0]).toBeGreaterThan(-HW + 0.1);
+    expect(window.max[0]).toBeLessThan(BEACON.x - BEACON.width / 2 - 0.3);
+    expect(b.windowFrame.triangleCount).toBeGreaterThan(0);
+    expect(b.floorBars.triangleCount).toBeGreaterThan(0);
+    expect(b.wallBars.triangleCount).toBeGreaterThan(0);
+    const mask = windowBarPixels(128);
+    expect(mask.some((value, index) => index % 4 === 0 && value > 180)).toBe(true);
   });
 });

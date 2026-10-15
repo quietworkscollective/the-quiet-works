@@ -4,7 +4,7 @@ import { LOBBY } from '../../layout.ts';
 import { BRASS_TINT } from '../palette.ts';
 import { cylinder, stud } from '../shapes.ts';
 import { LOBBY_FRAMES } from './lobby.ts';
-import { BENCH_ZONE } from './lobbyPlan.ts';
+import { HALL_TABLE } from './lobbyPlan.ts';
 import { at, wallBox } from './wall.ts';
 
 /**
@@ -59,37 +59,16 @@ export function buildFascia(b: Buckets, aspect: number): void {
   }
 }
 
-/**
- * A long oak waiting bench against the lobby's right wall by the entrance, under a sconce: slatted seat,
- * a low slatted back, cast-iron end frames. It is the one piece of furniture in the lobby, and the
- * only sign that people have ever waited here.
- */
-export const BENCH = { ...BENCH_ZONE, seatY: 0.46, depth: 0.46 } as const;
-
-export function buildBench(b: Buckets): void {
-  const f = LOBBY_FRAMES.right;
+/** A narrow oak hall table, fixed against the left wall below the banker lamp. */
+export function buildHallTable(b: Buckets): void {
+  const f = LOBBY_FRAMES.left;
   const oak = { colour: [1.65, 1.4, 1.15] as const };
-  const iron = { colour: [1, 1, 1] as const };
-  const { z0, z1, seatY, depth } = BENCH;
-  const front = 0.06 + depth;
-  // Seat: five slats with a finger's gap between them.
-  const slats = 5;
-  const gap = 0.012;
-  const slat = (depth - gap * (slats - 1)) / slats;
-  for (let i = 0; i < slats; i += 1) {
-    const d0 = 0.06 + i * (slat + gap);
-    wallBox(b.oak, f, [z0, z1], [seatY - 0.034, seatY], [d0, d0 + slat], 0.003, oak);
-  }
-  // Back: three slats leaning against the wall's dado cap.
-  for (let i = 0; i < 3; i += 1) {
-    const y0 = seatY + 0.1 + i * 0.105;
-    wallBox(b.oak, f, [z0 + 0.02, z1 - 0.02], [y0, y0 + 0.088], [0.055, 0.088], 0.003, oak);
-  }
-  // End frames: a cast side, two legs and a bracket up to the back.
-  for (const s of [z0 + 0.06, z1 - 0.06]) {
-    wallBox(b.iron, f, [s - 0.018, s + 0.018], [0, seatY - 0.034], [0.07, 0.1], 0.003, iron);
-    wallBox(b.iron, f, [s - 0.018, s + 0.018], [0, seatY - 0.034], [front - 0.07, front - 0.04], 0.003, iron);
-    wallBox(b.iron, f, [s - 0.018, s + 0.018], [seatY - 0.07, seatY - 0.034], [0.07, front - 0.04], 0.003, iron);
-    wallBox(b.iron, f, [s - 0.018, s + 0.018], [seatY, seatY + 0.34], [0.05, 0.075], 0.003, iron);
+  const { z0, z1, depth, topY } = HALL_TABLE;
+  wallBox(b.oak, f, [z0, z1], [topY - 0.045, topY], [0.035, depth], 0.003, oak);
+  wallBox(b.oak, f, [z0 + 0.035, z1 - 0.035], [topY - 0.18, topY - 0.045], [0.09, depth - 0.05], 0.003, oak);
+  for (const s of [z0 + 0.065, z1 - 0.065]) {
+    for (const [d0, d1] of [[0.055, 0.115], [depth - 0.11, depth - 0.05]] as const) {
+      wallBox(b.oak, f, [s - 0.025, s + 0.025], [0, topY - 0.045], [d0, d1], 0.002, oak);
+    }
   }
 }

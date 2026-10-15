@@ -35,8 +35,6 @@ export const MAX_DRIFT_STEP = 1 / 15;
 export const BLOOM_GAIN = 4.5;
 /** Bloom: pmndrs `radius` (the spread of the mip upsampling) for a profile radius. */
 export const bloomRadius = (profileRadius: number): number => Math.min(1, 0.4 + 2 * profileRadius);
-/** Bloom: mip levels. Fewer levels, fewer draws; six reach a glow about a tenth of the frame wide. */
-export const BLOOM_LEVELS = 6;
 /** Bloom: width of the luminance knee above the threshold, in linear HDR. */
 export const BLOOM_SMOOTHING = 0.05;
 
@@ -447,7 +445,7 @@ function createEffect(name: LookEffect, plan: LookPlan, profile: LookProfile, lu
         mipmapBlur: true,
         intensity: profile.bloom.strength * BLOOM_GAIN,
         radius: bloomRadius(profile.bloom.radius),
-        levels: BLOOM_LEVELS,
+        levels: profile.bloom.levels,
         resolutionScale: 0.5 * plan.bloomScale,
       });
     case 'tone-mapping':

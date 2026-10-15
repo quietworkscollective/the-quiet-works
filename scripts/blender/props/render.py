@@ -3,6 +3,11 @@ close detail view, under a warm 3000 K key and a dim 4300 K fill.
 
 Run: blender -b --factory-startup --python render.py -- --glb <file.glb> --meta <file.meta.json> --out <prefix>
          [--samples 128] [--size 1600x1200] [--only view|detail]
+         [--pair <library.glb> [--pair-mode side|ontop] [--pair-gap 0.12]]
+
+With --pair, a second model (a scanned library asset) is placed beside the prop (`side`) or the prop is set
+on top of it (`ontop`, for a lamp on a desk), under the same lights, and the two stills show both: a
+comparison of how they sit in the same world.
 """
 import json
 import math
@@ -12,12 +17,15 @@ import bpy
 from mathutils import Vector
 
 EYE = 1.62
+# the site's camera is 48 degrees vertical; on this renderer's 36 x 27 mm sensor that is a 30.3 mm lens, so a still
+# taken 0.4 m away shows what a visitor standing 0.4 m from the prop sees
+GAME_LENS = 13.5 / math.tan(math.radians(24.0))
 
 
 def parse():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     o = {'glb': None, 'meta': None, 'out': None, 'samples': 128, 'size': (1600, 1200), 'only': None, 'exposure': -0.4,
-         'balance': 'warm'}
+         'balance': 'warm', 'pair': None, 'pair_mode': 'side', 'pair_gap': 0.12}
     i = 0
     while i < len(argv):
         k = argv[i]
@@ -37,6 +45,12 @@ def parse():
             o['balance'] = argv[i + 1]; i += 2
         elif k == '--exposure':
             o['exposure'] = float(argv[i + 1]); i += 2
+        elif k == '--pair':
+            o['pair'] = argv[i + 1]; i += 2
+        elif k == '--pair-mode':
+            o['pair_mode'] = argv[i + 1]; i += 2
+        elif k == '--pair-gap':
+            o['pair_gap'] = float(argv[i + 1]); i += 2
         else:
             i += 1
     return o
@@ -170,23 +184,56 @@ def setup_render(o):
     nt.links.new(bg.outputs['Background'], out.inputs['Surface'])
 
 
+def bounds_of(objs):
+    lo = Vector((1e9, 1e9, 1e9))
+    hi = Vector((-1e9, -1e9, -1e9))
+    for x in objs:
+        if x.type == 'MESH':
+            for c in x.bound_box:
+                w = x.matrix_world @ Vector(c)
+                lo = Vector((min(lo.x, w.x), min(lo.y, w.y), min(lo.z, w.z)))
+                hi = Vector((max(hi.x, w.x), max(hi.y, w.y), max(hi.z, w.z)))
+    return lo, hi
+
+
+def shift_roots(objs, delta):
+    for x in objs:
+        if x.parent is None:
+            x.location += Vector(delta)
+    bpy.context.view_layer.update()
+
+
 def main():
     o = parse()
     meta = json.load(open(o['meta']))
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=o['glb'])
     imported = [x for x in bpy.context.scene.objects]
-    lo = Vector((1e9, 1e9, 1e9)); hi = Vector((-1e9, -1e9, -1e9))
-    for x in imported:
-        if x.type == 'MESH':
-            for c in x.bound_box:
-                w = x.matrix_world @ Vector(c)
-                lo = Vector((min(lo.x, w.x), min(lo.y, w.y), min(lo.z, w.z)))
-                hi = Vector((max(hi.x, w.x), max(hi.y, w.y), max(hi.z, w.z)))
-    stage = meta.get('stage', 'floor')
+    pair = []
+    if o['pair']:
+        known = set(imported)
+        bpy.ops.import_scene.gltf(filepath=o['pair'])
+        pair = [x for x in bpy.context.scene.objects if x not in known]
+    bpy.context.view_layer.update()
+    lo, hi = bounds_of(imported)
+    heights = [hi.z - lo.z]
+    if pair:
+        plo, phi = bounds_of(pair)
+        heights.append(phi.z - plo.z)
+        if o['pair_mode'] == 'ontop':
+            # the prop sits on the library asset's top surface, over its middle
+            shift_roots(imported, ((plo.x + phi.x) / 2 - (lo.x + hi.x) / 2, (plo.y + phi.y) / 2 - (lo.y + hi.y) / 2, phi.z - lo.z))
+        else:
+            gap = o['pair_gap']
+            total = (hi.x - lo.x) + gap + (phi.x - plo.x)
+            left = -total / 2
+            shift_roots(imported, (left - lo.x, -(lo.y + hi.y) / 2, 0.0))
+            shift_roots(pair, (left + (hi.x - lo.x) + gap - plo.x, -(plo.y + phi.y) / 2, 0.0))
+        lo, hi = bounds_of(imported + pair)
+    stage = 'floor' if (pair and o['pair_mode'] == 'ontop') else meta.get('stage', 'floor')
     z0 = build_stage(stage, lo, hi)
     # lift the whole imported hierarchy onto the surface
-    for x in imported:
+    for x in imported + pair:
         if x.parent is None:
             x.location.z += z0
     setup_render(o)
@@ -209,10 +256,20 @@ def main():
     jobs = []
     v = meta.get('view', {})
     d = meta.get('detail', {})
+    if pair:
+        # a two-shot: both objects in frame, from standing height and from close in
+        width = hi.x - lo.x
+        if o['pair_mode'] == 'ontop':
+            plo2, phi2 = bounds_of(imported)
+            mid = 0.5 * (plo2.z + phi2.z)
+        else:
+            mid = 0.5 * min(min(heights), 1.1)
+        v = dict(target=(centre.x, centre.y, mid), distance=max(1.6, 2.4 * width), azimuth=20)
+        d = dict(target=(centre.x, centre.y, mid), distance=max(0.55, 1.15 * width), azimuth=14, elevation=9, lens=55)
     if o['only'] in (None, 'view'):
         jobs.append(('view', v, 55, True))
     if o['only'] in (None, 'detail'):
-        jobs.append(('detail', d, 90, False))
+        jobs.append(('detail', d, GAME_LENS, False))
     for tag, spec, lens, eye in jobs:
         tgt = Vector(spec.get('target', (centre.x, centre.y, hi.z - lo.z / 2)))
         tgt.z += z0
@@ -239,4 +296,5 @@ def main():
         print('rendered', bpy.context.scene.render.filepath)
 
 
-main()
+if __name__ == '__main__':
+    main()

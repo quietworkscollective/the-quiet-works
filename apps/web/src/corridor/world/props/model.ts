@@ -1,4 +1,5 @@
 import type { PropId, PropMotion } from '../../props.ts';
+import type { PropModelKit } from './modelKit.ts';
 import type { Assembly, PartSpec } from './parts.ts';
 import type { PropPlacement } from './placement.ts';
 import type { AmbientDrive, PoseSet } from './motion.ts';
@@ -39,7 +40,12 @@ export interface PropBehaviour {
  * `Assembly.mesh`) without touching the behaviour: see visuals.ts.
  */
 export interface PropVisual {
-  build(a: Assembly, placement: PropPlacement): void;
+  /**
+   * `kit` holds the ready-made models that loaded, if any. A visual that wants one takes it from the
+   * kit and builds its procedural version when the kit does not have it, so a model that failed to
+   * load never leaves a prop without a body.
+   */
+  build(a: Assembly, placement: PropPlacement, kit?: PropModelKit): void;
 }
 
 /** A prop: its behaviour and its default, procedural, visual. */

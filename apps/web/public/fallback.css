@@ -1,0 +1,39 @@
+:root {
+  color-scheme: dark;
+  background: #151a20;
+  color: #e9e4d9;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.tqw-static-content {
+  box-sizing: border-box;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 5vw, 4rem);
+}
+
+.tqw-static-content h1,
+.tqw-static-content h2,
+.tqw-static-content h3 {
+  color: #f4ead5;
+  line-height: 1.15;
+}
+
+.tqw-static-content a {
+  color: #e4bc76;
+}
+
+.tqw-static-content li {
+  margin-block: 0.75rem;
+}
+
+/* Replace the fallback layout before the live root measures its initial scroll position. */
+#static-content:has(+ #root > *),
+html.tqw-app-mounted #static-content {
+  display: none;
+}

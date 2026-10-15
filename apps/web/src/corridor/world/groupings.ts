@@ -1,5 +1,5 @@
 import { quad, type Style } from './builder.ts';
-import { ART, ART_ATLAS, quadUvs, uvRect, type Rect } from './artLayout.ts';
+import { ART, ART_ATLAS, quadUvs, uvRect, type PlaqueLayout, type Rect } from './artLayout.ts';
 import type { Buckets } from './buckets.ts';
 import { sideFrame } from './architecture/corridor.ts';
 import { at, wallBox, type WallFrame } from './architecture/wall.ts';
@@ -8,6 +8,7 @@ import { BRASS_TINT } from './palette.ts';
 import { cylinder, sphere, stud } from './shapes.ts';
 import type { Vec2, Vec3 } from './math.ts';
 import { ANNEX, bayCentreZ, CORRIDOR } from '../layout.ts';
+import { END_Z, STAGE } from './stage.ts';
 import { placements } from './openings.ts';
 
 /**
@@ -30,7 +31,7 @@ function corners(side: Side, f: WallFrame, depth: number, s: number, y: number, 
 }
 
 /** A flat panel on a wall, with explicit UVs. */
-function panel(b: Buckets, key: 'art' | 'pane' | 'plaster' | 'paint' | 'decal' | 'glass', side: Side, f: WallFrame, depth: number, s: number, y: number, w: number, h: number, uv?: readonly [Vec2, Vec2, Vec2, Vec2], style?: Style): void {
+function panel(b: Buckets, key: 'art' | 'pane' | 'plaster' | 'paint' | 'decal' | 'glass' | 'plaque', side: Side, f: WallFrame, depth: number, s: number, y: number, w: number, h: number, uv?: readonly [Vec2, Vec2, Vec2, Vec2], style?: Style): void {
   const [a, c, d, e] = corners(side, f, depth, s, y, w, h);
   quad(b[key], a, c, d, e, style, f.normal, uv);
 }
@@ -82,6 +83,25 @@ export function framedPrint(b: Buckets, side: Side, s: number, y: number, w: num
   // A small brass title plate under the frame.
   wallBox(b.brass, f, [s - r * 0.0 - 0.07, s + 0.07], [y - oh / 2 - bar - 0.045, y - oh / 2 - bar - 0.022], [0, 0.012], 0.0015, { colour: BRASS_TINT });
   wallShadow(b, side, f, s, y - oh / 2 - bar - 0.0, ow + 0.1, 0.16);
+}
+
+/** The shared enamel wayfinding sign above the Annex door. */
+export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): void {
+  const side: Side = 'left';
+  const s = bayCentreZ(ANNEX.bay);
+  const y = ANNEX.sign.y;
+  const f = sideFrame(side);
+  const halfW = 0.49;
+  const halfH = 0.145;
+  wallBox(b.enamel, f, [s - halfW, s + halfW], [y - halfH, y + halfH], [0, 0.045], 0.008, { colour: linear('#743E49') });
+  wallBox(b.brass, f, [s - 0.445, s + 0.445], [y - 0.105, y + 0.105], [0.045, 0.049], 0.002, { colour: BRASS_TINT });
+  panel(b, 'plaque', side, f, 0.050, s, y, 0.86, 0.19, quadUvs(plaques.uv('ANNEX')));
+  for (const ds of [-0.43, 0.43]) {
+    for (const dy of [-0.095, 0.095]) {
+      const screw = at(f, 0.054, y + dy, s + ds);
+      sphere(b.brass, { at: [screw[0], screw[1], screw[2]] }, 0.009, 10, 5, { colour: BRASS_TINT });
+    }
+  }
 }
 
 /** A glazed directory case: black enamel box, the lettered board behind a hinged glass door, a lock. */
@@ -207,7 +227,7 @@ export function buildGroupings(b: Buckets): void {
   for (const p of PIER_PRINTS) framedPrint(b, p.side, p.s, p.y, p.w, p.h, p.art === 'plan' ? ART.plan : ART.section);
   // The far corridor: a framed print on the pier at every other bay boundary, alternating sides,
   // on the wall that has no sconce there (sconces sit on the opposite wall, 3.6 m apart).
-  for (let k = 0; k < 3; k += 1) {
+  for (let k = 0; -24.2 - 14.4 * k > END_Z + 1; k += 1) {
     framedPrint(b, 'right', -24.2 - 14.4 * k, 1.74, 0.62, 0.4, ART.section, false);
     framedPrint(b, 'left', -27.8 - 14.4 * k, 1.74, 0.5, 0.4, ART.plan, false);
   }
@@ -220,16 +240,15 @@ export function buildGroupings(b: Buckets): void {
 }
 
 /**
- * The far bays with no door on a side (the Annex's bay kept clear): each gets a print at its centre.
+ * The far bays beyond the walkable Annex with no door on a side each get a print at their centre.
  * "No door" means no placement at all, authored or repeated: `blankDoorAt` alone says "no repeated
  * door" even for a bay that has an authored one, which hung a print over the double doors at bay 7.
  */
 export function farPrintSlots(): { bay: number; side: Side; z: number }[] {
-  const lastBay = Math.floor((CORRIDOR.innerDoorZ - CORRIDOR.farZ) / CORRIDOR.bay) - 1;
+  const lastBay = STAGE.bays - 1;
   const doors = placements();
   const out: { bay: number; side: Side; z: number }[] = [];
   for (let bay = CORRIDOR.walkableBays; bay <= lastBay; bay += 1) {
-    if (bay === ANNEX.bay) continue;
     for (const side of ['left', 'right'] as const) {
       const z = bayCentreZ(bay);
       if (!doors.some((d) => d.side === side && Math.abs(d.z - z) < CORRIDOR.bay / 2)) out.push({ bay, side, z });

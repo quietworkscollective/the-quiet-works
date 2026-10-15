@@ -1,7 +1,7 @@
 import { CHAMBERS } from '@tqw/engine';
 import { describe, expect, it } from 'vitest';
 import { CHAMBER_SLOTS } from '../corridor/layout.ts';
-import { CHAMBER_MODULES } from './registry.ts';
+import { CHAMBER_MODULES, isChamberOpenInBuild, preloadChamber } from './registry.ts';
 
 describe('chamber modules', () => {
   it.each(CHAMBERS.map((c) => [c.id, c] as const))('%s has a door, and code exactly when open', (id, entry) => {
@@ -13,6 +13,13 @@ describe('chamber modules', () => {
   it.each(CHAMBERS.map((c) => [c.id, c] as const))('%s door plaque agrees with the registry', (id, entry) => {
     const plaque = CHAMBER_MODULES[id].door.plaque;
     if (plaque) expect(plaque.text).toBe(entry.plaque);
+  });
+
+  it.each(['exchange', 'outline-room'] as const)('%s is open in development and sealed in production until approved', (id) => {
+    expect(isChamberOpenInBuild(id, true)).toBe(true);
+    expect(isChamberOpenInBuild(id, false)).toBe(false);
+    expect(CHAMBER_MODULES[id].releaseOpen).toBe(false);
+    expect(preloadChamber(id, false)).toBeNull();
   });
 
   it('every chamber has exactly one corridor slot, on its registry side, in registry order', () => {

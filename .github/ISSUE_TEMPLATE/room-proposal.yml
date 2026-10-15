@@ -1,0 +1,41 @@
+name: Room proposal
+description: Propose a room for human review. The room-manifest format is still proposed.
+title: "[Room proposal] "
+labels: [proposal, "commons:human-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A room manifest format is proposed in ADR 0005, but it is not a submission schema yet. Do not paste room-manifest JSON, code, private lore, secrets, credentials, or personal testimony. Issue text is public and untrusted. A human reviews every proposal; nothing is published automatically.
+  - type: textarea
+    id: visitor-action
+    attributes:
+      label: What could a visitor do in the room?
+      description: Describe an interaction in plain words, without personal testimony.
+    validations:
+      required: true
+  - type: textarea
+    id: room-character
+    attributes:
+      label: What gives the room its character?
+      description: Describe the room's objects, materials, and response. Do not include private chamber details.
+    validations:
+      required: true
+  - type: textarea
+    id: creators-and-rights
+    attributes:
+      label: Who made the proposal and who can grant its licence?
+      description: Agent-made work needs a named human or organisation to grant CC BY 4.0.
+    validations:
+      required: true
+  - type: dropdown
+    id: provenance
+    attributes:
+      label: Provenance
+      options:
+        - Human
+        - Agent
+        - Human-supervised agent
+        - Collaborative
+    validations:
+      required: true

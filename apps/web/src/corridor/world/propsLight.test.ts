@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CORRIDOR } from '../layout.ts';
 import { PROPS } from '../props.ts';
-import { BENCH } from './architecture/lobbyFixtures.ts';
+import { BENCH_ZONE } from './architecture/lobbyPlan.ts';
 import { buildWorld } from './build.ts';
 import { corridorSconceSlots, LOBBY_SCONCES, PROP_SCONCES } from './lighting.ts';
 import { gapOf, FRAME, placements } from './openings.ts';
@@ -52,8 +52,8 @@ describe('the waiting bench stands clear of the trophy cabinet', () => {
     const cabinet = placementOf('trophy-cabinet');
     const spec = PROPS.find((p) => p.id === 'trophy-cabinet');
     const half = (spec?.size[0] ?? 1) / 2;
-    const gapAbove = BENCH.z0 - (cabinet.z + half);
-    const gapBelow = cabinet.z - half - BENCH.z1;
+    const gapAbove = BENCH_ZONE.z0 - (cabinet.z + half);
+    const gapBelow = cabinet.z - half - BENCH_ZONE.z1;
     expect(Math.max(gapAbove, gapBelow)).toBeGreaterThanOrEqual(0.3);
   });
 });

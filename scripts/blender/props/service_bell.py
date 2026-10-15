@@ -43,9 +43,9 @@ def plunger_cap():
 
 
 def build(spec, root):
-    dome_m = mats.brass('dome', age=0.3, seed=21.0, rough_lo=0.3, rough_hi=0.5, cav_dist=0.01, scratches=0.2,
+    dome_m = mats.brass('dome', age=0.35, seed=21.0, rough_lo=0.3, rough_hi=0.5, cav_dist=0.01, scratches=0.35, spin=0.6,
                         spots=[dict(at=(0.0, -0.01, 0.052), radius=(0.02, 0.02, 0.008)), dict(at=(0.0, -0.04, 0.025), radius=(0.02, 0.01, 0.015))])
-    base_m = mats.brass('base', age=0.7, seed=22.0, rough_lo=0.4, rough_hi=0.58, cav_dist=0.008, cav_gain=1.0, scratches=0.8)
+    base_m = mats.brass('base', age=0.7, seed=22.0, rough_lo=0.4, rough_hi=0.58, cav_dist=0.008, cav_gain=1.0, scratches=0.8, spin=0.5)
     cap_m = mats.lacquer('bakelite', color='#161413', roughness=0.22, age=0.5, seed=23.0, under='#4B3B2D', rub=0.3,
                          spots=[dict(at=(0.0, 0.0, 0.0535 + 0.0126), radius=(0.008, 0.008, 0.004))])
     base = geo.lathe(geo.fillet_profile(base_profile()), segments=SEG, seg_tol=TOL)
@@ -60,7 +60,7 @@ def build(spec, root):
     plunger = kit.add_part(root, 'plunger', stem, [dome_m, cap_m], location=(0.0, 0.0, APEX))
     return Built(root, [body, plunger], moving=['plunger'], stage='desk',
                  view=dict(target=(0, 0, 0.035), distance=1.1, azimuth=32, lens=105),
-                 detail=dict(target=(0.0, 0.0, 0.04), distance=0.3, azimuth=28, elevation=20),
+                 detail=dict(target=(0.0, 0.0, 0.04), distance=0.4, azimuth=28, elevation=20),
                  notes={'plunger': 'translates along Y by -0.006 m'})
 
 

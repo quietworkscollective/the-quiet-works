@@ -13,7 +13,7 @@ import { site } from './helpers.ts';
  *
  * Nothing in the app records a discovery yet, so the store is driven through a harness page
  * (e2e/discoveries-harness) that wires the real adapter to the real store in real Chromium. The spec
- * serves it from its own Vite dev server (port 5197 unless TQW_E2E_DEV_PORT says otherwise); the
+ * serves it from a worker's own Vite dev server on an available loopback port; the
  * harness is never part of the production build. The production site itself is checked on the
  * preview server Playwright starts: a fresh visit stores nothing, and no test hook ships.
  */
@@ -21,8 +21,8 @@ import { site } from './helpers.ts';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = path.resolve(HERE, '..');
 const REPO_ROOT = path.resolve(WEB_ROOT, '../..');
-const DEV_PORT = Number(process.env['TQW_E2E_DEV_PORT'] ?? 5197);
-const HARNESS_ORIGIN = `http://127.0.0.1:${DEV_PORT}`;
+const DEV_PORT = Number(process.env['TQW_E2E_DEV_PORT'] ?? 0);
+let harnessOrigin: string;
 
 /** Written out here on purpose: the key is part of the privacy promise, so a rename must fail this spec. */
 const KEY = 'unheld.v1';
@@ -83,13 +83,13 @@ function watch(page: Page) {
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
     const url = request.url();
-    if (!url.startsWith(HARNESS_ORIGIN) && !url.startsWith('data:') && !url.startsWith('blob:')) foreign.push(url);
+    if (!url.startsWith(harnessOrigin) && !url.startsWith('data:') && !url.startsWith('blob:')) foreign.push(url);
   });
   return { errors, foreign };
 }
 
 async function openHarness(page: Page, errors: readonly string[]): Promise<void> {
-  await page.goto(`${HARNESS_ORIGIN}/`);
+  await page.goto(`${harnessOrigin}/`);
   try {
     await expect(page.locator('body')).toHaveAttribute('data-ready', 'true');
   } catch {
@@ -138,15 +138,19 @@ test.describe('the production site', () => {
 test.describe('the discovery store in a browser', () => {
   let server: ViteDevServer | undefined;
 
-  test.beforeAll(async () => {
+  test.beforeAll(async ({ browserName: _browserName }, workerInfo) => {
     server = await createServer({
       configFile: false,
       root: path.join(HERE, 'discoveries-harness'),
       logLevel: 'error',
       // The harness reaches into ../../src and the workspace packages, outside its own folder.
-      server: { host: '127.0.0.1', port: DEV_PORT, strictPort: true, fs: { allow: [REPO_ROOT] } },
+      // OS-assigned ports isolate parallel workers. An explicit base reserves one port per worker.
+      server: { host: '127.0.0.1', port: DEV_PORT ? DEV_PORT + workerInfo.workerIndex : 0, strictPort: true, fs: { allow: [REPO_ROOT] } },
     });
     await server.listen();
+    const address = server.httpServer?.address();
+    if (!address || typeof address === 'string') throw new Error('The discovery harness has no loopback address');
+    harnessOrigin = `http://127.0.0.1:${address.port}`;
   });
 
   test.afterAll(async () => {

@@ -27,6 +27,7 @@ export type AtlasId =
   | 'recipeLabel'
   | 'recipeCard'
   | 'scoreCover'
+  | 'scoreLabel'
   | 'chess'
   | 'patch'
   | 'ball';
@@ -46,6 +47,7 @@ export const ATLAS_SIZES: Readonly<Record<AtlasId, readonly [number, number]>> =
   recipeLabel: [336, 96],
   recipeCard: [320, 224],
   scoreCover: [240, 336],
+  scoreLabel: [288, 216],
   chess: [256, 256],
   patch: [96, 96],
   // 256 texels round the equator and 128 pole to pole, plus a wrapped margin of 4 texels each side.

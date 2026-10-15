@@ -1,4 +1,5 @@
 import { expect, test, type CDPSession, type Page } from '@playwright/test';
+import { SPINE_TIMING } from '../src/timing.ts';
 import {
   CHAMBER_SLOTS,
   CORRIDOR,
@@ -20,6 +21,32 @@ const OFFICE_TITLE = 'The Certification Office';
 type Id = 'certification-office' | 'apartment' | 'tomorrow-engine' | 'great-atrium';
 
 const canvas = (page: Page) => page.locator('.tqw-corridor-canvas');
+
+// Twenty observed simulation frames per second retain the doorway's sampling and pace guards.
+const DOOR_FRAME_MS = 50;
+const doorwayClocks = new WeakSet<Page>();
+const doorwayTest = test.extend({
+  page: async ({ page }, runTest) => {
+    await page.clock.install();
+    try {
+      await runTest(page);
+    } finally {
+      doorwayClocks.delete(page);
+      if (!page.isClosed()) await page.clock.resume();
+    }
+  },
+});
+
+async function advanceDoorwayClock(page: Page, ms: number): Promise<void> {
+  for (let advanced = 0; advanced < ms; advanced += DOOR_FRAME_MS) {
+    await page.clock.fastForward(Math.min(DOOR_FRAME_MS, ms - advanced));
+  }
+}
+
+/** Camera assertions begin after baked geometry and the first visible draw have finished preparing. */
+async function waitForWorld(page: Page): Promise<void> {
+  await expect(canvas(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: 30_000 });
+}
 
 async function pose(page: Page): Promise<{ x: number; z: number; yaw: number }> {
   const raw = (await canvas(page).getAttribute('data-pose')) ?? '0,0,0';
@@ -48,6 +75,21 @@ async function targets(page: Page): Promise<Partial<Record<Id, [number, number]>
 
 /** Waits until no frame has been drawn for `quietMs`: the camera and doors are at rest. */
 async function settle(page: Page, quietMs = 500): Promise<void> {
+  if (doorwayClocks.has(page)) {
+    let last = await frames(page);
+    let quiet = 0;
+    while (quiet < quietMs) {
+      await advanceDoorwayClock(page, DOOR_FRAME_MS);
+      const now = await frames(page);
+      quiet = now === last ? quiet + DOOR_FRAME_MS : 0;
+      last = now;
+    }
+    return;
+  }
+  // A quiet polling window cannot precede the queued input frame and its next simulation step.
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  }));
   let last = await frames(page);
   let since = Date.now();
   while (Date.now() - since < quietMs) {
@@ -92,7 +134,10 @@ async function expectPoseSoon(
   tol = 0.02,
   yawTol = 0.2,
 ): Promise<void> {
-  await expect.poll(async () => near(await pose(page), want, tol, yawTol), { timeout, intervals: [100] }).toBe(true);
+  await expect.poll(async () => {
+    if (doorwayClocks.has(page)) await advanceDoorwayClock(page, DOOR_FRAME_MS);
+    return near(await pose(page), want, tol, yawTol);
+  }, { timeout, intervals: [100] }).toBe(true);
 }
 
 /** The yaw the hand-over view has on this screen: turned toward the Office door in portrait, straight otherwise. */
@@ -106,9 +151,19 @@ function handoverYaw(page: Page): number {
  * captures input: until this, the wheel and the walking keys belong to the page.
  */
 async function engage(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
   await settle(page);
+}
+
+/** Native scroll along the measured journey; 1 places the game window at the viewport top. */
+async function scrollToProgress(page: Page, progress: number): Promise<void> {
+  await page.evaluate((p) => {
+    const section = document.getElementById('game')!;
+    const window_ = section.querySelector<HTMLElement>('.tqw-game__window')!;
+    const top = section.offsetTop + section.offsetHeight - window_.offsetHeight;
+    window.scrollTo(0, Math.round(top * p));
+  }, progress);
 }
 
 /**
@@ -118,9 +173,10 @@ async function engage(page: Page): Promise<void> {
  */
 async function scrollToHandOver(page: Page, { engage: engaged = true }: { engage?: boolean } = {}): Promise<void> {
   await page.goto('/');
+  await waitForWorld(page);
   await expectSpine(page, 'entrance');
   await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
-  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+  await scrollToProgress(page, 1);
   await expectSpine(page, 'corridor');
   await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
   await settle(page);
@@ -141,6 +197,7 @@ async function tap(page: Page, isMobile: boolean, x: number, y: number): Promise
 async function bringIntoView(page: Page, id: Id): Promise<void> {
   const width = page.viewportSize()!.width;
   const visible = async () => {
+    if (doorwayClocks.has(page)) await advanceDoorwayClock(page, DOOR_FRAME_MS);
     const at = (await targets(page))[id];
     return at !== undefined && at[0] > 48 && at[0] < width - 48;
   };
@@ -171,10 +228,15 @@ async function recordPoses(page: Page): Promise<void> {
   await page.evaluate(() => {
     const el = document.querySelector('.tqw-corridor-canvas')!;
     const w = window as unknown as { __poses: { t: number; pose: string }[] };
-    w.__poses = [{ t: performance.now(), pose: el.getAttribute('data-pose') ?? '' }];
-    new MutationObserver(() =>
-      w.__poses.push({ t: performance.now(), pose: el.getAttribute('data-pose') ?? '' }),
-    ).observe(el, {
+    const sample = () => {
+      const time = el.getAttribute('data-pose-time');
+      if (time === null || time.trim() === '' || !Number.isFinite(Number(time))) {
+        throw new Error('A recorded pose requires a finite frame timestamp');
+      }
+      return { t: Number(time), pose: el.getAttribute('data-pose') ?? '' };
+    };
+    w.__poses = [sample()];
+    new MutationObserver(() => w.__poses.push(sample())).observe(el, {
       attributes: true,
       attributeFilter: ['data-pose'],
     });
@@ -212,17 +274,18 @@ function floorSpot(page: Page): { x: number; y: number } {
 }
 
 test.describe('landing walk-in', () => {
-  test('scrolling walks the camera along the entrance keys, back and forth, and lands on the hand-over', async ({
+  test('scrolling walks the camera along the entrance keys, back and forth, and lands on the hand-over', { tag: '@extended' }, async ({
     page,
   }) => {
     await page.goto('/');
+    await waitForWorld(page);
     await expectSpine(page, 'entrance');
     await expectPoseSoon(page, { x: 0, z: ENTRANCE_KEYS[0]!.z, yaw: 0 }, 10_000, 0.05, 0.35);
 
     let last = (await pose(page)).z;
     // The hand-over is reached at 65% of the run, so 55% is most of the way there.
     for (const f of [0.1, 0.25, 0.4, 0.55]) {
-      await page.evaluate((p) => window.scrollTo(0, window.innerHeight * 2.5 * p), f);
+      await scrollToProgress(page, f);
       await settle(page);
       const z = (await pose(page)).z;
       expect(z).toBeLessThan(last);
@@ -231,31 +294,32 @@ test.describe('landing walk-in', () => {
       expect((await pose(page)).x).toBeCloseTo(0, 2);
     }
     // Reverse scrolling walks back: no one-way door.
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.5 * 0.25));
+    await scrollToProgress(page, 0.25);
     await settle(page);
     expect((await pose(page)).z).toBeGreaterThan(last);
 
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
     await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
   });
 
-  test('at the hand-over the view is straight on desktop and turned 12 degrees toward the Office door in portrait', async ({
+  test('at the hand-over the view is straight on desktop and turned 12 degrees toward the Office door in portrait', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
     await page.goto('/');
+    await waitForWorld(page);
     await expectSpine(page, 'entrance');
     await expectPoseSoon(page, { x: 0, z: ENTRANCE_KEYS[0]!.z, yaw: 0 }, 10_000, 0.05, 0.35);
     // The turn is the settle beat only (the last tenth of the walk-in, 58% to 65% of the run): before
     // it the view looks straight down the axis.
     for (const f of [0.2, 0.4, 0.5]) {
-      await page.evaluate((p) => window.scrollTo(0, window.innerHeight * 2.5 * p), f);
+      await scrollToProgress(page, f);
       await settle(page);
       expect((await pose(page)).yaw).toBeCloseTo(0, 1);
     }
     // Part-way through the beat a portrait phone is part-way through the turn; desktop has none.
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.5 * 0.62));
+    await scrollToProgress(page, 0.62);
     await settle(page);
     const beat = (await pose(page)).yaw;
     if (isMobile) {
@@ -265,7 +329,7 @@ test.describe('landing walk-in', () => {
       expect(beat).toBeCloseTo(0, 1);
     }
 
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
     await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: isMobile ? HANDOVER_PORTRAIT_TURN_DEG : 0 }, 10_000);
     await settle(page);
@@ -277,21 +341,24 @@ test.describe('landing walk-in', () => {
     expect(office![0]).toBeLessThan(page.viewportSize()!.width);
   });
 
-  test('the walk-in is a function of scroll alone: it stops when the scroll stops', async ({ page }) => {
+  test('the walk-in is a function of scroll alone: it stops when the scroll stops', { tag: '@extended' }, async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.2));
+    await waitForWorld(page);
+    await scrollToProgress(page, 0.48);
+    await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     await settle(page);
     const rested = await pose(page);
     await page.waitForTimeout(1500);
     expect(await pose(page)).toEqual(rested);
   });
 
-  test('real wheel scrolling on desktop walks the camera in and hands over; the wheel then scrolls the page on, it does not walk', async ({
+  test('real wheel scrolling on desktop walks the camera in and hands over; the wheel then scrolls the page on, it does not walk', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
     test.skip(isMobile, 'a mouse wheel');
     await page.goto('/');
+    await waitForWorld(page);
     await page.mouse.move(720, 450);
     for (let i = 0; i < 30; i += 1) {
       await page.mouse.wheel(0, 150);
@@ -311,14 +378,15 @@ test.describe('landing walk-in', () => {
     await expect(site(page)).toHaveAttribute('data-engaged', 'false');
   });
 
-  test('the field of view is 48 degrees on desktop and 58 on a portrait phone, and does not change at the hand-over', async ({
+  test('the field of view is 48 degrees on desktop and 58 on a portrait phone, and does not change at the hand-over', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
     await page.goto('/');
+    await waitForWorld(page);
     const want = isMobile ? '58' : '48';
     await expect(canvas(page)).toHaveAttribute('data-fov', want);
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
     await settle(page);
     await expect(canvas(page)).toHaveAttribute('data-fov', want);
@@ -326,7 +394,7 @@ test.describe('landing walk-in', () => {
 });
 
 test.describe('free walking and looking', () => {
-  test('W and S and the arrows walk, never faster than 1.1 m/s, and stop within a few centimetres', async ({
+  test('W and S and the arrows walk, never faster than 1.1 m/s, and stop within a few centimetres', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -360,7 +428,7 @@ test.describe('free walking and looking', () => {
     await settle(page);
   });
 
-  test('A and D and the arrows turn, never faster than 75 degrees a second, without moving the camera', async ({
+  test('A and D and the arrows turn, never faster than 75 degrees a second, without moving the camera', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -398,7 +466,7 @@ test.describe('free walking and looking', () => {
     expect((await pose(page)).yaw).toBeLessThan(0);
   });
 
-  test('the walls hold the visitor 0.35 m off, and they slide along instead of sticking', async ({
+  test('the walls hold the visitor 0.35 m off, and they slide along instead of sticking', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -423,7 +491,7 @@ test.describe('free walking and looking', () => {
     expect(p.x).toBeGreaterThan(CORRIDOR.width / 2 - CORRIDOR.wallMargin - 0.05);
   });
 
-  test('a wheel notch in the corridor walks about 0.35 m, and the opposite notch walks back', async ({
+  test('a wheel notch in the corridor walks about 0.35 m, and the opposite notch walks back', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -441,7 +509,7 @@ test.describe('free walking and looking', () => {
     expect(Math.abs((await pose(page)).z - start)).toBeLessThan(0.1);
   });
 
-  test('dragging looks around without moving the camera, and is not a click on the floor', async ({
+  test('dragging looks around without moving the camera, and is not a click on the floor', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -469,7 +537,7 @@ test.describe('free walking and looking', () => {
     expect((await pose(page)).z).toBe(start.z);
   });
 
-  test('clicking the floor glides there and leaves the view alone', async ({ page, isMobile }) => {
+  test('clicking the floor glides there and leaves the view alone', { tag: '@extended' }, async ({ page, isMobile }) => {
     await scrollToHandOver(page);
     const start = await pose(page);
     // The bottom of the picture is the floor a few metres ahead.
@@ -487,7 +555,7 @@ test.describe('free walking and looking', () => {
 test.describe('doors', () => {
   // A glide is seconds of simulated time; a busy machine draws frames slowly and the simulation follows.
   test.describe.configure({ timeout: 150_000 });
-  test('a click glides to frame the door and a second click opens it and reaches the chamber', async ({
+  test('a click glides to frame the door and a second click opens it and reaches the chamber', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -516,7 +584,7 @@ test.describe('doors', () => {
     await expect(page).toHaveURL(/\/certification-office$/);
   });
 
-  test('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', async ({
+  doorwayTest('opening walks the camera 1.6 m through the doorway over 1.4 s, with the view held on the door', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -529,6 +597,8 @@ test.describe('doors', () => {
       await route.continue();
     });
     await scrollToHandOver(page);
+    await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+    doorwayClocks.add(page);
     await bringIntoView(page, OFFICE);
     await clickDoor(page, isMobile, OFFICE);
     const frame = frameOf(OFFICE);
@@ -537,7 +607,11 @@ test.describe('doors', () => {
     await recordPoses(page);
     await clickDoor(page, isMobile, OFFICE);
     await expectSpine(page, 'threshold');
-    await expect.poll(async () => (await pose(page)).x, { timeout: 8000 }).toBeCloseTo(frame.x + 1.6, 2);
+    await Promise.all([
+      expect.poll(async () => (await pose(page)).x, { timeout: 8000 }).toBeCloseTo(frame.x + 1.6, 2),
+      advanceDoorwayClock(page, SPINE_TIMING.handleTurnMs + SPINE_TIMING.latchMs
+        + SPINE_TIMING.entryDelayMs + SPINE_TIMING.entryMs + 2 * DOOR_FRAME_MS),
+    ]);
     await settle(page, 800);
     const samples = await recorded(page);
     const through = samples.filter((s) => s.x > frame.x + 0.001);
@@ -554,11 +628,13 @@ test.describe('doors', () => {
     expect(walk).toBeLessThan(1700);
     // The visitor waits in the doorway, door open, until the chamber arrives behind the jamb.
     await expectSpine(page, 'threshold');
+    doorwayClocks.delete(page);
+    await page.clock.resume();
     release();
     await expectSpine(page, 'chamber');
   });
 
-  test('Tab to a door frames it: the view glides there and the list marks it', async ({ page }) => {
+  test('Tab to a door frames it: the view glides there and the list marks it', { tag: '@extended' }, async ({ page }) => {
     await scrollToHandOver(page);
     await door(page, 'The Apartment', 'sealed').focus();
     await expect(site(page)).toHaveAttribute('data-focus', 'apartment');
@@ -575,7 +651,7 @@ test.describe('doors', () => {
     expectPose(await pose(page), frameOf('tomorrow-engine'));
   });
 
-  test('a sealed door rattles when tried and the visitor stays in the corridor in front of it', async ({
+  test('a sealed door rattles when tried and the visitor stays in the corridor in front of it', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -596,7 +672,7 @@ test.describe('doors', () => {
     expect(await pose(page)).toEqual(at);
   });
 
-  test('coming back from the Office stands the visitor in front of its door, facing it', async ({ page }) => {
+  test('coming back from the Office stands the visitor in front of its door, facing it', { tag: '@extended' }, async ({ page }) => {
     await scrollToHandOver(page);
     await door(page, OFFICE_TITLE, 'open').focus();
     await page.keyboard.press('Enter');
@@ -612,7 +688,7 @@ test.describe('doors', () => {
     expect(await frames(page)).toBe(before);
   });
 
-  test('hovering a door with a mouse lifts its attention and then the scene is quiet again', async ({
+  test('hovering a door with a mouse lifts its attention and then the scene is quiet again', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -633,7 +709,7 @@ test.describe('doors', () => {
 test.describe('the frame loop', () => {
   // A glide is seconds of simulated time; a busy machine draws frames slowly and the simulation follows.
   test.describe.configure({ timeout: 150_000 });
-  test('draws no frames at all while nothing moves: landing, corridor, after a walk, after a glide', async ({
+  test('draws no frames at all while nothing moves: landing, corridor, after a walk, after a glide', { tag: '@extended' }, async ({
     page,
   }) => {
     const quiet = async (label: string) => {
@@ -644,15 +720,16 @@ test.describe('the frame loop', () => {
       expect(b - a, `idle frames over 1 s: ${label}`).toBe(0);
     };
     await page.goto('/');
+    await waitForWorld(page);
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     // The hero is the one place the scene moves by itself: a slow arc, drawn at 15 frames a second.
     await page.waitForTimeout(500);
     const drift = await framesOver(page, 2000);
     expect(drift).toBeGreaterThan(10);
     expect(drift).toBeLessThanOrEqual(45);
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1));
+    await scrollToProgress(page, 0.4);
     await quiet('mid walk-in, scroll stopped');
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
     await quiet('hand-over');
     await engage(page);
@@ -665,7 +742,7 @@ test.describe('the frame loop', () => {
     await quiet('after a glide');
   });
 
-  test('a still scene costs nothing even with the pointer moving over it', async ({ page, isMobile }) => {
+  test('a still scene costs nothing even with the pointer moving over it', { tag: '@extended' }, async ({ page, isMobile }) => {
     test.skip(isMobile, 'a mouse');
     await scrollToHandOver(page);
     const a = await frames(page);
@@ -712,7 +789,7 @@ test.describe('gestures', () => {
     await page.keyboard.press('KeyW');
     await page.waitForTimeout(300);
     expect(await audioContexts(page)).toBe(0);
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).focus();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).focus();
     await page.keyboard.press('Enter');
     await expect.poll(() => audioContexts(page)).toBeGreaterThan(0);
     await expect(site(page)).toHaveAttribute('data-engaged', 'true');
@@ -755,7 +832,7 @@ test.describe('touch', () => {
     }
   });
 
-  test('holding the forward button walks; letting go stops; back walks back', async ({ page, isMobile }) => {
+  test('holding the forward button walks; letting go stops; back walks back', { tag: '@extended' }, async ({ page, isMobile }) => {
     test.skip(!isMobile, 'touch');
     await scrollToHandOver(page);
     const session = await cdp(page);
@@ -779,12 +856,13 @@ test.describe('touch', () => {
     await settle(page);
   });
 
-  test('on the landing a finger swipe scrolls the page natively and the camera walks with it', async ({
+  test('on the landing a finger swipe scrolls the page natively and the camera walks with it', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
     test.skip(!isMobile, 'touch');
     await page.goto('/');
+    await waitForWorld(page);
     await expectSpine(page, 'entrance');
     await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
     const start = await pose(page);
@@ -802,7 +880,7 @@ test.describe('touch', () => {
     await expectSpine(page, 'entrance');
   });
 
-  test('a vertical swipe walks, a horizontal drag looks without moving, a tap on the floor glides', async ({
+  test('a vertical swipe walks, a horizontal drag looks without moving, a tap on the floor glides', { tag: '@extended' }, async ({
     page,
     isMobile,
   }) => {
@@ -852,17 +930,18 @@ test.describe('reduced motion switched on during the visit', () => {
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('the landing is one static view and the hand-over is a cut, never a walk', async ({ page }) => {
+  test('the landing is one static view and the hand-over is a cut, never a walk', { tag: '@extended' }, async ({ page }) => {
     await page.goto('/');
+    await waitForWorld(page);
     await expectSpine(page, 'entrance');
     await expectPoseSoon(page, { x: 0, z: ENTRANCE_KEYS[0]!.z, yaw: 0 }, 10_000, 0.05, 0.35);
     await recordPoses(page);
-    // Reduced motion collapses the smoke run to one viewport (ADR 0003), so the landing ends at one
-    // screen: part-way down it is what is scrolled, and the camera has not moved.
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.6));
+    // Reduced motion collapses the smoke run (ADR 0003): part-way along the measured journey,
+    // the page has scrolled and the camera has not moved.
+    await scrollToProgress(page, 0.6);
     await page.waitForTimeout(500);
     expect(await recorded(page)).toHaveLength(1);
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+    await scrollToProgress(page, 1);
     await expectSpine(page, 'corridor');
     await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
     await page.waitForTimeout(500);
@@ -870,7 +949,7 @@ test.describe('reduced motion', () => {
     expect(await recorded(page)).toHaveLength(2);
   });
 
-  test('focusing a door cuts to its view: one pose change, with a 120 ms dissolve over it', async ({ page }) => {
+  test('focusing a door cuts to its view: one pose change, with a 120 ms dissolve over it', { tag: '@extended' }, async ({ page }) => {
     await scrollToHandOver(page);
     await recordPoses(page);
     await page.evaluate(() => {

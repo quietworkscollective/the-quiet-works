@@ -34,7 +34,9 @@ test.describe('the lobby board', () => {
     { at: '2026-05-12T02:00:00+10:00', local: '02:00', card: 'closed', why: 'the small hours, which are working hours in UTC' },
   ];
 
-  test("the office-hours card follows the visitor's own clock: open 09:00 to 17:00 local, closed otherwise", async ({ page }) => {
+  // Loads the lobby under several clocks, too slow for software-rendered runners; the clock logic
+  // itself is covered by officeHours.test.ts in the unit job.
+  test("the office-hours card follows the visitor's own clock: open 09:00 to 17:00 local, closed otherwise", { tag: '@extended' }, async ({ page }) => {
     test.setTimeout(240_000);
     const noise: string[] = [];
     page.on('console', (m) => {
@@ -55,7 +57,7 @@ test.describe('the lobby board', () => {
     await page.goto('/');
     await worldReady(page);
     await expect(canvas(page)).toHaveAttribute('data-office-hours', 'open');
-    await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+    await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await expect(canvas(page)).toHaveAttribute('data-office-hours', 'open');
   });

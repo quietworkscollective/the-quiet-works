@@ -6,8 +6,10 @@
 //   budget(['office-desk-metal', 'lamp-anglepoise', 'plaster-clean']);   // triangles, memory, download
 //
 // Everything is reference-counted and released on unmount. Nothing here fetches: the site's policy
-// is connect-src 'none' (see gltf.ts). A second manifest (original models) joins through
-// registerAssetSource.
+// is connect-src 'none' (see gltf.ts). A second manifest, the project's own Blender-built props
+// (original/original.json), joins through registerAssetSource when this module loads, so
+// `useModel('banker-lamp')` works like any library id.
+import './original/register.ts';
 export { allEntries, allSlots, budget, entriesWithTag, getEntry, getModel, getSurface, registerAssetSource, SLOTS } from './catalogue.ts';
 export type { AssetSource, Budget } from './catalogue.ts';
 export { loadModel, models } from './modelStore.ts';

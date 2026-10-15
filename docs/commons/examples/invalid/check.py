@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase A check for the Commons manifest schema (not part of CI).
+"""Read-only CI check for the Commons manifest schema.
 
 Proves two things with the Python `jsonschema` package (Draft 2020-12):
   1. the valid example validates, and its asset's hash and size match the file; a few variants
@@ -13,8 +13,7 @@ this check: it is removed before validation (a real manifest may not carry it). 
 only when the schema reports exactly that one (location, keyword) pair, so a fixture that fails
 for an unrelated reason, or for several reasons, is reported as broken.
 
-Usage:  python3 -I docs/commons/examples/invalid/check.py [--schema PATH]
-Needs:  pip install jsonschema
+The repository CI workflow supplies the pinned Python dependency and runs this check.
 """
 import copy
 import hashlib

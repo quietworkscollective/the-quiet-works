@@ -34,10 +34,12 @@ function fakeRenderer(width = 1440, height = 900, ratio = 1): Spy {
     autoClear: true,
     outputColorSpace: SRGBColorSpace,
     info,
+    shadowMap: { autoUpdate: true },
     capabilities: { maxSamples: 8, isWebGL2: true },
     getSize: (target: Vector2) => target.set(size.width, size.height),
     getDrawingBufferSize: (target: Vector2) => target.set(size.width * size.ratio, size.height * size.ratio),
     getPixelRatio: () => size.ratio,
+    getClearAlpha: () => 0,
     getContext: () => ({
       getContextAttributes: () => ({ alpha: true }),
       // A WebGL2 context that supports 8 samples: pmndrs clamps the multisampling to what it reports.
@@ -51,6 +53,7 @@ function fakeRenderer(width = 1440, height = 900, ratio = 1): Spy {
     getRenderTarget: () => null,
     setSize: vi.fn(),
     setRenderTarget: vi.fn(),
+    clear: vi.fn(),
     render: direct,
     dispose: vi.fn(),
   } as unknown as WebGLRenderer;
@@ -74,8 +77,28 @@ function setup(overrides: Partial<LookDriverOptions> & { profile?: LookProfile }
 }
 
 describe('frames on their way to the screen', () => {
+  it('does not stand down when a RenderPass reads the renderer shadow map', () => {
+    const { driver, spy, scene, camera } = setup();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const renderPass = driver.passes[0];
+    driver.composer.render = vi.fn(() => {
+      if (!renderPass) throw new Error('missing scene render pass');
+      renderPass.render(spy.renderer, driver.composer.inputBuffer, driver.composer.outputBuffer, 0, false);
+    });
+    try {
+      driver.frame(scene, camera, 0);
+      expect(error).not.toHaveBeenCalled();
+      expect(driver.failed).toBe(false);
+      expect(spy.direct).toHaveBeenCalledWith(scene, camera);
+    } finally {
+      error.mockRestore();
+      driver.dispose();
+    }
+  });
+
   it('marks the buffer it draws the scene into, and nothing else', () => {
     const { driver, scene, camera } = setup();
+    driver.composer.render = vi.fn();
     driver.frame(scene, camera, 0);
     expect(isOnScreenSceneTarget(driver.composer.inputBuffer), 'the scene pass renders into the input buffer').toBe(true);
     expect(isOnScreenSceneTarget({}), 'an unrelated offscreen target').toBe(false);
@@ -216,6 +239,7 @@ describe('rendering on demand', () => {
     driver.composer.render = vi.fn(() => {
       for (let i = 0; i < 20; i += 1) {
         spy.info.render.calls += 1;
+        spy.info.render.triangles += 3;
         spy.info.render.frame += 1;
       }
     });
@@ -223,6 +247,7 @@ describe('rendering on demand', () => {
     driver.frame(scene, camera, 0.016);
     expect(spy.info.render.frame).toBe(2);
     expect(spy.info.autoReset, 'the renderer’s own reset is back on').toBe(true);
+    expect(driver.lastStats.total).toEqual({ calls: 20, triangles: 60 });
   });
 
   it('falls back to a direct render, and stays there, if the stack throws', () => {
@@ -333,7 +358,7 @@ describe('the profile’s numbers reach the effects', () => {
   type Internals = {
     finish: {
       pass: { dithering: boolean };
-      bloom: { intensity: number; blendMode: { blendFunction: number }; luminanceMaterial: { threshold: number }; mipmapBlurPass: { radius: number } };
+      bloom: { intensity: number; blendMode: { blendFunction: number }; luminanceMaterial: { threshold: number }; mipmapBlurPass: { radius: number; levels: number } };
       lut: { blendMode: { opacity: { value: number } } };
       vignette: { amount: number; inner: number };
       grain: { amount: number };
@@ -347,6 +372,7 @@ describe('the profile’s numbers reach the effects', () => {
     expect(bloom.luminanceMaterial.threshold).toBe(CORRIDOR_LOOK.bloom.threshold);
     expect(bloom.intensity).toBeCloseTo(CORRIDOR_LOOK.bloom.strength * BLOOM_GAIN, 9);
     expect(bloom.mipmapBlurPass.radius).toBeCloseTo(bloomRadius(CORRIDOR_LOOK.bloom.radius), 9);
+    expect(bloom.mipmapBlurPass.levels).toBe(CORRIDOR_LOOK.bloom.levels);
     // HDR values above 1 break a screen blend; the glow is added.
     expect(bloom.blendMode.blendFunction).toBe(BlendFunction.ADD);
   });

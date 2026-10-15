@@ -52,10 +52,13 @@ def front_panel(i):
     zt = drawer_top(i)
     zc = zt - DRAWER_H / 2
     panel = box_at((W - 2 * FRAME - 0.004, 0.020, DRAWER_H - 0.004), (0.0, FRONT_Y + 0.010, zc - 0.002))
+    geo.refine(panel, 0.075)
     pocket_z = zt - 0.036
     cutters = [box_at((0.150, 0.032, 0.034), (0.0, FRONT_Y - 0.004, pocket_z))]
     panel = geo.boolean_cut(panel, cutters)
     geo.bevel_by_angle(panel, 0.0022, segs=2, min_deg=35)
+    # pressed sheet steel is never quite flat: the front oil-cans a few tenths of a millimetre
+    geo.wobble(panel, 0.0004, 0.16, seed=i * 3.1 + 1.0, axes='y')
     return panel, zc
 
 
@@ -82,6 +85,8 @@ def build(spec, root):
     cavity = box_at((W - 2 * FRAME, D, Z_TOP - Z_KICK - 2 * FRAME), (0.0, -0.012, (Z_TOP + Z_KICK) / 2))
     shell = geo.boolean_cut(shell, [cavity])
     geo.bevel_by_angle(shell, 0.0035, segs=2, min_deg=35)
+    geo.refine(shell, 0.22)
+    geo.wobble(shell, 0.0005, 0.3, seed=9.0, axes='xy')
     geo.set_material(shell, 0)
     cap = geo.set_material(box_at((W + 0.012, D + 0.012, 0.025), (0.0, 0.0, Z_TOP + 0.0125), bevel=0.0045, segs=2), 0)
     kick = geo.set_material(box_at((W - 0.040, D - 0.040, Z_KICK), (0.0, 0.0, Z_KICK / 2), bevel=0.003, segs=2), 1)
@@ -124,7 +129,7 @@ def build(spec, root):
 
     return Built(root, [cabinet] + drawers, moving=[f'drawer_{i + 1}' for i in range(4)], stage='floor',
                  view=dict(target=(0, 0, 0.62), distance=3.0, azimuth=32),
-                 detail=dict(target=(0.0, FRONT_Y, 1.10), distance=0.75, azimuth=24, elevation=8),
+                 detail=dict(target=(0.0, FRONT_Y, 1.10), distance=0.4, azimuth=24, elevation=8),
                  notes={'drawers': 'each slides along local -Y in Blender, +Z after export, up to 0.45 m'})
 
 

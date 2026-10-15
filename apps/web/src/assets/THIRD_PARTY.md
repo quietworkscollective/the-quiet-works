@@ -469,12 +469,12 @@ simplified, quantised and recentred; the exact steps per asset are below.
 ### `oak-panelling`
 
 - maps: albedo, normal, arm (OpenGL normal convention; no displacement)
-- resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm
+- resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 84 normal, 84 orm
 
 ### `terrazzo`
 
 - maps: albedo, normal, rough (OpenGL normal convention; no displacement)
-- resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 72 colour, 76 normal, 76 orm
+- resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 76 normal, 76 orm
 - packed rough into orm.webp (R occlusion, G roughness, B metalness)
 
 ### `concrete`
@@ -502,7 +502,7 @@ simplified, quantised and recentred; the exact steps per asset are below.
 ### `painted-timber`
 
 - maps: albedo, normal, rough (OpenGL normal convention; no displacement)
-- resized to albedo 1024 px, normal 512 px, orm 256 px; WebP quality 76 colour, 84 normal, 84 orm
+- resized to albedo 512 px, normal 512 px, orm 256 px; WebP quality 84 colour, 84 normal, 84 orm
 - packed rough into orm.webp (R occlusion, G roughness, B metalness)
 
 ### `felt`

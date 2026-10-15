@@ -100,9 +100,11 @@ export const AIR: Record<ChamberId, AirProfile> = {
   // own ambience carries. The other three doors stay sealed in this build; their profiles only
   // keep a future door from borrowing the Office's room.
   'certification-office': { lowpass: 850, level: 1, hum: [[73.42, 1], [110, 0.8]], wet: 0.05 },
+  exchange: { lowpass: 780, level: 0.85, hum: [[60, 0.35], [120, 0.2]], wet: 0.16 },
   apartment: { lowpass: 1100, level: 0.7, hum: [], wet: 0.04 },
   'tomorrow-engine': { lowpass: 700, level: 1, hum: [], wet: 0.2 },
   'great-atrium': { lowpass: 1500, level: 0.9, hum: [], wet: 0.6 },
+  'outline-room': { lowpass: 1450, level: 0.62, hum: [], wet: 0.06 },
 };
 
 /**

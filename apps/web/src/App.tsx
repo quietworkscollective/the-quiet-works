@@ -13,7 +13,6 @@ import {
   type MouseEvent,
 } from 'react';
 import {
-  CHAMBERS,
   chamberById,
   createDiscoveryStore,
   createSpineStore,
@@ -54,7 +53,7 @@ import {
   type Settings,
 } from '@tqw/ui';
 import { useSoundDesk } from './audio/useSoundDesk.ts';
-import { preloadChamber } from './chambers/registry.ts';
+import { isChamberOpenInBuild, preloadChamber, VISIBLE_CHAMBERS } from './chambers/registry.ts';
 import type { ChamberComponent, CoreSettings, TextReason } from './chambers/types.ts';
 import { createProgress } from './corridor/progress.ts';
 import { detectWebGL2, prefersReducedMotion, requestedTextMode } from './environment.ts';
@@ -79,7 +78,7 @@ const MAX_CAPTIONS = 3;
 const SEAM_FALLBACK_MS =
   3 * (SPINE_TIMING.handleTurnMs + SPINE_TIMING.latchMs + SPINE_TIMING.entryDelayMs + SPINE_TIMING.entryMs);
 
-const DOORS: readonly DoorListItem[] = CHAMBERS.map((c) => ({
+const DOORS: readonly DoorListItem[] = VISIBLE_CHAMBERS.map((c) => ({
   id: c.id,
   title: c.title,
   status: c.status,
@@ -88,7 +87,7 @@ const DOORS: readonly DoorListItem[] = CHAMBERS.map((c) => ({
 
 /** One lazy component per open chamber, created once; its chunk is shared with preloadChamber. */
 const CHAMBER_VIEWS: Partial<Record<ChamberId, LazyExoticComponent<ChamberComponent>>> = Object.fromEntries(
-  CHAMBERS.filter((c) => c.status === 'open').map((c) => [
+  VISIBLE_CHAMBERS.filter((c) => c.status === 'open').map((c) => [
     c.id,
     lazy(() => preloadChamber(c.id) ?? Promise.reject(new Error(`${c.id} has no code`))),
   ]),
@@ -120,7 +119,10 @@ function gameTop(): number {
  * everything inside their door, and open inside the game window.
  */
 export function App() {
-  const [spine] = useState(() => createSpineStore(spineInitial(parseRoute(window.location.pathname))));
+  const [spine] = useState(() => createSpineStore(
+    spineInitial(parseRoute(window.location.pathname), isChamberOpenInBuild),
+    isChamberOpenInBuild,
+  ));
   const state = useSyncExternalStore(spine.subscribe, spine.getState);
   const [progress] = useState(() => createProgress());
   const [webgl] = useState(detectWebGL2);
@@ -163,6 +165,31 @@ export function App() {
   const runViewports = settings.reducedMotion ? 1 : SITE_SCROLL.runViewports;
   /** The crossfade at a door's seam, and the poster's: the short dissolve under reduced motion. */
   const seamMs = settings.reducedMotion || textMode ? SPINE_TIMING.dissolveMs : SPINE_TIMING.seamMs;
+
+  const focusPhase = useRef(state.phase);
+  useEffect(() => {
+    const previous = focusPhase.current;
+    focusPhase.current = state.phase;
+    if (previous !== 'chamber' && state.phase === 'chamber') {
+      const chamber = state.chamber;
+      window.requestAnimationFrame(() => {
+        if (spine.getState().phase !== 'chamber' || spine.getState().chamber !== chamber) return;
+        const host = document.querySelector<HTMLElement>('.tqw-chamber-host');
+        const target = host?.querySelector<HTMLElement>('[data-chamber-entry]')
+          ?? host?.querySelector<HTMLElement>('h1:not([aria-hidden="true"]), h2:not([aria-hidden="true"])')
+          ?? host?.querySelector<HTMLElement>('button:not(:disabled)');
+        if (!target) return;
+        if (target.matches('h1, h2') && !target.hasAttribute('tabindex')) target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      });
+    } else if (previous === 'chamber' && state.phase === 'corridor' && state.focus) {
+      const door = state.focus;
+      window.requestAnimationFrame(() => {
+        if (spine.getState().phase !== 'corridor' || spine.getState().focus !== door) return;
+        document.querySelector<HTMLElement>(`.tqw-doors [data-door="${door}"]`)?.focus({ preventScroll: true });
+      });
+    }
+  }, [spine, state.chamber, state.focus, state.phase]);
 
   const engagedRef = useRef(engaged);
   const textModeRef = useRef(textMode);
@@ -492,7 +519,7 @@ export function App() {
   );
 
   // Quiet details from this visit only: the doors that are open, and what this visitor has found.
-  const doorsOpen = CHAMBERS.filter((c) => c.status === 'open').length;
+  const doorsOpen = VISIBLE_CHAMBERS.filter((c) => c.status === 'open').length;
   const details = [
     ...(doorsOpen > 0 ? [doorsOpen === 1 ? HERO_COPY.doorsOne : fillCopy(HERO_COPY.doorsMany, { n: doorsOpen })] : []),
     ...(session.count > 0
@@ -640,7 +667,7 @@ export function App() {
         </GameWindow>
       </div>
 
-      <Unlocks store={discoveries} chambers={CHAMBERS} onReplaced={session.rebaseline} />
+      <Unlocks store={discoveries} chambers={VISIBLE_CHAMBERS} onReplaced={session.rebaseline} />
       <Details onOpenPage={openPage} />
       <Footer menu={menu('footer')} onOpenPage={openPage} trivia={trivia} />
 
@@ -654,7 +681,7 @@ export function App() {
         onOpenPage={openPage}
         onClose={closeMenu}
       />
-      <NoticeBoard open={state.boardOpen} chambers={CHAMBERS} onChoose={chooseClipping} onClose={closeBoard} />
+      <NoticeBoard open={state.boardOpen} chambers={VISIBLE_CHAMBERS} onChoose={chooseClipping} onClose={closeBoard} />
       {state.page ? (
         <SitePage
           page={state.page}

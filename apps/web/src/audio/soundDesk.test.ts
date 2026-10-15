@@ -910,6 +910,18 @@ describe('stillness and reset', () => {
 });
 
 describe('ambience', () => {
+  it('starts the Outline Room’s low air without the Office’s pitched drones', () => {
+    const desk = createSoundDesk();
+    desk.setRoom('outline-room');
+    desk.unlock();
+    const ctx = context();
+    const vent = ctx.of(FakeBufferSource).filter((source) => source.loop);
+    expect(vent).toHaveLength(1);
+    expect(ctx.of(FakeBiquad).some((filter) => filter.type === 'lowpass' && filter.frequency.value === 1450)).toBe(true);
+    expect(ctx.of(FakeOscillator)).toHaveLength(0);
+    desk.dispose();
+  });
+
   it('fades in over 3 s: vent noise plus D2 and A2 drones drifting on slow LFOs of +-3 cents', () => {
     const { ctx } = unlockedDesk();
     const fade = ambienceFadeOf(ctx);

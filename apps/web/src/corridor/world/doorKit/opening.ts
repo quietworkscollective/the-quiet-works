@@ -141,16 +141,20 @@ export function buildOpeningFrame(b: Buckets, hole: { width: number; height: num
   const trimStyle: Style = painted && o.paint ? (s.trim.uv ? { colour: o.paint.colour, uv: s.trim.uv } : { colour: o.paint.colour }) : s.trim;
   const revealBucket = o.plasterReveal ? b.plaster : trimBucket;
   const revealStyle = o.plasterReveal ? s.plaster : trimStyle;
+  // The grain of a painted member runs along it: the texture's u axis is turned to run up a jamb.
+  const upright = (style: Style): Style => (painted ? { ...style, uv: { ...style.uv, swap: !style.uv?.swap } } : style);
+  const jambReveal = o.plasterReveal ? revealStyle : upright(revealStyle);
+  const jambTrim = upright(trimStyle);
 
   // Reveal: the two jambs and the head, from the wall plane back to the leaf's recess. With a
   // lining these are the lining's inner faces, and its edge shows at the wall plane.
-  quad(revealBucket, [-iw, 0, 0], [-iw, 0, -reveal], [-iw, ih, -reveal], [-iw, ih, 0], revealStyle, [1, 0, 0]);
-  quad(revealBucket, [iw, 0, -reveal], [iw, 0, 0], [iw, ih, 0], [iw, ih, -reveal], revealStyle, [-1, 0, 0]);
+  quad(revealBucket, [-iw, 0, 0], [-iw, 0, -reveal], [-iw, ih, -reveal], [-iw, ih, 0], jambReveal, [1, 0, 0]);
+  quad(revealBucket, [iw, 0, -reveal], [iw, 0, 0], [iw, ih, 0], [iw, ih, -reveal], jambReveal, [-1, 0, 0]);
   quad(revealBucket, [-iw, ih, 0], [-iw, ih, -reveal], [iw, ih, -reveal], [iw, ih, 0], revealStyle, [0, -1, 0]);
   if (o.lining > 0) {
     const face: Vec3 = [0, 0, 1];
-    quad(trimBucket, [-hw, 0, 0], [-iw, 0, 0], [-iw, hh, 0], [-hw, hh, 0], trimStyle, face);
-    quad(trimBucket, [iw, 0, 0], [hw, 0, 0], [hw, hh, 0], [iw, hh, 0], trimStyle, face);
+    quad(trimBucket, [-hw, 0, 0], [-iw, 0, 0], [-iw, hh, 0], [-hw, hh, 0], jambTrim, face);
+    quad(trimBucket, [iw, 0, 0], [hw, 0, 0], [hw, hh, 0], [iw, hh, 0], jambTrim, face);
     quad(trimBucket, [-iw, ih, 0], [iw, ih, 0], [iw, hh, 0], [-iw, hh, 0], trimStyle, face);
   }
   // Behind the leaf: whatever shows through glass is dark, never the fog colour.
@@ -162,7 +166,7 @@ export function buildOpeningFrame(b: Buckets, hole: { width: number; height: num
   const profile = kind === 'ceremonial-double' ? ARCHITRAVE_FLUTED : painted ? ARCHITRAVE_PAINTED : ARCHITRAVE;
   const jamb = (sign: -1 | 1): void => {
     const polyline: Vec3[] = profile.map(([t, p]) => [sign * (hw + t), PLINTH.height, p]);
-    strip(trimBucket, polyline, [0, hh - PLINTH.height, 0], trimStyle, inside);
+    strip(trimBucket, polyline, [0, hh - PLINTH.height, 0], jambTrim, inside);
   };
   jamb(-1);
   jamb(1);

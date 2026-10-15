@@ -1,10 +1,20 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { CONTRIBUTIONS_COPY } from '@tqw/engine';
 import { Details } from './Details.tsx';
 
 afterEach(() => cleanup());
 
 describe('Details', () => {
+  it('pairs three short topics with a direct link to the Commons contribution guide', () => {
+    const { container } = render(<Details onOpenPage={vi.fn()} />);
+    const bodies = [...container.querySelectorAll('.tqw-details__topic-body')].map((body) => body.textContent ?? '');
+    expect(bodies).toHaveLength(3);
+    expect(bodies.every((body) => body.trim().split(/\s+/).length <= 30)).toBe(true);
+    expect(screen.getByRole('link', { name: 'Read the contribution guide' }).getAttribute('href')).toBe(
+      'https://github.com/quietworkscollective/the-quiet-works/blob/main/docs/commons/AGENT_DOSSIER.md',
+    );
+  });
+
   it('is a section named by its h2 title', () => {
     render(<Details onOpenPage={vi.fn()} />);
     const section = screen.getByRole('region', { name: CONTRIBUTIONS_COPY.title });
@@ -13,22 +23,19 @@ describe('Details', () => {
   });
 
   it('sets the introduction beside the topics, and the topics as h3s in order', () => {
-    render(<Details onOpenPage={vi.fn()} />);
+    const { container } = render(<Details onOpenPage={vi.fn()} />);
     expect(screen.getByText(CONTRIBUTIONS_COPY.intro)).toBeTruthy();
     const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
     expect(headings).toEqual(CONTRIBUTIONS_COPY.topics.map((topic) => topic.title));
-    for (const topic of CONTRIBUTIONS_COPY.topics) expect(screen.getByText(topic.body)).toBeTruthy();
+    expect(container.querySelectorAll('.tqw-details__topic-body')).toHaveLength(3);
   });
 
-  it('links About, Credits and Privacy, opening each as a page without navigating', () => {
-    const onOpenPage = vi.fn();
-    render(<Details onOpenPage={onOpenPage} />);
-    const nav = screen.getByRole('navigation', { name: 'More about UNHELD' });
-    const links = within(nav).getAllByRole('link');
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/about', '/credits', '/privacy']);
-    expect(links.map((a) => a.textContent)).toEqual(['About', 'Credits', 'Privacy']);
-    expect(fireEvent.click(links[2] as HTMLElement)).toBe(false);
-    expect(onOpenPage).toHaveBeenCalledWith('privacy');
+  it('leaves the legal pages and licences to the footer', () => {
+    render(<Details onOpenPage={vi.fn()} />);
+    expect(screen.queryByRole('navigation', { name: 'More about UNHELD' })).toBeNull();
+    for (const name of ['About', 'Credits', 'Privacy', 'Licences']) {
+      expect(screen.queryByRole('link', { name })).toBeNull();
+    }
   });
 
   it('promises no public submission facility that does not exist', () => {

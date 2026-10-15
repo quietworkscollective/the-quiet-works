@@ -35,6 +35,12 @@ PROPS = [
 ]
 
 
+def bowed(bm, seed):
+    """A cloth board warps a little with the years: a swell of a few tenths of a millimetre."""
+    geo.refine(bm, 0.07)
+    return geo.wobble(bm, 0.0007, 0.2, seed=seed * 2.7 + 1.0, axes='x')
+
+
 def build(spec, root):
     v = VARIANTS[spec['variant']]
     T, H, D = v['T'], v['H'], v['D']
@@ -61,7 +67,7 @@ def build(spec, root):
                                                        grime='#0A0604')
     rib = mats.fabric('ribbon', color=v['ribbon'] or '#7A1F22', age=0.5, seed=seed + 5, weave=False, roughness=0.5, nap=0.2, mottle=0.2)
 
-    boards = [geo.set_material(geo.box((b, D, H), center=(sx * (T / 2 - b / 2), 0.0, H / 2), bevel=0.0012, segs=2), 0) for sx in (-1, 1)]
+    boards = [geo.set_material(bowed(geo.box((b, D, H), center=(sx * (T / 2 - b / 2), 0.0, H / 2), bevel=0.0012, segs=2), sx), 0) for sx in (-1, 1)]
     spine = geo.set_material(geo.box((T, 0.012, H), center=(0.0, -D / 2 + 0.001, H / 2), bevel=0.0055, segs=4,
                                       selector=lambda e: abs(e.verts[0].co.z - e.verts[1].co.z) > 0.1), 1)
     block = geo.set_material(geo.box((T - 2 * b - 0.002, D - 0.014, H - 0.012), center=(0.0, 0.0035, H / 2), bevel=0.0007, segs=1), 2)
@@ -91,7 +97,7 @@ def build(spec, root):
     obj = kit.add_part(root, 'ledger', body, [cloth, spine_m, page, label, trim, rib], sharp_deg=55)
     return Built(root, [obj], moving=[], stage='floor',
                  view=dict(target=(0, 0, H * 0.55), distance=1.9, azimuth=16, lens=85),
-                 detail=dict(target=(0.0, -D / 2, H * 0.7), distance=0.55, azimuth=14, elevation=8))
+                 detail=dict(target=(0.0, -D / 2, H * 0.7), distance=0.4, azimuth=14, elevation=8))
 
 
 if __name__ == '__main__':

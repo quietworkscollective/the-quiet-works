@@ -136,7 +136,7 @@ def build(spec, root):
     globe.rotation_quaternion = Vector((0.0, 0.0, 1.0)).rotation_difference(AXIS)
     return Built(root, [stand, globe], moving=['globe'], stage='desk',
                  view=dict(target=(0, 0, 0.19), distance=1.2, azimuth=22),
-                 detail=dict(target=(0.0, -0.06, 0.24), distance=0.5, azimuth=18, elevation=10),
+                 detail=dict(target=(0.0, -0.06, 0.24), distance=0.4, azimuth=18, elevation=10),
                  notes={'globe': 'spins about its local Y axis (its polar axis, tilted 23.5 degrees from vertical)'})
 
 

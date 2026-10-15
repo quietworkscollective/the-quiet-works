@@ -34,7 +34,10 @@ async function countDraws(page: Page): Promise<void> {
  * silences it for itself), and Chromium's GL driver prints one performance hint per process,
  * from whichever context first reads a pixel back (the Office's scene prints it too).
  */
-const isKnownNoise = (text: string): boolean => text.includes('THREE.Clock') || text.includes('GL Driver Message');
+const isKnownNoise = (text: string): boolean =>
+  text.includes('THREE.Clock') ||
+  text.includes('GL Driver Message') ||
+  text.includes('THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.');
 
 /** The world has painted its lettering and drawn: the canvas carries `data-world="ready"`. */
 async function worldReady(page: Page): Promise<void> {
@@ -58,11 +61,11 @@ test.describe('corridor world', () => {
     await expectSpine(page, 'entrance');
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
-    await doorTargets(page);
+    await worldReady(page);
     expect(noise).toEqual([]);
   });
 
-  test('draws nothing while idle: no frames in the landing or the corridor', async ({ page }) => {
+  test('draws nothing while idle: no frames in the landing or the corridor', { tag: '@extended' }, async ({ page }) => {
     await countDraws(page);
     await page.goto('/');
     await expect(page.locator('.tqw-corridor-canvas canvas')).toHaveCount(1);
@@ -86,14 +89,27 @@ test.describe('corridor world', () => {
     expect(await idle(), 'draw calls while idle in the corridor').toBe(0);
   });
 
-  test('a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing', async ({ page }) => {
+  test('a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing', async ({ page, isMobile }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
     await worldReady(page);
+    // The portrait hand-over faces the Office; look toward the left wall before testing its door.
+    if (isMobile) {
+      const width = page.viewportSize()!.width;
+      await page.keyboard.down('KeyA');
+      try {
+        await expect.poll(async () => {
+          const at = (await doorTargets(page))['apartment'];
+          return at !== undefined && at[0] > 48 && at[0] < width - 48;
+        }).toBe(true);
+      } finally {
+        await page.keyboard.up('KeyA');
+      }
+    }
     const targets = await doorTargets(page);
     const apartment = targets['apartment'];
-    expect(apartment, 'the Apartment door is on screen at hand-over').toBeDefined();
+    expect(apartment, 'the Apartment door is on screen for the pointer interaction').toBeDefined();
     const [x, y] = apartment!;
     const cursor = () => page.evaluate(() => document.querySelector<HTMLCanvasElement>('.tqw-corridor-canvas canvas')?.style.cursor);
     // The floor at the foot of the view is not a door.
@@ -110,7 +126,7 @@ test.describe('corridor world', () => {
   });
 
   test('going through the Office and back twice leaves a working corridor each time', async ({ page }) => {
-    test.setTimeout(150_000);
+    test.setTimeout(process.env['CI'] ? 330_000 : 150_000);
     const noise: string[] = [];
     page.on('console', (m) => {
       if (['error', 'warning'].includes(m.type()) && !isKnownNoise(m.text())) noise.push(m.text());
@@ -123,7 +139,8 @@ test.describe('corridor world', () => {
       await door(page, 'The Certification Office', 'open').focus();
       await page.keyboard.press('Enter');
       // The Office's own scene is slow to start on a software rasteriser: allow it.
-      await expect(site(page)).toHaveAttribute('data-spine', 'chamber', { timeout: 45_000 });
+      // CI runners render in software and load the Office several times slower than a GPU machine.
+      await expect(site(page)).toHaveAttribute('data-spine', 'chamber', { timeout: process.env['CI'] ? 120_000 : 45_000 });
       await page.getByRole('button', { name: 'Return to the corridor' }).click();
       await expectSpine(page, 'corridor');
     }

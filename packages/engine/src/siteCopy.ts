@@ -143,7 +143,7 @@ export const PRIVACY: SitePage = {
   body: [
     'UNHELD has no accounts, no cookies, no analytics and no advertising. Until you find something, it stores nothing in your browser.',
     'Once you find something, UNHELD keeps one small record in your browser’s local storage, under the name unheld.v1, so your archive is still there on your next visit. The record never leaves your device. You can export it, import it, or forget everything in your archive.',
-    'After the page loads, the artwork makes no network requests at all. Fonts and sounds are part of the site itself; sound is generated in your browser and nothing is recorded.',
+    'As you enter rooms, UNHELD may load its own room code, models and written records from the same site. It does not connect to other servers. Your archive stays in this browser. Sound is made here too; nothing is recorded.',
     'The site is served by Cloudflare, which handles standard request data such as IP addresses in order to deliver pages. UNHELD does not receive or keep that data.',
   ],
 };

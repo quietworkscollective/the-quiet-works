@@ -12,6 +12,7 @@ Run: blender -b --factory-startup --python typewriter.py -- --work <dir> [--only
 """
 import math
 import os
+import random
 import sys
 
 import bmesh
@@ -139,14 +140,23 @@ def build(spec, root):
     body = housing()
     parts = []
     rows = [(12, 0.150, 0.0), (11, 0.1275, 0.0045), (11, 0.105, 0.0100), (10, 0.0825, 0.0160)]
+    rng = random.Random(12)
+
+    def jig(point):
+        # keys sit a hair high or low and a degree or so off true: forty years of fingers on stems with some play
+        tilt = (Vector(DECK_N3) + Vector((rng.uniform(-1.0, 1.0), rng.uniform(-1.0, 1.0), rng.uniform(-1.0, 1.0))) * 0.022).normalized()
+        return tuple(Vector(point) + Vector(DECK_N3) * rng.uniform(-0.0006, 0.0010)), tuple(tilt)
+
     for n, s, shift in rows:
         x0 = shift - (n - 1) * 0.0198 / 2
         for i in range(n):
             bm = key_cap()
-            parts.append(geo.place(bm, deck_point(s, x0 + i * 0.0198), DECK_N3))
+            loc, nrm = jig(deck_point(s, x0 + i * 0.0198))
+            parts.append(geo.place(bm, loc, nrm))
     for sx in (-1, 1):
         bm = key_cap(1.35)
-        parts.append(geo.place(bm, deck_point(0.0825, sx * (0.0160 + 0.0891 + 0.0198 * 1.3)), DECK_N3))
+        loc, nrm = jig(deck_point(0.0825, sx * (0.0160 + 0.0891 + 0.0198 * 1.3)))
+        parts.append(geo.place(bm, loc, nrm))
     for fx in (-0.150, 0.150):
         for fy in (-0.140, 0.140):
             f = geo.lathe(geo.fillet_profile([(0.0, 0.0), (0.0150, 0.0, 0.0010), (0.0150, 0.0050, 0.0015), (0.0, 0.0056)]), segments=12)
@@ -186,7 +196,7 @@ def build(spec, root):
 
     return Built(root, [housing_obj, carriage, lever_obj, bar_obj], moving=['carriage', 'return_lever', 'spacebar'], stage='desk',
                  view=dict(target=(0, 0, 0.11), distance=1.35, azimuth=24, lens=70),
-                 detail=dict(target=(0.0, -0.10, 0.10), distance=0.5, azimuth=18, elevation=26),
+                 detail=dict(target=(0.0, -0.10, 0.10), distance=0.4, azimuth=18, elevation=26),
                  notes={'carriage': 'translates along X', 'return_lever': 'swings about its base, vertical axis',
                         'spacebar': 'pivots at its back edge; presses down about 4 mm'})
 

@@ -2,6 +2,7 @@ import { box, breaks, grid, quad, type Style } from '../builder.ts';
 import type { Buckets } from '../buckets.ts';
 import { linear, type Rgb } from '../colour.ts';
 import { CORRIDOR } from '../../layout.ts';
+import { END_Z } from '../stage.ts';
 import { darkness } from '../darkness.ts';
 import { corridorSconceSlots } from '../lighting.ts';
 import { bayOffset, bayTone, cornerShade } from '../shading.ts';
@@ -51,7 +52,7 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
   // Value bands (see darkness.ts): each sconce's pool at full value, the piers and the upper wall
   // and ceiling falling into the dark between and above them.
   const dark = darkness({
-    pools: corridorSconceSlots(CORRIDOR.farZ).map((s) => ({ x: s.side === 'left' ? -HW : HW, z: s.z })),
+    pools: corridorSconceSlots(END_Z).map((s) => ({ x: s.side === 'left' ? -HW : HW, z: s.z })),
     radius: CORRIDOR_DARKNESS.radius,
     floor: CORRIDOR_DARKNESS.floor,
     fallFrom: CORRIDOR_DARKNESS.fallFrom,
@@ -63,7 +64,7 @@ export function buildCorridor(b: Buckets, places: readonly Placement[]): void {
   buildCorridorFloor(b, { shade: shadeRoom });
 
   const zNear = CORRIDOR_START_Z;
-  const zFar = CORRIDOR.farZ;
+  const zFar = END_Z;
 
   for (const side of ['left', 'right'] as const) {
     const frame = sideFrame(side);

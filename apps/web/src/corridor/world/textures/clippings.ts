@@ -1,5 +1,6 @@
 import type { CanvasTexture } from 'three';
-import { CHAMBERS, type ChamberEntry } from '@tqw/engine';
+import type { ChamberEntry } from '@tqw/engine';
+import { VISIBLE_CHAMBERS } from '../../../chambers/registry.ts';
 import { nth, mulberry32 } from '../math.ts';
 import { context2d, createCanvas, makeTexture } from './canvas.ts';
 import { drawTracked, FONTS, wrapLines } from './text.ts';
@@ -12,7 +13,7 @@ import { drawTracked, FONTS, wrapLines } from './text.ts';
  * The words are the chamber registry's own clipping copy.
  */
 
-export const CLIPPING_ATLAS = { width: 1024, height: 1024, cell: 512 } as const;
+export const CLIPPING_ATLAS = { width: 1024, height: 1536, cell: 512 } as const;
 
 export const STOCKS = [
   { name: 'bone', hex: '#DDD5C8', edge: '#b9ad94' },
@@ -22,7 +23,7 @@ export const STOCKS = [
 
 /** Which stock a chamber's clipping is printed on, by registry order. */
 export function stockOf(index: number): (typeof STOCKS)[number] {
-  const order = [0, 1, 2, 0] as const;
+  const order = [0, 1, 2] as const;
   return nth(STOCKS, nth(order, index % order.length));
 }
 
@@ -38,7 +39,7 @@ export function drawClippingAtlas(anisotropy: number): CanvasTexture {
   const canvas = createCanvas(CLIPPING_ATLAS.width, CLIPPING_ATLAS.height);
   const ctx = context2d(canvas);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  CHAMBERS.forEach((entry, i) => drawClipping(ctx, clippingCell(i), entry, i));
+  VISIBLE_CHAMBERS.forEach((entry, i) => drawClipping(ctx, clippingCell(i), entry, i));
   return makeTexture(canvas, { anisotropy });
 }
 

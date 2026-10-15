@@ -58,7 +58,7 @@ describe('TextCorridor', () => {
   it('lists every door with its description after the prose, and the board button', () => {
     const { onOpenBoard, onOpenDoor } = setup();
     const list = screen.getByRole('navigation', { name: 'Doors' });
-    expect(within(list).getAllByRole('button')).toHaveLength(4);
+    expect(within(list).getAllByRole('button')).toHaveLength(CHAMBERS.length);
     expect(within(list).getByText(CHAMBERS[0]!.doorDescription)).toBeTruthy();
     fireEvent.click(within(list).getByRole('button', { name: 'The Certification Office, open the door' }));
     expect(onOpenDoor).toHaveBeenCalledWith('certification-office');

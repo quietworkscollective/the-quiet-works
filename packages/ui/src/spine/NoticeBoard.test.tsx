@@ -8,9 +8,34 @@ function setup(open = true) {
   return { ...handlers, view };
 }
 
-afterEach(() => cleanup());
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('NoticeBoard', () => {
+  function focusScrollerWhenShown() {
+    const showModal = HTMLDialogElement.prototype.showModal;
+    vi.spyOn(HTMLDialogElement.prototype, 'showModal').mockImplementation(function (this: HTMLDialogElement) {
+      showModal.call(this);
+      const scroller = this.querySelector<HTMLElement>('.tqw-board__clippings')!;
+      // Native dialog focusing can select a scroll area even though Tab skips that area.
+      scroller.tabIndex = -1;
+      scroller.focus();
+    });
+  }
+
+  it('starts at the first open room action when native dialog focus selects the scroller', () => {
+    focusScrollerWhenShown();
+    setup();
+    const first = screen.getByRole('button', { name: 'Go in: The Certification Office' });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('starts at Close when every clipping is sealed', () => {
+    focusScrollerWhenShown();
+    const chambers = CHAMBERS.map(chamber => ({ ...chamber, status: 'sealed' as const }));
+    render(<NoticeBoard open chambers={chambers} onChoose={vi.fn()} onClose={vi.fn()} />);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close the notice board' }));
+  });
+
   it('is a dialog named "Notice board" with its introduction', () => {
     setup();
     const board = screen.getByRole('dialog', { name: 'Notice board' });
@@ -35,7 +60,8 @@ describe('NoticeBoard', () => {
     const stocks = within(screen.getByRole('dialog'))
       .getAllByRole('listitem')
       .map((li) => li.getAttribute('data-stock'));
-    expect(stocks).toEqual(['bone', 'buff', 'grey-green', 'bone']);
+    const order = ['bone', 'buff', 'grey-green'] as const;
+    expect(stocks).toEqual(CHAMBERS.map((_, index) => order[index % order.length]));
   });
 
   it('lets the visitor go in at an open clipping, named for its chamber', () => {
@@ -53,8 +79,7 @@ describe('NoticeBoard', () => {
       expect(screen.queryByRole('button', { name: `Go in: ${sealed.title}` })).toBeNull();
       expect(dialog.textContent).toContain(`${sealed.title}: Not yet open`);
     }
-    // Only the open chamber has a "Go in".
-    expect(within(dialog).getAllByRole('button', { name: /^Go in:/ })).toHaveLength(1);
+    expect(within(dialog).getAllByRole('button', { name: /^Go in:/ })).toHaveLength(CHAMBERS.filter((chamber) => chamber.status === 'open').length);
   });
 
   it('marks each clipping\'s status for styling without relying on it for meaning', () => {

@@ -18,7 +18,7 @@ import {
 /** The fifth completed stamp overloads the machine. */
 export const OVERLOAD_AT = ESCALATION.length;
 
-/** Milliseconds without a press before the machine notices the stillness. */
+/** Idle milliseconds after a stamp response settles before the machine notices stillness. */
 export const STILLNESS_MS = 20_000;
 
 export type Phase =
@@ -41,6 +41,8 @@ export interface CertificationState {
   readonly stamps: number;
   /** True while the stamp is held against the paper. */
   readonly pressing: boolean;
+  /** A stamp response has not yet settled in the active presentation. */
+  readonly processing: boolean;
   readonly phase: Phase;
   readonly display: string;
   /** Text of the most recent receipt, or null before the first one. */
@@ -54,7 +56,9 @@ export type CertificationEvent =
   | { readonly type: 'PRESS' }
   /** Stamp lifts (pointer up or cancel, key up, window blur while held). */
   | { readonly type: 'RELEASE' }
-  /** STILLNESS_MS elapsed with no press. Dispatched by the host's timer. */
+  /** The host presented the completed response to this stamp. Stale completions are ignored. */
+  | { readonly type: 'RESPONSE_SETTLED'; readonly step: number }
+  /** STILLNESS_MS elapsed while neither held nor processing. Dispatched by the host's timer. */
   | { readonly type: 'STILLNESS' }
   | { readonly type: 'OPEN_MEMO' }
   | { readonly type: 'CLOSE_MEMO' }
@@ -85,6 +89,7 @@ export interface Transition {
 export const initialState: CertificationState = {
   stamps: 0,
   pressing: false,
+  processing: false,
   phase: 'awaiting',
   display: INITIAL_DISPLAY,
   receipt: null,
@@ -113,7 +118,7 @@ export function transition(state: CertificationState, event: CertificationEvent)
   switch (event.type) {
     case 'PRESS': {
       if (state.pressing) return { state, cues: [] };
-      return { state: { ...state, pressing: true }, cues: [{ type: 'contact' }] };
+      return { state: { ...state, pressing: true, processing: true }, cues: [{ type: 'contact' }] };
     }
 
     case 'RELEASE': {
@@ -145,9 +150,14 @@ export function transition(state: CertificationState, event: CertificationEvent)
       };
     }
 
+    case 'RESPONSE_SETTLED':
+      return state.processing && !state.pressing && event.step === state.stamps
+        ? { state: { ...state, processing: false }, cues: [] }
+        : { state, cues: [] };
+
     case 'STILLNESS': {
-      // Stopping is a discovery path, but only once, and never while the stamp is held.
-      if (state.pressing || state.stillnessNoticed || state.memo.revealed) {
+      // Processing a response is the machine's activity, not the visitor choosing to stop.
+      if (state.pressing || state.processing || state.stillnessNoticed || state.memo.revealed) {
         return { state, cues: [] };
       }
       return {

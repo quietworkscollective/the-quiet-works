@@ -1,0 +1,202 @@
+[
+  {
+    "id": "office-hero-machine",
+    "title": "Office machine",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/mechanics/build.py",
+    "sha256": "452eda3c3911dece7d4ebd9578d4ba03a191b8f35b18c432781d846615391da4",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.7269999980926514,
+      0.550000011920929,
+      0.7612841874361038
+    ],
+    "triangles": 5680,
+    "drawCalls": 8,
+    "compressedBytes": 60161,
+    "textureBytes": 812,
+    "textureMemoryBytes": 349526
+  },
+  {
+    "id": "office-hero-press",
+    "title": "Office press",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/mechanics/build.py",
+    "sha256": "15a735686d024fd1e9a4696b1c47369ac532e3086b9a9765292b84b21123737a",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.5,
+      0.36949998140335083,
+      0.5600000023841858
+    ],
+    "triangles": 5696,
+    "drawCalls": 9,
+    "compressedBytes": 50367,
+    "textureBytes": 1806,
+    "textureMemoryBytes": 262144
+  },
+  {
+    "id": "office-hero-desk",
+    "title": "Office desk",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/mechanics/build.py",
+    "sha256": "e582e095ac66c49a3c9b9e39722beaae9a5c2ba05e3be2c44e9780e85af2dd66",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      2.200000047683716,
+      0.8199999928474426,
+      1.100000023841858
+    ],
+    "triangles": 7020,
+    "drawCalls": 16,
+    "compressedBytes": 47656,
+    "textureBytes": 1660,
+    "textureMemoryBytes": 349526
+  },
+  {
+    "id": "office-hero-application-board",
+    "title": "Office application board",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/architecture/build.py",
+    "sha256": "52d08622d85262ab23ac79269baf4420ed1660d27ba31dc36555f4a9f0e650cf",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      1.9500000476837158,
+      0.6200000047683716,
+      0.11549999937415123
+    ],
+    "triangles": 5556,
+    "drawCalls": 10,
+    "compressedBytes": 40649,
+    "textureBytes": 416,
+    "textureMemoryBytes": 43691
+  },
+  {
+    "id": "office-hero-employee-window",
+    "title": "Office employee window",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/architecture/build.py",
+    "sha256": "c263ce0219e516d7019141d0dc22e908cae798e2b1f685a8193f49837418f6df",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      1.659999966621399,
+      1.2200000286102295,
+      0.20400000363588333
+    ],
+    "triangles": 2284,
+    "drawCalls": 5,
+    "compressedBytes": 22521,
+    "textureBytes": 552,
+    "textureMemoryBytes": 65536
+  },
+  {
+    "id": "office-hero-certificate-sign",
+    "title": "Office certificate sign",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/architecture/build.py",
+    "sha256": "4091a078f325e5b3f48b8e5362f345d30c107865fd65a0e1df1e8c7fcc8b5fa6",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      1.600000023841858,
+      0.25999999046325684,
+      0.08100000233389437
+    ],
+    "triangles": 1124,
+    "drawCalls": 2,
+    "compressedBytes": 12689,
+    "textureBytes": 224,
+    "textureMemoryBytes": 43691
+  },
+  {
+    "id": "office-hero-archive-bay",
+    "title": "Office archive bay",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/architecture/build.py",
+    "sha256": "00222cafe2bbae44f02a088aebc680a8a0a024e8b3d66e229fb64f61c21a342c",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      3,
+      2.799999952316284,
+      0.6000000238418579
+    ],
+    "triangles": 10284,
+    "drawCalls": 3,
+    "compressedBytes": 81041,
+    "textureBytes": 592,
+    "textureMemoryBytes": 65536
+  },
+  {
+    "id": "office-hero-archive-bay-distant",
+    "title": "Office archive bay distant",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "author": "Asiri Dalugoda",
+    "licenceFile": "LICENSES/CC-BY-4.0.txt",
+    "source": "scripts/blender/rooms/office/architecture/build.py",
+    "sha256": "f6a009e07a6f50dfa240f3f26b282da48c1a6a5a0941b5bded2ba39cc46722fe",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      3,
+      2.8000427259132668,
+      0.5999633777886288
+    ],
+    "triangles": 2484,
+    "drawCalls": 3,
+    "compressedBytes": 27882,
+    "textureBytes": 512,
+    "textureMemoryBytes": 43691
+  }
+]

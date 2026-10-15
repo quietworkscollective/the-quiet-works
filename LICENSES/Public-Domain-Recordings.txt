@@ -1,0 +1,38 @@
+Public domain dedications: the gramophone records released by their performers
+
+Two of the recordings the lobby gramophone plays are dedicated to the public domain by the
+people who made them, as stated on the recordings' own Wikimedia Commons file pages and in the
+permission Musopen gave. This file records the words, so the licence is on file and not only
+linked. The recordings and the page revisions are listed in
+apps/web/src/audio/music/records/THIRD_PARTY.md.
+
+1. Gymnopedie No. 1, performed by Robin Alciatore for Musopen
+   https://commons.wikimedia.org/wiki/File:Erik_Satie_-_gymnopedies_-_la_1_ere._lent_et_douloureux.ogg
+
+   The page carries the template PD-author for the performer, which renders as:
+
+     "This work has been released into the public domain by its author, Robin Alciatore.
+      This applies worldwide. In some countries this may not be legally possible; if so:
+      Robin Alciatore grants anyone the right to use this work for any purpose, without any
+      conditions, unless such conditions are required by law."
+
+2. At the Fireside (Kinderszenen, Op. 15, No. 8), a Musopen recording
+   https://commons.wikimedia.org/wiki/File:Robert_Schumann_-_scenes_from_childhood,_op._15_-_viii._at_the_fireside.ogg
+
+   The page carries the template PD-author for Musopen, which renders as the same dedication
+   with "Musopen" as the author, and a permission ticket (2008012110017088).
+
+Both pages quote the permission that Musopen published with these recordings (its FAQ of the
+time, http://www.musopen.com/faq.html):
+
+  "The music on this site is given a public domain license, therefore, there are technically
+   no restrictions on what you do with it. We do ask, out of courtesy, two things. One, that you
+   do not directly sell our recordings for profit, as a great amount of work has been donated to
+   this project, and for the benefit of the public, not profit. Two, we ask that any commercial
+   or derived works attribute Musopen somewhere, to give credit to this project."
+
+The project meets the request for attribution: THIRD_PARTY.md names Musopen and the performer
+for every record, and the lobby gramophone's captions name the piece and its composer.
+
+The compositions are in the public domain in their own right: each composer died before 1955 and
+each work was first published before 1931.

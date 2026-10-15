@@ -24,6 +24,7 @@ import {
 import { OFFICE_PRESS_TIMING } from '@tqw/engine';
 import { impression, pressAt } from './beatMotion.ts';
 import { PaperBeats, type PaperBeatsProps } from './PaperBeats.tsx';
+import { useHeroModel } from './HeroModel.tsx';
 import { InkPuff } from './InkPuff.tsx';
 import { LAYOUT, PAPER_TOP, REST_HEIGHT } from './palette.ts';
 import { createCanvas, makeTexture } from './textures.ts';
@@ -83,6 +84,7 @@ export function StampPress({
   const invalidate = useThree((s) => s.invalidate);
   const fontsReady = useFontsReady();
 
+  const hero = useHeroModel('press');
   const carriage = useRef<Group>(null);
   const padGroup = useRef<Group>(null);
   const ink = useRef(impression(selectedPosition, freshInk, 150));
@@ -170,13 +172,14 @@ export function StampPress({
 
   // Spring material compresses via a shader patch; the shared brass material stays untouched.
   useEffect(() => {
+    if (hero) return;
     squashable(materials.springSteel);
     materials.springSteel.needsUpdate = true;
     return () => {
       materials.springSteel.onBeforeCompile = () => {};
       materials.springSteel.needsUpdate = true;
     };
-  }, [materials]);
+  }, [materials, hero]);
 
   const sim = useRef<Sim>({
     phase: 'rest',
@@ -381,16 +384,24 @@ export function StampPress({
       }
     }
 
-    const c = carriage.current;
+    const c = hero?.getObjectByName('stamp') ?? carriage.current;
     if (c) {
       c.position.set(0, PAPER_TOP + s.h, 0);
     }
-    const pad = padGroup.current;
+    const pad = hero?.getObjectByName('pad') ?? padGroup.current;
     if (pad) {
       pad.scale.set(squashXZ, squashY, squashXZ);
       pad.position.x = impression(selectedPosition, freshInk, 150).offset;
     }
     const pressure = s.phase === 'held' ? pressAt(CONTACT_MS, now - s.touchAt).compression : 0;
+    if (hero) {
+      const offset = impression(selectedPosition, freshInk, 150).offset;
+      for (const name of ['block', 'handle', 'office-press-handle']) { const node = hero.getObjectByName(name); if (node) node.position.x = offset; }
+      for (const name of ['spring_left_wire', 'spring_right_wire']) {
+        const wire = hero.getObjectByName(name) as import('three').Mesh | undefined;
+        if (wire?.morphTargetInfluences) wire.morphTargetInfluences[0] = Math.max(0, Math.min(1.1, (REST_HEIGHT - s.h + SINK * pressure) / REST_HEIGHT));
+      }
+    }
     springUniform.value = Math.max(0.05, (SPRING_CONTACT + s.h - SINK * pressure) / SPRING_REST);
 
     if (active) state.invalidate();
@@ -399,15 +410,18 @@ export function StampPress({
   return (
     <>
       <group position={[LAYOUT.press.x, 0, LAYOUT.press.z]} rotation={[0, LAYOUT.press.yaw, 0]}>
+        {hero ? <primitive object={hero} /> : <>
         <mesh geometry={parts.platen} material={materials.platen} castShadow receiveShadow />
         <mesh geometry={parts.rods} material={materials.brassWorn} castShadow />
         <mesh
+          userData={{ bake: 'dynamic' }}
           geometry={parts.springs}
           material={materials.springSteel}
           customDepthMaterial={parts.depth}
           castShadow
         />
 
+        </>}
         <InkPuff />
 
         <group
@@ -421,7 +435,7 @@ export function StampPress({
           <mesh geometry={parts.hit}>
             <meshBasicMaterial visible={false} />
           </mesh>
-          <group ref={carriage} position={[0, PAPER_TOP + REST_HEIGHT, 0]}>
+          {!hero ? <group ref={carriage} userData={{ bake: 'dynamic' }} position={[0, PAPER_TOP + REST_HEIGHT, 0]}>
             <group ref={padGroup}>
               <mesh geometry={parts.pad} material={materials.rubber} castShadow />
             </group>
@@ -429,16 +443,18 @@ export function StampPress({
             <mesh geometry={parts.carriageBrass} material={materials.brass} castShadow receiveShadow />
             <mesh geometry={parts.carriageWorn} material={materials.brassWorn} castShadow receiveShadow />
             <mesh name="office-press-handle" geometry={parts.handle} position={[impression(selectedPosition, freshInk, 150).offset, 0, 0]} material={materials.grip} castShadow receiveShadow />
-          </group>
+          </group> : null}
         </group>
       </group>
-      <PaperBeats
-        selectedPosition={selectedPosition}
-        freshInk={freshInk}
-        formTexture={form.texture}
-        {...(windowClipWorld ? { windowClipWorld } : {})}
-        {...(channelDirection ? { channelDirection } : {})}
-      />
+      <group userData={{ bake: 'dynamic' }}>
+        <PaperBeats
+          selectedPosition={selectedPosition}
+          freshInk={freshInk}
+          formTexture={form.texture}
+          {...(windowClipWorld ? { windowClipWorld } : {})}
+          {...(channelDirection ? { channelDirection } : {})}
+        />
+      </group>
     </>
   );
 }

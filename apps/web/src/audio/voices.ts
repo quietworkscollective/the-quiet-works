@@ -562,6 +562,35 @@ export interface Ambience {
   readonly tone: GainNode;
 }
 
+export interface QuietAir {
+  readonly sources: readonly AudioScheduledSourceNode[];
+  readonly nodes: readonly AudioNode[];
+}
+
+/** A low, unvoiced room bed. It carries no machinery tone. */
+export function startQuietAir(
+  ctx: BaseAudioContext,
+  noise: NoiseBuffers,
+  out: AudioNode,
+  when: number,
+  profile: { lowpass: number; level: number },
+): QuietAir {
+  const vent = ctx.createBufferSource();
+  vent.buffer = noise.pink;
+  vent.loop = true;
+  vent.start(when);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = profile.lowpass;
+  filter.Q.value = 0.5;
+  const gain = ctx.createGain();
+  gain.gain.value = LEVEL.vent * profile.level;
+  vent.connect(filter);
+  filter.connect(gain);
+  gain.connect(out);
+  return { sources: [vent], nodes: [vent, filter, gain] };
+}
+
 /**
  * Office ventilation (lowpassed pink noise) and the Weight drone: D2 and A2 sines, each with a
  * whisper of its octave so it registers on small speakers, drifting +-3 cents on slow, unrelated
@@ -631,6 +660,33 @@ export function startAmbience(
   }
 
   return { sources, nodes, tone: toneBus };
+}
+
+/** A quiet switchboard bed: filtered line noise with three steady resonances, never a voice. */
+export function startExchangeAmbience(
+  ctx: BaseAudioContext,
+  noise: NoiseBuffers,
+  out: AudioNode,
+  when: number,
+): Ambience {
+  const sources: AudioScheduledSourceNode[] = [];
+  const nodes: AudioNode[] = [];
+  const line = ctx.createBufferSource();
+  line.buffer = noise.pink;
+  line.loop = true;
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowpass'; low.frequency.value = 560; low.Q.value = 0.55;
+  const lineGain = ctx.createGain(); lineGain.gain.value = 0.006;
+  line.connect(low); low.connect(lineGain); lineGain.connect(out); line.start(when);
+  sources.push(line); nodes.push(line, low, lineGain);
+  const tone = ctx.createGain(); tone.gain.value = 1; tone.connect(out); nodes.push(tone);
+  for (const [hz, level] of [[60, 0.0012], [120, 0.0015], [180, 0.0005]] as const) {
+    const oscillator = ctx.createOscillator(); oscillator.type = 'sine'; oscillator.frequency.value = hz;
+    const gain = ctx.createGain(); gain.gain.value = level;
+    oscillator.connect(gain); gain.connect(tone); oscillator.start(when);
+    sources.push(oscillator); nodes.push(oscillator, gain);
+  }
+  return { sources, nodes, tone };
 }
 
 /** Small object voices share the gesture-unlocked desk and its disposal/epoch ownership. */

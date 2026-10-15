@@ -63,16 +63,14 @@ function documentOf(found: Record<string, unknown>, recognitions: unknown = []):
 const VALID = documentOf({ [OFFICE]: [memo(1), secret(1)] });
 
 describe('a fresh store', () => {
-  it('starts empty, with a count for the one open chamber and none for sealed ones', () => {
+  it('starts empty, with a count for every open chamber and none for sealed ones', () => {
     const store = createDiscoveryStore(memoryStorage());
     expect(store.getState()).toEqual({ version: 1, found: {}, recognitions: [] });
-    expect(store.counts()).toEqual([
-      {
-        chamber: OFFICE,
-        papers: { found: 0, total: OFFICE_TOTALS.papers },
-        secrets: { found: 0, total: OFFICE_TOTALS.secrets },
-      },
-    ]);
+    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open').map((chamber) => ({
+      chamber: chamber.id,
+      papers: { found: 0, total: chamber.findings.papers },
+      secrets: { found: 0, total: chamber.findings.secrets },
+    })));
   });
 
   it('awards no recognitions yet, however much is found', () => {
@@ -240,13 +238,11 @@ describe('counts', () => {
     store.record(OFFICE, secret(1));
     store.record(OFFICE, { id: 'the-fifth', kind: 'payoff' });
     store.record(OFFICE, { id: 'a-line', kind: 'line' });
-    expect(store.counts()).toEqual([
-      {
-        chamber: OFFICE,
-        papers: { found: 3, total: OFFICE_TOTALS.papers },
-        secrets: { found: 1, total: OFFICE_TOTALS.secrets },
-      },
-    ]);
+    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open').map((chamber) => ({
+      chamber: chamber.id,
+      papers: { found: chamber.id === OFFICE ? 3 : 0, total: chamber.findings.papers },
+      secrets: { found: chamber.id === OFFICE ? 1 : 0, total: chamber.findings.secrets },
+    })));
   });
 
   it('never reports more than the total, though every finding is kept', () => {

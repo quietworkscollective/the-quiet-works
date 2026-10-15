@@ -693,3 +693,32 @@ def triangle_count(obj):
     mesh = obj.data
     mesh.calc_loop_triangles()
     return len(mesh.loop_triangles)
+
+
+def refine(bm, max_edge):
+    """Splits every edge longer than `max_edge` so a flat or sparse part has vertices to bend."""
+    from math import ceil
+    long_edges = [e for e in bm.edges if e.calc_length() > max_edge]
+    if not long_edges:
+        return bm
+    bmesh.ops.subdivide_edges(bm, edges=long_edges, cuts=max(1, int(ceil(max(e.calc_length() for e in long_edges) / max_edge)) - 1), use_grid_fill=True)
+    return bm
+
+
+def wobble(bm, amp, wavelength, seed=0.0, axes='xyz'):
+    """Pushes every vertex by a smooth, low-frequency noise: real objects are never perfectly true. `amp` is the
+    peak shift in metres, `wavelength` the size of a swell in metres. Deterministic from `seed`."""
+    from mathutils import noise
+    off = Vector((seed * 1.713, seed * 2.371, seed * 3.119))
+    for v in bm.verts:
+        n = noise.noise_vector(v.co / wavelength + off)
+        v.co.x += n.x * amp if 'x' in axes else 0.0
+        v.co.y += n.y * amp if 'y' in axes else 0.0
+        v.co.z += n.z * amp if 'z' in axes else 0.0
+    return bm
+
+
+def lean(bm, deg, pivot=(0.0, 0.0, 0.0), axis='x'):
+    """Tilts a part a little about one axis, as a thing that has settled or been set down by hand."""
+    e = {'x': (deg, 0.0, 0.0), 'y': (0.0, deg, 0.0), 'z': (0.0, 0.0, deg)}[axis]
+    return rotate(bm, e, pivot)

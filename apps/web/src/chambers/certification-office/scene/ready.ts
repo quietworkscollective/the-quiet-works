@@ -5,6 +5,9 @@ export interface ReadyResources {
   scene: Scene;
   camera: Camera;
   fontsReady(): boolean;
+  renderReady?(): boolean;
+  acceptRenderTarget?(): boolean;
+  afterFrame?(complete: () => void): void;
   invalidate(): void;
   onError(error: unknown): void;
 }
@@ -58,14 +61,18 @@ export function whenOfficeReady(gl: WebGLRenderer, done: () => void, resources: 
   function prepare() {
     if (cancelled || compiling) return;
     const textures = sceneTextures(scene);
-    if (!resources.fontsReady() || textures.some(texture => !texture.isRenderTargetTexture && !imageComplete(texture.image))) {
+    if (!resources.fontsReady() || resources.renderReady?.() === false || textures.some(texture => !texture.isRenderTargetTexture && !imageComplete(texture.image))) {
       raf = requestAnimationFrame(prepare); return;
     }
     try {
       textures.forEach(texture => { if (!texture.isRenderTargetTexture) gl.initTexture(texture); });
       if (!textures.every(uploaded)) { raf = requestAnimationFrame(prepare); return; }
       compiling = true;
-      void gl.compileAsync(scene, camera).then(() => {
+      // Parallel compilation is optional; compile() prepares the same materials without requesting it.
+      const compilation = gl.extensions.has('KHR_parallel_shader_compile')
+        ? gl.compileAsync(scene, camera)
+        : Promise.resolve(gl.compile(scene, camera));
+      void compilation.then(() => {
         compiling = false;
         if (cancelled) return;
         versions = new Map(textures.map(texture => [texture, texture.version]));
@@ -75,7 +82,7 @@ export function whenOfficeReady(gl: WebGLRenderer, done: () => void, resources: 
   }
   const after: Scene['onAfterRender'] = (...args) => {
     previous.apply(scene, args);
-    if (cancelled || !prepared || args[0] !== gl || args[1] !== scene || args[2] !== camera || !isOnScreenSceneTarget(gl.getRenderTarget())) return;
+    if (cancelled || !prepared || args[0] !== gl || args[1] !== scene || args[2] !== camera || (!isOnScreenSceneTarget(gl.getRenderTarget()) && !resources.acceptRenderTarget?.())) return;
     const textures = sceneTextures(scene);
     if (!resources.fontsReady() || textures.length !== versions.size || textures.some(texture =>
       versions.get(texture) !== texture.version || !uploaded(texture) || (!texture.isRenderTargetTexture && !imageComplete(texture.image)))) {
@@ -84,7 +91,10 @@ export function whenOfficeReady(gl: WebGLRenderer, done: () => void, resources: 
     const frame = gl.info.render.frame;
     if (frame === lastFrame) return;
     lastFrame = frame; frames++;
-    if (frames === 2) { clean(); done(); }
+    if (frames === 2) {
+      clean();
+      if (resources.afterFrame) resources.afterFrame(done); else done();
+    }
     else resources.invalidate();
   };
   scene.onAfterRender = after;

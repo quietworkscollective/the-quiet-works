@@ -2,17 +2,17 @@ import { Matrix4 } from 'three';
 import { createBuckets, mergeBuckets, placeLocal, triangleTotal, type Buckets } from './buckets.ts';
 import { PlaqueLayout } from './artLayout.ts';
 import { MarksLayout } from './marksLayout.ts';
-import { BACK_WALL_MATRIX, buildLobby, END_WALL_MATRIX } from './architecture/lobby.ts';
+import { buildLobby, END_WALL_MATRIX } from './architecture/lobby.ts';
 import { buildCorridor } from './architecture/corridor.ts';
 import { buildClock, buildFanSwitch, buildPendants } from './architecture/lobbyDecor.ts';
-import { buildBench, buildFascia } from './architecture/lobbyFixtures.ts';
+import { buildFascia, buildHallTable } from './architecture/lobbyFixtures.ts';
 import { buildLobbyWindow } from './architecture/lobbyWindow.ts';
 import { buildBoardStatic } from './board.ts';
 import { buildCare } from './care.ts';
-import { buildGroupings } from './groupings.ts';
+import { buildAnnexSign, buildGroupings } from './groupings.ts';
 import { LETTERING_ASPECT } from './textures/lettering.ts';
 import { buildDoor, type DoorBuild } from './doorKit/build.ts';
-import { ENTRANCE_DOORS, INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
+import { INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
 import { buildOpening, doorMatrix, type OpeningStyles } from './doorKit/opening.ts';
 import { buildLamps, type DoorLamp, type Lamp } from './lighting.ts';
 import { hash2 } from './math.ts';
@@ -20,7 +20,7 @@ import { holeOf, placements, type Placement } from './openings.ts';
 
 /**
  * Everything static in the corridor world, built as plain data with no GL: geometry buckets
- * (one per shared material), the analytic lamps, the plaque layout and the four chamber doors'
+ * (one per shared material), the analytic lamps, the plaque layout and the chamber doors'
  * animatable parts. Kept separate from the React component so its size can be measured and
  * tested in node.
  */
@@ -51,18 +51,19 @@ const seedOf = (key: string): number => Math.floor(hash2(key.length * 131 + key.
 export function buildWorld(): WorldBuild {
   const buckets = createBuckets();
   const places = placements();
-  const plaques = new PlaqueLayout(places.flatMap((p) => (p.spec.plaque ? [p.spec.plaque] : [])));
+  const plaques = new PlaqueLayout([...places.flatMap((p) => (p.spec.plaque ? [p.spec.plaque] : [])), { text: 'ANNEX', code: 'BAY 6' }]);
   const marks = new MarksLayout(places.flatMap((p) => (p.far ? [] : (p.spec.character?.marks ?? []).flatMap((m) => (m.text ? [m.text] : [])))));
   buildCorridor(buckets, places);
   buildLobby(buckets, OPENING_STYLES);
   buildFascia(buckets, LETTERING_ASPECT);
-  buildBench(buckets);
+  buildHallTable(buckets);
   buildLobbyWindow(buckets, OPENING_STYLES.plaster, OPENING_STYLES.trim);
   buildPendants(buckets);
   buildFanSwitch(buckets);
   buildClock(buckets);
   buildBoardStatic(buckets);
   buildGroupings(buckets);
+  buildAnnexSign(buckets, plaques);
   buildCare(buckets);
 
   const chamberDoors: ChamberDoorBuild[] = [];
@@ -76,9 +77,6 @@ export function buildWorld(): WorldBuild {
     if (p.chamber) chamberDoors.push({ placement: p, build: built });
   }
 
-  // The entrance pair, shut, in the back wall.
-  const entrance = buildDoor(ENTRANCE_DOORS, { lod: 'near', plaques, animated: false, seed: 11 });
-  mergeBuckets(buckets, entrance.flat, BACK_WALL_MATRIX);
   // The inner pair, hinged at the end wall's jambs and standing open into the lobby.
   const inner = buildDoor(INNER_DOORS, { lod: 'near', plaques, animated: true, seed: 12 });
   for (const leaf of inner.leaves) {

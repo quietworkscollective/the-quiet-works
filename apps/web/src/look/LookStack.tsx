@@ -49,7 +49,7 @@ function deviceNow(): LookDevice {
 
 export function LookStack({ profile, reducedMotion, quality, device, lamps = NO_LAMPS }: LookStackProps) {
   const gl = useThree((s) => s.gl);
-  const detected = useMemo(() => chooseQuality(rendererName(gl.getContext()), window.location.search), [gl]);
+  const detected = useMemo(() => chooseQuality(rendererName(gl.getContext())), [gl]);
   const [detectedDevice] = useState(deviceNow);
   const tier = chooseTier(quality ?? detected, device ?? detectedDevice);
   useLookEnvironment(profile, tier !== 'lite');

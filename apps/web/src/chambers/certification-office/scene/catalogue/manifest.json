@@ -1,0 +1,600 @@
+[
+  {
+    "id": "office-stage-banker-lamp",
+    "sourceId": "banker-lamp",
+    "source": "apps/web/src/assets/original/banker-lamp.glb",
+    "sourceSha256": "1df128f19b9660b629b28fb4a94de5c0f1f35920df45047e5516517a3d1763e4",
+    "sha256": "4c9e48259ffa50ba1a4db3a2cfa4cf8535a3b49d06fe07b1e31b80e1d2b7a643",
+    "title": "banker lamp",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.30000808387800687,
+      0.4016000034492463,
+      0.18022791377670117
+    ],
+    "triangles": 3687,
+    "drawCalls": 3,
+    "compressedBytes": 50750,
+    "textureBytes": 11586,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-book-row-60",
+    "sourceId": "book-row-60",
+    "source": "apps/web/src/assets/original/book-row-60.glb",
+    "sourceSha256": "eb9abc2db77ecba8f91655d5eb72d419747f2940030655b752a5af86d29c4584",
+    "sha256": "28726706115a50d455d6708517388d9fb4afd1133d43b0d99f70370bc8df3906",
+    "title": "book row 60",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.5744225382804871,
+      0.3433527584082039,
+      0.2441124865125212
+    ],
+    "triangles": 652,
+    "drawCalls": 1,
+    "compressedBytes": 27745,
+    "textureBytes": 17386,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-book-row-90",
+    "sourceId": "book-row-90",
+    "source": "apps/web/src/assets/original/book-row-90.glb",
+    "sourceSha256": "7f946f63bb093410991b5eab25a2702c0ebe62eb90b178aec8c38f49fda93b1c",
+    "sha256": "32fd5a7ea63e9721b12ff020d0652379dc01e578dea43b1dc13264372fc59c85",
+    "title": "book row 90",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.8756791353225708,
+      0.33194404552878365,
+      0.25380183563214376
+    ],
+    "triangles": 808,
+    "drawCalls": 1,
+    "compressedBytes": 35998,
+    "textureBytes": 22450,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-bookcase-worn",
+    "sourceId": "bookcase-worn",
+    "source": "apps/web/src/assets/models/bookcase-worn.glb",
+    "sourceSha256": "2048c6e4fe7fd926943099c1b0284e799fccba8ae202bbae40bf85014fece017",
+    "sha256": "a2f63c41573fdc7cfed55187127a208920f4b52067051116633e6d20025732e8",
+    "title": "bookcase worn",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      1.373948749585806,
+      2.063442051410675,
+      0.5814313321535314
+    ],
+    "triangles": 2021,
+    "drawCalls": 1,
+    "compressedBytes": 63659,
+    "textureBytes": 34332,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-box-cardboard",
+    "sourceId": "box-cardboard",
+    "source": "apps/web/src/assets/models/box-cardboard.glb",
+    "sourceSha256": "a1063fd91b4ccf455b41c68340c1a034e14b78169c49c1c22f10d235aab6f192",
+    "sha256": "4ba9ab40a266110d18d0f72b29b00e7bb5280ec000877acc56661f107a31bad8",
+    "title": "box cardboard",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.38304169958488443,
+      0.33940045045832057,
+      0.5158704221248627
+    ],
+    "triangles": 432,
+    "drawCalls": 1,
+    "compressedBytes": 28597,
+    "textureBytes": 21442,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-box-file-a",
+    "sourceId": "box-file-a",
+    "source": "apps/web/src/assets/original/box-file-a.glb",
+    "sourceSha256": "63f73305f7a0abb633006ac347c5a338416624cce8a82dcd63214c09e7497778",
+    "sha256": "2021ce6119ed6398225c27875d9ef05899f70d583674aaa3a069b44b99c00991",
+    "title": "box file a",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.08699152509708569,
+      0.3264000117778778,
+      0.29261147941450727
+    ],
+    "triangles": 774,
+    "drawCalls": 1,
+    "compressedBytes": 22698,
+    "textureBytes": 12286,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-box-file-b",
+    "sourceId": "box-file-b",
+    "source": "apps/web/src/assets/original/box-file-b.glb",
+    "sourceSha256": "9893d52a958e75c62d0b5f8f279c94c5f28613ff0de39fa988b45dd168e3cd44",
+    "sha256": "b21bd3b226444dfc2b9db3d5b307263d86dd9f535100f275b9fe82c3cc959307",
+    "title": "box file b",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.07898053419463755,
+      0.31839999556541443,
+      0.2866056663472975
+    ],
+    "triangles": 770,
+    "drawCalls": 1,
+    "compressedBytes": 20586,
+    "textureBytes": 10072,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-clock-wall",
+    "sourceId": "clock-wall",
+    "source": "apps/web/src/assets/models/clock-wall.glb",
+    "sourceSha256": "9c3e53329623f909c3e814470d79afd1984d403158c2f0b98c1b78695cb611b7",
+    "sha256": "6b8eac4b47418a3b833928aa19562af02885e2139449d613ad5d74e898b4500d",
+    "title": "clock wall",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.3204909861087799,
+      0.3204909861087799,
+      0.03540688405144759
+    ],
+    "triangles": 2880,
+    "drawCalls": 2,
+    "compressedBytes": 57928,
+    "textureBytes": 8632,
+    "textureMemoryBytes": 524288
+  },
+  {
+    "id": "office-stage-column-radiator-10",
+    "sourceId": "column-radiator-10",
+    "source": "apps/web/src/assets/original/column-radiator-10.glb",
+    "sourceSha256": "2ae998096845d97fcc74156177355abdb8cfeef5cee5f414967a839b2bf7945d",
+    "sha256": "4f58bf6c242cc55e36c94ce3bb21317373f0f25279a7b0231b81482cb9eca0e5",
+    "title": "column radiator 10",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.582424771990911,
+      0.6875000001378357,
+      0.10599841305875869
+    ],
+    "triangles": 4000,
+    "drawCalls": 1,
+    "compressedBytes": 69352,
+    "textureBytes": 27972,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-filing-cabinet-4",
+    "sourceId": "filing-cabinet-4",
+    "source": "apps/web/src/assets/original/filing-cabinet-4.glb",
+    "sourceSha256": "f9dca6fbcefcecf3a21d3ef169b97afe36566d7c4852cff083bd2084e25056b5",
+    "sha256": "7b0cb010a6c7348a667da4cd6cf7c0d42358153367ce2e8b2996e2814b965527",
+    "title": "filing cabinet 4",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.4720214104621117,
+      1.3250000476837158,
+      0.632313783551447
+    ],
+    "triangles": 2438,
+    "drawCalls": 1,
+    "compressedBytes": 50192,
+    "textureBytes": 19748,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-ledger-a",
+    "sourceId": "ledger-a",
+    "source": "apps/web/src/assets/original/ledger-a.glb",
+    "sourceSha256": "3baabc841b14b18e360f9bf89dcf5207e499316c0f9d4e89c935cb14e0c516ab",
+    "sha256": "dd2e8c6f1fd13d36c69b8be0f2d2f93fd51adb697fea4004c10258d3033a894b",
+    "title": "ledger a",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.05599243273743632,
+      0.3720000088214874,
+      0.26976727224390956
+    ],
+    "triangles": 726,
+    "drawCalls": 1,
+    "compressedBytes": 19927,
+    "textureBytes": 9944,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-ledger-b",
+    "sourceId": "ledger-b",
+    "source": "apps/web/src/assets/original/ledger-b.glb",
+    "sourceSha256": "4f7611bb47854c50e1f3b295ee0c05191c7a87bdfbea2210ba86d0d47b2ec845",
+    "sha256": "a4a037797aaae98281e4b9b7cb23f0b7bd8f551a3cd710c88505657a3c7af13d",
+    "title": "ledger b",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.03998193298598526,
+      0.33799999952316284,
+      0.2137527387346715
+    ],
+    "triangles": 534,
+    "drawCalls": 1,
+    "compressedBytes": 17576,
+    "textureBytes": 9716,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-ledger-binders",
+    "sourceId": "ledger-binders",
+    "source": "apps/web/src/assets/models/ledger-binders.glb",
+    "sourceSha256": "a779c9b6d05e9249a133da7a91d356e271b1ad92a9d057d5c9fc4ac447d694f0",
+    "sha256": "f0fb7692c7a55938a9c0d1dea507418aa84b2a54b3bd395bf4c64b2c5a58cee9",
+    "title": "ledger binders",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.5828594184440471,
+      0.0248487325743744,
+      0.19937725900112296
+    ],
+    "triangles": 1778,
+    "drawCalls": 1,
+    "compressedBytes": 54138,
+    "textureBytes": 24282,
+    "textureMemoryBytes": 2097152
+  },
+  {
+    "id": "office-stage-ledger-c",
+    "sourceId": "ledger-c",
+    "source": "apps/web/src/assets/original/ledger-c.glb",
+    "sourceSha256": "b0d9d424d3fe8ac5975c1ebbd66ec9e4f2159905c5779f1924b2c3cb4a51e1ce",
+    "sha256": "969ff330d7c0f14d193d5114cb67f08700a5712492ea898c656ec7b36d0b57c4",
+    "title": "ledger c",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.07118478812947862,
+      0.36399999260902405,
+      0.2542345601016304
+    ],
+    "triangles": 1014,
+    "drawCalls": 1,
+    "compressedBytes": 27832,
+    "textureBytes": 14378,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-notepads",
+    "sourceId": "notepads",
+    "source": "apps/web/src/assets/models/notepads.glb",
+    "sourceSha256": "78839a6f0b175a3bbb77806adfee7f97bef4b3cc7ec77814e0461f97f14ecbe3",
+    "sha256": "d01ff028c1958457ec4250b08246f6cab1551823dc3f8e1a42590eeb746db26a",
+    "title": "notepads",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      1.1027819045943907,
+      0.02194322952347004,
+      0.6598450276643459
+    ],
+    "triangles": 87,
+    "drawCalls": 1,
+    "compressedBytes": 6250,
+    "textureBytes": 3782,
+    "textureMemoryBytes": 524288
+  },
+  {
+    "id": "office-stage-office-desk-metal",
+    "sourceId": "office-desk-metal",
+    "source": "apps/web/src/assets/models/office-desk-metal.glb",
+    "sourceSha256": "a359ee1f1fdae0c56211041b90e64d90857a7c8dc6d6b26f708585fe15fa5a8d",
+    "sha256": "e8f655beded6eb25a71bbb80eb9916635a09ba2d990f1d0e3e0755e78ab8a244",
+    "title": "office desk metal",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      2,
+      0.7874385814996796,
+      0.9471114230780968
+    ],
+    "triangles": 4878,
+    "drawCalls": 1,
+    "compressedBytes": 107261,
+    "textureBytes": 46404,
+    "textureMemoryBytes": 4194304
+  },
+  {
+    "id": "office-stage-plant-succulent",
+    "sourceId": "plant-succulent",
+    "source": "apps/web/src/assets/models/plant-succulent.glb",
+    "sourceSha256": "21d48ee33d22659df52c3288a44e4314c0ce032bd417334a0290b5b4de17c5a2",
+    "sha256": "b1859d2c3cab258a95ae41c822a0121e4baec02173ebc2b2d53cd6a94073b92d",
+    "title": "plant succulent",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.16716858577059254,
+      0.26707035835909343,
+      0.18428482322150647
+    ],
+    "triangles": 2777,
+    "drawCalls": 1,
+    "compressedBytes": 55581,
+    "textureBytes": 14418,
+    "textureMemoryBytes": 524288
+  },
+  {
+    "id": "office-stage-rotary-telephone",
+    "sourceId": "rotary-telephone",
+    "source": "apps/web/src/assets/original/rotary-telephone.glb",
+    "sourceSha256": "909a66b72f10943a51f6319f978c65a48d2512dfad44dc203bb9f5e70c5b44b6",
+    "sha256": "b1f0b93904b32c3182d4aa1a0b1ec7334d564302af404c4385923462c85a9a5f",
+    "title": "rotary telephone",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.26541242003440857,
+      0.19470759461614162,
+      0.1827034072785461
+    ],
+    "triangles": 4000,
+    "drawCalls": 1,
+    "compressedBytes": 79853,
+    "textureBytes": 26334,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-service-bell",
+    "sourceId": "service-bell",
+    "source": "apps/web/src/assets/original/service-bell.glb",
+    "sourceSha256": "dc8ae9facbf781b1693525f44ba57e073e49006dce5a6d928f3a8d3b42c6d50c",
+    "sha256": "01702bcfe6bc2668c9eff786eb37a6429e2e177e8188080fe26bccf3bbd68149",
+    "title": "service bell",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.09600000083446503,
+      0.06610162721113316,
+      0.09547264098613581
+    ],
+    "triangles": 2358,
+    "drawCalls": 1,
+    "compressedBytes": 43190,
+    "textureBytes": 16222,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-stamp-rack",
+    "sourceId": "stamp-rack",
+    "source": "apps/web/src/assets/original/stamp-rack.glb",
+    "sourceSha256": "6f4faf8818267606be18b11acb5ff6a3f4c7fccc831863230f31bf90bd6bd369",
+    "sha256": "a7668284e4b3d366da173741e7dc772ffdc39e7487eb9f79d6746ff095f09048",
+    "title": "stamp rack",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.25,
+      0.0803018280587176,
+      0.08619190038758508
+    ],
+    "triangles": 4124,
+    "drawCalls": 1,
+    "compressedBytes": 64925,
+    "textureBytes": 20270,
+    "textureMemoryBytes": 1048576
+  },
+  {
+    "id": "office-stage-stapler-teal",
+    "sourceId": "stapler-teal",
+    "source": "apps/web/src/assets/models/stapler-teal.glb",
+    "sourceSha256": "1df421bed711d226d2dd7faa11b8fc3ce831fbb5fd882275b52656a2c24080a7",
+    "sha256": "398bfb945a8f6f3637c50ba53c9ad7eca154dd34e5efd098730d666da44b8655",
+    "title": "stapler teal",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.20846412647573165,
+      0.0952584418995065,
+      0.04740973145228896
+    ],
+    "triangles": 2895,
+    "drawCalls": 1,
+    "compressedBytes": 58418,
+    "textureBytes": 16082,
+    "textureMemoryBytes": 524288
+  },
+  {
+    "id": "office-stage-stationery-set",
+    "sourceId": "stationery-set",
+    "source": "apps/web/src/assets/models/stationery-set.glb",
+    "sourceSha256": "abac5518c764aa4f35b54da053453f9aedc812b48f7a4bb866bf9c72ecd9a102",
+    "sha256": "f1312085ce6712a58776427d8f03fed1eb70907a6b33e236e1f56afa3ff4480f",
+    "title": "stationery set",
+    "kind": "model",
+    "origin": "third-party",
+    "licence": "CC0-1.0",
+    "copyright": "CC0 1.0; attribution in assets/THIRD_PARTY.md.",
+    "tags": [
+      "office"
+    ],
+    "tier": "prop",
+    "dimensions": [
+      0.30184055951317745,
+      0.16435557917521015,
+      0.08361481852782103
+    ],
+    "triangles": 2747,
+    "drawCalls": 1,
+    "compressedBytes": 47609,
+    "textureBytes": 11768,
+    "textureMemoryBytes": 524288
+  },
+  {
+    "id": "office-stage-typewriter",
+    "sourceId": "typewriter",
+    "source": "apps/web/src/assets/original/typewriter.glb",
+    "sourceSha256": "f8bf7bc9c4acb824e74e30977332d1302520872918bd61ed803674786c61b532",
+    "sha256": "d2f4036f657cec535074f48e08f45c9fc0f8b78cd09461c08e7820a36284e406",
+    "title": "typewriter",
+    "kind": "model",
+    "origin": "original",
+    "licence": "CC-BY-4.0",
+    "copyright": "© 2026 Asiri Dalugoda. CC BY 4.0; texture resolution and geometry packing adapted for the Office stage.",
+    "tags": [
+      "office"
+    ],
+    "tier": "hero",
+    "dimensions": [
+      0.42100000381469727,
+      0.3530839291003661,
+      0.37094305582244713
+    ],
+    "triangles": 4110,
+    "drawCalls": 1,
+    "compressedBytes": 66950,
+    "textureBytes": 18432,
+    "textureMemoryBytes": 1048576
+  }
+]

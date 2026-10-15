@@ -1,6 +1,9 @@
 import { atlasUvs } from '../atlasLayout.ts';
+import { Vector3 } from 'three';
+import type { Vec3 } from '../../math.ts';
 import { IVORY, linear, METAL, mulRgb, wood } from '../colours.ts';
 import { loft } from '../kit.ts';
+import { fitMatrix, placeModel, type Fit } from '../modelKit.ts';
 import type { PropModel } from '../model.ts';
 import { both, plateau, ramp, turned, Y, Z, rad, type PoseSet } from '../motion.ts';
 
@@ -34,11 +37,18 @@ export const cricketBat: PropModel = {
     { name: 'button', pivot: [BUTTON.x, BUTTON_Y, BUTTON.z] },
   ],
 
-  build(a) {
+  build(a, _placement, kit) {
     const bat = a.part('bat');
     const button = a.part('button');
+    const model = kit?.get('cricket-bat');
 
     a.on(bat, () => {
+      if (model) {
+        // The modelled bat: toe on the shelf, face to the room, maker's mark showing; its front is 0.019 m
+        // in front of its own centre line, so it is set back to match the blade it replaces.
+        placeModel(a, model, { at: [CX, TOE, CZ + 0.011 - 0.019] });
+        return;
+      }
       // The blade: a flat face, a back with a raised spine, a toe oiled darker than the rest.
       const grainTint = (p: readonly [number, number, number]) => (p[1] < TOE + 0.07 ? WILLOW_OILED : WILLOW);
       loft(
@@ -107,15 +117,37 @@ export const cricketBat: PropModel = {
     a.sphere('brass', { at: [bx, by + 0.072, 0.0495] }, 0.0055, 8, 6, METAL.brass);
     a.rod('matte', [bx - 0.018, by + 0.064, bz + 0.011], [bx, by + 0.072, 0.0495], 0.0009, 4, TWINE);
     a.rod('matte', [bx + 0.018, by + 0.064, bz + 0.011], [bx, by + 0.072, 0.0495], 0.0009, 4, TWINE);
-    a.box('matte', [bx, by, bz], [bw, bh, 0.02], 0.002, linear('#46202A'));
-    a.span('matte', [bx - bw / 2 + 0.004, bx + bw / 2 - 0.003], [by - bh / 2 + 0.003, by + bh / 2 - 0.003], [bz + 0.0099, bz + 0.0103], 0, linear('#D9D1B8'), undefined, []);
-    a.quad('print', [bx - bw / 2 + 0.006, by - bh / 2 + 0.002, bz + 0.0108], [bx + bw / 2, by - bh / 2 + 0.002, bz + 0.0108], [bx + bw / 2, by + bh / 2 - 0.002, bz + 0.0108], [bx - bw / 2 + 0.006, by + bh / 2 - 0.002, bz + 0.0108], [0, 0, 1], undefined, atlasUvs('scoreCover'));
-    a.span('matte', [bx - bw / 2 - 0.0005, bx - bw / 2 + 0.006], [by - bh / 2, by + bh / 2], [bz - 0.0105, bz + 0.0108], 0.0008, linear('#2A2F3B'));
+    const book = kit?.get('scorebook');
+    if (book) {
+      // The modelled book stands up on its hook, cover to the room, scaled to the book it replaces; the
+      // blank label on its cover has the drafted words pasted over it.
+      const fit: Fit = { at: [bx, by + 0.0108, bz - 0.01], lean: Math.PI / 2, scale: 0.36 };
+      placeModel(a, book, fit);
+      const m = fitMatrix(fit);
+      // The label's rectangle in the book's own space (flat on its cover), then into the prop's.
+      const corner = (x: number, z: number): Vec3 => {
+        const v = new Vector3(x, 0.0275, z).applyMatrix4(m);
+        return [v.x, v.y, v.z];
+      };
+      const [lx, lz, lw, ld] = [0.0115, -0.073, 0.1, 0.075];
+      a.quad('print', corner(lx - lw / 2, lz + ld / 2), corner(lx + lw / 2, lz + ld / 2), corner(lx + lw / 2, lz - ld / 2), corner(lx - lw / 2, lz - ld / 2), [0, 0, 1], undefined, atlasUvs('scoreLabel'));
+    } else {
+      a.box('matte', [bx, by, bz], [bw, bh, 0.02], 0.002, linear('#46202A'));
+      a.span('matte', [bx - bw / 2 + 0.004, bx + bw / 2 - 0.003], [by - bh / 2 + 0.003, by + bh / 2 - 0.003], [bz + 0.0099, bz + 0.0103], 0, linear('#D9D1B8'), undefined, []);
+      a.quad('print', [bx - bw / 2 + 0.006, by - bh / 2 + 0.002, bz + 0.0108], [bx + bw / 2, by - bh / 2 + 0.002, bz + 0.0108], [bx + bw / 2, by + bh / 2 - 0.002, bz + 0.0108], [bx - bw / 2 + 0.006, by + bh / 2 - 0.002, bz + 0.0108], [0, 0, 1], undefined, atlasUvs('scoreCover'));
+      a.span('matte', [bx - bw / 2 - 0.0005, bx - bw / 2 + 0.006], [by - bh / 2, by + bh / 2], [bz - 0.0105, bz + 0.0108], 0.0008, linear('#2A2F3B'));
+    }
     // Pencil on a string from the spine, hanging down alongside.
     a.rod('matte', [bx + bw / 2 - 0.004, by + bh / 2 - 0.004, bz + 0.011], [bx + bw / 2 + 0.012, by - bh / 2 - 0.03, bz + 0.012], 0.0007, 4, TWINE);
     a.cyl('wood', { at: [bx + bw / 2 + 0.012, by - bh / 2 - 0.085, bz + 0.012], rot: [0, 0, rad(2)] }, 0.0034, 0.0034, 0.105, 6, wood('#B33B2A'));
     a.cyl('wood', { at: [bx + bw / 2 + 0.012, by - bh / 2 - 0.139, bz + 0.012] }, 0.0012, 0.0034, 0.008, 6, wood('#D9C08C'));
-    a.hit([-0.22, TOE - 0.02, 0.03], [0.08, TOP + 0.02, 0.12]);
+
+    // On the floor beside it: a set of stumps standing against the wall, and a ball at their foot.
+    const stumps = kit?.get('cricket-stumps');
+    const ball = kit?.get('cricket-ball');
+    if (stumps) placeModel(a, stumps, { at: [-0.3, 0, 0.095] });
+    if (ball) placeModel(a, ball, { at: [-0.085, 0, 0.14], yaw: 0.6 });
+    a.hit([-0.46, 0, 0.03], [0.08, TOP + 0.02, 0.17]);
   },
 
   pose(motion, _ambient, reduced, phase) {

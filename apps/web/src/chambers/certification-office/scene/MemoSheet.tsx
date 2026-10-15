@@ -161,7 +161,7 @@ export function MemoSheet() {
         if (event.type === 'memo-revealed') {
           s.revealed = true;
           s.slideAt = event.slideAt;
-          s.landedAt = event.slideAt + TIMING.memoSlideMs;
+          s.landedAt = event.slideAt + (motion.reduced ? 0 : TIMING.memoSlideMs);
         } else if (event.type === 'reset') {
           s.revealed = false;
           s.slideAt = Number.POSITIVE_INFINITY;
@@ -171,7 +171,7 @@ export function MemoSheet() {
           cursor.hover('memo', false);
         }
       }),
-    [director, cursor],
+    [director, cursor, motion],
   );
 
   useEffect(() => () => cursor.hover('memo', false), [cursor]);
@@ -217,10 +217,10 @@ export function MemoSheet() {
       g.visible = false;
     } else {
       g.visible = now >= s.slideAt;
-      const t = clamp01((now - s.slideAt) / TIMING.memoSlideMs);
+      const t = motion.reduced ? Number(now >= s.slideAt) : clamp01((now - s.slideAt) / TIMING.memoSlideMs);
       if (now < s.slideAt) {
         active = true;
-      } else if (t < 1 || now < s.landedAt + 220) {
+      } else if (!motion.reduced && (t < 1 || now < s.landedAt + 220)) {
         active = true;
         // Fast out of the slot, decelerating as the paper loses speed to friction.
         const e = 1 - Math.pow(1 - t, 2.3);
@@ -250,7 +250,7 @@ export function MemoSheet() {
     memo.rimMaterial.opacity = s.hover * 0.55;
 
     // A soft warm pool settles under the memo once it lands: the next thing to touch.
-    const pool = s.revealed ? smoothstep(s.landedAt - 150, s.landedAt + 700, now) : 0;
+    const pool = s.revealed ? motion.reduced ? Number(now >= s.slideAt) : smoothstep(s.landedAt - 150, s.landedAt + 700, now) : 0;
     memo.poolMaterial.opacity = pool * 0.55;
     if (s.revealed && pool < 1) active = true;
 

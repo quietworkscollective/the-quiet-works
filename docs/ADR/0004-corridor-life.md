@@ -123,6 +123,13 @@ At the far end of the walkable corridor (bay 6), a small Annex holds rooms made 
   the same budgets, accessibility and text-mode rules as every chamber.
 - **Timing:** built after the current section ships.
 
+### Annex release gate
+The Exchange and Outline Room remain sealed in production until each room is approved for release.
+The chamber registry keeps one `releaseOpen` flag per room; changing a room's flag to `true` is the
+single release switch. Development builds continue to open both rooms for review. In production,
+their corridor doors say "not yet open", their direct URLs show the not-found page, and their room
+modules are not requested.
+
 ### Budgets
 - **The whole corridor:** at most 125 draw calls and 210k triangles, measured in the richest view.
   New doors and props get about 25 draw calls and 45k triangles.

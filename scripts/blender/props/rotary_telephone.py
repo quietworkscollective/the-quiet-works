@@ -173,7 +173,7 @@ def build(spec, root):
 
     return Built(root, [base, handset, dial], moving=['handset', 'dial'], stage='desk',
                  view=dict(target=(0, 0, 0.07), distance=1.0, azimuth=26, lens=85),
-                 detail=dict(target=(0.0, -0.05, 0.06), distance=0.38, azimuth=18, elevation=22),
+                 detail=dict(target=(0.0, -0.05, 0.06), distance=0.4, azimuth=18, elevation=22),
                  notes={'handset': 'lifts off the cradle; pivot where it rests',
                         'dial': 'rotates about its own local Z axis (the dial-plane normal)'})
 

@@ -9,6 +9,7 @@
   - ADR 0001: free look, first-person camera.
   - ADR 0004: starting view and budgets.
   - ADR 0006: baking and atmosphere.
+  - ADR 0008: bake atlas coverage follows the visible stage.
 - **Applies to:** the corridor, every chamber, and Room Kit rooms (ADR 0005).
 
 ## Context
