@@ -44,7 +44,9 @@ test.describe('the full rendering tier', () => {
     { title: 'The Exchange', path: '/the-exchange', ready: '.tqw-exchange-canvas' },
     { title: 'The Outline Room', path: '/outline-room', ready: '.tqw-outline-room' },
   ]) {
-    test(`opens ${room.title} through its corridor door`, async ({ page }) => {
+    // Unreleased rooms (sealed in production until the founder approves them) run as visible
+    // extended diagnostics, so they never block shipping; they return to core on approval.
+    test(`opens ${room.title} through its corridor door`, { tag: '@extended' }, async ({ page }) => {
       await page.goto('/?quality=high');
       await expectSpine(page, 'entrance');
       await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));

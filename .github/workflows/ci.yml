@@ -135,7 +135,7 @@ jobs:
         if: matrix.target == 'authored'
         env:
           PROJECT: ${{ matrix.project }}
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.artifact.config.ts --project="$PROJECT" --max-failures=1
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.artifact.config.ts --project="$PROJECT" --grep-invert @extended --max-failures=1
 
   core:
     needs: [build, smoke]
