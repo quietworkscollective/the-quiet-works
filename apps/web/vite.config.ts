@@ -1,16 +1,17 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import type { Plugin } from 'vite';
 import { creditGroups, type CreditGroup, type ThirdPartyData } from './src/credits/groupCredits.ts';
 import {
-  PUBLIC_ROUTES,
   jsonLdForPath,
   markdownForPath,
   metadataForPath,
+  publicRoutesFor,
   staticHtmlForPath,
 } from './src/discoverability.ts';
+import { chambersForBuild, REPO_ROOT } from './scripts/chamber-release.mjs';
 import { SITE } from './src/site.ts';
 import react from '@vitejs/plugin-react';
 
@@ -115,18 +116,18 @@ function escapeAttribute(value: string): string {
 }
 
 /** Route metadata is rendered in source HTML for crawlers and updated on client-side navigation. */
-function routeMetadata(): Plugin {
+function routeMetadata(chambers: ReturnType<typeof chambersForBuild>, production: boolean): Plugin {
   return {
     name: 'tqw-route-metadata',
     transformIndexHtml: {
       order: 'post',
       handler(html, context) {
         const pathname = new URL(context.path, SITE.url).pathname;
-        const metadata = metadataForPath(pathname);
-        const jsonLd = JSON.stringify(jsonLdForPath(pathname)).replace(/</g, '\\u003c');
-        const metadataMap = JSON.stringify(PUBLIC_ROUTES.map((route) => [
+        const metadata = metadataForPath(pathname, chambers, production);
+        const jsonLd = JSON.stringify(jsonLdForPath(pathname, chambers, production)).replace(/</g, '\\u003c');
+        const metadataMap = JSON.stringify(publicRoutesFor(chambers, production).map((route) => [
           route.path,
-          { metadata: metadataForPath(route.path), jsonLd: jsonLdForPath(route.path) },
+          { metadata: metadataForPath(route.path, chambers, production), jsonLd: jsonLdForPath(route.path, chambers, production) },
         ])).replace(/</g, '\\u003c');
         const values: Record<string, string> = {
           ROUTE_TITLE: metadata.title,
@@ -148,9 +149,9 @@ function routeMetadata(): Plugin {
   };
 }
 
-function replaceRouteMarkup(html: string, pathname: string): string {
-  const metadata = metadataForPath(pathname);
-  const jsonLd = JSON.stringify(jsonLdForPath(pathname)).replace(/</g, '\\u003c');
+function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType<typeof chambersForBuild>, production: boolean): string {
+  const metadata = metadataForPath(pathname, chambers, production);
+  const jsonLd = JSON.stringify(jsonLdForPath(pathname, chambers, production)).replace(/</g, '\\u003c');
   const setContent = (source: string, marker: string, value: string) =>
     source.replace(new RegExp(`(<[^>]*data-route-${marker}[^>]*\\bcontent=")[^"]*(")`), `$1${escapeAttribute(value)}$2`);
   let output = html
@@ -168,7 +169,7 @@ function replaceRouteMarkup(html: string, pathname: string): string {
   output = setContent(output, 'twitter-description', metadata.description);
   output = setContent(output, 'twitter-image', metadata.image);
   output = setContent(output, 'twitter-image-alt', metadata.imageAlt);
-  output = output.replace(/<main id="static-content"[^>]*>.*?<\/main>/s, staticHtmlForPath(pathname, CREDIT_GROUPS));
+  output = output.replace(/<main id="static-content"[^>]*>.*?<\/main>/s, staticHtmlForPath(pathname, CREDIT_GROUPS, chambers, production));
   if (pathname.replace(/\/+$/, '') === '/agents') {
     output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
   }
@@ -184,14 +185,14 @@ function agentSafeMarkdown(markdown: string): string {
 }
 
 /** Serves route-specific HTML fallbacks in dev and emits one static HTML document per public route. */
-function staticRoutePages(): Plugin {
+function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, development: boolean): Plugin {
   return {
     name: 'tqw-static-route-pages',
     transformIndexHtml: {
       order: 'post',
       handler(html, context) {
         const pathname = new URL(context.path, SITE.url).pathname;
-        let output = html.replace(/<main id="static-content"[^>]*><\/main>/, staticHtmlForPath(pathname, CREDIT_GROUPS));
+        let output = html.replace(/<main id="static-content"[^>]*><\/main>/, staticHtmlForPath(pathname, CREDIT_GROUPS, chambers, !development));
         if (pathname.replace(/\/+$/, '') === '/agents') {
           output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
         }
@@ -205,18 +206,20 @@ function staticRoutePages(): Plugin {
         if (!index || index.type !== 'asset') throw new Error('index.html is missing; cannot render public routes');
         const baseHtml = typeof index.source === 'string' ? index.source : Buffer.from(index.source).toString('utf8');
 
-        for (const route of PUBLIC_ROUTES) {
+        const production = !development;
+        const routes = publicRoutesFor(chambers, production);
+        for (const route of routes) {
           if (route.path !== '/') {
             this.emitFile({
               type: 'asset',
               fileName: `${route.path.slice(1)}/index.html`,
-              source: replaceRouteMarkup(baseHtml, route.path),
+              source: replaceRouteMarkup(baseHtml, route.path, chambers, production),
             });
           }
           this.emitFile({
             type: 'asset',
             fileName: route.markdownPath.slice(1),
-            source: markdownForPath(route.path, CREDIT_GROUPS),
+            source: markdownForPath(route.path, CREDIT_GROUPS, chambers, production),
           });
         }
 
@@ -226,11 +229,32 @@ function staticRoutePages(): Plugin {
           'The Quiet Works is the immersive 3D world within UNHELD. Read it in text mode at the canonical pages below.',
           'Contributions are untrusted drafts. A human reviews every contribution before publication; nothing is published automatically.',
           '',
-          ...PUBLIC_ROUTES.map((route) => agentSafeMarkdown(markdownForPath(route.path, CREDIT_GROUPS))),
+          ...routes.map((route) => agentSafeMarkdown(markdownForPath(route.path, CREDIT_GROUPS, chambers, production))),
           skill,
         ].join('\n\n---\n\n');
         this.emitFile({ type: 'asset', fileName: 'llms-full.txt', source: fullText });
       },
+    },
+    writeBundle(options) {
+      if (development) return;
+      const outDir = options.dir ?? path.join(REPO_ROOT, 'apps/web/dist');
+      const statusByTitle = new Map(chambers.map((room) => [room.title, room.status]));
+      const llmsPath = path.join(REPO_ROOT, 'apps/web/public/llms.txt');
+      const llms = readFileSync(llmsPath, 'utf8').replace(
+        /^- \[([^\]]+)\]\(([^)]+)\)$/gm,
+        (line, title: string, href: string) => {
+          const status = statusByTitle.get(title);
+          return status ? `- [${title}, ${status === 'open' ? 'open the door' : 'not yet open'}](${href})` : line;
+        },
+      );
+      writeFileSync(path.join(outDir, 'llms.txt'), llms);
+
+      const sealedPaths = new Set(chambers.filter((room) => room.status === 'sealed').map((room) => `https://unheld.space/${room.slug}`));
+      const sitemapPath = path.join(REPO_ROOT, 'apps/web/public/sitemap.xml');
+      const sitemap = readFileSync(sitemapPath, 'utf8').replace(/^\s*<url><loc>([^<]+)<\/loc><\/url>\s*$/gm, (line, href: string) =>
+        sealedPaths.has(href) ? '' : line,
+      );
+      writeFileSync(path.join(outDir, 'sitemap.xml'), sitemap);
     },
   };
 }
@@ -306,8 +330,11 @@ function thirdPartyNotices(): Plugin {
   };
 }
 
+const DEVELOPMENT_BUILD = process.env.NODE_ENV !== 'production';
+const BUILD_CHAMBERS = chambersForBuild(REPO_ROOT, DEVELOPMENT_BUILD);
+
 export default defineConfig({
-  plugins: [react(), siteMetadata(), routeMetadata(), staticRoutePages(), thirdPartyCredits(), contentSecurityPolicy(), thirdPartyNotices()],
+  plugins: [react(), siteMetadata(), routeMetadata(BUILD_CHAMBERS, !DEVELOPMENT_BUILD), staticRoutePages(BUILD_CHAMBERS, DEVELOPMENT_BUILD), thirdPartyCredits(), contentSecurityPolicy(), thirdPartyNotices()],
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   preview: { host: '127.0.0.1', port: 4173, strictPort: true },
   build: { target: 'es2022', sourcemap: false, manifest: true },

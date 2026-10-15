@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { CHAMBERS } from '@tqw/engine';
+import { publicDoorDescription } from './chamberCopy.ts';
 import { DoorList, doorLabel } from './DoorList.tsx';
 import type { DoorListItem, DoorListProps } from './types.ts';
 
@@ -80,6 +81,13 @@ describe('DoorList variants', () => {
       expect(within(items[index]!).getByText(chamber.doorDescription)).toBeTruthy();
     });
     expect(screen.getByRole('navigation', { name: 'Doors' }).className).toContain('tqw-doors--list');
+  });
+
+  it('shows only the release status for sealed door descriptions in production', () => {
+    const sealed = doors.find((door) => door.id === 'exchange')!;
+    const open = doors.find((door) => door.id === 'certification-office')!;
+    expect(publicDoorDescription({ ...sealed, status: 'sealed' }, true)).toBe('Not yet open.');
+    expect(publicDoorDescription(open, true)).toBe(open.description);
   });
 
   it('keeps the comma between title and status as real text, for the machine', () => {

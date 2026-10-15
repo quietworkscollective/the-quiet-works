@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { BOARD, CHAMBERS } from '@tqw/engine';
+import { publicClipping } from './chamberCopy.ts';
 import { NoticeBoard } from './NoticeBoard.tsx';
 
 function setup(open = true) {
@@ -53,6 +54,19 @@ describe('NoticeBoard', () => {
       expect(within(clipping).getByText(chamber.clipping.dek)).toBeTruthy();
       expect(within(clipping).getByText(chamber.clipping.dateline)).toBeTruthy();
     });
+  });
+
+  it('reduces production-sealed clippings to the room name and status', () => {
+    const sealedRooms = CHAMBERS.map((chamber) => chamber.id === 'certification-office'
+      ? chamber
+      : { ...chamber, status: 'sealed' as const });
+    for (const chamber of sealedRooms.filter((entry) => entry.status === 'sealed')) {
+      const clipping = publicClipping(chamber, true);
+      expect(clipping.headline).toBe(chamber.title.toUpperCase());
+      expect(clipping.dek).toBe('Not yet open.');
+      expect(clipping.dateline).toBe('');
+      expect(clipping.headline).not.toMatch(/now open/i);
+    }
   });
 
   it('cuts the clippings from bone, buff and grey-green stock in turn', () => {

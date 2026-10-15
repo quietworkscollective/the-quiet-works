@@ -12,6 +12,7 @@ import {
   type ChamberEntry,
   type PageId,
 } from '@tqw/engine';
+import { publicChambers } from '../../../packages/ui/src/spine/chamberCopy.ts';
 import type { CreditGroup } from './credits/groupCredits.ts';
 import { SITE } from './site.ts';
 
@@ -64,7 +65,8 @@ interface StaticDocument {
   blocks: readonly StaticBlock[];
 }
 
-const chamberDescription = (chamber: ChamberEntry): string => {
+const chamberDescription = (chamber: ChamberEntry, production: boolean): string => {
+  if (production && chamber.status === 'sealed') return 'Not yet open.';
   switch (chamber.id) {
     case 'certification-office':
       return TEXT_MODE_SCENE.join(' ');
@@ -95,29 +97,34 @@ const pageRoutes: readonly PublicRoute[] = [
   { path: '/agents', markdownPath: '/agents.md', key: 'agents', title: 'Agents — UNHELD', description: AGENTS_PAGE.body[0] },
 ];
 
-export const PUBLIC_ROUTES: readonly PublicRoute[] = [
-  ...pageRoutes,
-  ...CHAMBERS.map((chamber): PublicRoute => ({
-    path: `/${chamber.slug}`,
-    markdownPath: `/${chamber.slug}.md`,
-    key: `chamber:${chamber.id}`,
-    title: `${chamber.title} — ${SITE.world} — ${SITE.name}`,
-    description: chamberDescription(chamber),
-  })),
-];
+export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, production = false): readonly PublicRoute[] {
+  const publicEntries = production ? publicChambers(chambers, true) : chambers;
+  return [
+    ...pageRoutes,
+    ...publicEntries.map((chamber): PublicRoute => ({
+      path: `/${chamber.slug}`,
+      markdownPath: `/${chamber.slug}.md`,
+      key: `chamber:${chamber.id}`,
+      title: `${chamber.title} — ${SITE.world} — ${SITE.name}`,
+      description: chamberDescription(chamber, production),
+    })),
+  ];
+}
+
+export const PUBLIC_ROUTES: readonly PublicRoute[] = publicRoutesFor();
 
 function normalizedPath(pathname: string): string {
   const pathOnly = pathname.split(/[?#]/, 1)[0] || '/';
   return pathOnly.replace(/\/+$/, '') || '/';
 }
 
-function routeForPath(pathname: string): PublicRoute {
+function routeForPath(pathname: string, chambers: readonly ChamberEntry[], production: boolean): PublicRoute {
   const path = normalizedPath(pathname);
-  return PUBLIC_ROUTES.find((route) => route.path === path) ?? homeRoute;
+  return publicRoutesFor(chambers, production).find((route) => route.path === path) ?? homeRoute;
 }
 
-export function metadataForPath(pathname: string): RouteMetadata {
-  const route = routeForPath(pathname);
+export function metadataForPath(pathname: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): RouteMetadata {
+  const route = routeForPath(pathname, chambers, production);
   const canonical = new URL(route.path, SITE.url).toString();
   return {
     title: route.title,
@@ -129,9 +136,9 @@ export function metadataForPath(pathname: string): RouteMetadata {
   };
 }
 
-export function jsonLdForPath(pathname: string): { '@context': string; '@graph': Record<string, unknown>[] } {
-  const route = routeForPath(pathname);
-  const metadata = metadataForPath(pathname);
+export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): { '@context': string; '@graph': Record<string, unknown>[] } {
+  const route = routeForPath(pathname, chambers, production);
+  const metadata = metadataForPath(pathname, chambers, production);
   const websiteId = new URL('#website', SITE.url).toString();
   const artworkId = new URL('#the-quiet-works', SITE.url).toString();
   const authorId = SITE.authorUrl;
@@ -202,19 +209,19 @@ function aboutBlocks(): StaticBlock[] {
   return blocks;
 }
 
-function corridorBlocks(selectedPath?: string): StaticBlock[] {
+function corridorBlocks(selectedPath?: string, chambers: readonly ChamberEntry[] = CHAMBERS, production = false): StaticBlock[] {
   return [
     text(TEXT_MODE_NOTICE_CORRIDOR.chosen),
     { kind: 'heading', level: 1, text: 'The corridor' },
     ...TEXT_MODE_CORRIDOR.map(text),
-    { kind: 'doors', ...(selectedPath ? { selectedPath } : {}), doors: CHAMBERS },
+    { kind: 'doors', ...(selectedPath ? { selectedPath } : {}), doors: production ? publicChambers(chambers, true) : chambers },
     link('Read The Quiet Works in text mode', '/?mode=text'),
   ];
 }
 
-function pageBlocks(path: string, creditGroups: readonly CreditGroup[]): StaticDocument {
+function pageBlocks(path: string, creditGroups: readonly CreditGroup[], chambers: readonly ChamberEntry[], production: boolean): StaticDocument {
   const normalized = normalizedPath(path);
-  const route = routeForPath(normalized);
+  const route = routeForPath(normalized, chambers, production);
   if (route.key === 'home') {
     return {
       title: route.title,
@@ -223,7 +230,7 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[]): StaticD
         text(SITE.tagline),
         text(ABOUT.body[0] as string),
         link('About UNHELD', '/about'),
-        ...corridorBlocks(),
+        ...corridorBlocks(undefined, chambers, production),
       ],
     };
   }
@@ -257,12 +264,18 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[]): StaticD
     };
   }
 
-  const chamber = CHAMBERS.find((entry) => route.key === `chamber:${entry.id}`);
-  if (!chamber || chamber.status === 'sealed') {
+  const entries = production ? publicChambers(chambers, true) : chambers;
+  const chamber = entries.find((entry) => route.key === `chamber:${entry.id}`);
+  if (!chamber) {
     return {
       title: route.title,
-      blocks: corridorBlocks(chamber ? `/${chamber.slug}` : undefined),
+      blocks: corridorBlocks(undefined, chambers, production),
     };
+  }
+  if (chamber.status === 'sealed') {
+    return production
+      ? { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text('Not yet open.')] }
+      : { title: route.title, blocks: corridorBlocks(`/${chamber.slug}`, chambers, production) };
   }
 
   if (chamber.id === 'certification-office') {
@@ -295,7 +308,7 @@ function pageBlocks(path: string, creditGroups: readonly CreditGroup[]): StaticD
       ],
     };
   }
-  return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text(chamberDescription(chamber))] };
+  return { title: route.title, blocks: [{ kind: 'heading', level: 1, text: chamber.title }, text(chamberDescription(chamber, production))] };
 }
 
 function escapeHtml(value: string): string {
@@ -330,9 +343,14 @@ function renderBlockHtml(block: StaticBlock): string {
   }
 }
 
-export function staticHtmlForPath(pathname: string, creditGroups: readonly CreditGroup[] = []): string {
-  const route = routeForPath(pathname);
-  const document = pageBlocks(pathname, creditGroups);
+export function staticHtmlForPath(
+  pathname: string,
+  creditGroups: readonly CreditGroup[] = [],
+  chambers: readonly ChamberEntry[] = CHAMBERS,
+  production = false,
+): string {
+  const route = routeForPath(pathname, chambers, production);
+  const document = pageBlocks(pathname, creditGroups, chambers, production);
   const navigation = [
     ['About', '/about'],
     ['Credits', '/credits'],
@@ -367,12 +385,20 @@ function renderBlockMarkdown(block: StaticBlock): string {
   }
 }
 
-export function markdownForPath(pathname: string, creditGroups: readonly CreditGroup[] = []): string {
-  const page = pageBlocks(pathname, creditGroups);
-  const route = routeForPath(pathname);
+export function markdownForPath(
+  pathname: string,
+  creditGroups: readonly CreditGroup[] = [],
+  chambers: readonly ChamberEntry[] = CHAMBERS,
+  production = false,
+): string {
+  const page = pageBlocks(pathname, creditGroups, chambers, production);
+  const route = routeForPath(pathname, chambers, production);
   const body = page.blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
+  const entries = production ? publicChambers(chambers, true) : chambers;
+  const chamber = entries.find((entry) => route.key === `chamber:${entry.id}`);
+  if (production && chamber?.status === 'sealed') return `# ${chamber.title}\n\nNot yet open.\n`;
   const siteLinks = `## Site pages\n\n- [About](${new URL('/about.md', SITE.url)})\n- [Credits](${new URL('/credits.md', SITE.url)})\n- [Privacy](${new URL('/privacy.md', SITE.url)})\n- [Agents](${new URL('/agents.md', SITE.url)})\n- [Agent skill](${new URL('/skill.md', SITE.url)})`;
-  return `# ${page.title}\n\n${body}\n\n${siteLinks}\n\n[Canonical page](${metadataForPath(route.path).canonical})\n`;
+  return `# ${page.title}\n\n${body}\n\n${siteLinks}\n\n[Canonical page](${metadataForPath(route.path, chambers, production).canonical})\n`;
 }
 
 function setMeta(target: Document, selector: string, attribute: 'name' | 'property', key: string, value: string): void {

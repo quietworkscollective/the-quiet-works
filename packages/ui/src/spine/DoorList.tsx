@@ -1,4 +1,5 @@
 import { CORRIDOR_COPY } from '@tqw/engine';
+import { publicDoorDescription } from './chamberCopy.ts';
 import type { DoorListProps } from './types.ts';
 
 /** The accessible name of a door's DOM equivalent. Fixed: e2e and assistive tech rely on it. */
@@ -39,7 +40,7 @@ export function DoorList({ doors, focus, onFocusDoor, onOpenDoor, variant }: Doo
                 {door.status === 'open' ? CORRIDOR_COPY.doorOpen : CORRIDOR_COPY.doorSealed}
               </span>
             </button>
-            {variant === 'list' ? <p className="tqw-door__description">{door.description}</p> : null}
+            {variant === 'list' ? <p className="tqw-door__description">{publicDoorDescription(door, !import.meta.env.DEV)}</p> : null}
           </li>
         ))}
       </ul>

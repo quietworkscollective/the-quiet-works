@@ -1,19 +1,21 @@
 import { expect, test } from '@playwright/test';
 import { openMenu } from './helpers.ts';
+import { chambersForBuild, REPO_ROOT } from '../scripts/chamber-release.mjs';
 
-const PUBLIC_ROUTES = [
+const PAGE_ROUTES = [
   '/',
   '/about/',
   '/credits/',
   '/privacy/',
   '/agents/',
-  '/certification-office/',
-  '/apartment/',
-  '/tomorrow-engine/',
-  '/great-atrium/',
-  '/the-exchange/',
-  '/outline-room/',
+] as const;
+const CHAMBERS = chambersForBuild(REPO_ROOT, false);
+const PUBLIC_ROUTES = [...PAGE_ROUTES, ...CHAMBERS.map((room) => `/${room.slug}/`)];
+const SITEMAP_ROUTES = [
+  ...PAGE_ROUTES,
+  ...CHAMBERS.filter((room) => room.status === 'open').map((room) => `/${room.slug}/`),
 ];
+const SEALED_CHAMBERS = CHAMBERS.filter((room) => room.status === 'sealed');
 
 test('every public route has server HTML, canonical metadata and structured data', async ({ request }) => {
   for (const route of PUBLIC_ROUTES) {
@@ -59,10 +61,11 @@ test('robot and language-model discovery files have usable content types and lin
   const sitemap = await request.get('/sitemap.xml');
   expect(sitemap.headers()['content-type']).toMatch(/(?:application|text)\/xml/);
   const xml = await sitemap.text();
-  for (const route of PUBLIC_ROUTES) expect(xml).toContain(`https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`);
+  for (const route of SITEMAP_ROUTES) expect(xml).toContain(`https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`);
+  for (const room of SEALED_CHAMBERS) expect(xml).not.toContain(`https://unheld.space/${room.slug}`);
   const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  expect(new Set(locations).size).toBe(PUBLIC_ROUTES.length);
-  expect(new Set(locations)).toEqual(new Set(PUBLIC_ROUTES.map((route) => `https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`)));
+  expect(new Set(locations).size).toBe(SITEMAP_ROUTES.length);
+  expect(new Set(locations)).toEqual(new Set(SITEMAP_ROUTES.map((route) => `https://unheld.space${route === '/' ? '/' : route.replace(/\/$/, '')}`)));
 
   for (const path of ['/llms.txt', '/llms-full.txt']) {
     const response = await request.get(path);
@@ -70,15 +73,33 @@ test('robot and language-model discovery files have usable content types and lin
     expect(await response.text()).toContain('UNHELD');
   }
 
-  for (const path of ['/index.md', '/about.md', '/credits.md', '/privacy.md', '/agents.md', '/certification-office.md', '/the-exchange.md', '/outline-room.md', '/skill.md']) {
+  const markdownPaths = ['/index.md', '/about.md', '/credits.md', '/privacy.md', '/agents.md', ...CHAMBERS.map((room) => `/${room.slug}.md`), '/skill.md'];
+  for (const path of markdownPaths) {
     const response = await request.get(path);
     expect(response.headers()['content-type']).toContain('text/markdown');
-    expect(await response.text()).toContain('UNHELD');
+    const markdown = await response.text();
+    const chamber = CHAMBERS.find((room) => `/${room.slug}.md` === path);
+    if (chamber?.status === 'sealed') {
+      expect(markdown).toContain(chamber.title);
+      expect(markdown).toMatch(/not yet open/i);
+      expect(markdown).not.toContain(chamber.doorDescription);
+      expect(markdown).not.toContain(chamber.clipping.headline);
+      expect(markdown).not.toContain(chamber.clipping.dek);
+    } else {
+      expect(markdown).toContain('UNHELD');
+    }
   }
 
   const fullText = await (await request.get('/llms-full.txt')).text();
   const destinations = [...fullText.matchAll(/https?:\/\/[^\s)\]]+/g)].map((match) => new URL((match[0] as string).replace(/[.,;]+$/, '')));
   expect(destinations.every((url) => url.hostname === 'unheld.space' || url.hostname === 'github.com')).toBe(true);
+  for (const room of SEALED_CHAMBERS) {
+    expect(fullText).toContain(room.title);
+    expect(fullText).toMatch(/not yet open/i);
+    expect(fullText).not.toContain(room.doorDescription);
+    expect(fullText).not.toContain(room.clipping.headline);
+    expect(fullText).not.toContain(room.clipping.dek);
+  }
 });
 
 test('the route metadata changes when the single-page app navigates', async ({ page }) => {
@@ -93,7 +114,7 @@ test('the route metadata changes when the single-page app navigates', async ({ p
   expect(jsonLd['@graph'].find((item: { '@type': string }) => item['@type'] === 'WebPage').url).toBe('https://unheld.space/about');
 });
 
-test('text-only chamber fallbacks preserve the room descriptions', async ({ page, request, browser }) => {
+test('text-only chamber fallbacks keep sealed rooms to their name and status', async ({ page, request, browser }) => {
   const office = await (await request.get('/certification-office/')).text();
   const officeFallback = office.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(officeFallback).toContain('One lamp makes a pool of light on an industrial desk.');
@@ -104,12 +125,16 @@ test('text-only chamber fallbacks preserve the room descriptions', async ({ page
 
   const exchange = await (await request.get('/the-exchange/')).text();
   const exchangeFallback = exchange.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
-  expect(exchangeFallback).toContain('The room is ready as a set of places and actions.');
+  expect(exchangeFallback).toContain('The Exchange');
+  expect(exchangeFallback).toContain('Not yet open.');
+  expect(exchangeFallback).not.toContain('The room is ready as a set of places and actions.');
   const outline = await (await request.get('/outline-room/')).text();
   const outlineFallback = outline.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
-  expect(outlineFallback).toContain('A brass arm follows the outside edge of a selected object.');
+  expect(outlineFallback).toContain('The Outline Room');
+  expect(outlineFallback).toContain('Not yet open.');
+  expect(outlineFallback).not.toContain('A brass arm follows the outside edge of a selected object.');
 
-  // Unreleased rooms retain their crawlable descriptions without enabling their interactive routes.
+  // Sealed rooms retain short static pages without enabling their interactive routes.
   for (const path of ['/the-exchange', '/outline-room']) {
     await page.goto(`${path}?mode=text`);
     await expect(page.getByRole('dialog', { name: "This address isn't in the directory" })).toBeVisible();
@@ -118,10 +143,14 @@ test('text-only chamber fallbacks preserve the room descriptions', async ({ page
   const reading = await browser.newPage({ javaScriptEnabled: false, viewport: page.viewportSize() });
   try {
     await reading.goto(new URL('/the-exchange/', page.url()).href);
-    await expect(reading.getByText('The room is ready as a set of places and actions.', { exact: true })).toBeVisible();
+    await expect(reading.getByRole('heading', { name: 'The Exchange' })).toBeVisible();
+    await expect(reading.getByText('Not yet open.', { exact: true })).toBeVisible();
+    await expect(reading.getByText('The room is ready as a set of places and actions.', { exact: true })).toHaveCount(0);
     await reading.goto(new URL('/outline-room/', page.url()).href);
-    await expect(reading.getByText('A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', { exact: true })).toBeVisible();
-    await expect(reading.getByText('The tins are fictional workshop specimens. Nothing here describes a visitor.', { exact: true })).toBeVisible();
+    await expect(reading.getByRole('heading', { name: 'The Outline Room' })).toBeVisible();
+    await expect(reading.getByText('Not yet open.', { exact: true })).toBeVisible();
+    await expect(reading.getByText('A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', { exact: true })).toHaveCount(0);
+    await expect(reading.getByText('The tins are fictional workshop specimens. Nothing here describes a visitor.', { exact: true })).toHaveCount(0);
   } finally {
     await reading.close();
   }

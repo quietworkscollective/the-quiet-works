@@ -1,5 +1,6 @@
 import { useEffect, useId } from 'react';
 import { BOARD } from '@tqw/engine';
+import { publicClipping } from './chamberCopy.ts';
 import type { NoticeBoardProps } from './types.ts';
 import { useModalDialog } from './useModalDialog.ts';
 
@@ -31,16 +32,18 @@ export function NoticeBoard({ open, chambers, onChoose, onClose }: NoticeBoardPr
         </header>
         <div className="tqw-board__frame">
           <ul className="tqw-board__clippings">
-            {chambers.map((chamber, index) => (
+            {chambers.map((chamber, index) => {
+              const clipping = publicClipping(chamber, !import.meta.env.DEV);
+              return (
               <li
                 key={chamber.id}
                 className="tqw-clipping"
                 data-status={chamber.status}
                 data-stock={STOCKS[index % STOCKS.length]}
               >
-                <h3 className="tqw-clipping__headline">{chamber.clipping.headline}</h3>
-                <p className="tqw-clipping__dek">{chamber.clipping.dek}</p>
-                <p className="tqw-clipping__dateline">{chamber.clipping.dateline}</p>
+                <h3 className="tqw-clipping__headline">{clipping.headline}</h3>
+                <p className="tqw-clipping__dek">{clipping.dek}</p>
+                <p className="tqw-clipping__dateline">{clipping.dateline}</p>
                 {chamber.status === 'open' ? (
                   <button
                     type="button"
@@ -60,7 +63,8 @@ export function NoticeBoard({ open, chambers, onChoose, onClose }: NoticeBoardPr
                   </p>
                 )}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
         <div className="tqw-board__foot">

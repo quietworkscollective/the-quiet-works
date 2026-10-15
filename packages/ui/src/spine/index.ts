@@ -11,6 +11,7 @@ export { Details } from './Details.tsx';
 export { Footer } from './Footer.tsx';
 export { DoorList, doorLabel } from './DoorList.tsx';
 export { NoticeBoard } from './NoticeBoard.tsx';
+export { publicChambers, publicClipping, publicDoorDescription } from './chamberCopy.ts';
 export { SitePage } from './SitePage.tsx';
 export { TextCorridor } from './TextCorridor.tsx';
 export { Mark, MARK, type MarkProps } from './Mark.tsx';
