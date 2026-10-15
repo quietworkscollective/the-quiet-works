@@ -63,7 +63,9 @@ test.describe('the full rendering tier', () => {
     });
   }
 
-  test('holds the Apartment threshold until its baked scene reports ready', async ({ page }) => {
+  // Unreleased rooms (sealed in production until the founder approves them) run as visible
+  // extended diagnostics, so they never block shipping; they return to core on approval.
+  test('holds the Apartment threshold until its baked scene reports ready', { tag: '@extended' }, async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/?quality=high');
