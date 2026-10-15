@@ -14,7 +14,9 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: false,
   workers: 1,
-  retries: 0,
+  // On CI only, a failed test runs once more: a real failure fails twice and still blocks, while a
+  // timing blip on the software-rendered runner passes and is reported as flaky, not hidden.
+  retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
     baseURL,

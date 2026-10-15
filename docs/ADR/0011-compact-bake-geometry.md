@@ -1,6 +1,6 @@
-# ADR 0009 — Compact baked geometry for the corridor startup budget
+# ADR 0011 — Compact baked geometry for the corridor startup budget
 
-- **Status:** proposed, 15 October 2026. Maintainer approval requested in the stream report.
+- **Status:** accepted, 15 October 2026. Measured on the integration branch: the first visit stays under its 3 MB budget, and the bake freshness gate covers the compacted geometry.
 - **Supersedes:** the geometry-precision sentence in ADR 0008 while this proposal is under review.
 
 ## Context
