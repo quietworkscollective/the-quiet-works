@@ -1,6 +1,7 @@
 import type { CanvasTexture } from 'three';
 import type { ChamberEntry } from '@tqw/engine';
-import { VISIBLE_CHAMBERS } from '../../../chambers/registry.ts';
+import { publicChambers } from '@tqw/ui';
+import { VISIBLE_CHAMBERS as RELEASE_CHAMBERS } from '../../../chambers/registry.ts';
 import { nth, mulberry32 } from '../math.ts';
 import { context2d, createCanvas, makeTexture } from './canvas.ts';
 import { drawTracked, FONTS, wrapLines } from './text.ts';
@@ -14,6 +15,7 @@ import { drawTracked, FONTS, wrapLines } from './text.ts';
  */
 
 export const CLIPPING_ATLAS = { width: 1024, height: 1536, cell: 512 } as const;
+const VISIBLE_CHAMBERS = publicChambers(RELEASE_CHAMBERS, !import.meta.env.DEV);
 
 export const STOCKS = [
   { name: 'bone', hex: '#DDD5C8', edge: '#b9ad94' },

@@ -1500,10 +1500,33 @@ test.describe('the archive', () => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
-    await expect(archive.getByRole('heading', { level: 3 })).toHaveText(['The Certification Office', 'The Exchange']);
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
-    await expect(papers(page, 'sealed')).toHaveCount(30);
+    await expect(archive.getByRole('heading', { level: 3 })).toHaveText([
+      'The Certification Office',
+      'The Apartment',
+      'The Tomorrow Engine',
+      'The Great Atrium',
+      'The Exchange',
+      'The Outline Room',
+    ]);
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
+      '0 of 7 papers found.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+    ]);
+    await expect(papers(page, 'sealed')).toHaveCount(7);
     await expect(papers(page, 'found')).toHaveCount(0);
+    for (const [id, room] of [
+      ['apartment', 'The Apartment'],
+      ['tomorrow-engine', 'The Tomorrow Engine'],
+      ['great-atrium', 'The Great Atrium'],
+      ['exchange', 'The Exchange'],
+      ['outline-room', 'The Outline Room'],
+    ]) {
+      await expect(archive.locator(`.tqw-archive__room[data-room="${id}"]`)).toHaveText(`${room}Not yet open.`);
+    }
     const sealed = await papers(page, 'sealed').evaluateAll((els) => els.map((el) => ({ text: el.textContent, html: el.outerHTML, attrs: el.getAttributeNames().sort() })));
     expect(new Set(sealed.map((s) => s.html)).size).toBe(1);
     for (const paper of sealed) {
@@ -1526,9 +1549,16 @@ test.describe('the archive', () => {
       ],
     });
     const archive = page.locator('#archive');
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found. 1 secret found.', '0 of 23 papers found.']);
+    await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
+      '2 of 7 papers found. 1 secret found.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+    ]);
     await expect(papers(page, 'found')).toHaveCount(3);
-    await expect(papers(page, 'sealed')).toHaveCount(28);
+    await expect(papers(page, 'sealed')).toHaveCount(5);
     await expect(papers(page, 'found').first().locator('.tqw-paper__title')).toHaveText('A paper');
     // Nothing of what was imported is shown but what the visitor can already name: no ids.
     expect((await archive.textContent()) ?? '').not.toMatch(/memo-a|secret-a/);
@@ -1583,9 +1613,16 @@ test.describe('the archive', () => {
     await dialog.getByRole('button', { name: 'Forget everything' }).click();
     await expect(dialog).toBeHidden();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(30);
+    await expect(papers(page, 'sealed')).toHaveCount(7);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Forgotten. This device remembers nothing.');
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['0 of 7 papers found.', '0 of 23 papers found.']);
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText([
+      '0 of 7 papers found.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+    ]);
   });
 
   test('the Forget dialog is a dialog: Escape closing it does not release the game window', async ({ page }) => {
@@ -1751,7 +1788,14 @@ test.describe('what the page stores and sends', () => {
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'memo-b', kind: 'memo' }] });
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(2);
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText(['2 of 7 papers found.', '0 of 23 papers found.']);
+    await expect(page.locator('.tqw-archive__room-count')).toHaveText([
+      '2 of 7 papers found.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+      'Not yet open.',
+    ]);
     await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
   });
 
@@ -1764,14 +1808,14 @@ test.describe('what the page stores and sends', () => {
     expect(await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)])).toEqual([]);
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(30);
+    await expect(papers(page, 'sealed')).toHaveCount(7);
   });
 
   test('a damaged key is ignored and the page still loads with an empty archive', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('unheld.v1', '{"version":9,"found":'));
     await page.goto('/');
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(30);
+    await expect(papers(page, 'sealed')).toHaveCount(7);
   });
 
   test('a browser that refuses storage still gets a working archive for the visit', async ({ page }) => {

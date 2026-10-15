@@ -73,6 +73,34 @@ describe('Unlocks: the archive section', () => {
     expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
   });
 
+  it('shows only each sealed room name and status, with no archive totals or findings', () => {
+    const chambers = CHAMBERS.map((chamber) => chamber.id === 'exchange' || chamber.id === 'outline-room'
+      ? { ...chamber, status: 'sealed' as const }
+      : chamber);
+    const { section } = setup({ chambers, production: true });
+    const rooms = within(section).getAllByRole('heading', { level: 3 });
+    expect(rooms.map((heading) => heading.textContent)).toEqual([
+      'The Certification Office',
+      'The Apartment',
+      'The Tomorrow Engine',
+      'The Great Atrium',
+      'The Exchange',
+      'The Outline Room',
+    ]);
+    expect(section.textContent).not.toContain(`0 of ${EXCHANGE_PAPERS} papers found.`);
+    for (const room of chambers.filter((chamber) => chamber.status === 'sealed')) {
+      const sectionForRoom = section.querySelector(`[data-room="${room.id}"]`);
+      expect(sectionForRoom?.textContent).toBe(`${room.title}Not yet open.`);
+      expect(sectionForRoom?.textContent).not.toContain(room.clipping.headline);
+      expect(sectionForRoom?.textContent).not.toContain(room.doorDescription);
+    }
+  });
+
+  it('keeps authored archive totals visible in development builds', () => {
+    const { section } = setup({ production: false });
+    expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
+  });
+
   it('says, with nothing found, "0 of 7 papers found." in plain words', () => {
     setup();
     expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found.`).className).toContain('tqw-archive__room-count');

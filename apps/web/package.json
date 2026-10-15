@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.json && node ../../scripts/bake/run.mjs --check && vite build && node ../../scripts/check-production-probes.mjs",
+    "build": "tsc -p tsconfig.json && node ../../scripts/bake/run.mjs --check && vite build && node ../../scripts/check-production-probes.mjs && node scripts/check-sealed-production.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json",

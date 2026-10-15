@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { ARCHIVE_COPY, type ChamberEntry, type ChamberId, type Finding } from '@tqw/engine';
+import { ARCHIVE_COPY, type ChamberEntry, type Finding, type RoomCount } from '@tqw/engine';
 import { fillCopy } from './fillCopy.ts';
 import type { UnlocksProps } from './types.ts';
 import { useDiscoveries } from './useDiscoveries.ts';
@@ -41,7 +41,7 @@ function saveFile(text: string): void {
  * Below, the only controls: export, import, and forget everything (behind a confirmation that says
  * what it does and offers the export first).
  */
-export function Unlocks({ store, chambers, describe, recognitionName, onReread, onReplaced }: UnlocksProps) {
+export function Unlocks({ store, chambers, production = !import.meta.env.DEV, describe, recognitionName, onReread, onReplaced }: UnlocksProps) {
   const state = useDiscoveries(store);
   const counts = store.counts();
   const titleId = useId();
@@ -57,8 +57,16 @@ export function Unlocks({ store, chambers, describe, recognitionName, onReread, 
     if (confirming) cancelRef.current?.focus();
   }, [confirming]);
 
-  const rooms = counts.filter((count) => count.papers.total + count.papers.found + count.secrets.found > 0);
-  const chamberOf = (id: ChamberId): ChamberEntry | undefined => chambers.find((chamber) => chamber.id === id);
+  const rooms: Array<{ chamber: ChamberEntry; count: RoomCount | null }> = [];
+  for (const chamber of chambers) {
+    const count = counts.find((entry) => entry.chamber === chamber.id);
+    if (production && chamber.status === 'sealed') {
+      rooms.push({ chamber, count: null });
+      continue;
+    }
+    if (!count || count.papers.total + count.papers.found + count.secrets.found === 0) continue;
+    rooms.push({ chamber, count });
+  }
   const names = state.recognitions.flatMap((id) => {
     const name = recognitionName?.(id);
     return name ? [name] : [];
@@ -100,8 +108,15 @@ export function Unlocks({ store, chambers, describe, recognitionName, onReread, 
 
         {rooms.length === 0 ? <p className="tqw-archive__none">{ARCHIVE_COPY.noRooms}</p> : null}
 
-        {rooms.map((count) => {
-          const room = chamberOf(count.chamber);
+        {rooms.map(({ chamber: room, count }) => {
+          if (count === null) {
+            return (
+              <section key={room.id} className="tqw-archive__room" aria-labelledby={`${titleId}-${room.id}`} data-room={room.id}>
+                <h3 id={`${titleId}-${room.id}`} className="tqw-archive__room-title">{room.title}</h3>
+                <p className="tqw-archive__room-count">Not yet open.</p>
+              </section>
+            );
+          }
           const found: readonly Finding[] = state.found[count.chamber] ?? [];
           const sealedPapers = Math.max(0, count.papers.total - count.papers.found);
           return (
