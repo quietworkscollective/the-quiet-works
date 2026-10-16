@@ -51,7 +51,8 @@ async function handover(page: Page, mobile: boolean): Promise<void> {
 }
 
 test('the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click', async ({ page, isMobile }, info) => {
-  test.setTimeout(180_000);
+  // GitHub's software-rendered phone profile walks the whole hand-over far slower than a GPU.
+  test.setTimeout(process.env['CI'] ? 420_000 : 180_000);
   test.skip(!['desktop', 'mobile'].includes(info.project.name), 'covered on desktop and Pixel 7');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await handover(page, isMobile);
