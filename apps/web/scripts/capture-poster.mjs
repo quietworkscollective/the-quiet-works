@@ -2,7 +2,7 @@
 /**
  * Captures the hero's poster stills from the real build (ADR 0003): a still of the corridor's hero
  * view, drawn by the live scene at `?quality=high`, so the hero never starts on black while the 3D
- * scene loads. Two variants (landscape 1440 x 900, portrait 412 x 915), each WebP under 180 KB,
+ * scene loads. Two variants (landscape 1440 x 900, portrait 412 x 915), each WebP under 60 KB,
  * written to `public/` where the app and its manifest expect them.
  *
  * usage (from apps/web, after `pnpm build`):
@@ -29,7 +29,7 @@ const option = (name, fallback) => {
   return at >= 0 && args[at + 1] ? args[at + 1] : fallback;
 };
 const OUT = path.resolve(PACKAGE_DIR, option('out', 'public'));
-const BUDGET = Number(option('budget', '180000'));
+const BUDGET = Number(option('budget', '60000'));
 
 const VARIANTS = [
   { file: 'poster-hero-1440x900.webp', viewport: { width: 1440, height: 900 } },
