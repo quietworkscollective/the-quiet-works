@@ -1821,17 +1821,13 @@ button {
 
 /* ----------------------------------------------------------- reduced motion */
 /*
- * Reduced motion has two switches: the visitor's toggle (data-reduced-motion="true" on
- * .tqw-app, or on .tqw-office when used on its own) and the OS preference. Either one
- * removes every animation and transition. Every keyframe above starts from a change and
- * ends on the element's ordinary style, so with the animation gone the element is simply
- * in its final state. State changes (a pressed stamp, a lit lamp, an open hatch) still
- * apply; they just arrive instantly.
+ * Reduced motion removes page movement and keeps the short dissolve between static camera
+ * views. The visitor toggle and OS preference both leave that dissolve canvas available.
  */
 
-[data-reduced-motion='true'] *,
-[data-reduced-motion='true'] *::before,
-[data-reduced-motion='true'] *::after,
+[data-reduced-motion='true'] *:not(.tqw-dissolve),
+[data-reduced-motion='true'] *:not(.tqw-dissolve)::before,
+[data-reduced-motion='true'] *:not(.tqw-dissolve)::after,
 [data-reduced-motion='true'].tqw-office,
 [data-reduced-motion='true'] .tqw-memo::backdrop {
   animation: none !important;
@@ -1839,9 +1835,9 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tqw-app *,
-  .tqw-app *::before,
-  .tqw-app *::after,
+  .tqw-app *:not(.tqw-dissolve),
+  .tqw-app *:not(.tqw-dissolve)::before,
+  .tqw-app *:not(.tqw-dissolve)::after,
   .tqw-office,
   .tqw-memo,
   .tqw-memo::backdrop {
@@ -1919,6 +1915,7 @@ button {
 .tqw-context-cue[data-side="above"] { transform:translate(-50%,calc(-100% - 20px)); }
 .tqw-context-cue[data-side="below"] { transform:translate(-50%,20px); }
 .tqw-office-preparing { position:absolute; inset:0; background:#151a20; pointer-events:none; }
+.tqw-chamber-host[inert] .tqw-app[data-mode='3d'] :is(.tqw-context-cue, .tqw-places, .tqw-desk-actions) { visibility:hidden; }
 @media (max-width:600px) {
   .tqw-desk-actions { display:grid; grid-template-columns:auto auto; }
   .tqw-desk-actions .tqw-stamp-options { display:contents; }

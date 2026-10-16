@@ -7,7 +7,7 @@ import { PROPS } from '../props.ts';
 import { RADIATOR, RADIATOR_SLOTS } from './fixtures.ts';
 import { buildAnnexSign, farPrintSlots, PIER_PRINTS } from './groupings.ts';
 import { gapOf, FRAME, placements } from './openings.ts';
-import { STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS } from './extent.ts';
 
 /**
  * Founder feedback: show present-day care, not abandonment, and no long bare walls. A coat and cap
@@ -108,7 +108,7 @@ describe('no long bare walls', () => {
     const slots = farPrintSlots();
     const doors = placements();
     expect(slots.length).toBeGreaterThan(1);
-    for (let bay = CORRIDOR.walkableBays; bay < STAGE.bays; bay += 1) {
+    for (let bay = CORRIDOR.walkableBays; bay < CORRIDOR_END_BAYS; bay += 1) {
       for (const side of ['left', 'right'] as const) {
         const has = slots.some((s) => s.bay === bay && s.side === side);
         const hasDoor = doors.some((d) => d.side === side && Math.abs(d.z - bayCentreZ(bay)) < CORRIDOR.bay / 2);
@@ -120,10 +120,14 @@ describe('no long bare walls', () => {
 
   it('sets an enamel Annex sign directly above the bay 6 door', () => {
     const buckets = createBuckets();
-    buildAnnexSign(buckets, new PlaqueLayout([{ text: 'ANNEX', code: 'BAY 6' }]));
+    const face = buildAnnexSign(buckets, new PlaqueLayout([{ text: 'ANNEX', code: 'BAY 6' }]));
     const enamel = buckets.enamel.bounds();
     expect(buckets.enamel.triangleCount).toBeGreaterThan(0);
-    expect(buckets.plaque.triangleCount).toBeGreaterThan(0);
+    expect(face.triangleCount).toBe(2);
+    expect(face.bounds().min[1]).toBeCloseTo(ANNEX.sign.y - 0.095, 3);
+    expect(face.bounds().max[1]).toBeCloseTo(ANNEX.sign.y + 0.095, 3);
+    expect(face.uv).toHaveLength(8);
+    expect(face.col).toEqual(Array(face.vertexCount * 3).fill(1));
     expect(enamel.min[1]).toBeCloseTo(ANNEX.sign.y - 0.145, 3);
     expect(enamel.max[1]).toBeCloseTo(ANNEX.sign.y + 0.145, 3);
     expect((enamel.min[2] + enamel.max[2]) / 2).toBeCloseTo(bayCentreZ(ANNEX.bay), 3);

@@ -1,0 +1,11 @@
+
+> the-quiet-works@ lint <worktree>
+> pnpm -r --parallel lint
+
+Scope: 3 of 4 workspace projects
+apps/web lint$ eslint .
+packages/engine lint$ eslint .
+packages/ui lint$ eslint .
+packages/engine lint: Done
+packages/ui lint: Done
+apps/web lint: Done

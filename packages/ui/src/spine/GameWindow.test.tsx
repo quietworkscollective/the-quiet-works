@@ -143,7 +143,7 @@ describe('GameWindow: engaged', () => {
     expect(screen.queryByText(GAME_WINDOW_COPY.modeResting)).toBeNull();
   });
 
-  it('offers "Return to the corridor" only inside a room, and only when engaged', () => {
+  it('offers "Return to the corridor" inside a room, engaged or resting', () => {
     const onReturn = vi.fn();
     setup({ engaged: true, onReturn });
     fireEvent.click(screen.getByRole('button', { name: 'Return to the corridor' }));
@@ -153,6 +153,10 @@ describe('GameWindow: engaged', () => {
     expect(screen.queryByRole('button', { name: 'Return to the corridor' })).toBeNull();
     cleanup();
     setup({ engaged: false, onReturn });
+    fireEvent.click(screen.getByRole('button', { name: 'Return to the corridor' }));
+    expect(onReturn).toHaveBeenCalledTimes(2);
+    cleanup();
+    setup({ engaged: false });
     expect(screen.queryByRole('button', { name: 'Return to the corridor' })).toBeNull();
   });
 });

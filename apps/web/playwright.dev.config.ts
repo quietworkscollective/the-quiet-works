@@ -9,7 +9,18 @@ const baseURL = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['**/full-tier.spec.ts', '**/exchange.spec.ts', '**/office-budget.spec.ts', '**/apartment.spec.ts'],
+  testMatch: [
+    '**/full-tier.spec.ts',
+    '**/spine.spec.ts',
+    '**/exchange.spec.ts',
+    '**/office-budget.spec.ts',
+    '**/corridor-holes.spec.ts',
+    '**/round2-evidence.spec.ts',
+    '**/round3-evidence.spec.ts',
+    '**/round3-handover.spec.ts',
+    '**/gramophone-listening.spec.ts',
+    '**/apartment.spec.ts',
+  ],
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

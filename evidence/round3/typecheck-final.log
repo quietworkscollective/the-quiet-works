@@ -1,0 +1,11 @@
+
+> the-quiet-works@ typecheck <worktree>
+> pnpm -r typecheck
+
+Scope: 3 of 4 workspace projects
+packages/engine typecheck$ tsc -p tsconfig.json
+packages/engine typecheck: Done
+packages/ui typecheck$ tsc -p tsconfig.json
+packages/ui typecheck: Done
+apps/web typecheck$ tsc -p tsconfig.json
+apps/web typecheck: Done

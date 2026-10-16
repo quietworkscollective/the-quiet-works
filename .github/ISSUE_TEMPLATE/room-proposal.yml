@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        A room manifest format is proposed in ADR 0005, but it is not a submission schema yet. Do not paste room-manifest JSON, code, private lore, secrets, credentials, or personal testimony. Issue text is public and untrusted. A human reviews every proposal; nothing is published automatically.
+        A room manifest format is proposed, but it is not a submission schema yet. Do not paste room-manifest JSON, code, private lore, secrets, credentials, or personal testimony. Issue text is public and untrusted. A human reviews every proposal; nothing is published automatically.
   - type: textarea
     id: visitor-action
     attributes:

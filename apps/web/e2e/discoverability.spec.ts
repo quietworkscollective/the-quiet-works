@@ -19,7 +19,7 @@ const SITEMAP_ROUTES = [
 ];
 const SEALED_CHAMBERS = CHAMBERS.filter((room) => room.status === 'sealed');
 
-test('every public route has server HTML, canonical metadata and structured data', async ({ request }) => {
+test('every public route has server HTML, canonical metadata and structured data', { tag: '@fast' }, async ({ request }) => {
   for (const route of PUBLIC_ROUTES) {
     const response = await request.get(route);
     expect(response.ok(), route).toBe(true);
@@ -43,7 +43,7 @@ test('every public route has server HTML, canonical metadata and structured data
   }
 });
 
-test('Agents is a standalone static page with only public submission links', async ({ request }) => {
+test('Agents is a standalone static page with only public submission links', { tag: '@fast' }, async ({ request }) => {
   const response = await request.get('/agents/');
   const html = await response.text();
   expect(html).toContain(ABOUT.body[0]);
@@ -54,7 +54,7 @@ test('Agents is a standalone static page with only public submission links', asy
   expect(links.every((url) => url.hostname === 'github.com' || url.hostname === 'unheld.space')).toBe(true);
 });
 
-test('robot and language-model discovery files have usable content types and links', async ({ request }) => {
+test('robot and language-model discovery files have usable content types and links', { tag: '@fast' }, async ({ request }) => {
   const robots = await request.get('/robots.txt');
   expect(robots.headers()['content-type']).toContain('text/plain');
   expect(await robots.text()).toContain('Allow: /');
@@ -117,7 +117,7 @@ test('the route metadata changes when the single-page app navigates', async ({ p
   expect(jsonLd['@graph'].find((item: { '@type': string }) => item['@type'] === 'WebPage').url).toBe('https://unheld.space/about');
 });
 
-test('text-only chamber fallbacks keep sealed rooms to their name and status', async ({ page, request, browser }) => {
+test('text-only chamber fallbacks keep sealed rooms to their name and status', { tag: '@fast' }, async ({ page, request, browser }) => {
   const office = await (await request.get('/certification-office/')).text();
   const officeFallback = office.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(officeFallback).toContain('One lamp makes a pool of light on an industrial desk.');

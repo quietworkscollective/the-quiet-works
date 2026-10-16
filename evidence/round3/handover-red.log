@@ -1,0 +1,90 @@
+[WebServer] (node:56158) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:56179) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:56206) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 7:12:56 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✘  1 [desktop] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click (1.6m)
+(node:56711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 7:14:26 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✘  2 [mobile] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click (56.3s)
+
+
+  1) [desktop] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.tqw-site')
+    Expected: "true"
+    Received: "false"
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveAttribute" locator('.tqw-site') with timeout 10000ms
+      - waiting for locator('.tqw-site')
+        24 × locator resolved to <div data-page="" data-focus="" data-chamber="" class="tqw-site" data-text="false" data-board="false" data-engaged="false" data-spine="corridor" data-scene-ready="true" data-reduced-motion="false">…</div>
+           - unexpected value "false"
+
+
+      56 |   await page.emulateMedia({ reducedMotion: 'no-preference' });
+      57 |   await handover(page, isMobile);
+    > 58 |   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+         |                            ^
+      59 |   await expect(world(page)).toHaveAttribute('data-at-handover', 'true');
+      60 |   const start = await pose(page);
+      61 |   await scrollPage(page, isMobile, true);
+        at <worktree>/apps/web/e2e/round3-handover.spec.ts:58:28
+
+    Error Context: test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator:  locator('.tqw-site')
+    Expected: "true"
+    Received: "false"
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toHaveAttribute" locator('.tqw-site') with timeout 10000ms
+      - waiting for locator('.tqw-site')
+        24 × locator resolved to <div data-page="" data-focus="" data-chamber="" class="tqw-site" data-text="false" data-board="false" data-engaged="false" data-spine="corridor" data-scene-ready="true" data-reduced-motion="false">…</div>
+           - unexpected value "false"
+
+
+      56 |   await page.emulateMedia({ reducedMotion: 'no-preference' });
+      57 |   await handover(page, isMobile);
+    > 58 |   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+         |                            ^
+      59 |   await expect(world(page)).toHaveAttribute('data-at-handover', 'true');
+      60 |   const start = await pose(page);
+      61 |   await scrollPage(page, isMobile, true);
+        at <worktree>/apps/web/e2e/round3-handover.spec.ts:58:28
+
+    Error Context: test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/round3-handover-the-smoke--d7915-to-the-hero-without-a-click-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click
+    [mobile] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click

@@ -320,7 +320,10 @@ export function bindInput(options: InputOptions): InputBinding {
         }),
       );
     }),
-    on<Event>(surface, 'click', () => options.onGesture()),
+    on<Event>(surface, 'click', () => {
+      // Browsers emit a click on pointer-up even after a drag; moving the scene is not an audio gesture.
+      if (!dragged) options.onGesture();
+    }),
   );
 
   return {

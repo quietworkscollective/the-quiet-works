@@ -1,0 +1,18 @@
+
+ RUN  v5.0.4 <worktree>/packages/ui
+
+ ✓ src/spine/Footer.test.tsx > Footer > is the page's footer landmark, named 91ms
+ ✓ src/spine/Footer.test.tsx > Footer > opens as a colophon with the lockup, tagline and approved creator credit 5ms
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+ ✓ src/spine/Footer.test.tsx > Footer > renders the shell menu at the footer and ignores the removed trivia slot 10ms
+ ✓ src/spine/Footer.test.tsx > Footer > renders About, Credits, Privacy, Agents and Licences exactly once, at the footer 33ms
+ ✓ src/spine/Footer.test.tsx > Footer > opens About, Credits and Privacy in the app and follows the Agents and licences links 25ms
+ ✓ src/spine/Footer.test.tsx > Footer > states the licences and the copyright, with the mark as decoration 3ms
+ ✓ src/spine/Footer.test.tsx > Footer > does not render the removed trivia slot 1ms
+ ✓ src/spine/Footer.test.tsx > Footer > ships no trivia in the draft pool until the editor approves some 0ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  09:43:35
+   Duration  1.10s (environment 64%, tests 18%, import 11%, transform 6%, worker 1%, setup 1%)

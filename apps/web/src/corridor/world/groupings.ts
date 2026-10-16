@@ -1,4 +1,4 @@
-import { quad, type Style } from './builder.ts';
+import { Bucket, quad, type Style } from './builder.ts';
 import { ART, ART_ATLAS, quadUvs, uvRect, type PlaqueLayout, type Rect } from './artLayout.ts';
 import type { Buckets } from './buckets.ts';
 import { sideFrame } from './architecture/corridor.ts';
@@ -8,7 +8,7 @@ import { BRASS_TINT } from './palette.ts';
 import { cylinder, sphere, stud } from './shapes.ts';
 import type { Vec2, Vec3 } from './math.ts';
 import { ANNEX, bayCentreZ, CORRIDOR } from '../layout.ts';
-import { END_Z, STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS, CORRIDOR_END_Z } from './extent.ts';
 import { placements } from './openings.ts';
 
 /**
@@ -86,7 +86,7 @@ export function framedPrint(b: Buckets, side: Side, s: number, y: number, w: num
 }
 
 /** The shared enamel wayfinding sign above the Annex door. */
-export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): void {
+export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): Bucket {
   const side: Side = 'left';
   const s = bayCentreZ(ANNEX.bay);
   const y = ANNEX.sign.y;
@@ -95,13 +95,16 @@ export function buildAnnexSign(b: Buckets, plaques: PlaqueLayout): void {
   const halfH = 0.145;
   wallBox(b.enamel, f, [s - halfW, s + halfW], [y - halfH, y + halfH], [0, 0.045], 0.008, { colour: linear('#743E49') });
   wallBox(b.brass, f, [s - 0.445, s + 0.445], [y - 0.105, y + 0.105], [0.045, 0.049], 0.002, { colour: BRASS_TINT });
-  panel(b, 'plaque', side, f, 0.050, s, y, 0.86, 0.19, quadUvs(plaques.uv('ANNEX')));
+  const face = new Bucket();
+  const [a, c, d, e] = corners(side, f, 0.055, s, y, 0.86, 0.19);
+  quad(face, a, c, d, e, { colour: [1, 1, 1] }, f.normal, quadUvs(plaques.uv('ANNEX')));
   for (const ds of [-0.43, 0.43]) {
     for (const dy of [-0.095, 0.095]) {
       const screw = at(f, 0.054, y + dy, s + ds);
       sphere(b.brass, { at: [screw[0], screw[1], screw[2]] }, 0.009, 10, 5, { colour: BRASS_TINT });
     }
   }
+  return face;
 }
 
 /** A glazed directory case: black enamel box, the lettered board behind a hinged glass door, a lock. */
@@ -227,7 +230,7 @@ export function buildGroupings(b: Buckets): void {
   for (const p of PIER_PRINTS) framedPrint(b, p.side, p.s, p.y, p.w, p.h, p.art === 'plan' ? ART.plan : ART.section);
   // The far corridor: a framed print on the pier at every other bay boundary, alternating sides,
   // on the wall that has no sconce there (sconces sit on the opposite wall, 3.6 m apart).
-  for (let k = 0; -24.2 - 14.4 * k > END_Z + 1; k += 1) {
+  for (let k = 0; -24.2 - 14.4 * k > CORRIDOR_END_Z + 1; k += 1) {
     framedPrint(b, 'right', -24.2 - 14.4 * k, 1.74, 0.62, 0.4, ART.section, false);
     framedPrint(b, 'left', -27.8 - 14.4 * k, 1.74, 0.5, 0.4, ART.plan, false);
   }
@@ -245,7 +248,7 @@ export function buildGroupings(b: Buckets): void {
  * door" even for a bay that has an authored one, which hung a print over the double doors at bay 7.
  */
 export function farPrintSlots(): { bay: number; side: Side; z: number }[] {
-  const lastBay = STAGE.bays - 1;
+  const lastBay = CORRIDOR_END_BAYS - 1;
   const doors = placements();
   const out: { bay: number; side: Side; z: number }[] = [];
   for (let bay = CORRIDOR.walkableBays; bay <= lastBay; bay += 1) {

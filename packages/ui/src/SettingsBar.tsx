@@ -43,6 +43,7 @@ export function SettingsBar({ settings, onToggle, canLeaveTextMode }: SettingsBa
             <span className="tqw-toggle__face">
               <ToggleIcon kind={key} pressed={pressed} />
               <span className="tqw-toggle__label">{label}</span>
+              <span className="tqw-toggle__state" aria-hidden="true">{pressed ? 'On' : 'Off'}</span>
             </span>
           </button>
         );

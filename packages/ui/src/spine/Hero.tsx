@@ -144,6 +144,8 @@ export function Hero({ menu, details, onScrollCue, onEnter, text, progress, keyf
           </span>
         </h1>
         <p className="tqw-hero__tagline">{BRAND.tagline}</p>
+      </div>
+      <div className="tqw-hero__foot">
         {details.length > 0 ? (
           <p className="tqw-hero__details">
             {details.map((detail, index) => (
@@ -158,8 +160,6 @@ export function Hero({ menu, details, onScrollCue, onEnter, text, progress, keyf
             ))}
           </p>
         ) : null}
-      </div>
-      <div className="tqw-hero__foot">
         <button type="button" className="tqw-hero__cue" onClick={onScrollCue}>
           <span>{HERO_COPY.scrollCue}</span>
           <svg viewBox="0 0 10 28" width="10" height="28" aria-hidden="true" focusable="false">

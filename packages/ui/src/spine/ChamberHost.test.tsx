@@ -1,4 +1,5 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
 import { ChamberHost } from './ChamberHost.tsx';
 
 function setup(over: { hold?: boolean; inert?: boolean; seam?: boolean; fallbackMs?: number; content?: boolean } = {}) {
@@ -114,6 +115,36 @@ describe('ChamberHost: nothing half-built is ever shown', () => {
     act(() => ready());
     expect(host().getAttribute('data-ready')).toBe('true');
     expect(host().hasAttribute('inert')).toBe(true);
+  });
+
+  it('hides visual room controls while inert and keeps text-mode content intact', () => {
+    const view = render(
+      <ChamberHost chamber="certification-office" hold={false} inert onReady={vi.fn()}>
+        {() => (
+          <div className="tqw-app" data-mode="3d">
+            <button className="tqw-context-cue" type="button">Approach the desk</button>
+            <details className="tqw-places"><summary>Places and actions</summary></details>
+            <div className="tqw-desk-actions">Stamp</div>
+            <section className="tqw-room-copy">Office prose stays present.</section>
+          </div>
+        )}
+      </ChamberHost>,
+    );
+    const host = view.container.querySelector('.tqw-chamber-host') as HTMLElement;
+    const css = readFileSync(`${process.cwd()}/src/styles.css`, 'utf8');
+    const rule = css.match(/\.tqw-chamber-host\[inert\][^{]+\{[^}]+\}/)?.[0];
+
+    expect(host.hasAttribute('inert')).toBe(true);
+    expect(host.querySelector('.tqw-context-cue')).not.toBeNull();
+    expect(host.querySelector('.tqw-places')).not.toBeNull();
+    expect(host.querySelector('.tqw-desk-actions')).not.toBeNull();
+    expect(host.textContent).toContain('Office prose stays present.');
+    expect(rule).toBeDefined();
+    expect(rule).toContain(".tqw-app[data-mode='3d']");
+    expect(rule).toContain('.tqw-context-cue');
+    expect(rule).toContain('.tqw-places');
+    expect(rule).toContain('.tqw-desk-actions');
+    expect(rule).toMatch(/visibility:\s*hidden/);
   });
 
   it('gives the chamber a callback to call when it is ready, and renders what it makes', () => {

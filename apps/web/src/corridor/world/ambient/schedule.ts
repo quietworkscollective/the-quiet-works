@@ -48,13 +48,15 @@ export interface MotionSpec {
 export const MOTIONS: readonly MotionSpec[] = [
   { id: 'lobby-fan', windowMs: 6000, every: [24000, 36000], first: 0 },
   { id: 'board-paper', windowMs: 2600, every: [18000, 30000], first: 2200 },
-  { id: 'lobby-dust', windowMs: 4000, every: [34000, 50000], first: 5200 },
+  // It shares the early lobby with the long fan window. Start shortly after paper so a busy
+  // mobile main thread can deliver a bounded retry and still show motes within the first 8 s.
+  { id: 'lobby-dust', windowMs: 4000, every: [34000, 50000], first: 2600 },
   { id: 'fan-tag', windowMs: 1800, every: [25000, 40000], first: 7000 },
   { id: 'radiator-shimmer', windowMs: 3000, every: [30000, 45000], first: 13000, desktopOnly: true },
   { id: 'repair-mobile', windowMs: 6000, every: [35000, 50000], first: 15000 },
   { id: 'window-reflection', windowMs: 4000, every: [40000, 60000], first: 18000 },
-  // The board's brass pin catches one soft highlight early in the hero; later idle cues are the interaction lane's.
-  { id: 'board-pin', windowMs: 1400, every: 'once', first: 1200 },
+  // The pin glints early, then clears a slot before dust is due on a slow device.
+  { id: 'board-pin', windowMs: 1400, every: 'once', first: 600 },
 ];
 
 export interface Timers {
@@ -108,7 +110,10 @@ export class AmbientScheduler {
     for (const m of this.motions) {
       if (m.every === 'triggered') continue;
       if (m.desktopOnly && !this.options.desktop) continue;
-      this.arm(m, m.first);
+      if (m.first === 0) {
+        if (this.request(m)) this.armNext(m);
+        else this.arm(m, RETRY_MS);
+      } else this.arm(m, m.first);
     }
   }
 
@@ -135,15 +140,19 @@ export class AmbientScheduler {
         this.handles.delete(m.id);
         if (this.stopped) return;
         if (this.request(m)) {
-          if (m.every === 'once' || m.every === 'triggered') return;
-          const [lo, hi] = m.every;
-          // Start-to-start: the next window opens a jittered gap after this one opened.
-          this.arm(m, Math.max(m.windowMs + 500, lo + this.options.random() * (hi - lo)));
+          this.armNext(m);
         } else {
           this.arm(m, RETRY_MS);
         }
       }, delay),
     );
+  }
+
+  private armNext(m: MotionSpec): void {
+    if (m.every === 'once' || m.every === 'triggered') return;
+    const [lo, hi] = m.every;
+    // Start-to-start: the next window opens a jittered gap after this one opened.
+    this.arm(m, Math.max(m.windowMs + 500, lo + this.options.random() * (hi - lo)));
   }
 
   private request(m: MotionSpec): boolean {

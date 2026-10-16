@@ -1,3 +1,4 @@
+import { startPitch, startView } from './corridor-view.ts';
 import { expect, test, type CDPSession, type Page } from '@playwright/test';
 import { SPINE_TIMING } from '../src/timing.ts';
 import {
@@ -147,13 +148,14 @@ function handoverYaw(page: Page): number {
 }
 
 /**
- * The visitor presses Enter on the game window (ADR 0003). Arriving at the window by scrolling never
- * captures input: until this, the wheel and the walking keys belong to the page.
+ * Explicit entry after this helper's programmatic scroll; a native hand-over gesture may also engage.
  */
 async function engage(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
-  await settle(page);
+  // Music turns the platter after this click, so rendered frames need not idle; the camera must finish its turn.
+  await expect.poll(() => pose(page)).toEqual(startView(page));
+  await expect(canvas(page)).toHaveAttribute('data-pitch', startPitch(page).toFixed(1));
 }
 
 /** Native scroll along the measured journey; 1 places the game window at the viewport top. */
@@ -178,7 +180,7 @@ async function scrollToHandOver(page: Page, { engage: engaged = true }: { engage
   await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
   await scrollToProgress(page, 1);
   await expectSpine(page, 'corridor');
-  await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
+  await expectPoseSoon(page, startView(page), 10_000);
   await settle(page);
   if (engaged) await engage(page);
 }
@@ -983,7 +985,7 @@ test.describe('reduced motion', () => {
     await expectPoseSoon(page, frameOf(OFFICE), 10_000);
     await page.keyboard.press('ArrowDown');
     await expect(site(page)).toHaveAttribute('data-focus', '');
-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
+    await expectPoseSoon(page, startView(page), 10_000);
   });
 
   test('opening a door goes straight through: the chamber appears with no walk', async ({ page }) => {

@@ -18,9 +18,18 @@ export function doorLabel(title: string, status: 'open' | 'sealed'): string {
  * open": the comma is real text, hidden from the eye in the layouts that set title and status on
  * separate lines.
  */
-export function DoorList({ doors, focus, onFocusDoor, onOpenDoor, variant }: DoorListProps) {
+export function DoorList({ doors, focus, onFocusDoor, onOpenDoor, variant, guidance }: DoorListProps) {
   return (
     <nav aria-label="Doors" className={`tqw-doors tqw-doors--${variant}`}>
+      {guidance?.enabled ? (
+        <p className="tqw-door-guidance">
+          <span>{guidance.content}</span>
+          <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+            <path className="tqw-door-guidance__pointer" d="M4 2v14l4-4 2.5 5 2-1-2.5-5 5-.5z" />
+            <path className="tqw-door-guidance__touch" d="M7 5.5c0-1.2 2-1.2 2 0v4l1.5-1.3c.6-.5 1.5-.1 1.5.6v1l1.6-.4c.7-.2 1.3.4 1.2 1.2l-.4 3.1a4 4 0 0 1-4 3.5h-.7a4 4 0 0 1-3.3-1.7L4.8 13c-.5-.8.5-1.7 1.3-1.2L7 12.4z" />
+          </svg>
+        </p>
+      ) : null}
       <ul>
         {doors.map((door) => (
           <li key={door.id} className="tqw-doors__item" data-status={door.status}>

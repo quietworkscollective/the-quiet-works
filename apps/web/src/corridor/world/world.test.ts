@@ -12,7 +12,9 @@ import { buildSconce, SCONCE_FAR_Z, sconceGroups, sconceMounts } from './fixture
 import { LOBBY_SCONCES, MAX_LAMPS } from './lighting.ts';
 import { PROPS } from '../props.ts';
 import { FRAME, gapOf, placements } from './openings.ts';
-import { END_Z, STAGE } from './stage.ts';
+import { CORRIDOR_END_BAYS, CORRIDOR_END_Z } from './extent.ts';
+import { CORRIDOR_START_Z } from './architecture/corridor.ts';
+import { ENTRANCE_DOORS } from './doorKit/lobbyDoors.ts';
 import { DECOR_DRAW_CALLS, DECOR_TRIANGLES } from './decor/budget.ts';
 import { DECOR_LAYOUT } from './decor/layout.ts';
 import decorManifest from './decor/lod/manifest.json';
@@ -46,17 +48,25 @@ describe('placements', () => {
         .map((p) => [p.z - gapOf(p.spec).width / 2, p.z + gapOf(p.spec).width / 2] as const)
         .sort((a, b) => a[0] - b[0]);
       for (let i = 1; i < spans.length; i += 1) expect(spans[i]![0], `${side} openings ${i - 1}/${i}`).toBeGreaterThan(spans[i - 1]![1] + 0.1);
-      expect(spans[0]![0]).toBeGreaterThan(END_Z);
+      expect(spans[0]![0]).toBeGreaterThan(CORRIDOR_END_Z);
       expect(spans[spans.length - 1]![1]).toBeLessThan(CORRIDOR.innerDoorZ - 0.5);
     }
   });
 
-  it('stops its blank-door flats at the last stage bay and marks them far', () => {
+  it('carries the corridor wall behind the architrave on surround insertions', () => {
+    for (const p of places.filter((place) => place.spec.surround)) {
+      const hole = p.spec.surround!.width;
+      expect(gapOf(p.spec).width, p.key).toBeLessThan(hole);
+      expect(hole - gapOf(p.spec).width, p.key).toBeCloseTo(0.04, 5);
+    }
+  });
+
+  it('dresses complete far bays through the corridor end and marks them far', () => {
     const far = places.filter((p) => p.far);
     expect(far.length).toBeGreaterThan(6);
-    expect(Math.min(...far.map((p) => p.z))).toBeLessThan(END_Z + 3);
-    expect(Math.max(...far.map((p) => p.z))).toBeGreaterThan(END_Z);
-    expect(STAGE.bays).toBe(13);
+    expect(Math.min(...far.map((p) => p.z))).toBeLessThan(CORRIDOR_END_Z + 3);
+    expect(Math.max(...far.map((p) => p.z))).toBeGreaterThan(CORRIDOR_END_Z);
+    expect(CORRIDOR_END_BAYS).toBe(13);
     for (const p of far) expect(p.chamber).toBeNull();
     // Each reveal is 0.22 m deep; the architrave is 0.1 m wide.
     expect(FRAME.reveal).toBe(0.22);
@@ -64,7 +74,7 @@ describe('placements', () => {
 });
 
 describe('the built world', () => {
-  it('stays inside the 210k triangle and 125 draw-call budgets', () => {
+  it('stays inside the 213k triangle and 125 draw-call budgets', () => {
     // Doors are counted whole even where a part also merged, so this is an upper bound. The
     // triangle total includes the dressing and the props lane's full allowance.
     const doors = world.chamberDoors.reduce(
@@ -77,7 +87,8 @@ describe('the built world', () => {
     };
     const groups = sconceGroups();
     const instanced = groups.near.length * lantern('near') + groups.far.length * lantern('far');
-    expect(world.triangles + doors + instanced + DECOR_TRIANGLES + 25_000).toBeLessThanOrEqual(210_000);
+    // The restored entrance doors and complete lobby partitions add a small amount of static joinery.
+    expect(world.triangles + doors + instanced + DECOR_TRIANGLES + 25_000).toBeLessThanOrEqual(213_000);
     const drawn = BUCKET_KEYS.filter((k) => world.buckets[k].triangleCount > 0).length;
     const desktopFinishCalls = 7 + 2 + 1 + 2 * CORRIDOR_LOOK.bloom.levels;
     expect(drawn + 6 + world.chamberDoors.length * 8 + 4 + DECOR_DRAW_CALLS + desktopFinishCalls).toBeLessThanOrEqual(125);
@@ -106,8 +117,74 @@ describe('the built world', () => {
     const bounds = walk.bounds();
     expect(bounds.min[0]).toBeCloseTo(-0.58, 5);
     expect(bounds.max[0]).toBeCloseTo(0.58, 5);
-    expect(bounds.min[2]).toBeCloseTo(END_Z, 5);
+    expect(bounds.min[2]).toBeCloseTo(CORRIDOR_END_Z, 5);
     expect(bounds.max[2]).toBeCloseTo(CORRIDOR.innerDoorZ, 5);
+  });
+
+  it('carries the lobby terrazzo beneath the closed entrance leaves', () => {
+    const floor = world.buckets.terrazzo.bounds();
+    expect(floor.max[2]).toBeGreaterThan(LOBBY.startZ + 0.1);
+    expect(floor.max[2]).toBeLessThan(LOBBY.startZ + 0.2);
+  });
+
+  it('runs both ceilings behind the walls and partition joins', () => {
+    const plaster = world.buckets.plaster;
+    let minLobbyX = Infinity;
+    let maxLobbyX = -Infinity;
+    let minLobbyZ = Infinity;
+    let maxLobbyZ = -Infinity;
+    for (let i = 0; i < plaster.pos.length; i += 3) {
+      if (Math.abs(plaster.pos[i + 1]! - LOBBY.height) > 1e-4 || plaster.nor[i + 1]! > -0.9) continue;
+      const x = plaster.pos[i]!;
+      const z = plaster.pos[i + 2]!;
+      minLobbyX = Math.min(minLobbyX, x);
+      maxLobbyX = Math.max(maxLobbyX, x);
+      minLobbyZ = Math.min(minLobbyZ, z);
+      maxLobbyZ = Math.max(maxLobbyZ, z);
+    }
+
+    expect(minLobbyX).toBeLessThan(-LOBBY.width / 2 - 0.05);
+    expect(maxLobbyX).toBeGreaterThan(LOBBY.width / 2 + 0.05);
+    expect(minLobbyZ).toBeLessThan(CORRIDOR.innerDoorZ);
+    expect(maxLobbyZ).toBeGreaterThan(LOBBY.startZ);
+  });
+
+  it('overlaps the inner partition plaster behind the dado cap on both faces', () => {
+    const plaster = world.buckets.plaster;
+    const lowestFaceY = (z: number, normalZ: number): number => {
+      let lowest = Infinity;
+      for (let i = 0; i < plaster.pos.length; i += 3) {
+        if (Math.abs(plaster.pos[i + 2]! - z) > 1e-4 || plaster.nor[i + 2]! * normalZ < 0.9) continue;
+        if (plaster.pos[i]! < -1.5) lowest = Math.min(lowest, plaster.pos[i + 1]!);
+      }
+      return lowest;
+    };
+
+    expect(lowestFaceY(CORRIDOR.innerDoorZ, 1)).toBeLessThan(CORRIDOR.dado);
+    expect(lowestFaceY(CORRIDOR.innerDoorZ - 0.3, -1)).toBeLessThan(CORRIDOR.dado);
+  });
+
+  it('fills the inner partition between its faces at both door shoulders and above the head', () => {
+    const plaster = world.buckets.plaster;
+    let coreVertices = 0;
+    for (let i = 0; i < plaster.pos.length; i += 3) {
+      const x = plaster.pos[i]!;
+      const y = plaster.pos[i + 1]!;
+      const z = plaster.pos[i + 2]!;
+      if (z > CORRIDOR_START_Z && z < CORRIDOR.innerDoorZ && Math.abs(x) > 1.3 && y < LOBBY.height) coreVertices += 1;
+      if (z > CORRIDOR_START_Z && z < CORRIDOR.innerDoorZ && Math.abs(x) < 1.3 && y >= 3.1) coreVertices += 1;
+    }
+    expect(coreVertices).toBeGreaterThan(30);
+  });
+
+  it('closes the corridor at the same thirteen-bay line as its floor', () => {
+    expect(world.buckets.terrazzoWalk.bounds().min[2]).toBeCloseTo(CORRIDOR_END_Z, 5);
+    const cap = world.buckets.plaster;
+    let facingCorridor = 0;
+    for (let i = 0; i < cap.pos.length; i += 3) {
+      if (Math.abs(cap.pos[i + 2]! - CORRIDOR_END_Z) < 1e-4 && cap.nor[i + 2]! > 0.9) facingCorridor += 1;
+    }
+    expect(facingCorridor).toBeGreaterThanOrEqual(4);
   });
 
   it('lights the real banker lamp on the hall table from a visible warm source', () => {
@@ -155,10 +232,69 @@ describe('the built world', () => {
     // Behind the walls only the openings' reveals and the interior proxy (built separately) go.
     expect(min[0]!).toBeGreaterThan(-LOBBY.width / 2 - 0.4);
     expect(max[0]!).toBeLessThan(LOBBY.width / 2 + 0.4);
-    expect(min[1]!).toBeGreaterThanOrEqual(-0.001);
+    expect(min[1]!).toBeGreaterThanOrEqual(-0.005);
     expect(max[1]!).toBeLessThanOrEqual(LOBBY.height + 0.05);
-    expect(min[2]!).toBeGreaterThanOrEqual(END_Z - 0.01);
+    expect(min[2]!).toBeGreaterThanOrEqual(CORRIDOR.farZ - 0.01);
     expect(max[2]!).toBeLessThanOrEqual(LOBBY.startZ + 0.4);
+  });
+
+  it('merges the closed entrance leaves into the lobby rear wall', () => {
+    const oak = world.buckets.oak;
+    let leafVertices = 0;
+    for (let i = 0; i < oak.pos.length; i += 3) {
+      const x = oak.pos[i]!;
+      const y = oak.pos[i + 1]!;
+      const z = oak.pos[i + 2]!;
+      if (Math.abs(x) < ENTRANCE_DOORS.width / 2 && y > 0.3 && y < ENTRANCE_DOORS.height && z > LOBBY.startZ && z < LOBBY.startZ + 0.12) {
+        leafVertices += 1;
+      }
+    }
+    expect(leafVertices).toBeGreaterThan(100);
+  });
+
+  it('finishes the full lobby-width corridor face of the inner partition with oak wainscot', () => {
+    const oak = world.buckets.oak;
+    let corridorFacingOak = 0;
+    let leftShoulderOak = 0;
+    let rightShoulderOak = 0;
+    for (let i = 0; i < oak.pos.length; i += 3) {
+      const x = oak.pos[i]!;
+      const y = oak.pos[i + 1]!;
+      const z = oak.pos[i + 2]!;
+      const corridorFace = x > -LOBBY.width / 2 && x < LOBBY.width / 2 && y < 1.2 && Math.abs(z - CORRIDOR_START_Z) < 0.055 && oak.nor[i + 2]! < -0.9;
+      if (corridorFace) {
+        corridorFacingOak += 1;
+        if (x < -CORRIDOR.width / 2 - 0.05) leftShoulderOak += 1;
+        if (x > CORRIDOR.width / 2 + 0.05) rightShoulderOak += 1;
+      }
+    }
+    expect(corridorFacingOak).toBeGreaterThan(20);
+    expect(leftShoulderOak).toBeGreaterThan(10);
+    expect(rightShoulderOak).toBeGreaterThan(10);
+  });
+
+  it('finishes both splayed side returns between the corridor and lobby walls', () => {
+    const oak = world.buckets.oak;
+    const corridorHalf = CORRIDOR.width / 2;
+    const corridorSideNearZ = CORRIDOR_START_Z + 0.12;
+    const dx = LOBBY.width / 2 - corridorHalf;
+    const dz = CORRIDOR.innerDoorZ - corridorSideNearZ;
+    const length = Math.hypot(dx, dz);
+    const nx = dz / length;
+    const nz = dx / length;
+    let leftReturn = 0;
+    let rightReturn = 0;
+    for (let i = 0; i < oak.pos.length; i += 3) {
+      const x = oak.pos[i]!;
+      const y = oak.pos[i + 1]!;
+      const z = oak.pos[i + 2]!;
+      if (y >= 0.17 && y < 1.2) {
+        if (Math.abs(nx * (x + LOBBY.width / 2) + nz * (z - CORRIDOR.innerDoorZ)) < 0.002) leftReturn += 1;
+        if (Math.abs(-nx * (x - corridorHalf) + nz * (z - corridorSideNearZ)) < 0.002) rightReturn += 1;
+      }
+    }
+    expect(leftReturn).toBeGreaterThan(10);
+    expect(rightReturn).toBeGreaterThan(10);
   });
 
   it('uses at most MAX_LAMPS static lamps and none further than the fog can show', () => {

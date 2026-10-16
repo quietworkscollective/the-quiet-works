@@ -16,6 +16,12 @@ export interface DoorListItem {
   description: string;
 }
 
+export interface DoorGuidance {
+  /** The caller keeps this false until its public wording has editorial approval. */
+  enabled: boolean;
+  content: ReactNode;
+}
+
 export interface DoorListProps {
   doors: readonly DoorListItem[];
   focus: ChamberId | null;
@@ -23,6 +29,8 @@ export interface DoorListProps {
   onOpenDoor(id: ChamberId): void;
   /** 'overlay' sits over the 3D corridor (visible on focus); 'list' is the text-mode list. */
   variant: 'overlay' | 'list';
+  /** Optional, disabled-by-default corridor cue. The corridor shell does not supply copy yet. */
+  guidance?: DoorGuidance | undefined;
 }
 
 export interface NoticeBoardProps {
@@ -89,6 +97,12 @@ export interface MenuPanelProps {
   settings: Settings;
   onToggle(key: SettingKey): void;
   canLeaveTextMode: boolean;
+  /** True while the corridor's room is open, so the menu can offer its room exit. */
+  inChamber: boolean;
+  /** Leaves an open chamber after the menu closes. */
+  onReturnToCorridor(): void;
+  /** Closes overlays and returns the page and camera to the landing view. */
+  onBackToEntrance(): void;
   onOpenBoard(): void;
   onOpenPage(page: PageId): void;
   onClose(): void;
@@ -178,6 +192,8 @@ export interface FooterProps {
   /** The menu again, built by the shell. */
   menu: ReactNode;
   onOpenPage(page: PageId): void;
+  /** Opens the shell's dialog without repeating its navigation in the colophon. */
+  onOpenMenu?: (() => void) | undefined;
   /** One line of non-spoiler trivia, chosen once per visit; empty until approved. */
   trivia?: string | undefined;
 }

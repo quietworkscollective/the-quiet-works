@@ -134,6 +134,14 @@ describe('ambient window limits', () => {
 });
 
 describe('the hero\'s first ten seconds', () => {
+  it('lets the idle board-pin window end before the dust window is due', () => {
+    const first = (id: AmbientId): MotionSpec => MOTIONS.find((motion) => motion.id === id)!;
+    expect(first('lobby-fan').first).toBe(0);
+    expect(first('board-paper').first).toBeLessThanOrEqual(4000);
+    expect(first('lobby-dust').first).toBeLessThanOrEqual(8000);
+    expect(first('board-pin').first + first('board-pin').windowMs).toBeLessThan(first('lobby-dust').first);
+  });
+
   it('turns the fan from the first frame, lifts a paper corner by 4 s and shows dust by 8 s', () => {
     const timers = virtualTimers();
     const clock = greedyClock(timers);
@@ -145,6 +153,29 @@ describe('the hero\'s first ten seconds', () => {
     expect(first('lobby-dust')?.start, 'dust').toBeLessThanOrEqual(8000);
     // The paper's lift (1.8 s) fits inside its window, so it is never cut off mid-way.
     expect(first('board-paper')?.ms ?? 0).toBeGreaterThanOrEqual(1800);
+  });
+
+  it('starts the hero schedule when the live world is ready, even after a slow asset load', () => {
+    const timers = virtualTimers();
+    timers.advance(20_000);
+    const readyAt = timers.now();
+    const clock = greedyClock(timers);
+    new AmbientScheduler(clock, { reducedMotion: false, desktop: true, random: seeded(2), timers }).start();
+
+    expect(clock.windows.find((w) => w.id === 'lobby-fan')?.start).toBe(readyAt);
+    timers.advance(8000);
+    const first = (id: AmbientId): Recorded | undefined => clock.windows.find((w) => w.id === id);
+    expect((first('board-paper')?.start ?? Infinity) - readyAt).toBeLessThanOrEqual(4000);
+    expect((first('lobby-dust')?.start ?? Infinity) - readyAt).toBeLessThanOrEqual(8000);
+  });
+
+  it('opens the zero-offset fan synchronously for the first world frame', () => {
+    const timers = virtualTimers();
+    const clock = greedyClock(timers);
+    new AmbientScheduler(clock, { reducedMotion: false, desktop: true, random: seeded(2), timers }).start();
+    expect(clock.windows.find((w) => w.id === 'lobby-fan')?.start).toBe(0);
+    expect(timers.advance).toBeTypeOf('function');
+    expect(clock.active('lobby-fan')).toBe(true);
   });
 });
 

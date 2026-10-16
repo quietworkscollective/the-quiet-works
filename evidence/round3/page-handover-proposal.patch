@@ -1,0 +1,167 @@
+--- a/apps/web/e2e/page.spec.ts
++++ b/apps/web/e2e/page.spec.ts
+# Reason: The helper must import START_VIEW to choose the approved pose for this viewport.
+@@ -4 +4 @@
+-import { HANDOVER } from '../src/corridor/layout.ts';
++import { START_VIEW } from '../src/corridor/layout.ts';
+# Reason: The stable-pose helper must wait for the selected desktop or portrait hand-over.
+@@ -41 +41,3 @@
+-  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
++  const viewport = page.viewportSize()!;
++  const handover = viewport.height > viewport.width ? START_VIEW.portrait : START_VIEW.desktop;
++  await expect.poll(async () => Math.abs((await pose(page)).z - handover.z) < 0.0005, { timeout: sceneTimeout(30_000) }).toBe(true);
+# Reason: The test title should describe the automatic wheel hand-over and camera walk.
+@@ -966 +968 @@
+-  test('a real wheel scrolls the page through the window and on; the camera does not walk', async ({ page }, info) => {
++  test('a real wheel scroll through the hand-over engages and walks the camera', async ({ page }, info) => {
+# Reason: After scrolling through smoke, the window is engaged at its hand-over pose.
+@@ -978 +980,2 @@
+-    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
++    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
++    await expect(canvas(page)).toHaveAttribute('data-at-handover', 'true');
+# Reason: Once the wheel is captured, the page does not pass through the game window.
+@@ -980 +982,0 @@
+-    const y = await scrollY(page);
+# Reason: The second wheel event advances the camera while the window remains engaged.
+@@ -982,3 +984,5 @@
+-    await expect.poll(() => scrollY(page)).toBeGreaterThan(y + 300);
+-    expect(await pose(page)).toEqual(before);
+-    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
++    await expect.poll(async () => {
++      const after = await settledPose(page);
++      return Math.abs(after.x - before.x) > 0.08 || Math.abs(after.z - before.z) > 0.08;
++    }).toBe(true);
++    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+# Reason: Round 1 requires the footer Menu to return visitors from deep pages.
+@@ -1619 +1623 @@
+-  test('the footer is a colophon without a detached menu, links About, Credits, Privacy and Licences, and signs the copyright', async ({ page }) => {
++  test('the footer is a colophon with its Menu, links About, Credits, Privacy and Licences, and signs the copyright', async ({ page }) => {
+# Reason: The footer Menu should be present alongside the existing footer links.
+@@ -1622 +1626 @@
+-    await expect(footer.getByRole('navigation', { name: 'Footer menu' })).toHaveCount(0);
++    await expect(footer.getByRole('navigation', { name: 'Footer menu' })).toHaveCount(1);
+--- a/apps/web/e2e/corridor-walk.spec.ts
++++ b/apps/web/e2e/corridor-walk.spec.ts
+# Reason: The protected camera checks must import the new desktop and portrait pose source.
+@@ -7,2 +7 @@
+-  HANDOVER,
+-  HANDOVER_PORTRAIT_TURN_DEG,
++  START_VIEW,
+# Reason: One helper must expose the approved pose for the current viewport.
+@@ -143,0 +143,6 @@
++function handoverView(page: Page): { x: number; z: number; yaw: number } {
++  const v = page.viewportSize()!;
++  const pose = v.height > v.width ? START_VIEW.portrait : START_VIEW.desktop;
++  return { x: pose.x, z: pose.z, yaw: pose.yawDeg };
++}
++
+# Reason: The yaw expectation must follow that viewport-specific pose.
+@@ -145,2 +150 @@
+-  const v = page.viewportSize()!;
+-  return v.height > v.width ? HANDOVER_PORTRAIT_TURN_DEG : 0;
++  return handoverView(page).yaw;
+# Reason: Programmatic landing scrolls must compare against the selected hand-over z.
+@@ -181 +185 @@
+-  await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
++  await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverYaw(page) }, 10_000);
+# Reason: The authored hand-over test title and first pose check must follow the new start poses.
+@@ -303,4 +307,4 @@
+-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
+-  });
+-
+-  test('at the hand-over the view is straight on desktop and turned 12 degrees toward the Office door in portrait', { tag: '@extended' }, async ({
++    await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverYaw(page) }, 10_000);
++  });
++
++  test('at the hand-over the view reaches its authored desktop and portrait headings', { tag: '@extended' }, async ({
+# Reason: The final walk-in beat eases both authored headings left from the landing axis.
+@@ -321 +325 @@
+-    // Part-way through the beat a portrait phone is part-way through the turn; desktop has none.
++    // Both approved starting views ease left from the landing axis during the final beat.
+# Reason: The protected beat assertion must fall between the landing axis and the selected heading.
+@@ -325,6 +329,2 @@
+-    if (isMobile) {
+-      expect(beat).toBeGreaterThan(5);
+-      expect(beat).toBeLessThan(HANDOVER_PORTRAIT_TURN_DEG);
+-    } else {
+-      expect(beat).toBeCloseTo(0, 1);
+-    }
++    expect(beat).toBeLessThan(0);
++    expect(beat).toBeGreaterThan(handoverView(page).yaw);
+# Reason: The final pose check uses the selected desktop or portrait z and yaw.
+@@ -334 +334 @@
+-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: isMobile ? HANDOVER_PORTRAIT_TURN_DEG : 0 }, 10_000);
++    await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverView(page).yaw }, 10_000);
+# Reason: The exact tuple assertion must use the same selected pose.
+@@ -337 +337 @@
+-    expect(await pose(page)).toEqual({ x: 0, z: HANDOVER.z, yaw: isMobile ? HANDOVER_PORTRAIT_TURN_DEG : 0 });
++    expect(await pose(page)).toEqual({ x: 0, z: handoverView(page).z, yaw: handoverView(page).yaw });
+# Reason: The post-release hand-over check must use the selected viewport z.
+@@ -369 +369 @@
+-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
++    await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverYaw(page) }, 10_000);
+# Reason: The reduced-motion arrival check must use the selected viewport z.
+@@ -946 +946 @@
+-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
++    await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverYaw(page) }, 10_000);
+# Reason: The return-to-hand-over check must use the selected viewport z.
+@@ -986 +986 @@
+-    await expectPoseSoon(page, { x: 0, z: HANDOVER.z, yaw: handoverYaw(page) }, 10_000);
++    await expectPoseSoon(page, { x: 0, z: handoverView(page).z, yaw: handoverYaw(page) }, 10_000);
+--- a/apps/web/e2e/corridor-site.spec.ts
++++ b/apps/web/e2e/corridor-site.spec.ts
+# Reason: The protected site checks must import the new desktop and portrait pose source.
+@@ -3 +3 @@
+-import { ENTRANCE_KEYS, HANDOVER, HANDOVER_PORTRAIT_TURN_DEG } from '../src/corridor/layout.ts';
++import { ENTRANCE_KEYS, START_VIEW } from '../src/corridor/layout.ts';
+# Reason: One helper must expose the approved pose for the current viewport.
+@@ -67,0 +68,6 @@
++function handoverView(page: Page): { x: number; z: number; yaw: number } {
++  const v = page.viewportSize()!;
++  const pose = v.height > v.width ? START_VIEW.portrait : START_VIEW.desktop;
++  return { x: pose.x, z: pose.z, yaw: pose.yawDeg };
++}
++
+# Reason: The heading expectation must follow that viewport-specific pose.
+@@ -69,2 +75 @@
+-  const v = page.viewportSize()!;
+-  return v.height > v.width ? HANDOVER_PORTRAIT_TURN_DEG : 0;
++  return handoverView(page).yaw;
+# Reason: The walk-in assertion must use the selected desktop or portrait hand-over.
+@@ -178 +183 @@
+-          return Math.abs(p.z - HANDOVER.z) < 0.01 && Math.abs(p.x) < 0.01 && Math.abs(p.yaw - handoverYaw(page)) < 0.1;
++          return Math.abs(p.z - handoverView(page).z) < 0.01 && Math.abs(p.x) < 0.01 && Math.abs(p.yaw - handoverYaw(page)) < 0.1;
+# Reason: The post-walk tuple must use the selected desktop or portrait hand-over.
+@@ -188 +193 @@
+-    expect(await pose(page)).toEqual({ x: 0, z: HANDOVER.z, yaw: handoverYaw(page) });
++    expect(await pose(page)).toEqual({ x: 0, z: handoverView(page).z, yaw: handoverYaw(page) });
+# Reason: The resting hand-over check must use the selected viewport z.
+@@ -228 +233 @@
+-    await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
++    await expect.poll(async () => Math.abs((await pose(page)).z - handoverView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
+# Reason: The engaged hand-over check must use the selected viewport z.
+@@ -272 +277 @@
+-    await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
++    await expect.poll(async () => Math.abs((await pose(page)).z - handoverView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
+# Reason: The walking-distance baseline must use the selected viewport z.
+@@ -282 +287 @@
+-    await expect.poll(async () => HANDOVER.z - (await pose(page)).z, { timeout: 10_000 }).toBeGreaterThan(0.4);
++    await expect.poll(async () => handoverView(page).z - (await pose(page)).z, { timeout: 10_000 }).toBeGreaterThan(0.4);
+# Reason: The resumed hand-over check must use the selected viewport z.
+@@ -325 +330 @@
+-    await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
++    await expect.poll(async () => Math.abs((await pose(page)).z - handoverView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
+--- a/apps/web/e2e/corridor-world.spec.ts
++++ b/apps/web/e2e/corridor-world.spec.ts
+# Reason: A touch-only phone has no hover cursor; retain that assertion on desktop and exercise touch selection on the phone.
+@@ -119,3 +119,7 @@
+-    await page.mouse.move(x, y);
+-    await expect.poll(cursor).toBe('pointer');
+-    await page.mouse.click(x, y);
++    if (isMobile) {
++      await page.touchscreen.tap(x, y);
++    } else {
++      await page.mouse.move(x, y);
++      await expect.poll(cursor).toBe('pointer');
++      await page.mouse.click(x, y);
++    }

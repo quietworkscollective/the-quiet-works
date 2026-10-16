@@ -190,8 +190,8 @@ describe('reduced motion', () => {
     expect(body).toMatch(/transition:\s*none\s*!important/);
   };
 
-  it('the visitor toggle (data-reduced-motion) removes every animation and transition', () => {
-    const header = /\[data-reduced-motion='true'\] \*,\s*\[data-reduced-motion='true'\] \*::before,\s*\[data-reduced-motion='true'\] \*::after,[^{]*\{/;
+  it('the visitor toggle removes motion while preserving the camera dissolve', () => {
+    const header = /\[data-reduced-motion='true'\] \*:not\(\.tqw-dissolve\),\s*\[data-reduced-motion='true'\] \*:not\(\.tqw-dissolve\)::before,\s*\[data-reduced-motion='true'\] \*:not\(\.tqw-dissolve\)::after,[^{]*\{/;
     const body = blockAfter(css, header);
     expect(body, 'no [data-reduced-motion="true"] kill-switch rule found').not.toBeNull();
     noMotion(body!);
@@ -207,9 +207,21 @@ describe('reduced motion', () => {
     const media = blockAfter(css, /@media \(prefers-reduced-motion: reduce\)\s*\{/);
     expect(body, 'no @media (prefers-reduced-motion: reduce) rule found').not.toBeNull();
     noMotion(media!);
-    for (const selector of ['.tqw-app *', '.tqw-app *::before', '.tqw-app *::after', '.tqw-memo', '.tqw-memo::backdrop']) {
+    for (const selector of [
+      '.tqw-app *:not(.tqw-dissolve)',
+      '.tqw-app *:not(.tqw-dissolve)::before',
+      '.tqw-app *:not(.tqw-dissolve)::after',
+      '.tqw-memo',
+      '.tqw-memo::backdrop',
+    ]) {
       expect(media, selector).toContain(selector);
     }
+  });
+
+  it('keeps the dissolve canvas out of both reduced-motion kill switches', () => {
+    const media = blockAfter(css, /@media \(prefers-reduced-motion: reduce\)\s*\{/);
+    expect(css).toMatch(/\[data-reduced-motion='true'\] \*:not\(\.tqw-dissolve\)/);
+    expect(media).toContain('.tqw-app *:not(.tqw-dissolve)');
   });
 
   it('no animated or transitioned rule targets the .tqw-app root itself, which the kill switches cannot reach', () => {

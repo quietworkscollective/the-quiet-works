@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+const workflow = readFileSync(new URL('../../.github/workflows/browser-software.yml', import.meta.url), 'utf8');
 function listing(job) {
   const section = workflow.split(`  ${job}:\n`)[1].split(/\n  \w[^\n]*:\n/)[0];
   const commands = [...section.matchAll(/run: (pnpm --filter @tqw\/web exec playwright test[^\n]+)/g)].map(match => match[1]);
@@ -16,8 +16,8 @@ function listing(job) {
   }).join('\n');
 }
 
-test('open Office budget gates in core or smoke', () => {
-  assert.match(listing('core') + listing('smoke'), /office-budget\.spec\.ts/);
+test('open Office budgets remain covered in software GL and the local GPU gate', () => {
+  assert.match(listing('core') + listing('full-tier'), /office-budget\.spec\.ts/);
 });
 test('room suites follow release flags and authored extended paths remain visible', () => {
   const required = listing('core');

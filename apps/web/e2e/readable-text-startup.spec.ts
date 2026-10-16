@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('text mode startup keeps the written fallback out of the handover and shows no scene poster', async ({ page }) => {
+test('text mode startup keeps the written fallback out of the handover and shows no scene poster', { tag: '@fast' }, async ({ page }) => {
   let release = () => {};
   const held = new Promise<void>(resolve => { release = resolve; });
   await page.route(/\/assets\/index-[\w-]+\.js$/, async route => { await held; await route.continue(); });

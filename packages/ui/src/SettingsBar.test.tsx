@@ -15,10 +15,10 @@ function setup(settings: Partial<Settings> = {}, canLeaveTextMode = true) {
 describe('SettingsBar', () => {
   it('is a labelled group of four toggle buttons', () => {
     const { group } = setup();
-    const names = within(group)
-      .getAllByRole('button')
-      .map((b) => b.textContent);
+    const buttons = within(group).getAllByRole('button');
+    const names = buttons.map((button) => button.querySelector('.tqw-toggle__label')?.textContent);
     expect(names).toEqual(['Sound', 'Reduced motion', 'Captions', 'Text mode']);
+    expect(buttons.map((button) => button.querySelector('.tqw-toggle__state')?.textContent)).toEqual(['On', 'Off', 'Off', 'Off']);
   });
 
   it('Sound is pressed when sound is on, which is when it is not muted', () => {

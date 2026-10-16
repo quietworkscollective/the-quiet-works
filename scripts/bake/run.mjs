@@ -199,7 +199,9 @@ try {
     if (bytes > lightmapBudget) throw new Error(`${space} lightmaps exceed budget: ${bytes} > ${lightmapBudget}`);
 
     const out = path.join(root, 'apps/web/src/baked/assets');
-    const roomBits = space === 'codex-room'
+    const roomBits = space === 'corridor'
+      ? { ...BAKE_GEOMETRY_BITS, texcoord: 12 }
+      : space === 'codex-room'
       ? { position: 14, normal: 10, texcoord: 14, color: 8 }
       : space === 'office'
         ? { position: 16, normal: 12, texcoord: 16, color: 8 }

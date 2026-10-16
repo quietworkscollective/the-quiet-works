@@ -1,0 +1,436 @@
+
+> the-quiet-works@ ci:local <worktree>
+> node scripts/ci/local.mjs
+
+
+> the-quiet-works@ lint <worktree>
+> pnpm -r --parallel lint
+
+Scope: 3 of 4 workspace projects
+apps/web lint$ eslint .
+packages/engine lint$ eslint .
+packages/ui lint$ eslint .
+packages/engine lint: Done
+packages/ui lint: Done
+apps/web lint: Done
+lint: 27.6s
+
+> the-quiet-works@ typecheck <worktree>
+> pnpm -r typecheck
+
+Scope: 3 of 4 workspace projects
+packages/engine typecheck$ tsc -p tsconfig.json
+packages/engine typecheck: Done
+packages/ui typecheck$ tsc -p tsconfig.json
+packages/ui typecheck: Done
+apps/web typecheck$ tsc -p tsconfig.json
+apps/web typecheck: Done
+typecheck: 21.7s
+
+> the-quiet-works@ test <worktree>
+> pnpm -r test && node --test scripts/bake/*.test.mjs scripts/audit-assets-budget.test.mjs scripts/blender/props/*.test.mjs && pnpm check:bakes && pnpm check:commons
+
+Scope: 3 of 4 workspace projects
+packages/engine test$ vitest run
+packages/engine test:  RUN  v5.0.4 <worktree>/packages/engine
+packages/engine test:  Test Files  14 passed (14)
+packages/engine test:       Tests  563 passed (563)
+packages/engine test:    Start at  11:11:41
+packages/engine test:    Duration  30.14s (tests 97%, import 2%, transform 1%)
+packages/engine test: Done
+packages/ui test$ vitest run
+packages/ui test:  RUN  v5.0.4 <worktree>/packages/ui
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+packages/ui test:  Test Files  35 passed (35)
+packages/ui test:       Tests  662 passed (662)
+packages/ui test:    Start at  11:12:12
+packages/ui test:    Duration  13.31s (environment 60%, tests 29%, import 8%, transform 1%, worker 1%, setup 1%)
+packages/ui test: Environment  jsdom was created 35 times · 69.11s total, 60% of tracked time
+packages/ui test:              create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+packages/ui test:              learn more: https://vitest.dev/guide/improving-performance#test-environments
+packages/ui test: Done
+apps/web test$ vitest run --passWithNoTests
+apps/web test:  RUN  v5.0.4 <worktree>/apps/web
+apps/web test: (node:85409) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+apps/web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/web test:  Test Files  151 passed (151)
+apps/web test:       Tests  2266 passed | 1 skipped (2267)
+apps/web test:    Start at  11:12:27
+apps/web test:    Duration  16.57s (tests 63%, import 16%, environment 10%, transform 10%, worker 1%)
+apps/web test:     Isolate  151 workers spawned · ~328ms startup each (spawn + environment, per file)
+apps/web test:              at least ~4.17s faster with isolate: false — reuses workers across files instead of one per file
+apps/web test: Done
+✔ measures the first-visit graph and the built room graphs independently (26.502375ms)
+✔ fails then passes the first-visit compressed graph (288.991459ms)
+✔ keeps receiver geometry deferred until the corridor dressing has loaded (15.813083ms)
+✔ counts nested Office model chunks and reports overage as a warning (661.981833ms)
+✔ does not expand a room through the already-loaded app document (119.72725ms)
+✔ reports expanded Codex and Exchange route overages without failing the audit (518.988417ms)
+✔ fails then passes the separate shared gramophone media cap (98.419666ms)
+✔ fails then passes the whole-build backstop (142.01725ms)
+✔ gates a cold Office visit including shared startup bytes without counting the corridor (1508.538959ms)
+✔ keeps deferred Office models in the expanded graph but outside the first frame (218.333458ms)
+✔ generated bake module defers lazy receiver chunks behind a loader (0.85ms)
+✔ corridor bake and freshness captures set a fixed clock before applying the world pose (3.1695ms)
+✔ Office freshness uses the fixed clock without requiring a corridor hook (0.11725ms)
+codec max irradiance error 0.009485827663104018 dark-band error 0.00014356826321859986
+✔ recorded Blender PNG and WebP preserve irradiance with the current encoder (204.896417ms)
+prune: Removed types... Accessor (2)
+✔ pins the corridor geometry encoding flags used by the bake pipeline (1.427291ms)
+✔ allows the corridor, Office and Annex room to keep their measured encoding precision (0.076ms)
+✔ 12-bit positions stay within 13 mm over a 100 m span and 8-bit normals within 0.015 radians (3.867959ms)
+✔ source fingerprints survive host roots and file ordering, but reject changed authored bytes (17.788959ms)
+✔ room source lists exclude generated files and detect added modules (342.783167ms)
+✔ packs quantized 5126 mesh accessor without shared storage or unrelated nodes (9.053625ms)
+✔ packs quantized 5122 mesh accessor without shared storage or unrelated nodes (3.687791ms)
+✔ packs quantized 5121 mesh accessor without shared storage or unrelated nodes (5.515667ms)
+✔ packs TEXCOORD_0 into normalized 16-bit values with a reversible per-mesh range (11.435417ms)
+✔ tall trophy cup keeps its close-up turning smooth (2.071292ms)
+✔ service bell keeps its curved dome and spun brass finish (0.358875ms)
+✔ radiators use distinct cream and bottle-green enamel (0.326792ms)
+✔ cricket bat reads as worn willow, not pale unfinished wood (0.243625ms)
+✔ books keep softened edges and the warmer page palette (1.681458ms)
+✔ squat trophy gilt uses the quieter, less saturated metal palette (0.506333ms)
+✔ shared finishes retain fine scratches and restrained lived-in variation (0.295791ms)
+✔ box-file cloth stays dark without broad mottling (0.402917ms)
+✔ box-file front cloth has no nearly coplanar marbled backing (1799.793125ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3782.39925
+
+> the-quiet-works@ check:bakes <worktree>
+> node scripts/bake/run.mjs --check
+
+corridor: source fingerprint matches 1ae5f83be4cc22eff4930c053fb9d17936a114f618b0fd813fc187864d315e57 (529 files)
+office: source fingerprint matches d5a0a328525e7ccca96ce52b9550e9c9aebd8ad330e51b655f6a2c4d3dda9fff (448 files)
+codex-room: source fingerprint matches 1377e867915ccedb7f57caec8c236c2cd8f9be2d5388492f68534d8ce128f940 (338 files)
+exchange: source fingerprint matches ad1ca459cdee90f8701d72917a85bf5bd85ff8c1d05947a9a49c4b74e741ebd8 (339 files)
+apartment: source fingerprint matches 51116a3efb0fbde00afe86a1dc268a9ea5e10d9cf26ae4a906b0806ac6d01506 (339 files)
+
+> the-quiet-works@ check:commons <worktree>
+> python3 -I scripts/commons/test_validator.py && python3 -I scripts/commons/validate.py && python3 -I docs/commons/examples/invalid/check.py
+
+test_accepts_sample_manifest_and_matching_asset (__main__.PackageTests.test_accepts_sample_manifest_and_matching_asset) ... ok
+test_rejects_a_folder_identifier_mismatch (__main__.PackageTests.test_rejects_a_folder_identifier_mismatch) ... ok
+test_rejects_asset_tampering (__main__.PackageTests.test_rejects_asset_tampering) ... ok
+test_rejects_unlisted_files (__main__.PackageTests.test_rejects_unlisted_files) ... ok
+test_accepts_the_reference_text (__main__.TextSubsetTests.test_accepts_the_reference_text) ... ok
+test_rejects_invalid_utf8_and_byte_order_mark (__main__.TextSubsetTests.test_rejects_invalid_utf8_and_byte_order_mark) ... ok
+test_rejects_markup_urls_and_instruction_text (__main__.TextSubsetTests.test_rejects_markup_urls_and_instruction_text) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.009s
+
+OK
+Commons validator passed: 1 package(s), schema and text rules checked.
+ok   example accepted: examples/lost-property-umbrella/manifest.json
+ok   accepted variant: the reading room as the placement
+ok   accepted variant: Tier 2 soundscape with an audio asset and captions
+ok   accepted variant: captions of exactly seven words, and of two words with extra spaces
+ok   accepted variant: an organisation as the named grantor of agent-made work
+ok   accepted variant: human-only work with no agent
+ok   accepted variant: a complete third-party entry
+ok   accepted variant: read with empty parameters
+ok   accepted variant: inspect at its upper bound
+ok   accepted variant: toggle with both labels
+ok   accepted variant: rotate at its bounds
+ok   accepted variant: wind at its upper bound
+ok   accepted variant: place at its upper bound
+ok   accepted variant: find at its lower bound
+ok   accepted variant: find at its upper bound
+ok   agent-work-grantor-wrong-role.json           /creators contains  (2 leaf change(s))
+ok   agent-work-no-named-grantor.json             /creators contains  (3 leaf change(s))
+ok   asset-path-absolute.json                     /assets/0/path pattern  (1 leaf change(s))
+ok   asset-path-traversal.json                    /assets/0/path pattern  (1 leaf change(s))
+ok   audio-caption-blank.json                     /accessibility/captions/0 pattern  (4 leaf change(s))
+ok   audio-caption-eight-words.json               /accessibility/captions/0 pattern  (4 leaf change(s))
+ok   audio-caption-no-brackets.json               /accessibility/captions/0 pattern  (4 leaf change(s))
+ok   audio-caption-too-long.json                  /accessibility/captions/0 pattern  (4 leaf change(s))
+ok   audio-captions-empty.json                    /accessibility/captions minItems  (3 leaf change(s))
+ok   audio-captions-missing.json                  /accessibility required  (3 leaf change(s))
+ok   creator-name-email.json                      /creators/0/name pattern  (1 leaf change(s))
+ok   creator-name-link.json                       /creators/0/name pattern  (1 leaf change(s))
+ok   fiction-false.json                           /fiction const  (1 leaf change(s))
+ok   fiction-missing.json                         $ required  (1 leaf change(s))
+ok   interaction-read-takes-none.json             /interaction/parameters additionalProperties  (1 leaf change(s))
+ok   interaction-slots-too-many.json              /interaction/parameters/slots maximum  (2 leaf change(s))
+ok   interaction-stops-too-many.json              /interaction/parameters/stops maximum  (2 leaf change(s))
+ok   interaction-turns-zero.json                  /interaction/parameters/turnsToPeak minimum  (2 leaf change(s))
+ok   interaction-unknown-name.json                /interaction/parameters additionalProperties  (3 leaf change(s))
+ok   interaction-views-too-many.json              /interaction/parameters/views maximum  (2 leaf change(s))
+ok   interaction-volume-too-loud.json             /interaction/parameters/volume maximum  (2 leaf change(s))
+ok   interaction-wait-too-short.json              /interaction/parameters/waitSeconds minimum  (2 leaf change(s))
+ok   media-type-svg.json                          /assets/0/mediaType enum  (3 leaf change(s))
+ok   no-code-licence.json                         /licence additionalProperties  (1 leaf change(s))
+ok   no-self-declared-status.json                 $ additionalProperties  (1 leaf change(s))
+ok   role-media-audio-markdown.json               /assets/0/mediaType const  (3 leaf change(s))
+ok   role-media-image-markdown.json               /assets/0/mediaType enum  (2 leaf change(s))
+ok   role-media-model-png.json                    /assets/0/mediaType const  (3 leaf change(s))
+ok   role-media-text-png.json                     /assets/0/mediaType const  (1 leaf change(s))
+ok   scope-category-chamber-proposal.json         /category enum  (1 leaf change(s))
+ok   scope-category-platform.json                 /category enum  (1 leaf change(s))
+ok   scope-placement-anywhere.json                /engine/placement/kind enum  (1 leaf change(s))
+ok   scope-placement-chamber-door.json            /engine/placement/kind enum  (1 leaf change(s))
+ok   scope-placement-memo-slot.json               /engine/placement/kind enum  (1 leaf change(s))
+ok   scope-placement-names-chamber.json           /engine/placement additionalProperties  (1 leaf change(s))
+ok   scope-placement-new-chamber.json             /engine/placement/kind enum  (1 leaf change(s))
+ok   scope-tier-3.json                            /tier enum  (1 leaf change(s))
+ok   scope-tier-4.json                            /tier enum  (1 leaf change(s))
+ok   third-party-asset-empty.json                 /licence/thirdParty/0/asset minLength  (4 leaf change(s))
+ok   third-party-attribution-empty.json           /licence/thirdParty/0/attribution minLength  (4 leaf change(s))
+ok   third-party-source-empty.json                /licence/thirdParty/0/source minLength  (4 leaf change(s))
+ok   tier-category-tier1-puzzle.json              /category enum  (1 leaf change(s))
+ok   tier-category-tier2-memo.json                /category enum  (1 leaf change(s))
+
+43 fixtures, 0 failure(s)
+test: 72.1s
+
+> the-quiet-works@ check:content <worktree>
+> pnpm --filter @tqw/engine check:content && pnpm --filter @tqw/web exec vitest run src/discoverability.test.ts --reporter=verbose
+
+
+> @tqw/engine@0.0.0 check:content <worktree>/packages/engine
+> vitest run src/content.check.test.ts --reporter=verbose
+
+
+ RUN  v5.0.4 <worktree>/packages/engine
+
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > finds what the memo rules forbid, and nothing else 2ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > wants a Fictional label on first-person text only 1ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > holds fields named like a caption to the caption rules, and no other field 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > keeps the Office memo ceiling at 70 words after sealing 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > requires fictional provenance and an editorial flag for Office documents 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > requires a readable title on an Office memo 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > retains the authored classification and explicit personal fiction label 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > cannot bypass Office document rules by changing its kind 0ms
+ ✓ src/content.check.test.ts > sealed memos (ADR 0002) > leaves items that are not memos alone 0ms
+ ✓ src/content.check.test.ts > copy collection > reaches every area of the story copy 1ms
+ ✓ src/content.check.test.ts > banned framing > the "fixed" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "cured" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "healed" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "normal" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "score" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "level up" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "achievement" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "streak" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "diagnos*" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "disorder" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "symptom" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "therapy" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "therapist" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "treatment" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "depression" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "suicide" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "self-harm" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "kill yourself" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "tell us" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > the "share your" pattern catches its own sample 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: STATUS: FINE 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: Filed under fine. 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: PROVISIONALLY APPROVED 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: The stamp still works beautifully. 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: An abnormal quantity of paper. 0ms
+ ✓ src/content.check.test.ts > banned framing > ordinary office language is not flagged: The rustle of a scoreboard-free room. 0ms
+ ✓ src/content.check.test.ts > banned framing > no exported copy string, caption or notice uses a banned term 1ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > keeps only the core memo public and five neutral document identities in objects 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > imports Memo 001 verbatim rather than replacing its approved body 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > memo-001 has explicit fictional provenance including personal notes 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > press identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > ink-pad identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > machine identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > lamp identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > drawer identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > tiny-stamp identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > register identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > window identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > bell identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > sign identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > side-door identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > service-panel identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > chair identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > stack identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > clock identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > conduit identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > routing-tray identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > coat-hook identity and its alias are included in content collection 0ms
+ ✓ src/content.check.test.ts > Office documents and discoveries > memo-001 full document and label are covered by content collection 4ms
+ ✓ src/content.check.test.ts > no remote references in copy > no copy string contains a URL or web address 0ms
+ ✓ src/content.check.test.ts > memo > copy exports at least one memo 0ms
+ ✓ src/content.check.test.ts > memo > memo-001 > body is 30-90 words (currently 61) 0ms
+ ✓ src/content.check.test.ts > memo > memo-001 > has a from line and provenance for both discovery paths 0ms
+ ✓ src/content.check.test.ts > memo > memo-001 > uses first-person sentences only when the memo is marked fictional 0ms
+ ✓ src/content.check.test.ts > memo > the memo dialog renders the Fictional footnote 0ms
+ ✓ src/content.check.test.ts > memo > detects first-person testimony and the fictional label 0ms
+ ✓ src/content.check.test.ts > captions > includes sounded cues 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.contact is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.lift is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.reply is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.overload is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.stillness is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.memo-revealed is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.reset is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTION_REPLY_SAGGING is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.door-open is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.door-sealed is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.chamber-leave is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.board-open is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.radiator is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.wheel is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.drip is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.cabinet is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.press.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.ink-pad.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.machine.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.lamp.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.drawer.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.tiny-stamp.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.register.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.window.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.bell.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.sign.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.side-door.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.service-panel.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.chair.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.stack.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.clock.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.conduit.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.routing-tray.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.coat-hook.caption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECT_COPY.whisperCaption is bracketed 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.contact is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.lift is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.reply is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.overload is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.stillness is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.memo-revealed is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTIONS.reset is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > CAPTION_REPLY_SAGGING is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.door-open is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.door-sealed is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.chamber-leave is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > SPINE_CAPTIONS.board-open is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.radiator is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.wheel is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.drip is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > PROP_CAPTIONS.cabinet is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.press.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.ink-pad.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.machine.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.lamp.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.drawer.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.tiny-stamp.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.register.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.window.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.bell.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.sign.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.side-door.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.service-panel.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.chair.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.stack.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.clock.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.conduit.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.routing-tray.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECTS.coat-hook.caption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > captions > OFFICE_OBJECT_COPY.whisperCaption is at most 7 words 0ms
+ ✓ src/content.check.test.ts > text-mode scene > is 45-80 words (currently 78) 0ms
+ ✓ src/content.check.test.ts > text-mode scene > is 2-3 non-empty paragraphs 0ms
+ ✓ src/content.check.test.ts > machine lines > covers the escalation and aftermath loops 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[0] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[1] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[2] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[3] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[4] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[0] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[1] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[2] display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > STILLNESS_LINE display is uppercase and at most 40 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[0] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[1] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[2] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[3] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > ESCALATION[4] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[0] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[1] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > AFTERMATH[2] receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > STILLNESS_LINE receipt is at most 60 characters 0ms
+ ✓ src/content.check.test.ts > machine lines > the opening display follows the same display rules 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > certification-office headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > apartment headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > tomorrow-engine headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > great-atrium headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > exchange headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > outline-room headline is uppercase and short enough to read at a glance 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > certification-office dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > apartment dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > tomorrow-engine dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > great-atrium dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > exchange dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > outline-room dek is one sentence within the limit 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > certification-office plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > apartment plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > tomorrow-engine plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > great-atrium plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > exchange plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > notice-board clippings and plaques > outline-room plaque is uppercase 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > About UNHELD [0] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > About UNHELD [1] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > About UNHELD [2] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > About UNHELD [3] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Privacy [0] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Privacy [1] is at most 60 words 1ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Privacy [2] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Privacy [3] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Credits [0] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Credits [1] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Credits [2] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > Credits [3] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > This address isn't in the directory [0] is at most 60 words 0ms
+ ✓ src/content.check.test.ts > site pages and corridor text mode > the corridor text mode is 45-90 words (currently 72) 0ms
+ ✓ src/content.check.test.ts > no AI attribution in copy > the pattern catches what it must 0ms
+ ✓ src/content.check.test.ts > no AI attribution in copy > no exported copy string credits or names an AI tool 0ms
+
+ Test Files  1 passed (1)
+      Tests  193 passed (193)
+   Start at  11:12:51
+   Duration  203ms (tests 40%, import 33%, transform 21%, worker 6%)
+
+
+ RUN  v5.0.4 <worktree>/apps/web
+
+ ✓ src/discoverability.test.ts > public route discoverability > has a crawlable route for every public page and chamber 1ms
+ ✓ src/discoverability.test.ts > public route discoverability > keeps site pages and open room entries in the sitemap exactly once 1ms
+ ✓ src/discoverability.test.ts > public route discoverability > sets Cloudflare MIME types for Markdown and discovery files 0ms
+ ✓ src/discoverability.test.ts > public route discoverability > serves folder routes at their no-trailing-slash canonical URLs 0ms
+ ✓ src/discoverability.test.ts > public route discoverability > returns canonical route metadata and a valid JSON-LD graph 2ms
+ ✓ src/discoverability.test.ts > public route discoverability > serves the same text-mode descriptions in fallback HTML and Markdown 15ms
+ ✓ src/discoverability.test.ts > public route discoverability > keeps Credits grouped and links the full licence texts in fallback HTML 1ms
+ ✓ src/discoverability.test.ts > public route discoverability > keeps agent-facing copy passive and limits its links to UNHELD and public GitHub 1ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  11:12:52
+   Duration  178ms (import 43%, tests 31%, transform 23%, worker 3%)
+
+check:content: 2.3s
+
+> the-quiet-works@ check:public <worktree>
+> node scripts/check-public.mjs
+
+check:public found 3 problem(s) that must not reach a public repository:
+  evidence/round3/asset-audit-green.log:2: local-path
+  evidence/round3/asset-audit-green.log:6: local-path
+  evidence/round3/asset-audit-green.log:10: local-path
+ ELIFECYCLE  Command failed with exit code 1.
+check:public: 1.9s
+ ELIFECYCLE  Command failed with exit code 1.

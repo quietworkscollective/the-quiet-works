@@ -1,0 +1,83 @@
+
+> the-quiet-works@ lint <worktree>
+> pnpm -r --parallel lint
+
+Scope: 3 of 4 workspace projects
+apps/web lint$ eslint .
+packages/engine lint$ eslint .
+packages/ui lint$ eslint .
+packages/engine lint: Done
+packages/ui lint: Done
+apps/web lint: <worktree>/apps/web/src/corridor/camera/CameraRig.tsx
+apps/web lint:   519:6  warning  React Hook useEffect has a missing dependency: 'software'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+apps/web lint: ✖ 1 problem (0 errors, 1 warning)
+apps/web lint: Done
+
+> the-quiet-works@ typecheck <worktree>
+> pnpm -r typecheck
+
+Scope: 3 of 4 workspace projects
+packages/engine typecheck$ tsc -p tsconfig.json
+packages/engine typecheck: Done
+packages/ui typecheck$ tsc -p tsconfig.json
+packages/ui typecheck: Done
+apps/web typecheck$ tsc -p tsconfig.json
+apps/web typecheck: Done
+
+> the-quiet-works@ test <worktree>
+> pnpm -r test && node --test scripts/bake/*.test.mjs scripts/audit-assets-budget.test.mjs scripts/blender/props/*.test.mjs && pnpm check:bakes && pnpm check:commons
+
+Scope: 3 of 4 workspace projects
+packages/engine test$ vitest run
+packages/engine test:  RUN  v5.0.4 <worktree>/packages/engine
+packages/engine test:  Test Files  14 passed (14)
+packages/engine test:       Tests  563 passed (563)
+packages/engine test:    Start at  09:13:28
+packages/engine test:    Duration  8.47s (tests 97%, transform 2%, import 1%)
+packages/engine test: Done
+packages/ui test$ vitest run
+packages/ui test:  RUN  v5.0.4 <worktree>/packages/ui
+packages/ui test: Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test: Not implemented: navigation to another Document
+packages/ui test:  Test Files  35 passed (35)
+packages/ui test:       Tests  662 passed (662)
+packages/ui test:    Start at  09:13:37
+packages/ui test:    Duration  3.48s (environment 60%, tests 27%, import 9%, transform 3%, setup 1%, worker 1%)
+packages/ui test: Environment  jsdom was created 35 times · 18.03s total, 60% of tracked time
+packages/ui test:              create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+packages/ui test:              learn more: https://vitest.dev/guide/improving-performance#test-environments
+packages/ui test: Done
+apps/web test$ vitest run --passWithNoTests
+apps/web test:  RUN  v5.0.4 <worktree>/apps/web
+apps/web test:  ❯ src/corridor/world/props/modelKit.test.ts (18 tests | 1 failed) 176ms
+apps/web test:    ❯ the complete props assembly with models (1)
+apps/web test:      × keeps the modelled props under 25,000 triangles and within eight shared channels 65ms
+apps/web test: (node:81610) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+apps/web test: (Use `node --trace-warnings ...` to show where the warning was created)
+apps/web test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+apps/web test:  FAIL  src/corridor/world/props/modelKit.test.ts > the complete props assembly with models > keeps the modelled props under 25,000 triangles and within eight shared channels
+apps/web test: AssertionError: {"modeled":[["trophy-cabinet",4584],["team-photo",632],["watering-can",1514],["football",1800],["cricket-bat",1501],["team-shirts",994],["walking-boots",2816],["repair-kit",3088],["bicycle-wheel",2786],["recipe-drawer",1990],["chess",1922],["work-glove",1622]],"procedural":[["trophy-cabinet",4550],["team-photo",632],["watering-can",2024],["football",1800],["cricket-bat",1282],["team-shirts",994],["walking-boots",2816],["repair-kit",2372],["bicycle-wheel",2786],["recipe-drawer",1990],["chess",1922],["work-glove",1622]]}: expected 25249 to be less than or equal to 25000
+apps/web test:  ❯ src/corridor/world/props/modelKit.test.ts:268:129
+apps/web test:     266|     const procedural = buildProps({});
+apps/web test:     267|     const used = CHANNELS.filter((channel) => assembly.channels[channe…
+apps/web test:     268|     expect(assembly.triangles, JSON.stringify({ modeled: [...assembly.…
+apps/web test:        |                                                                                                                                 ^
+apps/web test:     269|     expect(used.length).toBeLessThanOrEqual(8);
+apps/web test:     270|   });
+apps/web test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+apps/web test:  Test Files  1 failed | 150 passed (151)
+apps/web test:       Tests  1 failed | 2265 passed | 1 skipped (2267)
+apps/web test:    Start at  09:13:40
+apps/web test:    Duration  5.59s (tests 59%, import 19%, transform 12%, environment 8%, worker 2%)
+apps/web test:     Isolate  151 workers spawned · ~143ms startup each (spawn + environment, per file)
+apps/web test:              at least ~1.82s faster with isolate: false — reuses workers across files instead of one per file
+apps/web test: Failed
+<worktree>/apps/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @tqw/web@0.0.0 test: `vitest run --passWithNoTests`
+Exit status 1
+ ELIFECYCLE  Test failed. See above for more details.

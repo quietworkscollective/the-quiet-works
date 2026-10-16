@@ -1,0 +1,43 @@
+[WebServer] (node:27539) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:27555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:27566) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [desktop] › e2e/luna-exit.spec.ts:150:1 › the menu is the way back to the top from the corridor and a deep page (31.7s)
+
+
+  1) [desktop] › e2e/luna-exit.spec.ts:150:1 › the menu is the way back to the top from the corridor and a deep page
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      157 |   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      158 |   await corridorDrawn(page);
+    > 159 |   await expect.poll(async () => atHeroPose(await currentPose(page), heroPose(page)), { timeout: 10_000 }).toBe(true);
+          |                                                                                                           ^
+      160 |
+      161 |   await page.locator('#details').scrollIntoViewIfNeeded();
+      162 |   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+        at <worktree>/apps/web/e2e/luna-exit.spec.ts:159:107
+
+    Error Context: test-results/luna-exit-the-menu-is-the--5b001-he-corridor-and-a-deep-page-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/luna-exit-the-menu-is-the--5b001-he-corridor-and-a-deep-page-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/luna-exit-the-menu-is-the--5b001-he-corridor-and-a-deep-page-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop] › e2e/luna-exit.spec.ts:150:1 › the menu is the way back to the top from the corridor and a deep page

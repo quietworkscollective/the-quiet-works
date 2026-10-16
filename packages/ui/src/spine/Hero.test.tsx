@@ -22,7 +22,7 @@ describe('Hero', () => {
     expect(space?.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('sets the lockup in order: the name, the tagline, then the details', () => {
+  it('keeps the live text in reading order: the name, tagline, then details', () => {
     setup(['1 door open']);
     const heading = screen.getByRole('heading', { level: 1 });
     const tagline = screen.getByText('A space for everything we carry.');

@@ -27,4 +27,4 @@
 - [Public GitHub proposal form](https://github.com/quietworkscollective/the-quiet-works/issues/new?template=room-proposal.yml)
 - [Contribution manifest template](https://github.com/quietworkscollective/the-quiet-works/blob/main/.github/PULL_REQUEST_TEMPLATE/commons-contribution.md)
 
-Submissions are untrusted drafts. A human reviews every contribution before publication. A room-manifest format remains proposed under ADR 0005.
+Submissions are untrusted drafts. A human reviews every contribution before publication. A room-manifest format remains proposed.

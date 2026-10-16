@@ -1,8 +1,9 @@
 import { Matrix4 } from 'three';
+import type { Bucket } from './builder.ts';
 import { createBuckets, mergeBuckets, placeLocal, triangleTotal, type Buckets } from './buckets.ts';
 import { PlaqueLayout } from './artLayout.ts';
 import { MarksLayout } from './marksLayout.ts';
-import { buildLobby, END_WALL_MATRIX } from './architecture/lobby.ts';
+import { buildLobby, BACK_WALL_MATRIX, END_WALL_MATRIX } from './architecture/lobby.ts';
 import { buildCorridor } from './architecture/corridor.ts';
 import { buildClock, buildFanSwitch, buildPendants } from './architecture/lobbyDecor.ts';
 import { buildFascia, buildHallTable } from './architecture/lobbyFixtures.ts';
@@ -12,8 +13,8 @@ import { buildCare } from './care.ts';
 import { buildAnnexSign, buildGroupings } from './groupings.ts';
 import { LETTERING_ASPECT } from './textures/lettering.ts';
 import { buildDoor, type DoorBuild } from './doorKit/build.ts';
-import { INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
-import { buildOpening, doorMatrix, type OpeningStyles } from './doorKit/opening.ts';
+import { ENTRANCE_DOORS, INNER_DOORS, INNER_OPEN_DEG } from './doorKit/lobbyDoors.ts';
+import { buildOpening, buildOpeningReveal, doorMatrix, type OpeningStyles } from './doorKit/opening.ts';
 import { buildLamps, type DoorLamp, type Lamp } from './lighting.ts';
 import { hash2 } from './math.ts';
 import { holeOf, placements, type Placement } from './openings.ts';
@@ -31,6 +32,8 @@ export interface ChamberDoorBuild {
 
 export interface WorldBuild {
   buckets: Buckets;
+  /** The Annex wayfinding face uses the fog-free beacon material so its lettering survives distance. */
+  annexSign: Bucket;
   lamps: Lamp[];
   places: Placement[];
   plaques: PlaqueLayout;
@@ -63,19 +66,21 @@ export function buildWorld(): WorldBuild {
   buildClock(buckets);
   buildBoardStatic(buckets);
   buildGroupings(buckets);
-  buildAnnexSign(buckets, plaques);
+  const annexSign = buildAnnexSign(buckets, plaques);
   buildCare(buckets);
 
-  const chamberDoors: ChamberDoorBuild[] = [];
   const identity = new Matrix4();
+  const entranceDoor = buildDoor(ENTRANCE_DOORS, { lod: 'near', plaques, animated: false, seed: 11 });
+  mergeBuckets(buckets, entranceDoor.flat, BACK_WALL_MATRIX);
+
+  const chamberDoors: ChamberDoorBuild[] = [];
   for (const p of places) {
     const built = buildDoor(p.spec, { lod: p.far ? 'far' : 'near', plaques, marks, animated: p.chamber !== null, seed: seedOf(p.key) });
     placeLocal(buckets, doorMatrix(p.side, p.z), (local) => {
       // The Outline Room's Blender model supplies both its custom static frame and moving leaf.
-      if (p.key !== 'outline-room') {
-        buildOpening(local, p.spec, OPENING_STYLES);
-        mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
-      }
+      if (p.key === 'outline-room') buildOpeningReveal(local, p.spec, OPENING_STYLES.plaster);
+      else buildOpening(local, p.spec, OPENING_STYLES);
+      if (p.key !== 'outline-room') mergeBuckets(local, p.chamber ? built.fixed : built.flat, identity);
     });
     if (p.chamber) chamberDoors.push({ placement: p, build: built });
   }
@@ -102,5 +107,5 @@ export function buildWorld(): WorldBuild {
     const lamp = p.spec.character?.lamp;
     return lamp && !p.far ? [{ key: p.key, side: p.side, z: p.z, top: holeOf(p.spec).height, kelvin: lamp.kelvin, strength: lamp.strength }] : [];
   });
-  return { buckets, lamps: buildLamps(doorLamps), places, plaques, marks, chamberDoors, triangles: triangleTotal(buckets) };
+  return { buckets, annexSign, lamps: buildLamps(doorLamps), places, plaques, marks, chamberDoors, triangles: triangleTotal(buckets) };
 }

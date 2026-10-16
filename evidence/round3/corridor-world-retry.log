@@ -1,0 +1,60 @@
+[WebServer] (node:92718) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:92804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [plugin builtin:vite-reporter]
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:92811) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:92843) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:92853) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [desktop] › e2e/corridor-world.spec.ts:92:3 › corridor world › a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing (2.8s)
+  ✓  2 [desktop] › e2e/corridor-world.spec.ts:128:3 › corridor world › going through the Office and back twice leaves a working corridor each time (15.5s)
+(node:92947) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [mobile] › e2e/corridor-world.spec.ts:92:3 › corridor world › a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing (13.2s)
+(node:93166) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 [mobile] › e2e/corridor-world.spec.ts:128:3 › corridor world › going through the Office and back twice leaves a working corridor each time (14.6s)
+
+
+  1) [mobile] › e2e/corridor-world.spec.ts:92:3 › corridor world › a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "pointer"
+    Received: ""
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      118 |     await expect.poll(cursor).toBe('');
+      119 |     await page.mouse.move(x, y);
+    > 120 |     await expect.poll(cursor).toBe('pointer');
+          |                               ^
+      121 |     await page.mouse.click(x, y);
+      122 |     await expect(site(page)).toHaveAttribute('data-focus', 'apartment');
+      123 |     // A sealed door stays shut: the visitor is still in the corridor, at the same URL.
+        at <worktree>/apps/web/e2e/corridor-world.spec.ts:120:31
+
+    Error Context: test-results/corridor-world-corridor-wo-7119e-s-it-the-floor-does-nothing-mobile/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/corridor-world-corridor-wo-7119e-s-it-the-floor-does-nothing-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/corridor-world-corridor-wo-7119e-s-it-the-floor-does-nothing-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [mobile] › e2e/corridor-world.spec.ts:92:3 › corridor world › a door answers the pointer: hover shows a pointer, a click focuses it, the floor does nothing
+  3 passed (55.8s)

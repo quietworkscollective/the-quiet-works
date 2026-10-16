@@ -1,0 +1,27 @@
+[WebServer] (node:33955) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:33971) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 8 tests using 1 worker
+
+(node:33977) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 10:14:25 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✓  1 [desktop] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click (7.9s)
+[WebServer] 10:14:33 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✓  2 [desktop] › e2e/round3-handover.spec.ts:91:1 › reduced motion keeps the invitation at rest at the hand-over (5.1s)
+[WebServer] 10:14:38 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✓  3 [desktop] › e2e/round3-handover.spec.ts:105:1 › Tab users get the invitation without automatic engagement (4.4s)
+[WebServer] 10:14:43 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✓  4 [desktop] › e2e/round3-handover.spec.ts:118:1 › Leave and Escape release the engaged window (6.6s)
+(node:34203) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 10:14:50 AM [vite] (client) [console.warn] THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+  ✓  5 [mobile] › e2e/round3-handover.spec.ts:53:1 › the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click (11.1s)
+  -  6 [mobile] › e2e/round3-handover.spec.ts:91:1 › reduced motion keeps the invitation at rest at the hand-over
+  -  7 [mobile] › e2e/round3-handover.spec.ts:105:1 › Tab users get the invitation without automatic engagement
+  -  8 [mobile] › e2e/round3-handover.spec.ts:118:1 › Leave and Escape release the engaged window
+
+  3 skipped
+  5 passed (37.4s)

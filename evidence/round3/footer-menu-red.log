@@ -1,0 +1,452 @@
+
+ RUN  v5.0.4 <worktree>/packages/ui
+
+ ✓ src/spine/Footer.test.tsx > Footer > is the page's footer landmark, named 68ms
+ ✓ src/spine/Footer.test.tsx > Footer > opens as a colophon with the lockup, tagline and approved creator credit 4ms
+ × src/spine/Footer.test.tsx > Footer > renders the shell menu at the footer and ignores the removed trivia slot 21ms
+   → Unable to find an accessible element with the role "navigation" and name "Test menu"
+
+Here are the accessible roles:
+
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__tagline"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__creator"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__privacy"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__note"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__copyright"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "Footer links":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Footer links"[39m
+    [33mclass[39m=[32m"tqw-footer__links"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "About":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/about"[39m
+  [36m/>[39m
+
+  Name "Credits":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/credits"[39m
+  [36m/>[39m
+
+  Name "Privacy":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/privacy"[39m
+  [36m/>[39m
+
+  Name "Agents":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/agents"[39m
+  [36m/>[39m
+
+  Name "Licences":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/third-party-notices.txt"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<footer[39m
+  [33maria-label[39m=[32m"Site footer"[39m
+  [33mclass[39m=[32m"tqw-footer"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"tqw-footer__inner"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"tqw-footer__identity"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"tqw-footer__lockup"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"tqw-mark tqw-footer__lockup-mark"[39m
+          [33mdata-mark[39m=[32m""[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mfocusable[39m=[32m"false"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"butt"[39m
+          [33mstroke-linejoin[39m=[32m"miter"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"18"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M2 15V2h13M14 6v9"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [36m<span>[39m
+          [0mUNHELD[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__tagline"[39m
+      [36m>[39m
+        [0mA space for everything we carry.[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__creator"[39m
+      [36m>[39m
+        [0mCreated by Siri (Asiri) Dalugoda[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__privacy"[39m
+      [36m>[39m
+        [0mUNHELD has no accounts, no cookies, no analytics and no advertising. Until you find something, it stores nothing in your browser.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<nav[39m
+      [33maria-label[39m=[32m"Footer links"[39m
+      [33mclass[39m=[32m"tqw-footer__links"[39m
+    [36m>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/about"[39m
+      [36m>[39m
+        [0mAbout[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/credits"[39m
+      [36m>[39m
+        [0mCredits[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/privacy"[39m
+      [36m>[39m
+        [0mPrivacy[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/agents"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/third-party-notices.txt"[39m
+      [36m>[39m
+        [0mLicences[0m
+      [36m</a>[39m
+    [36m</nav>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"tqw-footer__base"[39m
+    [36m>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__note"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"tqw-footer__licence-line"[39m
+        [36m>[39m
+          [0mCode: Apache License 2.0.[0m
+          [0m [0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"tqw-footer__licence-line"[39m
+        [36m>[39m
+          [0mArt and writing: CC BY 4.0.[0m
+        [36m</span>[39m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__copyright"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"tqw-mark tqw-footer__mark"[39m
+          [33mdata-mark[39m=[32m""[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mfocusable[39m=[32m"false"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"butt"[39m
+          [33mstroke-linejoin[39m=[32m"miter"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"14"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M2 15V2h13M14 6v9"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [36m<span>[39m
+          [0m© 2026 Siri (Asiri) Dalugoda[0m
+        [36m</span>[39m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</footer>[39m
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+ ✓ src/spine/Footer.test.tsx > Footer > renders About, Credits, Privacy, Agents and Licences exactly once, at the footer 14ms
+ ✓ src/spine/Footer.test.tsx > Footer > opens About, Credits and Privacy in the app and follows the Agents and licences links 9ms
+ ✓ src/spine/Footer.test.tsx > Footer > states the licences and the copyright, with the mark as decoration 3ms
+ ✓ src/spine/Footer.test.tsx > Footer > does not render the removed trivia slot 3ms
+ ✓ src/spine/Footer.test.tsx > Footer > ships no trivia in the draft pool until the editor approves some 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/spine/Footer.test.tsx > Footer > renders the shell menu at the footer and ignores the removed trivia slot
+TestingLibraryElementError: Unable to find an accessible element with the role "navigation" and name "Test menu"
+
+Here are the accessible roles:
+
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__tagline"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__creator"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__privacy"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__note"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"tqw-footer__copyright"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  navigation:
+
+  Name "Footer links":
+  [36m<nav[39m
+    [33maria-label[39m=[32m"Footer links"[39m
+    [33mclass[39m=[32m"tqw-footer__links"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "About":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/about"[39m
+  [36m/>[39m
+
+  Name "Credits":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/credits"[39m
+  [36m/>[39m
+
+  Name "Privacy":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/privacy"[39m
+  [36m/>[39m
+
+  Name "Agents":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/agents"[39m
+  [36m/>[39m
+
+  Name "Licences":
+  [36m<a[39m
+    [33mclass[39m=[32m"tqw-footer__link"[39m
+    [33mhref[39m=[32m"/third-party-notices.txt"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<footer[39m
+  [33maria-label[39m=[32m"Site footer"[39m
+  [33mclass[39m=[32m"tqw-footer"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"tqw-footer__inner"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"tqw-footer__identity"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"tqw-footer__lockup"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"tqw-mark tqw-footer__lockup-mark"[39m
+          [33mdata-mark[39m=[32m""[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mfocusable[39m=[32m"false"[39m
+          [33mheight[39m=[32m"18"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"butt"[39m
+          [33mstroke-linejoin[39m=[32m"miter"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"18"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M2 15V2h13M14 6v9"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [36m<span>[39m
+          [0mUNHELD[0m
+        [36m</span>[39m
+      [36m</div>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__tagline"[39m
+      [36m>[39m
+        [0mA space for everything we carry.[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__creator"[39m
+      [36m>[39m
+        [0mCreated by Siri (Asiri) Dalugoda[0m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__privacy"[39m
+      [36m>[39m
+        [0mUNHELD has no accounts, no cookies, no analytics and no advertising. Until you find something, it stores nothing in your browser.[0m
+      [36m</p>[39m
+    [36m</div>[39m
+    [36m<nav[39m
+      [33maria-label[39m=[32m"Footer links"[39m
+      [33mclass[39m=[32m"tqw-footer__links"[39m
+    [36m>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/about"[39m
+      [36m>[39m
+        [0mAbout[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/credits"[39m
+      [36m>[39m
+        [0mCredits[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/privacy"[39m
+      [36m>[39m
+        [0mPrivacy[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/agents"[39m
+      [36m>[39m
+        [0mAgents[0m
+      [36m</a>[39m
+      [36m<a[39m
+        [33mclass[39m=[32m"tqw-footer__link"[39m
+        [33mhref[39m=[32m"/third-party-notices.txt"[39m
+      [36m>[39m
+        [0mLicences[0m
+      [36m</a>[39m
+    [36m</nav>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"tqw-footer__base"[39m
+    [36m>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__note"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"tqw-footer__licence-line"[39m
+        [36m>[39m
+          [0mCode: Apache License 2.0.[0m
+          [0m [0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"tqw-footer__licence-line"[39m
+        [36m>[39m
+          [0mArt and writing: CC BY 4.0.[0m
+        [36m</span>[39m
+      [36m</p>[39m
+      [36m<p[39m
+        [33mclass[39m=[32m"tqw-footer__copyright"[39m
+      [36m>[39m
+        [36m<svg[39m
+          [33maria-hidden[39m=[32m"true"[39m
+          [33mclass[39m=[32m"tqw-mark tqw-footer__mark"[39m
+          [33mdata-mark[39m=[32m""[39m
+          [33mfill[39m=[32m"none"[39m
+          [33mfocusable[39m=[32m"false"[39m
+          [33mheight[39m=[32m"14"[39m
+          [33mstroke[39m=[32m"currentColor"[39m
+          [33mstroke-linecap[39m=[32m"butt"[39m
+          [33mstroke-linejoin[39m=[32m"miter"[39m
+          [33mstroke-width[39m=[32m"2"[39m
+          [33mviewBox[39m=[32m"0 0 16 16"[39m
+          [33mwidth[39m=[32m"14"[39m
+        [36m>[39m
+          [36m<path[39m
+            [33md[39m=[32m"M2 15V2h13M14 6v9"[39m
+          [36m/>[39m
+        [36m</svg>[39m
+        [36m<span>[39m
+          [0m© 2026 Siri (Asiri) Dalugoda[0m
+        [36m</span>[39m
+      [36m</p>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</footer>[39m
+ ❯ Object.getElementError ../../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/spine/Footer.test.tsx:33:27
+     31|     const { view } = setup('The old trivia slot is ignored.');
+     32|     const footer = view.container.querySelector('footer') as HTMLEleme…
+     33|     expect(within(footer).getByRole('navigation', { name: 'Test menu' …
+       |                           ^
+     34|     expect(footer.querySelector('.tqw-footer__menu')).toContainElement…
+     35|     expect(footer.querySelector('.tqw-footer__trivia')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 passed (8)
+   Start at  09:43:11
+   Duration  992ms (environment 66%, tests 15%, import 12%, transform 5%, worker 1%, setup 1%)

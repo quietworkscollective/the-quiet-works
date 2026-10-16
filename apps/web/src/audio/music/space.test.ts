@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bayCentreZ, CORRIDOR, LOBBY, WALK_LIMITS } from '../../corridor/layout.ts';
-import { GRAMOPHONE, GRAMOPHONE_SOURCE, levelDb, mixAt, NEAR_M } from './space.ts';
+import { BED_GAIN, BED_START_M, GRAMOPHONE, GRAMOPHONE_SOURCE, levelDb, mixAt, NEAR_M } from './space.ts';
 
 const at = (x: number, z: number, yawDeg = 0) => ({ x, z, yawDeg });
 const db = (x: number, z: number) => mixAt(at(x, z)).gainDb;
@@ -20,10 +20,40 @@ describe('where the gramophone is', () => {
 });
 
 describe('how far the music carries', () => {
+  it('keeps the gramophone close and brings in a steady, soft corridor bed beyond the lobby', () => {
+    const local = mixAt(at(GRAMOPHONE_SOURCE.x + 0.5, GRAMOPHONE.z));
+    expect(local.bed).toBe(0);
+    expect(local.bedWet).toBe(0);
+
+    let previous = 0;
+    for (let z = 1; z >= WALK_LIMITS.minZ; z -= 0.1) {
+      const bed = mixAt(at(0, z)).bed;
+      expect(bed).toBeGreaterThanOrEqual(previous);
+      previous = bed;
+    }
+    const firstBay = mixAt(at(0, bayCentreZ(0)));
+    const farEnd = mixAt(at(0, WALK_LIMITS.minZ));
+    expect(firstBay.bed).toBeGreaterThan(0.1);
+    expect(farEnd.bed).toBeGreaterThanOrEqual(firstBay.bed);
+    expect(farEnd.bed).toBeCloseTo(BED_GAIN, 9);
+    expect(farEnd.bedWet).toBeGreaterThan(0);
+    expect(farEnd.bedWet).toBeLessThan(farEnd.bed);
+  });
+
   it('is at full level within the near radius and does not rise any further', () => {
     expect(levelDb(0)).toBe(0);
     expect(levelDb(NEAR_M)).toBe(0);
-    expect(db(GRAMOPHONE_SOURCE.x + 0.5, GRAMOPHONE_SOURCE.z)).toBe(0);
+    expect(db(GRAMOPHONE_SOURCE.x + 0.5, GRAMOPHONE_SOURCE.z)).toBeCloseTo(3.5, 9);
+  });
+
+  it('lifts the horn locally, then eases that presence away before the diffuse bed begins', () => {
+    const near = mixAt(at(GRAMOPHONE_SOURCE.x + 0.5, GRAMOPHONE.z));
+    const beforeBed = mixAt(at(GRAMOPHONE_SOURCE.x + NEAR_M + 0.1, GRAMOPHONE.z));
+    const bedStart = mixAt(at(GRAMOPHONE_SOURCE.x + BED_START_M, GRAMOPHONE.z));
+    expect(near.gainDb).toBeCloseTo(3.5, 9);
+    expect(beforeBed.gainDb).toBeLessThan(near.gainDb);
+    expect(beforeBed.gainDb).toBeGreaterThan(bedStart.gainDb);
+    expect(bedStart.gainDb).toBeCloseTo(levelDb(BED_START_M), 2);
   });
 
   it('falls strictly with distance, never rising once the visitor is out of the near radius', () => {
@@ -64,7 +94,7 @@ describe('how far the music carries', () => {
   it('is clearly there at the first bay and a faint presence by the third', () => {
     const first = db(0, bayCentreZ(0));
     const third = db(0, bayCentreZ(2));
-    // The listening target: about -22 dBFS beside it, so -30 to -35 at the first bay and -38 to -44 at the third.
+    // The source voice still falls with distance; the separate diffuse bed carries the combined mix.
     expect(first).toBeLessThan(-6);
     expect(first).toBeGreaterThan(-14);
     expect(third).toBeLessThan(-14);

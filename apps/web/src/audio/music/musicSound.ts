@@ -7,6 +7,7 @@
  *   needle voices, surface crackle ----------------------------------------> voiceIn
  *   voiceIn -> fade -> air -+-> pan -> dry -> the music bus
  *                           +-> wet -> the corridor's room (when there is one)
+ *                           +-> diffuse bed -> music bus and a small room send
  *
  * The record is played by an `<audio>` element whose `src` is the bundled asset's URL, routed into
  * the graph with a `MediaElementAudioSourceNode`. The page's policy is `connect-src 'none'`, so
@@ -26,7 +27,7 @@ import { dbToGain, type VoiceEnv } from '../voices.ts';
 import { playableSources, type RecordInfo } from './catalogue.ts';
 import { createCharacter, type Character } from './character.ts';
 import { needleDrop, needleLift, recordSwap } from './needleVoices.ts';
-import { mixAt } from './space.ts';
+import { BED_DRIVE_DB, BED_RATIO, BED_THRESHOLD_DB, mixAt } from './space.ts';
 import type { Effect, GramophoneState } from './needle.ts';
 import { needleDown, NEEDLE_TRAVEL_S } from './needle.ts';
 import type { GramophoneStore, ListenerPose, Timers } from './store.ts';
@@ -134,6 +135,10 @@ export class MusicSound {
   private readonly panner: StereoPannerNode | null;
   private readonly dry: GainNode;
   private readonly wet: GainNode;
+  private readonly bedDrive: GainNode;
+  private readonly bedCompressor: DynamicsCompressorNode;
+  private readonly bed: GainNode;
+  private readonly bedWet: GainNode;
   private readonly fade: GainNode;
   private readonly buffers: SurfaceBuffers;
   private readonly voiceEnv: VoiceEnv;
@@ -213,6 +218,16 @@ export class MusicSound {
 
     this.dry = gain(0);
     this.wet = gain(0);
+    this.bedDrive = gain(dbToGain(BED_DRIVE_DB));
+    this.bedCompressor = ctx.createDynamicsCompressor();
+    this.bedCompressor.threshold.value = BED_THRESHOLD_DB;
+    this.bedCompressor.knee.value = 0;
+    this.bedCompressor.ratio.value = BED_RATIO;
+    this.bedCompressor.attack.value = 0.15;
+    this.bedCompressor.release.value = 0.8;
+    this.nodes.push(this.bedCompressor);
+    this.bed = gain(0);
+    this.bedWet = gain(0);
     if (typeof ctx.createStereoPanner === 'function') {
       this.panner = ctx.createStereoPanner();
       this.nodes.push(this.panner);
@@ -223,6 +238,11 @@ export class MusicSound {
       this.air.connect(this.dry);
     }
     this.dry.connect(out);
+    this.air.connect(this.bedDrive);
+    this.bedDrive.connect(this.bedCompressor);
+    this.bedCompressor.connect(this.bed);
+    this.bed.connect(out);
+    this.bedCompressor.connect(this.bedWet);
     this.air.connect(this.wet);
     this.setRoomSend(options.roomSend ?? null);
 
@@ -265,6 +285,8 @@ export class MusicSound {
     };
     move(this.dry.gain, mix.dry);
     move(this.wet.gain, mix.wet);
+    move(this.bed.gain, mix.bed);
+    move(this.bedWet.gain, mix.bedWet);
     move(this.air.frequency, mix.lowpassHz);
     if (this.panner) move(this.panner.pan, mix.pan);
   }
@@ -274,10 +296,14 @@ export class MusicSound {
     if (this.disposed) return;
     try {
       this.wet.disconnect();
+      this.bedWet.disconnect();
     } catch {
       // Not connected yet.
     }
-    if (node) this.wet.connect(node);
+    if (node) {
+      this.wet.connect(node);
+      this.bedWet.connect(node);
+    }
   }
 
   // Rooms, mute and the page ----------------------------------------------------------------------

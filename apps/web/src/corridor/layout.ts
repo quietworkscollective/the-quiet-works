@@ -63,18 +63,6 @@ export const ENTRANCE_KEYS: readonly { t: number; z: number }[] = [
   { t: 1, z: 0.2 },
 ];
 
-/** Hand-over position: free walking begins here, facing down the corridor. */
-export const HANDOVER = { x: 0, z: 0.2, yawDeg: 0 } as const;
-
-/**
- * In portrait (aspect below 1) the lit Office door sits 19.2 degrees right of the axis at
- * hand-over, outside a portrait lens's roughly 14-degree half width. Over the last 0.10 of the
- * walk-in (the settle beat) the view turns this far toward the visitor's right (+x), so the one
- * open door is in view when free walking begins. Within the 12-degree framing limit; landscape
- * keeps yawDeg 0.
- */
-export const HANDOVER_PORTRAIT_TURN_DEG = 12;
-
 /**
  * ADR 0004: free walking begins further back, with the notice board and the corridor both in view.
  * Candidates from art consult 5 (yaw 0 looks toward -z, negative yaw toward the left wall, negative
@@ -83,9 +71,19 @@ export const HANDOVER_PORTRAIT_TURN_DEG = 12;
  * and then makes these the hand-over (replacing HANDOVER and the portrait turn).
  */
 export const START_VIEW = {
-  desktop: { x: 0.35, z: 6.5, yawDeg: -12, pitchDeg: -2 },
-  portrait: { x: 0.45, z: 9.4, yawDeg: -9, pitchDeg: -1 },
+  desktop: { x: 0, z: 7, yawDeg: -13, pitchDeg: -1 },
+  portrait: { x: 0, z: 9.8, yawDeg: -10, pitchDeg: -1 },
 } as const;
+
+/** Landscape hand-over tuple retained for callers that use the shared starting pose. */
+export const HANDOVER = {
+  x: START_VIEW.desktop.x,
+  z: START_VIEW.desktop.z,
+  yawDeg: START_VIEW.desktop.yawDeg,
+} as const;
+
+/** The portrait starting heading, exposed for shared camera test helpers. */
+export const HANDOVER_PORTRAIT_TURN_DEG = START_VIEW.portrait.yawDeg;
 
 /** The Annex (ADR 0004): commissioned rooms share bay six beneath its small enamel sign. */
 export const ANNEX = { bay: 6, sign: { y: 2.75 } } as const;

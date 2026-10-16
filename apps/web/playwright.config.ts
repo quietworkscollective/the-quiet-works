@@ -14,13 +14,26 @@ const gpuArgs = angle === 'metal'
 /** Parallel worktrees set TQW_E2E_PORT so each tests its own build; a busy port fails loudly. */
 const port = Number(process.env.TQW_E2E_PORT ?? 4173);
 const baseURL = `http://127.0.0.1:${port}`;
+// WebKit reserves 4190 for Sieve and refuses HTTP there before sending a request.
+// Serve the same artifact on this worktree's allocated dev port; retain browser security defaults.
+const webkitPort = port === 4190 ? 5190 : port;
+const webkitURL = `http://127.0.0.1:${webkitPort}`;
 const artifact = process.env.TQW_E2E_ARTIFACT === '1';
 if (artifact && !process.argv.includes('--list') && !existsSync(new URL('./dist/index.html', import.meta.url))) {
   throw new Error('Missing production artifact; download it or run pnpm build first');
 }
+const previewServer = (serverPort: number, buildFirst: boolean) => ({
+  command: `${buildFirst && !artifact ? 'pnpm build && ' : ''}pnpm preview --port ${serverPort} --strictPort`,
+  url: `http://127.0.0.1:${serverPort}`,
+  // A busy port may belong to another worktree; never silently reuse it.
+  reuseExistingServer: false,
+  timeout: 180_000,
+});
 
 export default defineConfig({
   testDir: './e2e',
+  // The raw authored route contract gates separately against dist-authored; other cases stay here.
+  grep: /^(?!.*luna-exit\.spec\.ts.*the corridor return appears only on the current open room across every chamber route)/,
   testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts', 'apartment.spec.ts'],
   // Cold software renders and repeated room visits need a larger CI budget, not weaker predicates.
   timeout: process.env.CI ? 300_000 : 60_000,
@@ -49,16 +62,17 @@ export default defineConfig({
       use: { ...devices['Pixel 7'], deviceScaleFactor: angle === 'metal' ? devices['Pixel 7'].deviceScaleFactor : 1 },
     },
     {
+      name: 'webkit-iphone',
+      testMatch: /(?:luna-exit|production-chamber-return)\.spec\.ts/,
+      use: { ...devices['iPhone 14'], browserName: 'webkit', baseURL: webkitURL, launchOptions: { args: [] } },
+    },
+    {
       name: 'reading-no-js',
       testMatch: ['**/readable.spec.ts'],
       use: { javaScriptEnabled: false },
     },
   ],
-  webServer: {
-    command: `${artifact ? '' : 'pnpm build && '}pnpm preview --port ${port} --strictPort`,
-    url: baseURL,
-    // Never reuse: a server left on this port may be serving another worktree's build.
-    reuseExistingServer: false,
-    timeout: 180_000,
-  },
+  webServer: webkitPort === port
+    ? previewServer(port, true)
+    : [previewServer(port, true), previewServer(webkitPort, false)],
 });

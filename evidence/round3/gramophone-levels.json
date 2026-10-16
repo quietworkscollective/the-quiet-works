@@ -1,0 +1,47 @@
+[
+  {
+    "place": "the lobby, one metre from the gramophone",
+    "pose": "-2.09,3.06,-89",
+    "distanceM": 1.01,
+    "modelDb": 3.5,
+    "rmsDbfs": -19.2,
+    "bedRmsDbfs": null,
+    "peakDbfs": -6.7
+  },
+  {
+    "place": "the first bay, at its centre",
+    "pose": "-0.59,-0.89,2",
+    "distanceM": 3.26,
+    "modelDb": -8.3,
+    "rmsDbfs": -28,
+    "bedRmsDbfs": -29.4,
+    "peakDbfs": -9
+  },
+  {
+    "place": "the third bay, at its centre",
+    "pose": "-0.30,-8.10,2",
+    "distanceM": 10.3,
+    "modelDb": -17.9,
+    "rmsDbfs": -26.4,
+    "bedRmsDbfs": -27.7,
+    "peakDbfs": -6.7
+  },
+  {
+    "place": "the sixth bay, at its centre",
+    "pose": "0.14,-18.97,2",
+    "distanceM": 21.13,
+    "modelDb": -22.2,
+    "rmsDbfs": -26.9,
+    "bedRmsDbfs": -28.4,
+    "peakDbfs": -10.4
+  },
+  {
+    "place": "the far end of the walk",
+    "pose": "0.33,-22.54,2",
+    "distanceM": 24.69,
+    "modelDb": -23,
+    "rmsDbfs": -28.2,
+    "bedRmsDbfs": -29.6,
+    "peakDbfs": -12.5
+  }
+]

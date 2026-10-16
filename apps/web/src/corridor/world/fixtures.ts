@@ -3,7 +3,7 @@ import { Bucket } from './builder.ts';
 import { kelvinToLinear, mulRgb } from './colour.ts';
 import { BRASS_TINT } from './palette.ts';
 import { CORRIDOR, WALK_LIMITS } from '../layout.ts';
-import { END_Z } from './stage.ts';
+import { CORRIDOR_END_Z } from './extent.ts';
 import { corridorSconceSlots, LOBBY_SCONCES, PROP_SCONCES } from './lighting.ts';
 import type { Vec3 } from './math.ts';
 import { lathe, stud, torus } from './shapes.ts';
@@ -31,7 +31,7 @@ export function mountMatrix(m: Mount): Matrix4 {
 /** Every sconce: the corridor's two rows to the far fog, and the lobby's own. */
 export function sconceMounts(): Mount[] {
   const out: Mount[] = [];
-  for (const s of corridorSconceSlots(END_Z)) {
+  for (const s of corridorSconceSlots(CORRIDOR_END_Z)) {
     out.push({ position: [s.side === 'left' ? -CORRIDOR.width / 2 : CORRIDOR.width / 2, CORRIDOR.sconce.y, s.z], yaw: s.side === 'left' ? YAW_FOR_NORMAL['x+'] : YAW_FOR_NORMAL['x-'] });
   }
   for (const s of PROP_SCONCES) {

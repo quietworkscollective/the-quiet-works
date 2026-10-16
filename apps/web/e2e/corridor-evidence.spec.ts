@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { CHAMBER_SLOTS, CORRIDOR, HANDOVER } from '../src/corridor/layout.ts';
+import { doorFrame } from '../src/corridor/camera/viewpoints.ts';
+import { corridorDrawn, startView } from './corridor-view.ts';
 import { door, expectSpine } from './helpers.ts';
 
 /**
@@ -41,7 +42,7 @@ async function toHandOver(page: Page): Promise<void> {
   await expectSpine(page, 'entrance');
   await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
   await expectSpine(page, 'corridor');
-  await expect.poll(async () => Math.abs((await pose(page)).z - HANDOVER.z) < 0.01, { timeout: 10_000 }).toBe(true);
+  await expect.poll(async () => Math.abs((await pose(page)).z - startView(page).z) < 0.01, { timeout: 10_000 }).toBe(true);
   await settle(page);
   await engage(page);
 }
@@ -51,6 +52,12 @@ async function engage(page: Page): Promise<void> {
   await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
   await expect(page.locator('.tqw-site')).toHaveAttribute('data-engaged', 'true');
   await settle(page);
+}
+
+/** Waits for the camera to stand at the view of a door (ADR 0007: up the corridor from it, 40 degrees round). */
+async function reachDoor(page: Page, id: 'certification-office' | 'apartment' | 'great-atrium'): Promise<void> {
+  const frame = doorFrame(id);
+  await reach(page, frame.x, frame.z, frame.yawDeg);
 }
 
 async function reach(page: Page, x: number, z: number, yaw: number): Promise<void> {
@@ -70,7 +77,7 @@ test('the page walk-in: hero, 30%, 65% (the hand-over, behind the veil), 100%, a
   const p = info.project.name;
   await page.goto('/');
   await expectSpine(page, 'entrance');
-  await expect(canvas(page)).toHaveAttribute('data-pose', /,/);
+  await corridorDrawn(page);
   // The hero drifts, so it never goes quiet: let it run a while and take it mid-arc.
   await page.waitForTimeout(6000);
   await shot(page, p, '01-walkin-00-hero-p0');
@@ -103,18 +110,17 @@ test('walking, door focus and the framed views', async ({ page }, info) => {
   await shot(page, p, '02-walked-3m');
   await toHandOver(page);
 
-  const office = CHAMBER_SLOTS.find((s) => s.chamber === 'certification-office')!;
   await door(page, 'The Certification Office', 'open').focus();
   await page.waitForTimeout(3500);
   await shot(page, p, '03-glide-midway-office');
-  await reach(page, CORRIDOR.width / 2 - 1.4, office.z, 90);
+  await reachDoor(page, 'certification-office');
   await shot(page, p, '04-framed-office');
 
   await door(page, 'The Apartment', 'sealed').focus();
-  await reach(page, -(CORRIDOR.width / 2 - 1.4), CHAMBER_SLOTS.find((s) => s.chamber === 'apartment')!.z, -90);
+  await reachDoor(page, 'apartment');
   await shot(page, p, '05-framed-apartment');
   await door(page, 'The Great Atrium', 'sealed').focus();
-  await reach(page, CORRIDOR.width / 2 - 1.4, CHAMBER_SLOTS.find((s) => s.chamber === 'great-atrium')!.z, 90);
+  await reachDoor(page, 'great-atrium');
   await shot(page, p, '06-framed-atrium-far-end');
 });
 
@@ -128,7 +134,7 @@ test('a door opening, frame by frame, and the sealed rattle', async ({ page }, i
   });
   await toHandOver(page);
   await door(page, 'The Apartment', 'sealed').focus();
-  await reach(page, -(CORRIDOR.width / 2 - 1.4), CHAMBER_SLOTS.find((s) => s.chamber === 'apartment')!.z, -90);
+  await reachDoor(page, 'apartment');
   await door(page, 'The Apartment', 'sealed').press('Enter');
   await page.waitForTimeout(120);
   await shot(page, p, '07-sealed-rattle-a');
@@ -136,9 +142,8 @@ test('a door opening, frame by frame, and the sealed rattle', async ({ page }, i
   await shot(page, p, '07-sealed-rattle-b');
   await settle(page);
 
-  const office = CHAMBER_SLOTS.find((s) => s.chamber === 'certification-office')!;
   await door(page, 'The Certification Office', 'open').focus();
-  await reach(page, CORRIDOR.width / 2 - 1.4, office.z, 90);
+  await reachDoor(page, 'certification-office');
   await shot(page, p, '08-open-00-before');
   await door(page, 'The Certification Office', 'open').press('Enter');
   const started = Date.now();
@@ -182,7 +187,7 @@ test('touch controls and reduced motion views', async ({ page, isMobile }, info)
   await shot(page, p, '11-reduced-handover');
   await engage(page);
   await door(page, 'The Certification Office', 'open').focus();
-  await expect.poll(async () => Math.abs((await pose(page)).yaw - 90) < 0.3, { timeout: 10_000 }).toBe(true);
+  await expect.poll(async () => Math.abs((await pose(page)).yaw - doorFrame('certification-office').yawDeg) < 0.3, { timeout: 10_000 }).toBe(true);
   await settle(page);
   await shot(page, p, '11-reduced-office-view');
 });

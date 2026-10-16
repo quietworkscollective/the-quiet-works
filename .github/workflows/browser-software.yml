@@ -1,0 +1,216 @@
+name: browser (software GL)
+
+# All rendering assertions remain visible; this workflow never supplies a required status.
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: software-gl-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm --filter @tqw/web exec node scripts/audit-assets.mjs
+      # Full-tier exercises authored Annex rooms; production must keep them sealed.
+      # Keep this DEV fixture separate from dist; it is never a deployable artifact.
+      - run: pnpm build:e2e-fixture
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-bundles
+          path: |
+            apps/web/dist
+            apps/web/dist-authored
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  full-tier:
+    name: browser (software GL) full-tier ${{ matrix.project }}
+    needs: build
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [desktop, mobile]
+    env:
+      CI: 'true'
+      TQW_E2E_ARTIFACT: '1'
+      TQW_E2E_ANGLE: swiftshader
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: browser-bundles
+          path: apps/web
+      - run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
+      - name: Full-tier and open Office budgets
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.artifact.config.ts --project="$PROJECT" --grep-invert @extended --reporter=line,json
+        env:
+          PROJECT: ${{ matrix.project }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/full-tier-results.json
+      - name: List every full-tier failure
+        if: always()
+        env:
+          RESULTS_FILE: ${{ runner.temp }}/full-tier-results.json
+        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+
+  core:
+    name: browser (software GL) core ${{ matrix.shard }}
+    needs: build
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    # Informational rendering coverage reuses the authored and production artifacts.
+    timeout-minutes: 45
+    strategy:
+      # Every shard reports independently, including after another shard fails.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    env:
+      CI: 'true'
+      TQW_E2E_ARTIFACT: '1'
+      TQW_E2E_ANGLE: swiftshader
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: browser-bundles
+          path: apps/web
+      - name: Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: browsers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-webkit
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm --filter @tqw/web exec playwright install --with-deps chromium webkit
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm --filter @tqw/web exec playwright install-deps chromium webkit
+      # The required lane also runs the tagged DOM/HTTP cases with retries disabled.
+      - run: pnpm --filter @tqw/web exec playwright test --grep-invert @extended --shard="$SHARD/12" --reporter=line,json
+        env:
+          SHARD: ${{ matrix.shard }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/core-results.json
+      - name: Run unchanged authored chamber contracts on all three browsers
+        if: success() || failure()
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.chamber-contract.config.ts --shard="$SHARD/12"
+        env:
+          SHARD: ${{ matrix.shard }}
+      - name: Run released room suites from the authored fixture
+        if: success() || failure()
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.released-authored.config.ts --grep-invert @extended --shard="$SHARD/12" --pass-with-no-tests
+        env:
+          SHARD: ${{ matrix.shard }}
+      - name: List every software-GL core failure
+        if: always()
+        env:
+          RESULTS_FILE: ${{ runner.temp }}/core-results.json
+        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+
+  extended:
+    name: browser (software GL) extended ${{ matrix.shard }}
+    needs: build
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    # These diagnostics run on every PR, keep their assertions and report all failures.
+    # They are visible but are deliberately outside the required checks dependency set.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      TQW_E2E_ARTIFACT: '1'
+      TQW_E2E_ANGLE: swiftshader
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: browser-bundles
+          path: apps/web
+      - name: Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: browsers
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm --filter @tqw/web exec playwright install-deps chromium
+      - name: Run corridor camera and frame diagnostics
+        run: pnpm --filter @tqw/web exec playwright test --grep @extended --shard="$SHARD/4" --reporter=line,json
+        env:
+          CI: 'true'
+          SHARD: ${{ matrix.shard }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-results.json
+      - name: Run sealed rooms and authored diagnostics
+        if: success() || failure()
+        run: pnpm --filter @tqw/web exec playwright test --config playwright.extended-authored.config.ts --shard="$SHARD/4" --reporter=line,json
+        env:
+          CI: 'true'
+          SHARD: ${{ matrix.shard }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-authored-results.json
+      - name: List every authored diagnostic failure
+        if: always()
+        env:
+          RESULTS_FILE: ${{ runner.temp }}/extended-authored-results.json
+        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+      - name: List every extended failure
+        if: always()
+        env:
+          RESULTS_FILE: ${{ runner.temp }}/extended-results.json
+        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"

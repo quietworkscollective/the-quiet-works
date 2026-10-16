@@ -5,7 +5,8 @@
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
-  cursor: grab;
+  /* The ordinary cursor everywhere but on a door, the board or a prop (ADR 0004): no crosshair, no hand to say "drag". */
+  cursor: default;
 }
 /* On the landing the page itself scrolls: a finger must be free to pan it. */
 .tqw-corridor-canvas[data-phase='entrance'] {
@@ -19,12 +20,14 @@
 .tqw-corridor-canvas[data-phase='corridor'][data-engaged='false'] {
   touch-action: pan-y;
 }
+/* Over a valid target (data-over is door, prop or board): the pointer, and only there. */
+.tqw-corridor-canvas[data-over] {
+  cursor: pointer;
+}
 .tqw-corridor-canvas[data-phase='threshold'] {
   cursor: default;
 }
-.tqw-corridor-canvas[data-over='door'] {
-  cursor: pointer;
-}
+/* While dragging to look, the view is held. */
 .tqw-corridor-canvas[data-dragging='true'] {
   cursor: grabbing;
 }

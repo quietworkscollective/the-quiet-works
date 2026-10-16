@@ -4,7 +4,7 @@ import { CHAMBER_MODULES } from '../../chambers/registry.ts';
 import { BLANK_DOORS, CHAMBER_SLOTS, CORRIDOR } from '../layout.ts';
 import { fogAt } from './fog.ts';
 import { buildLamps, corridorSconceSlots, doorExtents, MAX_LAMPS, packLamps } from './lighting.ts';
-import { END_Z, STAGE } from './stage.ts';
+import { CORRIDOR_END_Z, CORRIDOR_WINDOW } from './extent.ts';
 import { FOG_ANCHOR, FOG_CODE, LAMP_LOOP, LAMP_LOOP_LAMBERT, LAMP_PARS, LIGHT_ANCHOR, LIGHT_PARS_ANCHOR } from './shader.ts';
 
 describe('sconce layout', () => {
@@ -59,16 +59,16 @@ describe('lamps', () => {
     expect(sconce.colour[1]).toBeGreaterThan(sconce.colour[2]);
   });
 
-  it('places a warm low-sun source at the far window and keeps sources within the stage', () => {
+  it('places a warm low-sun source at the far window and keeps sources within the lit corridor', () => {
     const lamps = buildLamps([]);
     const window = lamps.find((lamp) => lamp.id === 'corridor-window');
     expect(window).toBeDefined();
-    expect(window!.position[0]).toBe(STAGE.window.x);
-    expect(window!.position[1]).toBeGreaterThan(STAGE.window.bottom);
-    expect(window!.position[2]).toBeGreaterThan(END_Z);
+    expect(window!.position[0]).toBe(CORRIDOR_WINDOW.x);
+    expect(window!.position[1]).toBeGreaterThan(CORRIDOR_WINDOW.bottom);
+    expect(window!.position[2]).toBeGreaterThan(CORRIDOR_END_Z);
     expect(window!.colour[0]).toBeGreaterThan(window!.colour[1]);
     expect(window!.colour[1]).toBeGreaterThan(window!.colour[2]);
-    expect(lamps.every((lamp) => lamp.position[2] >= END_Z)).toBe(true);
+    expect(lamps.every((lamp) => lamp.position[2] >= CORRIDOR_END_Z)).toBe(true);
   });
 });
 

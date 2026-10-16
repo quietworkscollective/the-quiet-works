@@ -26,6 +26,14 @@ describe('public route discoverability', () => {
     expect(new Set(locations)).toEqual(new Set(PUBLIC_ROUTES.filter(route => !route.key.startsWith('chamber:') || CHAMBERS.some(room => route.key === `chamber:${room.id}` && room.status === 'open')).map(route => metadataForPath(route.path).canonical)));
   });
 
+  it('keeps UNHELD as the brand and The Quiet Works as the chamber world in page titles', () => {
+    const chamberRoutes = PUBLIC_ROUTES.filter((route) => route.key.startsWith('chamber:'));
+    expect(chamberRoutes.length).toBeGreaterThan(0);
+    for (const route of chamberRoutes) {
+      expect(route.title).toMatch(/ — The Quiet Works — UNHELD$/);
+    }
+  });
+
   it('sets Cloudflare MIME types for Markdown and discovery files', () => {
     const config = readFileSync(new URL('../vite.config.ts', import.meta.url), 'utf8');
     const headers = config.match(/const CLOUDFLARE_HEADERS = `([\s\S]*?)`;/)?.[1] ?? '';
@@ -48,12 +56,15 @@ describe('public route discoverability', () => {
       expect(metadata.description).toBe(route.description);
       expect(metadata.canonical).toBe(`https://unheld.space${route.path === '/' ? '/' : route.path}`);
       expect(metadata.image).toBe('https://unheld.space/share-unheld-1200x630.png');
+      if (route.key.startsWith('chamber:')) {
+        expect(metadata.title).toMatch(/ — The Quiet Works — UNHELD$/);
+      }
 
       const document = jsonLdForPath(route.path);
       expect(document['@context']).toBe('https://schema.org');
       expect(document['@graph']).toEqual(expect.arrayContaining([
         expect.objectContaining({ '@type': 'WebSite', url: 'https://unheld.space/' }),
-        expect.objectContaining({ '@type': 'VisualArtwork', name: 'The Quiet Works' }),
+        expect.objectContaining({ '@type': 'VisualArtwork', name: 'UNHELD' }),
         expect.objectContaining({ '@type': 'Person', name: 'Siri (Asiri) Dalugoda', url: 'https://dalugoda.com/' }),
         expect.objectContaining({ '@type': 'WebPage', url: metadata.canonical, name: route.title }),
       ]));
