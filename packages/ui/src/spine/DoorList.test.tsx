@@ -68,6 +68,17 @@ describe.each(['overlay', 'list'] as const)('DoorList (%s)', (variant) => {
 });
 
 describe('DoorList variants', () => {
+  it('keeps the optional corridor guidance hidden until its caller enables the copy slot', () => {
+    const disabled = setup({ guidance: { enabled: false, content: 'Pending copy' } });
+    expect(disabled.view.container.querySelector('.tqw-door-guidance')).toBeNull();
+    disabled.view.unmount();
+
+    const enabled = setup({ guidance: { enabled: true, content: 'Pending copy' } });
+    expect(within(screen.getByRole('navigation', { name: 'Doors' })).getByText('Pending copy')).toBeTruthy();
+    expect(enabled.view.container.querySelector('.tqw-door-guidance__pointer')).toBeTruthy();
+    expect(enabled.view.container.querySelector('.tqw-door-guidance__touch')).toBeTruthy();
+  });
+
   it('the overlay is only the doors: no descriptions on top of the 3D view', () => {
     setup({ variant: 'overlay' });
     expect(document.querySelector('.tqw-door__description')).toBeNull();

@@ -7,14 +7,14 @@ import { ABOUT } from '@tqw/engine';
 import { chambersForBuild, REPO_ROOT } from '../scripts/chamber-release.mjs';
 
 const description = ABOUT.body[0]!;
-test('sitemap follows production release flags', async ({ request }) => {
+test('sitemap follows production release flags', { tag: '@fast' }, async ({ request }) => {
   const xml = await (await request.get('/sitemap.xml')).text();
   for (const room of chambersForBuild(REPO_ROOT, false)) {
     expect(xml.includes(`<loc>https://unheld.space/${room.slug}</loc>`), room.id).toBe(room.status === 'open');
   }
   expect(xml.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g)?.length).toBe(xml.match(/<loc>/g)?.length);
 });
-test('one approved description across public discovery surfaces', async ({ request }) => {
+test('one approved description across public discovery surfaces', { tag: '@fast' }, async ({ request }) => {
   for (const route of ['/', '/certification-office']) {
     const html = await (await request.get(route)).text();
     expect(html).toMatch(new RegExp(`name="description"[^>]*content="${description}"`));
@@ -25,7 +25,7 @@ test('one approved description across public discovery surfaces', async ({ reque
   expect(readFileSync(new URL('../../../README.md', import.meta.url), 'utf8')).toContain(description);
 });
 
-test('seven crawler user agents receive reading content and previews', async ({ baseURL }) => {
+test('seven crawler user agents receive reading content and previews', { tag: '@fast' }, async ({ baseURL }) => {
   const { stdout } = await promisify(execFile)(process.execPath, ['scripts/check-crawl.mjs'], {
     cwd: new URL('..', import.meta.url).pathname,
     env: { ...process.env, TQW_CRAWL_URL: baseURL },

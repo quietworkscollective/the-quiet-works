@@ -14,10 +14,10 @@ const list = args => {
   return result.stdout.split('\n');
 };
 
-test('every authored chamber contract gates in core and locally without removing production coverage', () => {
-  const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+test('every authored chamber contract runs in software GL and gates locally without removing production coverage', () => {
+  const workflow = readFileSync(new URL('../../.github/workflows/browser-software.yml', import.meta.url), 'utf8');
   const core = workflow.split('  core:\n')[1].split('\n  extended:')[0];
-  assert.ok(core.includes(`--config ${config}`), 'authored chamber contracts must gate in core');
+  assert.ok(core.includes(`--config ${config}`), 'authored chamber contracts must run in software GL');
   const local = readFileSync(new URL('./local.mjs', import.meta.url), 'utf8');
   assert.ok(local.includes(config), 'ci:local must run the authored chamber contracts');
   const titles = [...readFileSync(new URL('../../apps/web/e2e/luna-exit.spec.ts', import.meta.url), 'utf8').matchAll(/^test\('(.+?)',/gm)].map(match => match[1]);

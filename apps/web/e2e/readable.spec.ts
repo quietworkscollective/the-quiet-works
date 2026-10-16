@@ -16,7 +16,7 @@ const links = ['/', '/about', '/credits', '/privacy', '/licences', '/agents', '/
 const evidence = process.env.TQW_READABLE_EVIDENCE;
 
 for (const [route, heading] of routes) {
-  test(`without JavaScript: ${route}`, async ({ page }, info) => {
+  test(`without JavaScript: ${route}`, { tag: '@fast' }, async ({ page }, info) => {
     test.skip(info.project.name !== 'reading-no-js');
     await page.goto(route);
     const reading = page.locator('#static-content');
@@ -36,7 +36,7 @@ for (const [route, heading] of routes) {
     }
   });
 
-  test(`crawler HTML: ${route}`, async ({ request }, info) => {
+  test(`crawler HTML: ${route}`, { tag: '@fast' }, async ({ request }, info) => {
     test.skip(info.project.name !== 'desktop');
     const response = await request.get(route);
     expect(response.ok()).toBe(true);
@@ -67,7 +67,7 @@ for (const [route, heading] of routes) {
   });
 }
 
-test('sitemap dates, route titles and share image dimensions', async ({ request, page }, info) => {
+test('sitemap dates, route titles and share image dimensions', { tag: '@fast' }, async ({ request, page }, info) => {
   test.skip(info.project.name !== 'desktop');
   const sitemap = await (await request.get('/sitemap.xml')).text();
   const entries = [...sitemap.matchAll(/<url>(.*?)<\/url>/gs)].map(match => match[1]!);

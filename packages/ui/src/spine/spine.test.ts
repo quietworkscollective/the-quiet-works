@@ -22,6 +22,9 @@ describe('site tokens', () => {
     expect(color('--page-rule')).toBe('#414741');
     expect(color('--page-action')).toBe('#d59b4a');
     expect(color('--page-paper')).toBe('#e2dacb');
+    expect(color('--menu-surface')).toBe('#20231f');
+    expect(color('--menu-text')).toBe('#eeeae1');
+    expect(color('--menu-muted')).toBe('#babcb3');
     const site = declarationsOf('.tqw-site');
     expect(site).toMatch(/--coal:\s*var\(--page-ground\)/);
     expect(site).toMatch(/--coal-2:\s*var\(--page-surface\)/);
@@ -97,6 +100,8 @@ describe('contrast', () => {
     ['--paper-ink', '--page-paper', 'found document copy'],
     ['--ink-soft', '--page-paper', 'found document metadata'],
     ['--teal-ink', '--page-paper', 'found document stamp'],
+    ['--menu-text', '--menu-surface', 'menu labels'],
+    ['--menu-muted', '--menu-surface', 'menu setting states'],
   ];
 
   it.each(pageTextPairs)('%s on %s reaches 4.5 : 1 (%s)', (fg, bg) => {
@@ -158,7 +163,7 @@ describe('targets and focus', () => {
     ['.tqw-clipping__status', 48],
     ['.tqw-menu__item', 44],
     ['.tqw-hero__cue', 44],
-    ['.tqw-hero__enter', 44],
+    ['.tqw-hero__enter', 48],
     ['.tqw-game__leave', 44],
     ['.tqw-game__tool', 44],
     ['.tqw-game__enter-button', 48],
@@ -312,11 +317,12 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     expect(tagline).toMatch(/text-wrap:\s*balance/);
   });
 
-  it('sets the live details to metadata scale and the menu to the control scale', () => {
+  it('sets the live details beside the invitation and the menu to the control scale', () => {
     const details = declarationsOf('.tqw-hero__details');
     expect(details).toMatch(/font-size:\s*var\(--page-meta-size\)/);
-    expect(details).toMatch(/gap:\s*0\.25rem 2rem/);
-    expect(details).toMatch(/color:\s*#fff8ec/);
+    expect(details).toMatch(/gap:\s*0\.25rem 1rem/);
+    expect(details).toMatch(/grid-area:\s*details/);
+    expect(details).toMatch(/color:\s*var\(--menu-text\)/);
     const item = declarationsOf('.tqw-menu__item');
     expect(item).toMatch(/font-size:\s*var\(--page-control-size\)/);
     expect(item).toMatch(/font-weight:\s*400/);
@@ -329,10 +335,13 @@ describe('the hero (ADR 0003, consult 4 section 1)', () => {
     expect(phone).toMatch(/display:\s*none/);
   });
 
-  it('is at least one viewport tall, with the foot (cue and Enter link) held to the bottom', () => {
+  it('keeps the lockup above the invitation row, with the scroll cue 24 px below', () => {
     expect(declarationsOf('.tqw-hero')).toMatch(/min-height:\s*var\(--tqw-vh\)/);
     expect(declarationsOf('.tqw-hero')).toMatch(/grid-template-rows:\s*minmax\(0, 1fr\) auto/);
-    expect(declarationsOf('.tqw-hero__foot')).toMatch(/padding-bottom:\s*max\(1\.5rem, calc\(var\(--tqw-vh\) \* 0\.1\)\)/);
+    expect(declarationsOf('.tqw-hero__lockup')).toMatch(/top:\s*calc\(var\(--tqw-vh\) \* -0\.12\)/);
+    expect(declarationsOf('.tqw-hero__foot')).toMatch(/inset:\s*58% 0 auto/);
+    expect(declarationsOf('.tqw-hero__foot')).toMatch(/row-gap:\s*24px/);
+    expect(declarationsOf('.tqw-hero__enter')).toMatch(/min-height:\s*48px/);
   });
 
   it('uses the small viewport for every section, with a 100vh fallback', () => {
@@ -418,6 +427,14 @@ describe('the game window', () => {
   it('sets the strip 24 px in on a screen and 16 px on a phone, honouring the safe areas', () => {
     expect(declarationsOf('.tqw-game__strip')).toMatch(/max\(1\.5rem, env\(safe-area-inset-top, 0px\)\)/);
     expect(inMedia('(max-width: 40rem)', '.tqw-game__strip')).toMatch(/max\(1rem, env\(safe-area-inset-top, 0px\)\)/);
+  });
+
+  it('gives engaged controls a solid 56 px strip and keeps phone labels out of the scene', () => {
+    const engaged = declarationsOf(".tqw-game__window[data-engaged='true'] .tqw-game__strip");
+    expect(engaged).toMatch(/height:\s*calc\(56px \+ env\(safe-area-inset-top, 0px\)\)/);
+    expect(engaged).toMatch(/background:\s*var\(--menu-surface\)/);
+    expect(inMedia('(pointer: coarse), (max-width: 40rem)', '.tqw-game__key')).toMatch(/display:\s*none/);
+    expect(inMedia('(max-width: 40rem)', ".tqw-game__window[data-engaged='true'] .tqw-game__tool-label")).toMatch(/clip-path:\s*inset\(50%\)/);
   });
 
   it('shows the touch mode line on a coarse pointer or a phone, and nowhere else', () => {
@@ -659,8 +676,15 @@ describe('the menu panel', () => {
   it('is a fixed panel at the top right that scrolls on its own and never past its edge', () => {
     const panel = declarationsOf('.tqw-menu-panel');
     expect(panel).toMatch(/position:\s*fixed/);
-    expect(panel).toMatch(/max-height:\s*calc\(100dvh - 2rem\)/);
+    expect(panel).toMatch(/width:\s*360px/);
+    expect(panel).toMatch(/inset:\s*24px 24px auto auto/);
+    expect(panel).toMatch(/background:\s*var\(--menu-surface\)/);
+    expect(panel).toMatch(/max-height:\s*calc\(100dvh - 48px\)/);
     expect(panel).toMatch(/overscroll-behavior:\s*contain/);
+    const phone = inMedia('(max-width: 40rem)', '.tqw-menu-panel');
+    expect(phone).toMatch(/inset:\s*16px/);
+    expect(phone).toMatch(/max-height:\s*calc\(100dvh - 32px\)/);
+    expect(inMedia('(max-width: 40rem)', '.tqw-menu-panel__sheet')).toMatch(/padding:\s*20px/);
   });
 
   it('shows the settings with their words, whatever the width', () => {

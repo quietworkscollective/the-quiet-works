@@ -101,14 +101,20 @@ export function GameWindow({
                   </span>
                 </button>
                 <p className="tqw-game__location">{location}</p>
+                <p className="tqw-game__location-phone">
+                  {location.slice(location.lastIndexOf(' · ') + 3)}
+                </p>
               </div>
             ) : (
               <p className="tqw-game__title">{GAME_WINDOW_COPY.title}</p>
             )}
             <div className="tqw-game__tools">
               {onReturn ? (
-                <button type="button" className="tqw-game__tool" onClick={onReturn}>
-                  {CORRIDOR_COPY.backToCorridor}
+                <button type="button" className="tqw-game__tool tqw-game__tool--return" onClick={onReturn}>
+                  <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M8 4 3 10l5 6M4 10h13" />
+                  </svg>
+                  <span className="tqw-game__tool-label">{CORRIDOR_COPY.backToCorridor}</span>
                 </button>
               ) : null}
               {sound ? (

@@ -16,6 +16,12 @@ export interface DoorListItem {
   description: string;
 }
 
+export interface DoorGuidance {
+  /** The caller keeps this false until its public wording has editorial approval. */
+  enabled: boolean;
+  content: ReactNode;
+}
+
 export interface DoorListProps {
   doors: readonly DoorListItem[];
   focus: ChamberId | null;
@@ -23,6 +29,8 @@ export interface DoorListProps {
   onOpenDoor(id: ChamberId): void;
   /** 'overlay' sits over the 3D corridor (visible on focus); 'list' is the text-mode list. */
   variant: 'overlay' | 'list';
+  /** Optional, disabled-by-default corridor cue. The corridor shell does not supply copy yet. */
+  guidance?: DoorGuidance | undefined;
 }
 
 export interface NoticeBoardProps {

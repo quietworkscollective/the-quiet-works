@@ -44,102 +44,79 @@ applies them; run it without arguments first (a dry run that also runs `check:pu
 Public repositories get standard GitHub Actions minutes free, so the budget pressure on CI ends
 at this point; the once-per-pull-request design stays because it is also faster.
 
-## Required browser gate and extended diagnostics
+## Deterministic CI and GPU release checks
 
-The required status is still named exactly `checks`. It requires successful `unit` and `build`
-jobs, then the fail-fast `smoke` matrix and all twelve `core` shards. Core starts only after
-smoke succeeds. Failed or cancelled jobs never satisfy the gate. An explicit documentation/copy
-classification permits skipped browsers; missing classification or an unexpected skip fails closed.
+The required status is named `checks`. Its only dependency is `deterministic`, which runs
+`pnpm ci:fast` on every pull request and on demand. A failed, cancelled, skipped or missing
+result fails the gate. The separate `browser (software GL)` workflow cannot block this status.
 
-Unit checks run alongside one build job. That job compiles production once, checks bake freshness,
-scans for development probes and audits shipped assets. It uploads `dist` plus a separate
-`dist-authored` test fixture for one day. The fixture is compiled with development room access
-and measurement probes because full-tier tests exercise the unreleased Annex rooms. It must
-never be deployed. Production release flags and the production probe scan remain unchanged.
-Every browser job downloads these bundles and uses preview only; missing bundles fail instead
-of triggering a rebuild. Browser binaries use the pinned Playwright-version cache.
+`ci:fast` runs lint, typecheck, build, all three packages' unit tests, bake/budget unit guards,
+Commons validation, CI-script tests, content/public checks, bake freshness and the asset audit.
+Production compilation also checks development probes and sealed-room text. The build precedes
+CI dry runs because the Office download spec imports the production manifest. Unit tests and
+Node test files use two workers to limit simultaneous DOM environments and compiler processes;
+assertions and their timeouts are unchanged.
 
-Smoke runs four jobs: desktop and Pixel 7, each against production and the authored fixture.
-Production selects the Office fifth-stamp/memo path, the landing, ordered doors, keyboard Office
-entry, and every production Annex sealed-door contract. The authored jobs run every non-extended case in
-`full-tier.spec.ts`, including its stage sweep, plus `office-budget.spec.ts`. Smoke stops at its first failure and cancels its
-siblings. Its 15-minute timeout allows cold installation; five minutes is the warm-cache target,
-not a reason to truncate assertions.
+The required browser set uses `@fast` metadata, selected by property: neither the case nor its
+setup/helpers waits for a canvas, frames, a camera pose or bake readiness. It covers reading
+pages, public metadata and HTTP routes, sealed production URLs, menu/footer navigation, archive
+DOM/import/export/forget behavior and CSP/console errors. All twelve static routes run without
+JavaScript. The crawler case invokes `check-crawl.mjs` against the built preview with seven user
+agents. The fast configuration uses SwiftShader and zero retries on desktop and Pixel 7. Run
+`CI=1 TQW_E2E_PORT=4190 pnpm ci:fast` to reproduce the required lane locally. Its warm-cache
+target is under ten minutes; local measurements must not be presented as hosted-runner timings.
 
-Core retains all production-compatible cases by default: Office context/exploration/room and
-interaction specs, brand, page, spine, discoveries, robustness, gramophone music and both Annex
-release contracts. Corridor clock, rendering warnings, remount, page-input, gesture/audio-consent
-and accessible touch-control checks remain core. The production configuration excludes suites that require development access or measurement probes.
-`office-budget.spec.ts` gates in authored smoke alongside the ordinary full-tier cases. The sealed
-`exchange.spec.ts` and `apartment.spec.ts` suites run in the visible, non-blocking authored extended
-job, along with the `@extended` cases in `full-tier.spec.ts`. Their release flags automatically move
-them into the required authored core selection when released. Both fixture selections evaluate the
-app's own production release gate. New ordinary specs enter core automatically. A failing case is repaired or
-reviewed; failure alone is never a reason to remove it. Discovery and readable HTML checks run
-in core on desktop and Pixel 7; the no-JavaScript project reads all twelve public routes. The crawler
-guard checks seven user agents against the same production preview. CI selection tests verify these
-cases with Playwright `--list`, alongside authored Office-budget coverage.
+All WebGL-dependent coverage remains in `.github/workflows/browser-software.yml`: core shards,
+full-tier/Office budgets, authored chamber contracts, released-room suites and extended
+camera/frame/sealed-room diagnostics. It runs on every pull request, nightly on `main` and on
+demand. These jobs are informational, keep their assertions and list failures in job summaries.
+They reuse production and authored build artifacts; `dist-authored` must never be deployed.
+Release flags still move authored suites between core and extended automatically.
 
-The unchanged `luna-exit.spec.ts` also gates against the authored fixture on desktop, Pixel 7
-and iPhone WebKit. Its all-chamber route case uses authored status; production retains the
-other cases and adds release/return/Menu checks for all six URLs. Unreleased production URLs
-remain not-found. The required core shards and `ci:local` both run
-`playwright.chamber-contract.config.ts`; dry-run guards ensure that no chamber or assertion
-is omitted by the retargeting.
+`pnpm ci:local` retains the Metal gate: source checks, production build/audit, production browser
+coverage, unchanged authored chamber contracts on desktop/Pixel 7/WebKit, full-tier and Office
+budgets, and released authored suites. It stops at a failed stage and prints stage/total times.
+Use `TQW_LOCAL_WORKERS` for the GPU/memory budget; preview ports must be free. Production
+normally uses 5397 and the authored fixture 5398. This worktree uses `TQW_E2E_PORT=4190`, with
+the same production artifact served on 5190 for WebKit, which reserves port 4190.
 
-The twelve core shards distribute individual cases (`fullyParallel`) by count, with one worker
-per runner. Playwright does not schedule from historical durations; measure the slowest shard
-on the next public run before claiming the 15–20 minute PR target is met. Core has a 45-minute
-ceiling for cold software rendering. Its shards are not fail-fast (`fail-fast: false`), so each one runs to the end and reports all its failures. CI-only
-budgets retain five minutes per test, ordinary assertions 90 seconds and explicit scene-state
-waits two minutes. No expected value, contrast threshold, distance or speed limit is relaxed. On CI only, Playwright retries a failed test once (`retries: process.env.CI ? 1 : 0` in `apps/web/playwright.config.ts` and `apps/web/playwright.dev.config.ts`). A test that passes on the retry is reported as flaky; one that fails both runs fails the job.
+### Attest the tree before a public release
 
-A PR changing only `docs/**`, Markdown files, or string values/comments in the explicitly listed
-copy data modules (`packages/engine/src/copy.ts`, `packages/engine/src/siteCopy.ts`) skips all
-browser jobs. The classifier compares the whole PR against its base, preserving token structure,
-quoted property keys, types, imports, route/id values and numbers for copy changes. Code edits,
-unknown paths, added/deleted copy modules and missing history run browsers or fail the build. Unit, content, public, build
-and asset checks still run. Manual workflow dispatch always runs browsers.
+From a clean macOS tree with the frozen dependencies, browser binaries, Python validator
+requirements and authenticated `gh` already installed:
 
-Before syncing, run `pnpm ci:local` on macOS. It runs lint, typecheck, unit, content, public and CI
-policy checks; builds and audits production; builds the authored fixture; then runs the entire
-core selection, full-tier, Office budgets and released authored room suites from those artifacts using four Metal workers. It stops at a failed
-stage and prints stage/total times. Discovery-store harnesses use a separate available loopback
-port in each worker, preserving storage isolation without serialising their assertions. Override
-`TQW_LOCAL_WORKERS` for a smaller GPU/memory budget; ports default to 5397 (production) and 5398 (authored), fail if busy, and never reuse another server.
+```bash
+CI=1 TQW_E2E_PORT=4190 pnpm ci:attest --dry-run
+pnpm ci:attest quietworkscollective/the-quiet-works PUBLIC_COMMIT_SHA
+```
 
-The warm-cache scheduling target is 1–2 minutes for build, 2–4 for smoke and 10–14 for the
-slowest core shard (about 13–20 minutes for the required path); unit runs alongside that path.
-These are estimates until the twelve-shard public run is measured, not new timeout limits.
-The local Metal gate measured 5m 59s: 448 core cases passed with 34 existing skips, then all
-20 full-tier cases passed. Production smoke separately passed all 14 cases in 17.3 seconds;
-full-tier smoke with two local workers passed in 52.0 seconds. Hardware timings do not establish
-software-rendered GitHub timings. The packaged-artifact SwiftShader dry run of shard 3/12
-(the largest summed local case duration) passed 38 cases with one existing skip in 7m 19s.
-All 564 bundle files retained identical bytes and modification times; no preview rebuilt them.
+The dry run defaults to the public repository and local HEAD; it runs the full local gate and
+writes no GitHub status. Use it before every public candidate push. For the posting command,
+replace `PUBLIC_COMMIT_SHA` with the full SHA of the public commit whose tree matches this
+checkout. GitHub must already know that commit before it can accept its status, so a first push
+uses the dry run first and the posting command afterward, before merging to `main`.
 
-Tests marked `@extended` and the unreleased room suites sit outside that required status. They measure corridor camera
-trajectories and frame throughput: hero drift, scroll walk-in, off-screen/hidden-tab frame counts,
-camera pose/FOV/collision geometry, camera frame-loop budgets, reduced-motion camera cuts and
-the corridor idle draw count. Under the subsequent corridor-camera ruling, the camera movement
-and timing cases in `corridor-walk.spec.ts` are extended even when they also exercise an input or
-a door. Their assertions remain intact; independent core specs still require focus restoration,
-room routing, native page-input ownership, audio consent and accessible controls. The metadata
-marks measurements without changing their assertions. These selected cases are in
-`corridor-site.spec.ts`, `corridor-walk.spec.ts` and `corridor-world.spec.ts`.
+Attestation refuses dirty tracked or untracked files, a mismatching target tree, a changed HEAD
+or tree, failed or incomplete stages, and retries. It forces zero retries for the GPU browser
+stages. Only success posts `local-gpu-suite`, with the full tree hash and GPU/total timings in
+the description. A failed `gh api` call fails the command. No credentials or local progress are
+committed. A different public/private commit history is acceptable only when tree hashes match.
 
-The additional camera cases marked extended are: native wheel hand-over; W/S walking speed and
-stopping; A/D turning speed; wheel-notch distance; drag-to-look without travel; floor glides;
-two-click door framing and entry; the 1.6 m / 1.4 s doorway walk; Tab door framing; sealed-door
-rattle and camera position; return-from-Office camera position; hover attention and quiet frames;
-touch-button walking and stopping; native landing swipe with camera travel; and touch swipe,
-drag and floor glide. These are 15 contracts, selected by camera measurement rather than result.
+### Prepared ruleset, pending founder approval
 
-Every browser-eligible pull request runs four `extended` shards as well, directly after build. Their failures remain visible as failed
-jobs, and each job summary lists every failed test and its error. Extended and core shards keep
-running after a test failure (`fail-fast: false`); only required smoke fails fast. The extended job is intentionally absent from the `checks` dependency
-set; its diagnostics still require triage, and do not replace device/performance or editorial
-release review. See ADR 0014. The maintainer reviews this split with the release changes.
+The existing active `main` ruleset requires `checks`. The following command would add a separate
+active rule requiring `local-gpu-suite` on `refs/heads/main`, without replacing any existing
+protections. It has not been run. After founder approval, the lead runs it once from this tree:
+
+```bash
+gh api --method POST repos/quietworkscollective/the-quiet-works/rulesets \
+  --input .github/rulesets/local-gpu-suite.json
+```
+
+The payload has no bypass actors and requires the branch to be up to date. See GitHub's
+[commit status API](https://docs.github.com/en/rest/commits/statuses) and
+[ruleset API](https://docs.github.com/en/rest/repos/rules) for the endpoints. See ADR 0014 for
+coverage, attestation and rollback rules.
 
 ## Founder decisions (14 October 2026)
 

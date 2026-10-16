@@ -1,9 +1,5 @@
 name: CI
 
-# Runs once per pull request head and on demand. Merges to main are not re-run: a pull request
-# must be up to date with main before it merges (enforced by the main ruleset once the
-# repository is public; by the merge procedure until then), so the PR run already tested the
-# merged tree. Superseded runs are cancelled, so a re-push never pays for a stale run.
 on:
   pull_request:
     branches: [main]
@@ -17,13 +13,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  unit:
-    needs: build
+  deterministic:
+    name: deterministic
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      TQW_E2E_ANGLE: swiftshader
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
-      # Actions are pinned to full commit SHAs (supply-chain safety in a public repository);
-      # Dependabot proposes upgrades monthly, grouped into one pull request.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
@@ -37,263 +35,29 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install --disable-pip-version-check --requirement scripts/commons/requirements.txt
       - run: pnpm install --frozen-lockfile
-      # The unit job lists the Playwright suites, and office-download.spec.ts reads
-      # apps/web/dist/.vite/manifest.json on import, so it needs the build from the build job.
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: browser-bundles
-          path: apps/web
-      # The bake codec test decodes real images in a browser, as visitors' browsers do.
       - run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: node --test scripts/ci/*.test.mjs
-      - run: pnpm check:content
-      - run: pnpm check:public
-      # Production compilation, probe scan and shipped-asset audit run once in build.
-
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      browser: ${{ steps.paths.outputs.browser }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      # Compare the entire PR, not just its last commit. Unknown paths run browsers.
-      - name: Classify documentation and copy-only changes
-        id: paths
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/ci/browser-required.mjs "$BASE_SHA" >> "$GITHUB_OUTPUT"
-      - run: pnpm build
-      - run: pnpm --filter @tqw/web exec node scripts/audit-assets.mjs
-      # Full-tier exercises authored Annex rooms; production must keep them sealed.
-      # Keep this DEV fixture separate from dist; it is never a deployable artifact.
-      - if: steps.paths.outputs.browser == 'true'
-        run: pnpm build:e2e-fixture
-      # Uploaded on every pull request, including documentation-only ones: the unit job needs
-      # the production manifest whether or not the browser jobs run.
+      - name: Source gates, build, asset audit, crawlers and render-independent browsers
+        run: pnpm ci:fast
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure()
         with:
-          name: browser-bundles
+          name: deterministic-browser-evidence
           path: |
-            apps/web/dist
-            apps/web/dist-authored
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
+            apps/web/test-results
+            apps/web/playwright-report
+          retention-days: 7
 
-  smoke:
-    needs: build
-    if: needs.build.outputs.browser == 'true'
-    runs-on: ubuntu-latest
-    # Aim for five minutes; retain cold-cache/setup headroom without hiding a failure.
-    timeout-minutes: 15
-    strategy:
-      fail-fast: true
-      matrix:
-        project: [desktop, mobile]
-        target: [production, authored]
-    env:
-      CI: 'true'
-      TQW_E2E_ARTIFACT: '1'
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: browser-bundles
-          path: apps/web
-      - name: Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: browsers
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
-      - if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm --filter @tqw/web exec playwright install-deps chromium
-      - name: Critical production path (stop at the first failure)
-        if: matrix.target == 'production'
-        env:
-          PROJECT: ${{ matrix.project }}
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.smoke.config.ts --project="$PROJECT" --max-failures=1
-      - name: Full rendering tier (stop at the first failure)
-        if: matrix.target == 'authored'
-        env:
-          PROJECT: ${{ matrix.project }}
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.artifact.config.ts --project="$PROJECT" --grep-invert @extended --max-failures=1
-
-  core:
-    needs: [build, smoke]
-    if: needs.build.outputs.browser == 'true'
-    runs-on: ubuntu-latest
-    # Every existing core case remains required. fullyParallel balances individual cases
-    # by count; Playwright has no duration-history scheduler. No shard rebuilds the site.
-    timeout-minutes: 45
-    strategy:
-      # Smoke already fails fast; core shards each report every failure.
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    env:
-      CI: 'true'
-      TQW_E2E_ARTIFACT: '1'
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: browser-bundles
-          path: apps/web
-      - name: Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: browsers
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-webkit
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm --filter @tqw/web exec playwright install --with-deps chromium webkit
-      - if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm --filter @tqw/web exec playwright install-deps chromium webkit
-      # Includes readable HTML, no-JavaScript reading and seven crawler user agents.
-      - run: pnpm --filter @tqw/web exec playwright test --grep-invert @extended --shard="$SHARD/12"
-        env:
-          SHARD: ${{ matrix.shard }}
-      - name: Run unchanged authored chamber contracts on all three browsers
-        if: success() || failure()
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.chamber-contract.config.ts --shard="$SHARD/12"
-        env:
-          SHARD: ${{ matrix.shard }}
-      - name: Run released room suites from the authored fixture
-        if: success() || failure()
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.released-authored.config.ts --grep-invert @extended --shard="$SHARD/12" --pass-with-no-tests
-        env:
-          SHARD: ${{ matrix.shard }}
-
-  extended:
-    needs: build
-    if: needs.build.outputs.browser == 'true'
-    runs-on: ubuntu-latest
-    # These diagnostics run on every PR, keep their assertions and report all failures.
-    # They are visible but are deliberately outside the required checks dependency set.
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      TQW_E2E_ARTIFACT: '1'
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: browser-bundles
-          path: apps/web
-      - name: Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('./apps/web/node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: browsers
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      - if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm --filter @tqw/web exec playwright install --with-deps chromium
-      - if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm --filter @tqw/web exec playwright install-deps chromium
-      - name: Run corridor camera and frame diagnostics
-        run: pnpm --filter @tqw/web exec playwright test --grep @extended --shard="$SHARD/4" --reporter=line,json
-        env:
-          CI: 'true'
-          SHARD: ${{ matrix.shard }}
-          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-results.json
-      - name: Run sealed rooms and authored diagnostics
-        if: success() || failure()
-        run: pnpm --filter @tqw/web exec playwright test --config playwright.extended-authored.config.ts --shard="$SHARD/4" --reporter=line,json
-        env:
-          CI: 'true'
-          SHARD: ${{ matrix.shard }}
-          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/extended-authored-results.json
-      - name: List every authored diagnostic failure
-        if: always()
-        env:
-          RESULTS_FILE: ${{ runner.temp }}/extended-authored-results.json
-        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
-      - name: List every extended failure
-        if: always()
-        env:
-          RESULTS_FILE: ${{ runner.temp }}/extended-results.json
-        run: node scripts/ci/e2e-summary.mjs "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
-
-  # Required status: skipped browsers are accepted ONLY after a successful build
-  # explicitly classified the complete PR as documentation/copy-only.
   checks:
     name: checks
-    needs: [unit, build, smoke, core]
+    needs: [deterministic]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
     steps:
-      - name: Require every shipping gate to succeed
+      - name: Require deterministic coverage to succeed
         shell: bash
         env:
-          UNIT_RESULT: ${{ needs.unit.result }}
-          BUILD_RESULT: ${{ needs.build.result }}
-          BROWSER_REQUIRED: ${{ needs.build.outputs.browser }}
-          SMOKE_RESULT: ${{ needs.smoke.result }}
-          CORE_RESULT: ${{ needs.core.result }}
+          DETERMINISTIC_RESULT: ${{ needs.deterministic.result }}
         run: |
-          printf 'unit=%s build=%s browsers=%s smoke=%s core=%s\n' "$UNIT_RESULT" "$BUILD_RESULT" "$BROWSER_REQUIRED" "$SMOKE_RESULT" "$CORE_RESULT"
-          test "$UNIT_RESULT" = success
-          test "$BUILD_RESULT" = success
-          if [ "$BROWSER_REQUIRED" = true ]; then
-            test "$SMOKE_RESULT" = success
-            test "$CORE_RESULT" = success
-          else
-            test "$BROWSER_REQUIRED" = false
-            for result in "$SMOKE_RESULT" "$CORE_RESULT"; do
-              test "$result" = skipped || test "$result" = success
-            done
-          fi
+          test "$DETERMINISTIC_RESULT" = success

@@ -24,7 +24,7 @@ function contrastRatio(first: string, second: string): number {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-test.describe('reading pages', () => {
+test.describe('reading pages', { tag: '@fast' }, () => {
   test.beforeEach(async ({ page }) => disableWebGL(page));
 
   test('review captures', async ({ page }, info) => {

@@ -18,7 +18,7 @@ test('WebKit can reach the production artifact when the main preview uses port 4
 });
 
 test('core installs the WebKit browser and its system libraries on cache hits and misses', () => {
-  const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  const workflow = readFileSync(new URL('../../.github/workflows/browser-software.yml', import.meta.url), 'utf8');
   const core = workflow.split('  core:\n')[1].split('\n  extended:')[0];
   // Older cache entries contain Chromium alone; they cannot satisfy the new browser project.
   assert.match(core, /key: playwright-.*-webkit\n/);

@@ -48,6 +48,9 @@
   --reading-ground: #171a17;
   --reading-text: #eeeae1;
   --reading-muted: #bdb8ae;
+  --menu-surface: #20231f;
+  --menu-text: #eeeae1;
+  --menu-muted: #babcb3;
 
   /* The notice board: olive felt in an oak frame, brass pins, and three paper stocks. */
   --felt: #505247;
@@ -261,11 +264,12 @@ html {
   --plate-x: 8rem;
   --plate-y: 6rem;
   --plate-solid: 80%;
-  --hero-plate: 0.55;
+  --hero-plate: 0.82;
   position: relative;
   isolation: isolate;
   align-self: center;
   justify-self: center;
+  top: calc(var(--tqw-vh) * -0.12);
   max-width: 100%;
   padding-block: 4.5rem 1rem;
   text-align: center;
@@ -518,15 +522,29 @@ html {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.25rem 2rem;
-  margin: 1.25rem 0 0;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 0.375rem 0.625rem;
+  position: relative;
+  grid-area: details;
+  isolation: isolate;
   font-family: var(--font-public);
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   letter-spacing: 0;
-  color: #fff8ec;
+  color: var(--menu-text);
   /* Local contrast protection over the live corridor, without darkening the whole scene. */
   text-shadow: 0 0 0.6em rgb(12 12 14 / 0.85), 0 1px 0.15em rgb(12 12 14 / 0.9);
+}
+
+.tqw-hero__details::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: 2px;
+  background: radial-gradient(ellipse at center, rgba(23, 25, 24, 0.88) 45%, rgba(23, 25, 24, 0.58) 78%, rgba(23, 25, 24, 0) 100%);
+  pointer-events: none;
 }
 
 .tqw-hero__sep {
@@ -534,13 +552,25 @@ html {
 }
 
 .tqw-hero__foot {
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  inset: 58% 0 auto;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    'enter details'
+    'cue cue';
   align-items: center;
-  padding-bottom: max(1.5rem, calc(var(--tqw-vh) * 0.1));
+  justify-content: center;
+  column-gap: 1rem;
+  row-gap: 24px;
+  padding-inline: max(20px, env(safe-area-inset-left, 0px)) max(20px, env(safe-area-inset-right, 0px));
 }
 
 .tqw-hero__cue {
+  position: relative;
+  isolation: isolate;
+  grid-area: cue;
+  justify-self: center;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -553,10 +583,20 @@ html {
   font-size: var(--page-control-size);
   line-height: var(--page-control-leading);
   letter-spacing: 0;
-  color: var(--bone);
+  color: var(--menu-muted);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-hero__cue::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -0.5rem -1rem;
+  border-radius: 2px;
+  background: radial-gradient(ellipse at center, rgba(23, 25, 24, 0.88) 65%, rgba(23, 25, 24, 0.58) 85%, rgba(23, 25, 24, 0) 100%);
+  pointer-events: none;
 }
 
 .tqw-hero__cue svg {
@@ -564,19 +604,23 @@ html {
 }
 
 .tqw-hero__enter {
+  grid-area: enter;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  justify-content: center;
+  min-height: 48px;
   padding: 0 1rem;
+  border: 1px solid var(--menu-text);
+  background: var(--menu-text);
   font-family: var(--font-public);
-  font-size: var(--page-control-size);
+  font-size: 1rem;
   line-height: var(--page-control-leading);
   letter-spacing: 0;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.4em;
-  text-decoration-color: rgba(238, 233, 223, 0.35);
-  color: var(--muted);
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--reading-ground);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @media (min-width: 40.0625rem) {
@@ -592,12 +636,26 @@ html {
 }
 
 @media (hover: hover) {
-  .tqw-hero__cue:hover,
-  .tqw-hero__enter:hover {
-    color: var(--bone);
+  .tqw-hero__cue:hover {
+    color: var(--menu-text);
   }
   .tqw-hero__enter:hover {
-    text-decoration-color: var(--amber);
+    background: #f6f2eb;
+    border-color: #f6f2eb;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .tqw-hero__foot {
+    column-gap: 0.5rem;
+    padding-inline: 20px;
+  }
+  .tqw-hero__enter {
+    padding-inline: 0.75rem;
+  }
+  .tqw-hero__details {
+    font-size: 0.8125rem;
+    padding-inline: 0.375rem;
   }
 }
 
@@ -931,7 +989,7 @@ html {
 
 .tqw-game__strip {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: max(1.5rem, env(safe-area-inset-top, 0px)) max(1.5rem, env(safe-area-inset-right, 0px)) 0
@@ -955,6 +1013,10 @@ html {
   align-items: center;
   gap: 0.25rem 0.875rem;
   min-width: 0;
+}
+
+.tqw-game__location-phone {
+  display: none;
 }
 
 .tqw-game__tools {
@@ -990,6 +1052,7 @@ html {
   border: 1px solid rgba(238, 233, 223, 0.4);
   background: rgba(23, 25, 24, 0.6);
   font-size: var(--page-control-size);
+  white-space: nowrap;
 }
 
 .tqw-game__key {
@@ -1018,6 +1081,31 @@ html {
   background: none;
   font-size: var(--page-control-size);
   text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
+}
+
+.tqw-game__tool--return svg {
+  flex: none;
+}
+
+.tqw-game__window[data-engaged='true'] .tqw-game__strip {
+  box-sizing: border-box;
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1rem;
+  padding: env(safe-area-inset-top, 0px) max(24px, env(safe-area-inset-right, 0px)) 0
+    max(24px, env(safe-area-inset-left, 0px));
+  background: var(--menu-surface);
+}
+
+.tqw-game__window[data-engaged='true'] .tqw-game__where,
+.tqw-game__window[data-engaged='true'] .tqw-game__tools {
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.tqw-game__window[data-engaged='true'] .tqw-game__tools {
+  gap: 0.5rem;
 }
 
 .tqw-game__tool--icon .tqw-toggle__icon {
@@ -1087,10 +1175,56 @@ html {
   }
 }
 
-/* A phone: tighter strip, the Fullscreen label becomes an icon, the location gives way to the mode line. */
+@media (pointer: coarse), (max-width: 40rem) {
+  .tqw-game__key {
+    display: none;
+  }
+}
+
+/* A phone: the strip owns the labels; only short wayfinding and essential icons sit over the scene. */
 @media (max-width: 40rem) {
   .tqw-game__strip {
-    padding: max(1rem, env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0 max(1rem, env(safe-area-inset-left, 0px));
+    padding: max(1rem, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0
+      max(16px, env(safe-area-inset-left, 0px));
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__strip {
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) 0
+      max(16px, env(safe-area-inset-left, 0px));
+    gap: 0.5rem;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__where {
+    flex: 1 1 auto;
+    gap: 0.375rem;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__leave {
+    flex: none;
+    min-height: 44px;
+    padding-inline: 0.625rem;
+    font-size: 0.9375rem;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__tools {
+    flex: none;
+    gap: 0;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__tool {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 0;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__tool--return {
+    position: relative;
+  }
+  .tqw-game__window[data-engaged='true'] .tqw-game__tool-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .tqw-game__tool-label {
     position: absolute;
@@ -1103,6 +1237,32 @@ html {
     white-space: nowrap;
   }
   .tqw-game__location {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .tqw-game__location-phone {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--reading-muted);
+    font-family: var(--font-public);
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .tqw-game__window[data-engaged='true'] .tqw-game__location-phone {
     display: none;
   }
 }
@@ -1126,6 +1286,33 @@ html {
   color: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+.tqw-door-guidance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  margin: 0 0 1rem;
+  font-family: var(--font-public);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--page-text);
+  text-shadow: 0 1px 8px rgba(23, 25, 24, 0.85);
+  pointer-events: none;
+}
+
+.tqw-door-guidance__touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .tqw-door-guidance__pointer {
+    display: none;
+  }
+  .tqw-door-guidance__touch {
+    display: block;
+  }
 }
 
 /* The comma that makes the text equal the name is real text; the layouts that stack title above
@@ -1909,22 +2096,23 @@ html {
 
 .tqw-menu-panel {
   position: fixed;
-  inset: 0 0 auto auto;
-  width: min(25rem, calc(100% - 2rem));
+  inset: 24px 24px auto auto;
+  right: calc(24px - (100vw - 100%));
+  width: 360px;
   max-width: none;
-  max-height: calc(100dvh - 2rem);
-  margin: 1rem;
+  max-height: calc(100dvh - 48px);
+  margin: 0;
   padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--divider);
-  background: var(--coal-2);
-  color: var(--bone);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(238, 234, 225, 0.16);
+  background: var(--menu-surface);
+  color: var(--menu-text);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42);
 }
 
 .tqw-menu-panel::backdrop {
-  background: rgba(23, 25, 24, 0.6);
+  background: rgba(12, 14, 12, 0.62);
 }
 
 .tqw-menu-panel[open] {
@@ -1934,8 +2122,8 @@ html {
 .tqw-menu-panel__sheet {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.25rem 1.5rem 1.5rem;
+  gap: 1.25rem;
+  padding: 24px;
 }
 
 .tqw-menu-panel__head {
@@ -1951,7 +2139,7 @@ html {
   font-weight: 400;
   font-size: 1.75rem;
   line-height: 1.1;
-  color: var(--bone);
+  color: var(--menu-text);
 }
 
 .tqw-menu-panel__close,
@@ -1969,7 +2157,7 @@ html {
   letter-spacing: 0;
   text-align: left;
   text-decoration: none;
-  color: var(--muted);
+  color: var(--menu-muted);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -1977,20 +2165,22 @@ html {
 .tqw-menu-panel__nav {
   display: flex;
   flex-direction: column;
-  padding-block: 0.25rem;
-  border-block: 1px solid var(--divider);
+  padding-block: 0.375rem;
+  border-block: 1px solid rgba(238, 234, 225, 0.14);
 }
 
 .tqw-menu-panel__link {
-  color: var(--bone);
-  font-size: 1.0625rem;
+  min-height: 44px;
+  color: var(--menu-text);
+  font-size: 0.9375rem;
 }
 
 @media (hover: hover) {
   .tqw-menu-panel__close:hover {
-    color: var(--bone);
+    color: var(--menu-text);
   }
   .tqw-menu-panel__link:hover {
+    color: var(--menu-text);
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.35em;
@@ -1998,35 +2188,50 @@ html {
 }
 
 .tqw-menu-panel__heading {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-family: var(--font-public);
   font-size: var(--page-meta-size);
   line-height: var(--page-meta-leading);
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--menu-muted);
 }
 
-/* Settings, with their words: in the panel there is room, on every width. */
+/* Settings read as four choices with their current state, not as a cluster of decorative pills. */
+.tqw-menu-panel__settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .tqw-menu-panel .tqw-settings {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   pointer-events: auto;
 }
 
 .tqw-menu-panel .tqw-toggle {
-  justify-content: flex-start;
+  width: 100%;
+  min-height: 48px;
+  justify-content: stretch;
   padding: 0;
   pointer-events: auto;
 }
 
 .tqw-menu-panel .tqw-toggle__face {
   width: 100%;
-  height: 2.5rem;
-  padding: 0 0.75rem 0 0.625rem;
+  min-height: 48px;
+  height: auto;
+  padding: 0 0.125rem;
   justify-content: flex-start;
-  border-radius: 999px;
+  gap: 0.75rem;
+  border: 0;
+  border-top: 1px solid rgba(238, 234, 225, 0.12);
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .tqw-menu-panel .tqw-toggle__icon {
@@ -2044,6 +2249,43 @@ html {
   overflow: visible;
   clip: auto;
   clip-path: none;
+  color: var(--menu-text);
+  font-size: 0.9375rem;
+}
+
+.tqw-menu-panel .tqw-toggle__state {
+  margin-left: auto;
+  color: var(--menu-muted);
+  font-family: var(--font-public);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.tqw-menu-panel .tqw-toggle[aria-pressed='true'] .tqw-toggle__face {
+  border-color: rgba(238, 234, 225, 0.12);
+  background: transparent;
+}
+
+.tqw-menu-panel .tqw-toggle[aria-pressed='true'] .tqw-toggle__icon {
+  color: var(--menu-text);
+}
+
+.tqw-menu-panel .tqw-toggle:focus-visible .tqw-toggle__face {
+  outline: 2px solid var(--menu-text);
+  outline-offset: 1px;
+}
+
+@media (max-width: 40rem) {
+  .tqw-menu-panel {
+    inset: 16px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 32px);
+  }
+
+  .tqw-menu-panel__sheet {
+    padding: 20px;
+  }
 }
 
 /* ------------------------------------------------------------------ archive */

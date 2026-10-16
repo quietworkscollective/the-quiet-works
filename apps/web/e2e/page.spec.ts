@@ -1496,7 +1496,7 @@ const papers = (page: Page, state: 'found' | 'sealed') => page.locator(
 );
 
 test.describe('the archive', () => {
-  test('with nothing found: every paper is the same closed silhouette that says only "Sealed", counted in plain words, with no score', async ({ page }) => {
+  test('with nothing found: every paper is the same closed silhouette that says only "Sealed", counted in plain words, with no score', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
@@ -1539,7 +1539,7 @@ test.describe('the archive', () => {
     expect(roomText).not.toMatch(/%|secret/i);
   });
 
-  test('found papers show title and count; the rest stay sealed; secrets are counted without a total', async ({ page }) => {
+  test('found papers show title and count; the rest stay sealed; secrets are counted without a total', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, {
       'certification-office': [
@@ -1565,13 +1565,13 @@ test.describe('the archive', () => {
     expect((await archive.textContent()) ?? '').not.toMatch(/of 5/);
   });
 
-  test('importing replaces the archive, and the hero does not call it this visit\'s discovery', async ({ page }) => {
+  test('importing replaces the archive, and the hero does not call it this visit\'s discovery', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
     await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
   });
 
-  test('a file that is not an archive changes nothing, and says so', async ({ page }) => {
+  test('a file that is not an archive changes nothing, and says so', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
     await page.locator('.tqw-archive input[type="file"]').setInputFiles({ name: 'nope.json', mimeType: 'application/json', buffer: Buffer.from('{"version":9}') });
@@ -1579,7 +1579,7 @@ test.describe('the archive', () => {
     await expect(papers(page, 'found')).toHaveCount(1);
   });
 
-  test('export saves unheld-discoveries.json from the device: versioned, ids and kinds only', async ({ page }) => {
+  test('export saves unheld-discoveries.json from the device: versioned, ids and kinds only', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export discoveries' }).click()]);
@@ -1590,7 +1590,7 @@ test.describe('the archive', () => {
     await expect(page.locator('.tqw-archive__message')).toHaveText('Saved as unheld-discoveries.json.');
   });
 
-  test('Forget everything asks first, names what it does, defaults to Cancel, and only the confirmation forgets', async ({ page }) => {
+  test('Forget everything asks first, names what it does, defaults to Cancel, and only the confirmation forgets', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'memo-b', kind: 'memo' }] });
     await page.locator('#archive').getByRole('button', { name: 'Forget everything' }).click();
@@ -1653,7 +1653,7 @@ test.describe('the details and the footer', () => {
     await expect(page.getByRole('dialog', { name: 'Privacy' })).toBeVisible();
   });
 
-  test('the footer is a colophon without a detached menu, links About, Credits, Privacy and Licences, and signs the copyright', async ({ page }) => {
+  test('the footer is a colophon without a detached menu, links About, Credits, Privacy and Licences, and signs the copyright', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     const footer = page.locator('footer.tqw-footer');
     await expect(footer.getByRole('navigation', { name: 'Footer menu' })).toHaveCount(0);
@@ -1681,7 +1681,7 @@ test.describe('the details and the footer', () => {
     expect(requests.filter((url) => url.includes('dalugoda.com'))).toEqual([]);
   });
 
-  test('Credits name him in full, and the footer signs the same name', async ({ page }) => {
+  test('Credits name him in full, and the footer signs the same name', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/credits');
     await expect(page.getByRole('dialog', { name: 'Credits' })).toContainText('an independent artwork by Siri (Asiri) Dalugoda');
     await expect(page.getByRole('dialog', { name: 'Credits' })).toContainText('© 2026 Siri (Asiri) Dalugoda');

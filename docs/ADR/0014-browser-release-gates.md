@@ -1,51 +1,68 @@
-# ADR 0014 — Core browser checks and visible extended diagnostics
+# ADR 0014 — Deterministic CI and local GPU release attestation
 
-- **Status:** proposed under the maintainer's two-tier CI ruling; split requires maintainer review.
+- **Status:** implementation of the founder's 16 October 2026 two-lane ruling. Activating the additional GitHub ruleset requires separate founder approval.
 - **Relates to:** ADR 0003 (site structure), ADR 0007 (stage limits), PUBLIC_RELEASE.md.
 
 ## Decision
 
-The required `checks` status depends on unit/build gates, the critical smoke matrix and all twelve core browser shards. Core is the
-default for every current and future spec that the production configuration does not exclude. It
-covers the production release contracts for both Annex rooms (The Exchange and The Outline Room,
-`annex-release.spec.ts`), accessibility, privacy, audio consent, room interaction and rendering
-warnings. It rejects any unsuccessful dependency. Production excludes suites that need authored room access or measurement probes.
-`office-budget.spec.ts` runs in required authored smoke, alongside the non-extended full-tier cases.
-`exchange.spec.ts` and `apartment.spec.ts` run in visible, non-blocking authored extended shards
-while sealed. The selection evaluates the app's production release flags: releasing either room
-moves its suite into required authored core shards automatically. Full-tier's `@extended` cases
-run in the authored extended selection as well. Dry-run coverage guards execute the workflow's
-actual Playwright selections and require all four suites to appear in the appropriate tier.
+The required GitHub status remains `checks`. It depends only on `deterministic`, which runs
+`pnpm ci:fast` on every pull request and on demand. Failed, cancelled, skipped or missing
+deterministic coverage fails the status. Software-GL outcomes cannot satisfy or prevent it.
 
-The 16 October release reconciliation keeps the entire unchanged `luna-exit.spec.ts` required
-on the authored fixture, on desktop, Pixel 7 and iPhone WebKit. Its raw chamber-status loop
-checks all six rooms, including the Menu/return assertions for authored sealed rooms. Every
-other case in that file also remains on production. The raw authored route case alone is
-retargeted; additional production route/Menu checks cover all six addresses, with every
-unreleased direct URL required to be not-found. CI and `ci:local` both run the authored contract
-configuration, and a dry-run guard verifies every case and browser selection. Known sealed
-routes reach the spine in development so it can present their corridor doors; production
-continues to use the existing release gate before creating a chamber route.
+The deterministic lane runs lint, typecheck, a production build, all three packages' unit tests,
+bake and asset-budget unit guards, Commons validation, CI-script tests, content/public checks,
+bake freshness and the shipped-asset audit. Unit and Node test-file concurrency is bounded at
+two workers; this preserves assertions and timeouts while limiting competing DOM environments.
+The build includes the production probe scan and
+sealed-room text check. Browser coverage uses the committed `@fast` selection on desktop and
+Pixel 7, plus all twelve no-JavaScript routes. The seven-user-agent crawler guard runs the same
+`check-crawl.mjs` script used by `pnpm check:crawl` against the production preview.
 
-Explicit `@extended` metadata selects corridor camera trajectory, sampling and frame-count
-diagnostics, including authored full-tier paths. Those tests still run on every pull request in four visible extended jobs, with every
-failure written to the job summary. A failure alone never justifies moving a test out of core.
-Assertions retain their intent in either tier. The subsequent corridor-camera ruling includes
-camera movement and timing cases with mixed input/door assertions in the extended tier;
-independent core routing, focus, audio-consent and accessibility contracts remain required.
-Twelve core shards reuse one production build after fail-fast smoke, reducing repeated compilation
-and the observed 57-minute GitHub workload. An additional authored fixture preserves full-tier
-coverage without opening production Annex doors. Documentation/copy-only PRs may skip browsers
-only after explicit classification; other skips, failures and cancellations fail the gate. CI-only test and state-wait
-budgets allow cold software rendering to finish without changing expected behaviour; see
-PUBLIC_RELEASE.md for the budgets and the 15 newly tagged camera contracts. Playwright retries a
-failed test once, on CI only (`retries: process.env.CI ? 1 : 0` in `apps/web/playwright.config.ts`
-and `apps/web/playwright.dev.config.ts`); a test that passes on the retry is reported as flaky.
+A case qualifies as `@fast` only when neither its body nor setup/helpers wait for a canvas,
+frames, a camera pose or bake readiness. The selection includes reading pages, HTTP metadata,
+sealed-route guards, menu/footer navigation, archive DOM/import/export/forget contracts and
+CSP/console checks. Existing assertions are preserved. Dry-run and helper-inspection guards
+verify the selection. The fast Playwright configuration always uses SwiftShader with zero
+retries; it never inherits Metal or CI's rendering timeouts.
 
-## Consequences and review
+All rendering-dependent suites remain in `.github/workflows/browser-software.yml`, named
+`browser (software GL)`. It runs on pull requests, nightly on the default `main` branch, and on
+demand. Core, full-tier and extended jobs retain their assertions and report failures visibly;
+these jobs are informational and have no dependency path to `checks`. One production build
+and one separate authored fixture serve the software jobs. The authored fixture never ships.
 
-Software-rendered camera sampling can be investigated without making the shipping status depend
-on its throughput. Extended failures remain work to classify and repair, with isolated load proof
-before assigning a timing-only cause. Device/performance and editorial review remain release gates.
-Pinned actions, discarded checkout credentials, read-only permissions and workflow concurrency
-remain unchanged. Restoring one required browser tier is a reversible workflow/metadata change.
+Production release guards still require every unreleased direct URL to be not-found. The
+unchanged authored chamber contracts still check all six authored rooms on desktop, Pixel 7
+and iPhone WebKit. They run in the software workflow and the local GPU gate, with independent
+production route/Menu coverage retained. Release flags still move authored room suites between
+core and extended selections. Office budgets remain in the full-tier selection locally and in
+software GL. No test is deleted or weakened to obtain deterministic CI.
+
+## Local GPU gate
+
+`pnpm ci:attest owner/repository commit-sha` runs `pnpm ci:local` on a clean macOS tree with
+Metal. It requires the target commit's tree to match the tested tree, runs all existing local
+GPU gate stages with retries disabled, and checks the clean tree and HEAD again afterward.
+Only complete success posts the `local-gpu-suite` commit status through `gh api`; its
+description includes the full tree hash and GPU/total timings. Failed commands, changed trees,
+missing stages or failed status writes exit nonzero. `--dry-run` runs the same suite and emits
+the attestation without writing to GitHub. It defaults to the public repository and local HEAD.
+
+The sync operator runs the dry run before a public candidate push. GitHub can accept a status
+only after the target commit exists in that repository; once it does, run the posting command
+before merging to `main`. Separate histories are supported when their tree hashes match.
+Credentials stay in the operator's existing `gh` authentication and never enter project files.
+
+## Consequences and rollback
+
+GitHub's required path no longer measures software-rendered frame throughput. Rendering
+failures remain visible diagnostics and require triage; the clean-tree Metal status carries the
+local GPU release gate. Hardware timings do not establish hosted-runner timings. Device,
+performance and editorial review remain release requirements.
+
+The additional ruleset payload is prepared in `.github/rulesets/local-gpu-suite.json`; this
+change does not activate it or modify GitHub settings. The existing required `checks` rule stays
+in place. Activation instructions and the exact API call are in PUBLIC_RELEASE.md. Reverting
+the workflow/configuration change restores the previous lane selection; the maintainer must
+coordinate any separately approved ruleset rollback. Pinned actions, read-only workflow tokens,
+discarded checkout credentials and fork security remain in place.
