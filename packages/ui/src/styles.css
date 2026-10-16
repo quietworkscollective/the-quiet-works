@@ -2126,6 +2126,8 @@ button {
   .tqw-app[data-station] { --tqw-office-station-rail:calc(72px + env(safe-area-inset-right, 0px)); }
   .tqw-app[data-station] .tqw-stage { right:var(--tqw-office-station-rail); }
   .tqw-app[data-station] .tqw-office-stations { position:absolute; z-index:12; top:50%; right:0; width:var(--tqw-office-station-rail); transform:translateY(-50%); display:grid; justify-items:center; align-items:center; gap:12px; box-sizing:border-box; padding-right:env(safe-area-inset-right, 0px); background:linear-gradient(90deg, #15100c00, #15100cd9 20%); }
-  .tqw-app[data-station] .tqw-places { top:8rem; }
-  .tqw-app[data-station] .tqw-places__content { max-height:calc(100svh - 25rem); }
+  .tqw-app[data-station] .tqw-places { top:8rem; width:min(140px, calc(50vw - 4.25rem - env(safe-area-inset-right, 0px))); }
+  .tqw-app[data-station] .tqw-places__content { width:100%; max-height:calc(100svh - 25.5rem); }
+  .tqw-app[data-station] .tqw-places nav { width:100%; min-width:0; }
+  .tqw-app[data-station] .tqw-places button { width:100%; max-width:100%; white-space:normal; }
 }

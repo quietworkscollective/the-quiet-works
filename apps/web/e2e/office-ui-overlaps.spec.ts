@@ -146,3 +146,31 @@ test('Office controls stay clear of the stamp dock and framed station targets', 
   if (evidenceDir) await writeFile(join(evidenceDir, 'measurements.json'), JSON.stringify({ project: info.project.name, violations, measurements }, null, 2));
   expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
 });
+
+test('Mobile Places never blocks the central look-drag start', async ({ page }, info) => {
+  test.skip(info.project.name !== 'mobile', 'the fixed drag start is a Pixel 7 touch interaction');
+  test.setTimeout(180_000);
+
+  await page.goto('/certification-office');
+  await roomReady(page);
+  await engageGameWindow(page);
+  const app = page.locator('.tqw-app');
+  await expect(app).toHaveAttribute('data-station', 'machine');
+  await setPlacesOpen(page, true);
+  await page.getByRole('button', { name: 'View the records', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(app).toHaveAttribute('data-station', 'records');
+  await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-moving', 'false');
+
+  const lookStartHit = async () => page.locator('.tqw-canvas').evaluate(canvas => {
+    const box = canvas.getBoundingClientRect();
+    const target = document.elementFromPoint(box.left + box.width * .5, box.top + box.height * .2);
+    const classes = typeof target?.className === 'string' ? target.className : '';
+    return { isCanvas: target === canvas || Boolean(target && canvas.contains(target)), description: target ? `${target.tagName.toLowerCase()}.${classes}` : 'none' };
+  });
+  const openHit = await lookStartHit();
+  expect(openHit, `Pixel 7 look drag starts on ${openHit.description} with Places expanded`).toMatchObject({ isCanvas: true });
+  await setPlacesOpen(page, false);
+  const closedHit = await lookStartHit();
+  expect(closedHit, `Pixel 7 look drag starts on ${closedHit.description} after Places closes`).toMatchObject({ isCanvas: true });
+});
