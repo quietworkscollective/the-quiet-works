@@ -110,7 +110,11 @@ test.describe('the full rendering tier', () => {
     }
   });
 
-  test('slides both custom Outline Room leaves from the keyboard with reduced motion', async ({ page }, testInfo) => {
+  // Unreleased rooms (sealed in production until the founder approves them) run as visible
+
+  // extended diagnostics, so they never block shipping; they return to core on approval.
+
+  test('slides both custom Outline Room leaves from the keyboard with reduced motion', { tag: '@extended' }, async ({ page }, testInfo) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -221,7 +225,9 @@ test.describe('the full rendering tier', () => {
     expect(errors).toEqual([]);
   });
 
-  test('opens the Outline Room after its scene and baked light are ready', async ({ page }) => {
+  // Unreleased room: extended diagnostic until the founder approves it (see the rule above).
+
+  test('opens the Outline Room after its scene and baked light are ready', { tag: '@extended' }, async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/outline-room?quality=high');
