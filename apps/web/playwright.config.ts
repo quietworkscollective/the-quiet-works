@@ -67,6 +67,13 @@ export default defineConfig({
       use: { ...devices['iPhone 14'], browserName: 'webkit', baseURL: webkitURL, launchOptions: { args: [] } },
     },
     {
+      name: 'ios-scroll-lock-webkit',
+      testMatch: /ios-scroll-lock\.spec\.ts/,
+      // Keep the iPhone viewport, UA and touch support. Playwright WebKit's mobile flag disables
+      // wheel input, so this dedicated DOM guard uses its wheel API to exercise page scrolling.
+      use: { ...devices['iPhone 14'], isMobile: false, browserName: 'webkit', baseURL: webkitURL, launchOptions: { args: [] } },
+    },
+    {
       name: 'reading-no-js',
       testMatch: ['**/readable.spec.ts'],
       use: { javaScriptEnabled: false },

@@ -71,7 +71,6 @@ const CorridorScene = lazy(() => import('./corridor/CorridorScene.tsx'));
 
 const CAPTION_LIFETIME_MS = 4500;
 const MAX_CAPTIONS = 3;
-const HANDOVER_SCROLL_INTENT_MS = 5000;
 /**
  * If the corridor never reports the seam (a failed scene), the threshold completes anyway. A safety
  * net only: it must not beat a real seam on a slow device, or the chamber mounts mid-walk, so it
@@ -391,86 +390,29 @@ export function App() {
     if (arrivedEngaged.current) window.scrollTo(0, gameTop());
   }, []);
 
-  // Native scroll writes the progress and carries the spine. A deliberate downward wheel or swipe
-  // through the smoke hands over at the camera's authored hand-over point; keyboard scrolling,
-  // reduced motion and scrollbar movement leave the invitation in view.
+  // Native scroll writes the progress and carries the spine. Scrolling never engages the game
+  // window: the page keeps scrolling past it, and only a deliberate Enter (click, tap or key) hands
+  // the wheel and the swipe to the world.
   useEffect(() => {
     if (textMode) return;
-    let autoEngageUntil = 0;
-    let touchY: number | null = null;
-    const notePageScroll = () => {
-      // Preserve a deliberate gesture through smoke easing and slow first-frame work.
-      autoEngageUntil = performance.now() + HANDOVER_SCROLL_INTENT_MS;
-    };
-    const onWheel = (event: WheelEvent) => {
-      if (event.ctrlKey) return;
-      if (event.deltaY > 0) notePageScroll();
-      else autoEngageUntil = 0;
-    };
-    const onTouchStart = (event: TouchEvent) => {
-      touchY = event.touches[0]?.clientY ?? null;
-      autoEngageUntil = 0;
-    };
-    const onTouchMove = (event: TouchEvent) => {
-      const y = event.touches[0]?.clientY;
-      if (y === undefined || touchY === null) return;
-      if (touchY - y >= SITE_SCROLL.gestureThresholdPx) {
-        notePageScroll();
-        touchY = null;
-      }
-    };
-    const onTouchEnd = () => {
-      touchY = null;
-    };
-    const onKeyDown = () => {
-      autoEngageUntil = 0;
-    };
     const onScroll = () => {
       const top = gameTop();
       if (top <= 0) return;
       const y = window.scrollY;
-      const journey = progressAt(y, top);
-      progress.set(journey);
+      progress.set(progressAt(y, top));
       const phase = spine.getState().phase;
-      if (
-        phase === 'entrance' &&
-        !engagedRef.current &&
-        !settings.reducedMotion &&
-        performance.now() <= autoEngageUntil &&
-        journey >= SITE_SCROLL.handoverAt
-      ) {
-        autoEngageUntil = 0;
-        progress.set(1);
-        engagedRef.current = true;
-        setEngaged(true);
-        window.scrollTo(0, top);
-        spine.dispatch({ type: 'ENTRANCE_DONE' });
-        return;
-      }
       const action = scrollAction({ y, top, phase, engaged: engagedRef.current });
       if (action === 'handover') spine.dispatch({ type: 'ENTRANCE_DONE' });
       else if (action === 'return') spine.dispatch({ type: 'RETURN_TO_ENTRANCE' });
     };
-    window.addEventListener('wheel', onWheel, { capture: true, passive: true });
-    window.addEventListener('touchstart', onTouchStart, { capture: true, passive: true });
-    window.addEventListener('touchmove', onTouchMove, { capture: true, passive: true });
-    window.addEventListener('touchend', onTouchEnd, { capture: true, passive: true });
-    window.addEventListener('touchcancel', onTouchEnd, { capture: true, passive: true });
-    window.addEventListener('keydown', onKeyDown, { capture: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     onScroll();
     return () => {
-      window.removeEventListener('wheel', onWheel, { capture: true });
-      window.removeEventListener('touchstart', onTouchStart, { capture: true });
-      window.removeEventListener('touchmove', onTouchMove, { capture: true });
-      window.removeEventListener('touchend', onTouchEnd, { capture: true });
-      window.removeEventListener('touchcancel', onTouchEnd, { capture: true });
-      window.removeEventListener('keydown', onKeyDown, { capture: true });
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [spine, progress, textMode, runViewports, settings.reducedMotion]);
+  }, [spine, progress, textMode, runViewports]);
 
   // While engaged the page does not scroll: it is held at the game window.
   useEffect(() => {

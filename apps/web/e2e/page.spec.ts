@@ -963,7 +963,7 @@ test.describe('the game window: resting', () => {
     expect(await page.evaluate(() => document.querySelector('.tqw-game__window')!.getAttribute('data-engaged'))).toBe('false');
   });
 
-  test('a real wheel enters at the hand-over, then walks while the page holds still', async ({ page }, info) => {
+  test('a real wheel scrolls through the hand-over and on down the page: scrolling never takes the page', async ({ page }, info) => {
     test.skip(!isDesktop(info), 'a mouse wheel');
     await page.goto('/');
     await worldReady(page);
@@ -975,13 +975,11 @@ test.describe('the game window: resting', () => {
       if ((await site(page).getAttribute('data-spine')) === 'corridor') break;
     }
     await expectSpine(page, 'corridor');
-    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
-    const before = await settledPose(page);
+    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
     const y = await scrollY(page);
     await page.mouse.wheel(0, 500);
-    await expect.poll(async () => (await pose(page)).z).toBeLessThan(before.z - 0.08);
-    expect(await scrollY(page)).toBe(y);
-    await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+    await expect.poll(() => scrollY(page)).toBeGreaterThan(y);
+    await expect(site(page)).toHaveAttribute('data-engaged', 'false');
   });
 
   test('the walking keys belong to the page: W does not walk, and the arrow keys still scroll', async ({ page }, info) => {
