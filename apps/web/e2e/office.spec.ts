@@ -13,6 +13,7 @@ import {
   stampTarget,
   stampWithKeyboard,
 } from './helpers.ts';
+import { toggleOfficePlaces } from './officePlaces.ts';
 
 /** The Certification Office's own URL: TQW-001's behaviour, now behind its corridor door. */
 const OFFICE = '/certification-office';
@@ -20,17 +21,17 @@ const OFFICE = '/certification-office';
 /** Open the contextual controls and reach their desk interaction state before stamping. */
 async function prepareDesk(page: Page): Promise<void> {
   await roomReady(page);
-  const places = page.getByText('Places and actions', { exact: true });
-  if (!await places.locator('..').evaluate(element => element.hasAttribute('open'))) {
-    await places.focus();
-    await places.click();
-  }
   await approachDesk(page);
 }
 
 test.describe('3D office', () => {
   test.use({ reducedMotion: 'reduce' });
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, info) => {
+    const touchOnly = info.title.startsWith('touch on the 3D stamp');
+    const desktopOnly = info.title.startsWith('mouse press on the 3D stamp')
+      || info.title.startsWith('context loss while the 3D stamp');
+    if (touchOnly && info.project.name !== 'mobile') test.skip(true, 'touch path');
+    if (desktopOnly && info.project.name !== 'desktop') test.skip(true, 'mouse path');
     await page.goto(OFFICE);
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
     await roomReady(page);
@@ -39,8 +40,10 @@ test.describe('3D office', () => {
 
   test('Space and Enter on the stamp button drive the same stamp', async ({ page }) => {
     await stampWithKeyboard(page, 'Space');
-    await stampWithKeyboard(page, 'Enter');
-    await expect(page.getByRole('status')).toContainText('PROOF OUTDATED');
+    await expect(app(page)).toHaveAttribute('data-processing', 'false');
+    await stampButton(page).press('Enter');
+    await expectStamps(page, 1);
+    await expect(page.getByRole('status')).toContainText('APPLICATION ALREADY RECEIVED');
   });
 
   test('a held key repeating does not stamp twice', async ({ page }) => {
@@ -52,10 +55,8 @@ test.describe('3D office', () => {
     await expectStamps(page, 1);
   });
 
-  test('mouse press on the 3D stamp holds, release stamps', async ({ page }, info) => {
-    test.skip(info.project.name !== 'desktop', 'mouse path');
+  test('mouse press on the 3D stamp holds, release stamps', async ({ page }) => {
     await approachDesk(page);
-    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.mouse.move(x, y);
     await page.mouse.down();
@@ -64,50 +65,55 @@ test.describe('3D office', () => {
     await expectStamps(page, 1);
   });
 
-  test('touch on the 3D stamp and on the stamp button stamp the same form', async ({ page }, info) => {
-    test.skip(info.project.name !== 'mobile', 'touch path');
+  test('touch on the 3D stamp and on the stamp button stamp the same form', async ({ page }) => {
     await approachDesk(page);
-    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.touchscreen.tap(x, y);
     await expectStamps(page, 1);
+    await expect(app(page)).toHaveAttribute('data-processing', 'false');
     await stampButton(page).tap();
-    await expectStamps(page, 2);
+    await expectStamps(page, 1);
+    await expect(page.getByRole('status')).toContainText('APPLICATION ALREADY RECEIVED');
   });
 
-  test('the fifth stamp overloads the machine and reveals a readable memo', async ({ page }) => {
-    for (let i = 0; i < 4; i += 1) await stampWithKeyboard(page);
-    await expect(app(page)).toHaveAttribute('data-phase', 'escalating');
-    await expect(page.getByRole('button', { name: /Memo 001/ })).toHaveCount(0);
-
+  test('the required chain opens the drawer, marks SEEN, then reveals the memo at the hatch', async ({ page }) => {
     await stampWithKeyboard(page);
-    await expect(app(page)).toHaveAttribute('data-phase', 'overloaded');
-    await expect(app(page)).toHaveAttribute('data-memo', 'overload');
-    await expect(page.getByRole('status')).toContainText('AUTHORITY NOT FOUND');
-
-    const memoButton = page.getByRole('button', { name: /Memo 001/ });
-    await memoButton.focus();
-    await page.keyboard.press('Enter');
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('actually present');
-    await expect(dialog).toContainText('Ejected during an authority fault.');
-    await page.keyboard.press('Escape');
-    await expect(dialog).toBeHidden();
-    await expect(memoButton).toBeFocused();
+    await expect(app(page)).toHaveAttribute('data-play-step', 'refused');
+    await expect(app(page)).toHaveAttribute('data-memo', 'hidden');
+    await toggleOfficePlaces(page);
+    await page.getByText('Things nearby', { exact: true }).click();
+    const drawer = page.getByRole('button', { name: 'Drawer: Open drawer' });
+    await drawer.click();
+    await drawer.click();
+    await expect(app(page)).toHaveAttribute('data-play-step', 'drawer-open');
+    const mark = page.getByRole('button', { name: 'Tiny underside stamp: Mark inspection copy' });
+    await mark.click();
+    await mark.click();
+    await expect(app(page)).toHaveAttribute('data-play-step', 'inspection-recorded');
+    const hatch = page.getByRole('button', { name: 'Approval machine: Pull hatch' });
+    await hatch.click();
+    await hatch.click();
+    await expect(app(page)).toHaveAttribute('data-play-step', 'resolved');
+    await expect(app(page)).toHaveAttribute('data-memo', 'inspection');
+    const memoButton = page.getByRole('button', { name: 'Read Memo 001', exact: true }).first();
+    await expect(memoButton).toBeVisible();
+    await memoButton.click();
+    const memo = page.getByRole('dialog', { name: 'Memo 001' });
+    await expect(memo).toBeVisible();
+    await expect(memo).toContainText('nobody here has ever been authorised to decide.');
+    await expect(page.locator('.tqw-archive [data-room="certification-office"] .tqw-paper__title', { hasText: 'Memo 001' })).toBeVisible();
   });
 
   test('Start over returns the office to its first state', async ({ page }) => {
     await stampWithKeyboard(page);
+    await toggleOfficePlaces(page);
     await page.getByRole('button', { name: 'Start over' }).click();
     await expectStamps(page, 0);
-    await expect(page.getByRole('status')).toContainText('EVIDENCE OF COMPETENCE REQUIRED');
+    await expect(page.getByRole('status')).toContainText('PROVE YOU ARE FINE');
   });
 
-  test('context loss while the 3D stamp is held lifts it exactly once', async ({ page }, info) => {
-    test.skip(info.project.name !== 'desktop', 'mouse path');
+  test('context loss while the 3D stamp is held lifts it exactly once', async ({ page }) => {
     await approachDesk(page);
-    await page.getByText('Places and actions', { exact: true }).click();
     const { x, y } = await stampTarget(page);
     await page.mouse.move(x, y);
     await page.mouse.down();
@@ -123,11 +129,11 @@ test.describe('3D office', () => {
     await page.mouse.up();
     await expectStamps(page, 1);
     await stampButton(page).click();
-    await expectStamps(page, 2);
+    await expectStamps(page, 1);
+    await expect(page.getByRole('status')).toContainText('APPLICATION ALREADY RECEIVED');
   });
 
   test('WebGL context loss falls back to text mode in the same state', async ({ page }) => {
-    await stampWithKeyboard(page);
     await stampWithKeyboard(page);
     await stampTarget(page); // scene is mounted and rendering
     await page.evaluate(() => {
@@ -136,16 +142,16 @@ test.describe('3D office', () => {
       gl?.getExtension('WEBGL_lose_context')?.loseContext();
     });
     await expect(app(page)).toHaveAttribute('data-mode', 'text');
-    await expectStamps(page, 2);
+    await expectStamps(page, 1);
     await expect(page.getByRole('note')).toContainText(/3D/);
     await page.getByRole('button', { name: 'Try the 3D view again' }).click();
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
-    await expectStamps(page, 2);
+    await expectStamps(page, 1);
   });
 });
 
 test.describe('sound', () => {
-  test('no AudioContext exists until a deliberate stamp press', async ({ page }) => {
+test('no AudioContext exists until a deliberate stamp press', async ({ page }) => {
     await countAudioContexts(page);
     await page.goto(OFFICE);
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
@@ -158,8 +164,10 @@ test.describe('sound', () => {
     expect(await audioContexts(page)).toBe(0);
 
     await stampWithKeyboard(page);
+    await expect(app(page)).toHaveAttribute('data-processing', 'false');
     expect(await audioContexts(page)).toBe(1);
-    await stampWithKeyboard(page);
+    await stampButton(page).press('Enter');
+    await expect(page.getByRole('status')).toContainText('APPLICATION ALREADY RECEIVED');
     expect(await audioContexts(page)).toBe(1);
   });
 
@@ -216,11 +224,13 @@ test.describe('text mode', () => {
     await expect(menu.getByRole('button', { name: 'Text mode' })).toBeDisabled();
     await closeMenu(page);
 
-    for (let i = 0; i < 5; i += 1) await stampButton(page).click();
-    await expectStamps(page, 5);
-    await expect(app(page)).toHaveAttribute('data-memo', 'overload');
-    await page.getByRole('button', { name: /Memo 001/ }).click();
-    await expect(page.getByRole('dialog')).toContainText('actually present');
+    await stampButton(page).click();
+    await expectStamps(page, 1);
+    await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
+    await page.getByRole('button', { name: 'Mark inspection copy', exact: true }).click();
+    await page.getByRole('button', { name: 'Pull hatch', exact: true }).click();
+    await expect(app(page)).toHaveAttribute('data-play-step', 'resolved');
+    await expect(page.getByRole('article', { name: 'Memo 001' })).toBeVisible();
   });
 
   test('?mode=text opens text mode and the toggle returns to 3D', async ({ page }) => {
@@ -233,20 +243,19 @@ test.describe('text mode', () => {
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
   });
 
-  test('stopping is a discovery path: stillness reveals the memo', async ({ page }) => {
+  test('waiting does not advance the Office story', async ({ page }) => {
     await page.clock.install();
     await page.goto(`${OFFICE}?mode=text`);
     await expect(app(page)).toHaveAttribute('data-memo', 'hidden');
     await page.clock.fastForward(21_000);
-    await expect(app(page)).toHaveAttribute('data-memo', 'stillness');
-    await expect(page.getByRole('status')).toContainText('NO EVIDENCE SUBMITTED');
-    await page.getByRole('button', { name: /Memo 001/ }).click();
-    await expect(page.getByRole('dialog')).toContainText('Issued while nobody was stamping.');
+    await expect(app(page)).toHaveAttribute('data-play-step', 'ready');
+    await expect(app(page)).toHaveAttribute('data-memo', 'hidden');
+    await expect(page.getByRole('button', { name: /Memo 001/ })).toHaveCount(0);
   });
 });
 
 test.describe('privacy', () => {
-  test('makes no cross-origin requests and stores nothing', async ({ page, context, baseURL }) => {
+  test('makes no cross-origin requests and stores only the Office archive', async ({ page, context, baseURL }) => {
     const foreign: string[] = [];
     page.on('request', (request) => {
       const url = request.url();
@@ -263,12 +272,21 @@ test.describe('privacy', () => {
     await page.goto(OFFICE);
     await prepareDesk(page);
     await stampWithKeyboard(page);
-    await stampWithKeyboard(page);
     expect(foreign).toEqual([]);
     expect(connections).toEqual([]);
     expect(await context.cookies()).toEqual([]);
-    const stored = await page.evaluate(() => localStorage.length + sessionStorage.length);
-    expect(stored).toBe(0);
+    const storage = await page.evaluate(() => ({
+      local: Object.keys(localStorage),
+      session: Object.keys(sessionStorage),
+      archive: JSON.parse(localStorage.getItem('unheld.v1') ?? '{}') as {
+        found?: Record<string, { id: string; kind: string; title?: string }[]>;
+      },
+    }));
+    expect(storage.local).toEqual(['unheld.v1']);
+    expect(storage.session).toEqual([]);
+    expect(storage.archive.found?.['certification-office']).toContainEqual({
+      id: 'office-application-receipt', kind: 'line', title: 'Application receipt',
+    });
   });
 
   test('public identity is UNHELD with The Quiet Works as the world', async ({ page }) => {

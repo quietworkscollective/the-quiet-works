@@ -1,225 +1,159 @@
 import { describe, expect, it } from 'vitest';
-import {
-  initialState,
-  OVERLOAD_AT,
-  replyFor,
-  transition,
-  type CertificationEvent,
-  type CertificationState,
-  type Cue,
-} from './certification.ts';
-import { AFTERMATH, ESCALATION, INITIAL_DISPLAY, STILLNESS_LINE } from './copy.ts';
 import { createCertificationStore } from './store.ts';
+import { AFTERMATH, ESCALATION, HATCH_INTERIOR, INITIAL_DISPLAY, MEMO_001, STAMP_WORD } from './copy.ts';
+import { initialState, replyFor, transition } from './certification.ts';
 
-function run(events: readonly CertificationEvent[], from = initialState) {
-  let state: CertificationState = from;
-  const cues: Cue[] = [];
-  for (const event of events) {
-    const result = transition(state, event);
-    state = result.state;
-    cues.push(...result.cues);
-  }
-  return { state, cues };
+function submitOnce() {
+  const store = createCertificationStore();
+  store.dispatch({ type: 'PRESS' });
+  store.dispatch({ type: 'RELEASE' });
+  return store;
 }
 
-const stamp: readonly CertificationEvent[] = [{ type: 'PRESS' }, { type: 'RELEASE' }];
-const stamps = (n: number) => Array.from({ length: n }, () => stamp).flat();
-
-describe('initial state', () => {
-  it('asks for evidence and has nothing revealed', () => {
-    expect(initialState.display).toBe(INITIAL_DISPLAY);
-    expect(initialState.stamps).toBe(0);
-    expect(initialState.phase).toBe('awaiting');
-    expect(initialState.receipt).toBeNull();
-    expect(initialState.memo).toEqual({ revealed: false, source: null, open: false });
-  });
-});
-
-describe('press and release', () => {
-  it('PRESS makes contact without counting a stamp', () => {
-    const { state, cues } = run([{ type: 'PRESS' }]);
-    expect(state.pressing).toBe(true);
-    expect(state.stamps).toBe(0);
-    expect(cues).toEqual([{ type: 'contact' }]);
+describe('Certification Office: the approved inspection sequence', () => {
+  it('starts with a ready application and the authored submission mark', () => {
+    expect(initialState).toMatchObject({
+      stamps: 0,
+      pressing: false,
+      processing: false,
+      phase: 'awaiting',
+      playStep: 'ready',
+      display: INITIAL_DISPLAY,
+      receipt: null,
+      memo: { revealed: false, source: null, open: false },
+    });
+    expect(STAMP_WORD).toBe('HELD');
   });
 
-  it('a held key repeating PRESS does not make a second contact', () => {
-    const { state, cues } = run([{ type: 'PRESS' }, { type: 'PRESS' }, { type: 'PRESS' }]);
-    expect(state.pressing).toBe(true);
-    expect(cues.filter((c) => c.type === 'contact')).toHaveLength(1);
+  it('press and release produce one held reply and leave the hatch shut', () => {
+    const store = createCertificationStore();
+    const cues: string[] = [];
+    store.onCue(cue => cues.push(cue.type));
+
+    store.dispatch({ type: 'PRESS' });
+    expect(store.getState()).toMatchObject({ pressing: true, processing: true, stamps: 0 });
+    store.dispatch({ type: 'RELEASE' });
+
+    expect(store.getState()).toMatchObject({
+      stamps: 1,
+      pressing: false,
+      processing: true,
+      phase: 'escalating',
+      playStep: 'refused',
+      display: 'APPROVAL HELD',
+      receipt: 'RECEIVING AUTHORITY NOT VERIFIED\nINSPECTION COPY: DESK DRAWER',
+      memo: { revealed: false, source: null, open: false },
+    });
+    expect(cues).toEqual(['contact', 'lift', 'reply']);
   });
 
-  it('RELEASE without a PRESS is ignored and returns the same state object', () => {
-    const result = transition(initialState, { type: 'RELEASE' });
-    expect(result.state).toBe(initialState);
+  it('a wrong-tool press replies without another impression or progression', () => {
+    const store = submitOnce();
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    store.dispatch({ type: 'DRAWER_OPENED' });
+    store.dispatch({ type: 'PRESS' });
+    store.dispatch({ type: 'RELEASE' });
+
+    expect(store.getState()).toMatchObject({
+      stamps: 1,
+      playStep: 'drawer-open',
+      display: 'NOT A SUBMISSION',
+      receipt: 'INSPECTION REQUESTS USE THE SMALL STAMP',
+      memo: { revealed: false },
+    });
+  });
+
+  it('waiting never changes the machine, memo or play step', () => {
+    const store = submitOnce();
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    const before = store.getState();
+    const result = transition(before, { type: 'STILLNESS' });
+    expect(result.state).toBe(before);
     expect(result.cues).toEqual([]);
   });
 
-  it('RELEASE completes exactly one stamp and prints the first reply', () => {
-    const { state, cues } = run(stamp);
-    expect(state.stamps).toBe(1);
-    expect(state.pressing).toBe(false);
-    expect(state.phase).toBe('escalating');
-    expect(state.display).toBe(ESCALATION[0]!.display);
-    expect(state.receipt).toBe(ESCALATION[0]!.receipt);
-    expect(cues.map((c) => c.type)).toEqual(['contact', 'lift', 'reply']);
-  });
-});
+  it('drawer, inspection mark and hatch are ordered; only pulling resolves the room', () => {
+    const store = submitOnce();
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    store.dispatch({ type: 'PULL_HATCH' });
+    expect(store.getState().playStep).toBe('refused');
+    expect(store.getState().memo.revealed).toBe(false);
 
-describe('escalation and overload', () => {
-  it('stamps 1..4 escalate through each condition in order without overloading', () => {
-    for (let n = 1; n < OVERLOAD_AT; n += 1) {
-      const { state, cues } = run(stamps(n));
-      expect(state.display).toBe(ESCALATION[n - 1]!.display);
-      expect(state.phase).toBe('escalating');
-      expect(state.memo.revealed).toBe(false);
-      expect(cues.some((c) => c.type === 'overload')).toBe(false);
+    store.dispatch({ type: 'DRAWER_OPENED' });
+    expect(store.getState().playStep).toBe('drawer-open');
+    store.dispatch({ type: 'PULL_HATCH' });
+    expect(store.getState().playStep).toBe('drawer-open');
+
+    store.dispatch({ type: 'INSPECTION_MARKED' });
+    expect(store.getState()).toMatchObject({
+      stamps: 1,
+      playStep: 'inspection-recorded',
+      display: 'INSPECTION RECORDED',
+      receipt: 'FRONT HATCH RELEASED — PULL TO OPEN',
+      memo: { revealed: false },
+    });
+    store.dispatch({ type: 'PULL_HATCH' });
+    expect(store.getState()).toMatchObject({
+      stamps: 1,
+      phase: 'resolved',
+      playStep: 'resolved',
+      display: 'INSPECTION COMPLETE',
+      receipt: 'NO AUTHORITY INSTALLED TO APPROVE APPLICATIONS',
+      memo: { revealed: true, source: 'inspection', open: false },
+    });
+    expect(HATCH_INTERIOR).toBe('RECEIVING AUTHORITY — NEVER INSTALLED');
+    expect(MEMO_001.body).toContain('The stamp remains in service.');
+  });
+
+  it('restores the saved step without replaying sound or changing archive state', () => {
+    const restored = transition(initialState, { type: 'RESTORE_PLAY', step: 'resolved' });
+    expect(restored.cues).toEqual([]);
+    expect(restored.state).toMatchObject({
+      stamps: 1,
+      playStep: 'resolved',
+      display: 'INSPECTION COMPLETE',
+      memo: { revealed: true, source: 'inspection', open: false },
+    });
+  });
+
+  it('restores the released latch response rather than a repeated-press reply', () => {
+    const restored = transition(initialState, { type: 'RESTORE_PLAY', step: 'inspection-recorded' });
+    expect(restored.cues).toEqual([]);
+    expect(restored.state).toMatchObject({
+      playStep: 'inspection-recorded',
+      display: 'INSPECTION RECORDED',
+      receipt: 'FRONT HATCH RELEASED — PULL TO OPEN',
+    });
+  });
+
+  it('does not advance beyond one impression on any repeated stamp', () => {
+    const store = submitOnce();
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    store.dispatch({ type: 'DRAWER_OPENED' });
+    store.dispatch({ type: 'INSPECTION_MARKED' });
+    store.dispatch({ type: 'PULL_HATCH' });
+    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    store.dispatch({ type: 'PRESS' });
+    store.dispatch({ type: 'RELEASE' });
+    expect(store.getState().stamps).toBe(1);
+    expect(store.getState().playStep).toBe('resolved');
+    expect(store.getState().display).toBe('APPLICATION RECEIVED');
+    expect(store.getState().memo.revealed).toBe(true);
+  });
+
+  it('uses only non-approval repeat text after the submitted mark', () => {
+    expect(replyFor(1)).toBe(ESCALATION[0]);
+    expect(replyFor(2)).toBe(AFTERMATH[0]);
+    for (const line of [ESCALATION[0]!, ...AFTERMATH]) {
+      expect(line.display).not.toMatch(/APPROVED|FINE/);
+      expect(line.receipt).not.toMatch(/APPROVED|FINE/);
     }
   });
 
-  it('the fifth stamp, and only the fifth, overloads and reveals the memo', () => {
-    expect(OVERLOAD_AT).toBe(5);
-    const before = run(stamps(4));
-    const fifth = run(stamp, before.state);
-    expect(fifth.state.stamps).toBe(5);
-    expect(fifth.state.phase).toBe('overloaded');
-    expect(fifth.state.display).toBe('AUTHORITY NOT FOUND');
-    expect(fifth.state.memo).toEqual({ revealed: true, source: 'overload', open: false });
-    expect(fifth.cues.map((c) => c.type)).toEqual([
-      'contact',
-      'lift',
-      'reply',
-      'overload',
-      'memo-revealed',
-    ]);
-  });
-
-  it('stamps after the overload cycle a bounded aftermath and never overload again', () => {
-    const { state, cues } = run(stamps(OVERLOAD_AT + AFTERMATH.length * 2));
-    expect(state.phase).toBe('overloaded');
-    expect(cues.filter((c) => c.type === 'overload')).toHaveLength(1);
-    expect(cues.filter((c) => c.type === 'memo-revealed')).toHaveLength(1);
-    expect(state.display).toBe(AFTERMATH[AFTERMATH.length - 1]!.display);
-  });
-
-  it('replyFor maps steps to the escalation then wraps the aftermath', () => {
-    expect(replyFor(1)).toBe(ESCALATION[0]);
-    expect(replyFor(5)).toBe(ESCALATION[4]);
-    expect(replyFor(6)).toBe(AFTERMATH[0]);
-    expect(replyFor(8)).toBe(AFTERMATH[2]);
-    expect(replyFor(9)).toBe(AFTERMATH[0]);
-    expect(() => replyFor(0)).toThrow(RangeError);
-  });
-
-  it('reply cues carry the 1-based step that produced them', () => {
-    const { cues } = run(stamps(3));
-    const steps = cues.flatMap((c) => (c.type === 'reply' ? [c.step] : []));
-    expect(steps).toEqual([1, 2, 3]);
-  });
-});
-
-describe('stillness path', () => {
-  it('ignores stillness and stale completions until the latest released response settles', () => {
-    const store = createCertificationStore();
-    store.dispatch({ type: 'PRESS' });
-    store.dispatch({ type: 'RELEASE' });
-    const first = store.getState();
-    store.dispatch({ type: 'STILLNESS' });
-    expect(store.getState()).toBe(first);
-    store.dispatch({ type: 'PRESS' });
+  it('reset returns the physical sequence to the application without changing saved findings', () => {
+    const store = submitOnce();
     store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
-    expect(store.getState().processing).toBe(true);
-    store.dispatch({ type: 'RELEASE' });
-    store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
-    expect(store.getState().processing).toBe(true);
-    store.dispatch({ type: 'RESPONSE_SETTLED', step: 2 });
-    expect(store.getState().processing).toBe(false);
-    store.dispatch({ type: 'STILLNESS' });
-    expect(store.getState().memo.source).toBe('stillness');
-  });
-
-  it('reveals the memo with the stillness provenance', () => {
-    const { state, cues } = run([{ type: 'STILLNESS' }]);
-    expect(state.display).toBe(STILLNESS_LINE.display);
-    expect(state.receipt).toBe(STILLNESS_LINE.receipt);
-    expect(state.memo).toEqual({ revealed: true, source: 'stillness', open: false });
-    expect(cues.map((c) => c.type)).toEqual(['stillness', 'memo-revealed']);
-  });
-
-  it('is ignored while the stamp is held', () => {
-    const { state, cues } = run([{ type: 'PRESS' }, { type: 'STILLNESS' }]);
-    expect(state.memo.revealed).toBe(false);
-    expect(cues.map((c) => c.type)).toEqual(['contact']);
-  });
-
-  it('happens at most once and does not overwrite an overload reveal', () => {
-    const afterOverload = run([...stamps(5), { type: 'STILLNESS' }]);
-    expect(afterOverload.state.memo.source).toBe('overload');
-    expect(afterOverload.state.stillnessNoticed).toBe(false);
-
-    const twice = run([{ type: 'STILLNESS' }, { type: 'STILLNESS' }]);
-    expect(twice.cues.filter((c) => c.type === 'stillness')).toHaveLength(1);
-  });
-
-  it('a later overload after stillness keeps the stillness provenance and does not re-reveal', () => {
-    const { state, cues } = run([{ type: 'STILLNESS' }, ...stamps(5)]);
-    expect(state.phase).toBe('overloaded');
-    expect(state.memo.source).toBe('stillness');
-    expect(cues.filter((c) => c.type === 'memo-revealed')).toHaveLength(1);
-  });
-});
-
-describe('memo', () => {
-  it('cannot be opened before it is revealed', () => {
-    const result = transition(initialState, { type: 'OPEN_MEMO' });
-    expect(result.state).toBe(initialState);
-  });
-
-  it('opens and closes once revealed, preserving its source', () => {
-    const opened = run([...stamps(5), { type: 'OPEN_MEMO' }]);
-    expect(opened.state.memo).toEqual({ revealed: true, source: 'overload', open: true });
-    const closed = run([{ type: 'CLOSE_MEMO' }], opened.state);
-    expect(closed.state.memo).toEqual({ revealed: true, source: 'overload', open: false });
-    expect(closed.cues).toEqual([{ type: 'memo-closed' }]);
-  });
-
-  it('duplicate open and close are no-ops', () => {
-    const opened = run([{ type: 'STILLNESS' }, { type: 'OPEN_MEMO' }, { type: 'OPEN_MEMO' }]);
-    expect(opened.cues.filter((c) => c.type === 'memo-opened')).toHaveLength(1);
-    const closed = run([{ type: 'CLOSE_MEMO' }, { type: 'CLOSE_MEMO' }], opened.state);
-    expect(closed.cues).toEqual([{ type: 'memo-closed' }]);
-  });
-});
-
-describe('reset', () => {
-  it('returns to the initial state from anywhere', () => {
-    const { state } = run([...stamps(7), { type: 'OPEN_MEMO' }, { type: 'RESET' }]);
-    expect(state).toBe(initialState);
-  });
-});
-
-describe('store', () => {
-  it('notifies state listeners only on change, then cue listeners in order', () => {
-    const store = createCertificationStore();
-    const log: string[] = [];
-    store.subscribe(() => log.push(`state:${store.getState().stamps}`));
-    store.onCue((cue) => log.push(`cue:${cue.type}`));
-
-    store.dispatch({ type: 'RELEASE' }); // no-op
-    store.dispatch({ type: 'PRESS' });
-    store.dispatch({ type: 'RELEASE' });
-
-    expect(log).toEqual(['state:0', 'cue:contact', 'state:1', 'cue:lift', 'cue:reply']);
-  });
-
-  it('unsubscribed listeners stop receiving', () => {
-    const store = createCertificationStore();
-    let calls = 0;
-    const off = store.subscribe(() => (calls += 1));
-    const offCue = store.onCue(() => (calls += 1));
-    off();
-    offCue();
-    store.dispatch({ type: 'PRESS' });
-    expect(calls).toBe(0);
+    store.dispatch({ type: 'RESET' });
+    expect(store.getState()).toEqual(initialState);
   });
 });

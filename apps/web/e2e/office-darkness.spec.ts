@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 import { decodePng, luminance } from './png.ts';
+import { engageGameWindow } from './helpers.ts';
 import { toggleOfficePlaces } from './officePlaces.ts';
 
 test.use({ reducedMotion: 'no-preference' });
@@ -199,6 +200,7 @@ test('Office station views keep lit empty surfaces out of the frame', async ({ p
 
   await page.goto('/certification-office');
   await ready(page);
+  await engageGameWindow(page);
   const stationBased = await app.getAttribute('data-station') === 'machine';
   if (!stationBased) {
     await expect(app).toHaveAttribute('data-station', 'room');

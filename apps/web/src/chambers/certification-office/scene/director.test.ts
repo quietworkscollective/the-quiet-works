@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCertificationStore } from '@tqw/engine';
 import { TIMING } from '../../../timing.ts';
-import { Director, OVERLOAD_SCRIPT, QUIET_HATCH_MS, type DirectorEvent } from './director.ts';
+import { Director, type DirectorEvent } from './director.ts';
 
 /** A store and a Director whose clock the test drives. */
 function setup() {
@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe('response completion', () => {
-  it('keeps a slow response busy until a resting pose has actually been drawn', async () => {
+  it('releases the temporary press lock if the renderer misses the response frame', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const s = setup();
     const invalidate = vi.fn();
@@ -45,13 +45,10 @@ describe('response completion', () => {
     invalidate.mockClear();
     vi.advanceTimersByTime(30_000);
     expect(invalidate).toHaveBeenCalledOnce();
-    s.director.afterFrame();
-    await Promise.resolve();
-    expect(s.store.getState().processing).toBe(true);
-    s.director.beginFrame(31_000);
-    s.director.afterFrame();
     await Promise.resolve();
     expect(s.store.getState().processing).toBe(false);
+    expect(s.store.getState().playStep).toBe('refused');
+    expect(s.store.getState().memo.revealed).toBe(false);
     s.detach();
   });
 
@@ -75,26 +72,25 @@ describe('response completion', () => {
     s.detach();
   });
 
-  it('settles reduced overload after the cavity light and memo are presented, with no late wake', async () => {
+  it('settles the reduced submission reply after its completed draw, with no late wake', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     const s = setup();
     const invalidate = vi.fn();
     s.director.setInvalidate(invalidate);
     s.director.beginFrame(1000, true);
-    for (let n = 0; n < 5; n++) {
-      s.store.dispatch({ type: 'PRESS' });
-      s.store.dispatch({ type: 'RELEASE' });
-    }
-    const reply = s.of('reply')[4]!;
-    const lightEnd = reply.printAt + TIMING.overloadMs + 800;
-    s.director.beginFrame(lightEnd - 1, true);
+    s.store.dispatch({ type: 'PRESS' });
+    s.store.dispatch({ type: 'RELEASE' });
+    const reply = s.of('reply')[0]!;
+    s.director.beginFrame(reply.printAt + 119, true);
     s.director.afterFrame();
     await Promise.resolve();
     expect(s.store.getState().processing).toBe(true);
-    s.director.beginFrame(lightEnd, true);
+    s.director.beginFrame(reply.printAt + 120, true);
     s.director.afterFrame();
     await Promise.resolve();
     expect(s.store.getState().processing).toBe(false);
+    expect(s.of('overload')).toHaveLength(0);
+    expect(s.of('memo-revealed')).toHaveLength(0);
     invalidate.mockClear();
     vi.advanceTimersByTime(30_000);
     expect(invalidate).not.toHaveBeenCalled();
@@ -168,7 +164,7 @@ describe('Director timing rule (timing.ts header)', () => {
   });
 });
 
-describe('Director overload and memo schedule', () => {
+describe('Office reply and resolution events', () => {
   function stamp(s: ReturnType<typeof setup>, t: number) {
     s.at(t);
     s.store.dispatch({ type: 'PRESS' });
@@ -176,45 +172,25 @@ describe('Director overload and memo schedule', () => {
     s.store.dispatch({ type: 'RELEASE' });
   }
 
-  it('starts the overload when the fifth reply finishes printing, memo after overloadMs', () => {
+  it('keeps repeat replies on the same sheet without overload or early memo reveal', () => {
     const s = setup();
-    for (let i = 0; i < 5; i += 1) stamp(s, 10_000 + i * 5000);
-    const [overload] = s.of('overload');
+    stamp(s, 10_000);
+    s.store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 });
+    stamp(s, 15_000);
     const replies = s.of('reply');
-    expect(replies).toHaveLength(5);
-    expect(overload?.at).toBe(replies[4]?.printEnd);
-    const [memo] = s.of('memo-revealed');
-    expect(memo?.source).toBe('overload');
-    expect(memo?.hatchAt).toBe((overload?.at ?? 0) + OVERLOAD_SCRIPT.unlatchAt);
+    expect(replies).toHaveLength(2);
+    expect(s.store.getState().stamps).toBe(1);
+    expect(s.of('overload')).toHaveLength(0);
+    expect(s.of('memo-revealed')).toHaveLength(0);
     s.detach();
   });
 
-  it('keeps the overload on the shared choreography the sound desk schedules (printer start S)', () => {
-    const s = setup();
-    for (let i = 0; i < 5; i += 1) stamp(s, 10_000 + i * 5000);
-    const printStart = s.of('reply')[4]?.printAt ?? Number.NaN;
-    const [memo] = s.of('memo-revealed');
-    // Latch lets go at S + overloadMs − latch lead; the hatch lands and the memo slides at S + overloadMs.
-    expect(memo?.hatchAt).toBe(printStart + TIMING.overloadMs - TIMING.overloadLatchLeadMs);
-    expect(memo?.slideAt).toBe(printStart + TIMING.overloadMs + TIMING.memoAfterLandMs);
-    expect(OVERLOAD_SCRIPT.bellEnd).toBe(TIMING.bellRingMs);
-    // Mechanical hesitation, then a weighted fall (art direction: 200–300 ms, 400–600 ms).
-    const fallMs = TIMING.overloadLatchLeadMs - OVERLOAD_SCRIPT.hangMs;
-    expect(OVERLOAD_SCRIPT.hangMs).toBeGreaterThanOrEqual(200);
-    expect(OVERLOAD_SCRIPT.hangMs).toBeLessThanOrEqual(300);
-    expect(fallMs).toBeGreaterThanOrEqual(400);
-    expect(fallMs).toBeLessThanOrEqual(600);
-    s.detach();
-  });
-
-  it('opens the hatch and slides the memo on the quiet schedule for stillness', () => {
+  it('does not turn a stillness event into a story beat', () => {
     const s = setup();
     s.at(30_000);
     s.store.dispatch({ type: 'STILLNESS' });
-    const [memo] = s.of('memo-revealed');
-    expect(memo?.source).toBe('stillness');
-    expect(memo?.hatchAt).toBe(30_000);
-    expect(memo?.slideAt).toBe(30_000 + QUIET_HATCH_MS);
+    expect(s.of('stillness')).toHaveLength(0);
+    expect(s.of('memo-revealed')).toHaveLength(0);
     s.detach();
   });
 

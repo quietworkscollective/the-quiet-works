@@ -2,12 +2,12 @@ import { expect, test } from '@playwright/test';
 import { toggleOfficePlaces } from './officePlaces.ts';
 
 test.use({ reducedMotion: 'reduce' });
-test('Office keeps the finished arrival, desk and overload frames inside its budgets and rests without frames', async ({ page }) => {
+test('Office keeps the finished arrival, desk and held-mark frames inside its budgets and rests without frames', async ({ page }) => {
  // GitHub's runners render in software; the authored Office needs longer to reach its stations there.
  test.setTimeout(process.env['CI'] ? 360_000 : 120_000);
  await page.goto('/certification-office?quality=high');
  const canvas=page.locator('.tqw-canvas');
- await expect(canvas).toHaveAttribute('data-ready','true',{timeout:60_000});
+ await expect(canvas).toHaveAttribute('data-ready','true',{timeout:180_000});
  const budget=async()=>{
   await expect(canvas).toHaveAttribute('data-draw-calls',/^\d+$/);
   expect(Number(await canvas.getAttribute('data-draw-calls'))).toBeLessThanOrEqual(150);
@@ -17,11 +17,12 @@ test('Office keeps the finished arrival, desk and overload frames inside its bud
  await budget();await toggleOfficePlaces(page);
  await page.getByRole('button',{name:'Approach the desk',exact:true}).click();
  await expect(page.locator('.tqw-app')).toHaveAttribute('data-station','desk');
+ await toggleOfficePlaces(page);
+ await page.getByText('Places and actions',{exact:true}).evaluate(element=>element.blur());
  await budget();
- for(let n=1;n<=5;n++){
-  await page.getByRole('button',{name:'Stamp once',exact:true}).click();
-  await expect(page.locator('.tqw-app')).toHaveAttribute('data-stamps',String(n));
- }
+ await page.getByRole('button',{name:'Stamp once',exact:true}).click();
+ await expect(page.locator('.tqw-app')).toHaveAttribute('data-stamps','1');
+ await expect(page.getByRole('status')).toContainText('APPROVAL HELD');
  await page.waitForTimeout(2500);await budget();
  await toggleOfficePlaces(page);
  await page.getByText('Places and actions',{exact:true}).evaluate(element=>element.blur());

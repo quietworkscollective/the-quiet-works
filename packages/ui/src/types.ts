@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { CertificationState, Memo, MemoSource } from '@tqw/engine';
+import type { CertificationState, Memo, MemoSource, OfficeEvidenceId } from '@tqw/engine';
 
 export interface Settings {
   /** Sound muted. Independent of whether audio has been unlocked yet. */
@@ -66,4 +66,12 @@ export interface TextOfficeProps {
   onPressEnd(): void;
   onOpenMemo(): void;
   onReset(): void;
+  onOpenDrawer?(): void;
+  onMarkInspection?(): void;
+  onPullHatch?(): void;
+  archiveAck?: { title: string; stored: boolean } | null;
+  hint?: string | null;
+  onIdleTap?(): void;
+  optionalEvidence?: OfficeEvidenceId | null;
+  onOpenEvidence?(id: OfficeEvidenceId): void;
 }

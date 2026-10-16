@@ -12,41 +12,30 @@ export interface MachineLine {
   readonly receipt: string;
 }
 
-/** Shown before any evidence has been submitted. */
-export const INITIAL_DISPLAY = 'EVIDENCE OF COMPETENCE REQUIRED';
+/** The office's printed demand before the application is submitted. */
+export const INITIAL_DISPLAY = 'PROVE YOU ARE FINE';
 
-/** The word on the rubber stamp. It never changes; the machine's answer does. */
-export const STAMP_WORD = 'APPROVED';
+/** The first paper mark records that the machine held the application. */
+export const STAMP_WORD = 'HELD';
 
 /**
- * Replies to stamps 1..5. The fifth reply is the overload: the machine discovers it has
- * no receiving authority. Index 0 answers the first stamp.
+ * The first press receives the application and holds its approval request for inspection.
  */
 export const ESCALATION: readonly MachineLine[] = [
-  { display: 'PROVISIONALLY APPROVED', receipt: 'Pending further evidence.' },
-  { display: 'PROOF OUTDATED', receipt: 'Evidence expired on receipt.' },
-  { display: 'PLEASE HAVE SOMEONE ELSE CONFIRM', receipt: 'Self-approval is not accepted.' },
-  { display: 'CONFIRMATION REQUIRES APPROVAL', receipt: 'Please approve the confirmation.' },
-  { display: 'AUTHORITY NOT FOUND', receipt: 'No receiving authority on file.' },
+  { display: 'APPROVAL HELD', receipt: 'RECEIVING AUTHORITY NOT VERIFIED\nINSPECTION COPY: DESK DRAWER' },
 ];
 
-/** Bounded, deadpan loop for stamps after the overload. No reward, no punishment. */
+/** Repeat replies cannot add impressions or advance the inspection. */
 export const AFTERMATH: readonly MachineLine[] = [
-  { display: 'OFFICE CLOSED FOR REVIEW', receipt: 'Review pending.' },
-  { display: 'REVIEW CLOSED FOR OFFICE', receipt: 'Office pending.' },
-  { display: 'STATUS: FINE', receipt: 'Filed under fine.' },
+  { display: 'NOT A SUBMISSION', receipt: 'INSPECTION REQUESTS USE THE SMALL STAMP' },
+  { display: 'INSPECTION RECORDED', receipt: 'PULL THE FRONT HATCH' },
+  { display: 'APPLICATION RECEIVED', receipt: 'NO AUTHORITY INSTALLED' },
 ];
-
-/** Shown when the visitor stops stamping long enough for the machine to notice. */
-export const STILLNESS_LINE: MachineLine = {
-  display: 'NO EVIDENCE SUBMITTED',
-  receipt: 'Your silence has been filed.',
-};
 
 /** Text on the inside of the machine's front hatch, visible once it falls open. */
-export const HATCH_INTERIOR = 'RECEIVING AUTHORITY — NOT INSTALLED';
+export const HATCH_INTERIOR = 'RECEIVING AUTHORITY — NEVER INSTALLED';
 
-export type MemoSource = 'overload' | 'stillness';
+export type MemoSource = 'inspection' | 'overload' | 'stillness';
 
 export interface Memo {
   readonly id: string;
@@ -62,31 +51,35 @@ export const MEMO_001: Memo = {
   title: 'Memo 001',
   from: 'From the desk of the Approving Clerk (position vacant)',
   provenance: {
-    overload: 'Ejected during an authority fault.',
-    stillness: 'Issued while nobody was stamping.',
+    inspection: 'Presented when the authority bay is opened.',
+    overload: 'Retained inactive legacy route.',
+    stillness: 'Retained inactive legacy route.',
   },
   body: [
-    'Thank you for your evidence. Regrettably, the office cannot accept it: nobody here has ever been authorised to decide. The position was advertised once, in 1971, and withdrawn for being too obvious.',
-    'The stamp still works beautifully. Many applicants find this comforting.',
-    'Please keep your receipt. It is the only document in the building signed by someone who was actually present.',
+    'Thank you for your evidence. Your application has been received. It cannot be approved: nobody here has ever been authorised to decide.',
+    'The position was advertised once, in 1971, and withdrawn for being too obvious.',
+    'The stamp remains in service.',
+    'Please keep your receipt. It records receipt of the application, not approval.',
+    'Onward enquiries: THE EXCHANGE. Connection: CERTIFICATION.',
   ],
 };
 
 /** Editorial drafts: public wayfinding and application fittings; founder review precedes release. */
 export const OFFICE_LEGIBILITY = {
-  sign: 'CERTIFICATES ISSUED HERE',
-  certificate: 'CERTIFICATE OF BEING FINE',
-  certificateBody: ['This certifies that', 'the bearer is fine.'],
-  approvalLine: 'APPROVED BY',
+  sign: 'CERTIFICATION OFFICE',
+  certificate: 'UNISSUED SPECIMEN',
+  certificateBody: ['Claim: __________________', 'Signature: __________________'],
+  approvalLine: 'APPROVING OFFICER',
   form: 'APPLICATION FOR CERTIFICATION',
-  applicant: 'Applicant: YOU',
-  evidence: 'EVIDENCE: STAMP HERE',
-  submit: 'Stamp to submit evidence',
-  board: 'YOUR APPLICATION',
-  lamps: ['RECEIVED', 'CURRENT', 'WITNESSED', 'CONFIRMED', 'APPROVED'],
-  catches: ['PROVISIONAL', 'EXPIRED', 'UNSIGNED', 'NEEDS APPROVAL'],
-  officer: 'APPROVING OFFICER:',
-  vacancy: 'POSITION NOT YET FILLED',
+  applicant: 'Applicant: __________________',
+  evidence: 'OFFICE REQUIREMENT: PROVE YOU ARE FINE',
+  stampHere: 'STAMP HERE',
+  submit: 'Stamp',
+  board: 'APPLICATION',
+  lamps: ['RECEIVED', 'INSPECTION', 'RECORDED', 'OPENED', 'COMPLETE'],
+  catches: ['HELD', 'SEEN', 'RECORDED', 'OPEN'],
+  officer: 'APPROVING OFFICER',
+  vacancy: 'POSITION NEVER FILLED',
   leave: 'Leave',
   emptySocket: 'empty socket',
 } as const;

@@ -36,15 +36,8 @@ export const TEXT_MODE_NOTICE = {
 
 /** Material actions are also readable with sound off or WebGL unavailable. Draft for editorial review. */
 export const OFFICE_PAPER_BEATS = [
-  'The cream form waits beneath the brass press.',
-  'The rollers receive the form. A narrow receipt emerges; the original returns squarely beneath the press.',
-  'A translucent overlay rides on the returned form. The rollers reverse; an EXPIRED calendar tab appears before the paper stops.',
-  'A carbon duplicate rises towards the employee window. The clip waits, then sends it back unsigned.',
-  'A fan-fold sheet repeats boxes pointing to the next box. One extra fold emerges and drapes over the desk edge.',
-  'The form retracts. The front hatch exposes an empty mounting bracket. Three receipts settle; the separate rear service handle releases.',
-  'The same paper shuffles once. No further authority is installed.',
-  'The same paper curls, then settles. No further authority is installed.',
-  'The same paper slips, then returns. No further authority is installed.',
+  'The application waits beneath the brass press.',
+  'The press leaves one HELD impression. The machine holds approval and prints an inspection route.',
 ] as const;
 
 export { OFFICE_PRESS_TIMING } from './office/beats.ts';

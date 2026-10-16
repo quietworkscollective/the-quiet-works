@@ -121,9 +121,11 @@ describe('MemoDialog content', () => {
   });
 
   it('shows only the provenance of its own source', () => {
-    setup(true, 'stillness');
-    expect(screen.queryByText(MEMO_001.provenance.overload)).toBeNull();
-    expect(screen.getByText(MEMO_001.provenance.stillness)).toBeTruthy();
+    const { container } = setup(true, 'inspection');
+    const provenance = container.querySelectorAll('.tqw-memo__provenance');
+    expect(provenance).toHaveLength(1);
+    expect(provenance[0]?.textContent).toBe(MEMO_001.provenance.inspection);
+    expect(screen.queryByText(MEMO_001.provenance.stillness)).toBeNull();
   });
 
   it('omits the provenance line when there is no source', () => {

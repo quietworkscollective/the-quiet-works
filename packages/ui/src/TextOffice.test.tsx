@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import {
   HATCH_INTERIOR,
+  OFFICE_LEGIBILITY,
   STAMP_WORD,
   TEXT_MODE_NOTICE,
   TEXT_MODE_SCENE,
@@ -9,6 +10,20 @@ import {
 } from '@tqw/engine';
 import { splitStencil, TextOffice } from './TextOffice.tsx';
 import { stamped, stateAfter } from './testUtils.ts';
+
+function resolved(): CertificationState {
+  return stateAfter(
+    { type: 'PRESS' }, { type: 'RELEASE' }, { type: 'RESPONSE_SETTLED', step: 1 },
+    { type: 'DRAWER_OPENED' }, { type: 'INSPECTION_MARKED' }, { type: 'PULL_HATCH' },
+  );
+}
+
+function marked(): CertificationState {
+  return stateAfter(
+    { type: 'PRESS' }, { type: 'RELEASE' }, { type: 'RESPONSE_SETTLED', step: 1 },
+    { type: 'DRAWER_OPENED' }, { type: 'INSPECTION_MARKED' },
+  );
+}
 
 function setup(
   state: CertificationState,
@@ -57,9 +72,8 @@ describe('TextOffice document', () => {
 
   it('titles the form', () => {
     setup(stamped(0));
-    const title = screen.getByRole('heading', { level: 2, name: /Form W-1\W*Application for Certification of Worth/ });
-    // The words are split across styled spans; together they spell the full title.
-    expect(title.textContent).toBe('Form W-1 — Application for Certification of Worth');
+    const title = screen.getByRole('heading', { level: 2, name: OFFICE_LEGIBILITY.form });
+    expect(title.textContent).toBe(OFFICE_LEGIBILITY.form);
   });
 
   it('reads in order: heading, notice, opening line, machine, controls, rest of the scene, form', () => {
@@ -92,10 +106,10 @@ describe('TextOffice document', () => {
   });
 
   it('marks whether the memo has been found, which restyles the controls', () => {
-    const before = setup(stamped(4));
+    const before = setup(stamped(1));
     expect(before.container.querySelector('.tqw-office')?.getAttribute('data-memo')).toBe('hidden');
     before.unmount();
-    const after = setup(stamped(5));
+    const after = setup(resolved());
     expect(after.container.querySelector('.tqw-office')?.getAttribute('data-memo')).toBe('revealed');
   });
 
@@ -127,7 +141,7 @@ describe('TextOffice machine', () => {
   });
 
   it('shows the display on the amber window and the receipt on the strip', () => {
-    const state = stamped(2);
+    const state = stamped(1);
     setup(state);
     const status = screen.getByRole('status');
     expect(status.querySelector('.tqw-readout__display')?.textContent).toBe(state.display);
@@ -135,7 +149,7 @@ describe('TextOffice machine', () => {
   });
 
   it('keeps the hatch shut, with nothing stencilled and nothing exposed, until the memo is revealed', () => {
-    const { container } = setup(stamped(4));
+    const { container } = setup(marked());
     expect(container.querySelector('.tqw-hatch__stencil')).toBeNull();
     const hatch = container.querySelector('.tqw-hatch');
     expect(hatch?.getAttribute('data-open')).toBe('false');
@@ -143,32 +157,33 @@ describe('TextOffice machine', () => {
   });
 
   it('opens the hatch and stencils its interior once the memo is revealed', () => {
-    const { container } = setup(stamped(5));
+    const { container } = setup(resolved());
     expect(container.querySelector('.tqw-hatch__stencil')?.textContent).toBe(HATCH_INTERIOR);
     const hatch = container.querySelector('.tqw-hatch');
     expect(hatch?.getAttribute('data-open')).toBe('true');
     expect(screen.getByRole('group', { name: 'Front hatch' })).toBe(hatch);
   });
 
-  it('opens the hatch when the memo is revealed by stillness', () => {
+  it('waiting does not reveal the hatch or memo', () => {
     const { container } = setup(stateAfter({ type: 'STILLNESS' }));
-    expect(container.querySelector('.tqw-hatch__stencil')?.textContent).toBe(HATCH_INTERIOR);
+    expect(container.querySelector('.tqw-hatch__stencil')).toBeNull();
+    expect(container.querySelector('.tqw-hatch')?.getAttribute('data-open')).toBe('false');
   });
 
   it('sets the verdict apart from the supporting line, and rejoins to the authored stencil', () => {
-    const { container } = setup(stamped(5));
+    const { container } = setup(resolved());
     const stencil = container.querySelector('.tqw-hatch__stencil')!;
     const lead = stencil.querySelector('.tqw-hatch__lead')?.textContent;
     const verdict = stencil.querySelector('.tqw-hatch__verdict')?.textContent;
     expect(lead).toBe('RECEIVING AUTHORITY —');
-    expect(verdict).toBe('NOT INSTALLED');
+    expect(verdict).toBe('NEVER INSTALLED');
     expect(`${lead} ${verdict}`).toBe(HATCH_INTERIOR);
   });
 
-  it('lights one lamp per stamp, up to five', () => {
-    const { container } = setup(stamped(3));
+  it('keeps every board indicator off after a stamp', () => {
+    const { container } = setup(stamped(1));
     const lit = container.querySelectorAll('.tqw-machine__lamp[data-lit="true"]');
-    expect(lit).toHaveLength(3);
+    expect(lit).toHaveLength(0);
     expect(container.querySelectorAll('.tqw-machine__lamp')).toHaveLength(5);
   });
 });
@@ -177,52 +192,50 @@ describe('TextOffice form imprints', () => {
   it.each([
     [0, 0],
     [1, 1],
-    [5, 5],
-    [12, 12],
-    [13, 12],
-    [40, 12],
-  ])('shows min(stamps, 12) imprints: %i stamps -> %i', (stamps, expected) => {
+    [2, 1],
+    [5, 1],
+  ])('shows at most one application mark: %i press attempts -> %i', (stamps, expected) => {
     const { imprints } = setup(stamped(stamps));
     expect(imprints()).toHaveLength(expected);
   });
 
   it('stamps every imprint with the stamp word', () => {
-    const { imprints } = setup(stamped(3));
+    const { imprints } = setup(stamped(1));
     const words = Array.from(imprints()).map((li) => li.textContent);
-    expect(words).toEqual([STAMP_WORD, STAMP_WORD, STAMP_WORD]);
+    expect(words).toEqual([STAMP_WORD]);
   });
 
   it('lists the imprints for assistive technology and hides the empty list', () => {
     const empty = setup(stamped(0));
     expect(screen.queryByRole('list', { name: 'Stamp impressions' })).toBeNull();
     empty.unmount();
-    setup(stamped(2));
-    expect(screen.getByRole('list', { name: 'Stamp impressions' }).children).toHaveLength(2);
+    setup(stamped(1));
+    expect(screen.getByRole('list', { name: 'Stamp impressions' }).children).toHaveLength(1);
   });
 
   it('marks only the newest imprint to settle', () => {
-    const { imprints } = setup(stamped(4));
+    const { imprints } = setup(stamped(1));
     const flags = Array.from(imprints()).map((li) => li.getAttribute('data-newest'));
-    expect(flags).toEqual(['false', 'false', 'false', 'true']);
+    expect(flags).toEqual(['true']);
   });
 
   it('gives each imprint a stable pose as custom properties', () => {
-    const first = setup(stamped(3));
+    const first = setup(stamped(1));
     const a = Array.from(first.imprints()).map((li) => li.getAttribute('style'));
     first.unmount();
-    const second = setup(stamped(3));
+    const second = setup(stamped(1));
     const b = Array.from(second.imprints()).map((li) => li.getAttribute('style'));
     expect(a).toEqual(b);
     expect(a[0]).toMatch(/--tilt:\s*-?[\d.]+deg/);
-    expect(new Set(a).size).toBe(3);
+    expect(new Set(a).size).toBe(1);
   });
 
-  it('re-stamps the last imprint once the form is full', () => {
-    const full = setup(stamped(12));
-    const before = full.imprints()[11];
+  it('does not add another impression on repeat press attempts', () => {
+    const full = setup(stamped(1));
+    const before = full.imprints()[0];
     full.rerender(
       <TextOffice
-        state={stamped(13)}
+        state={stamped(2)}
         notice={TEXT_MODE_NOTICE.chosen}
         reducedMotion={false}
         onPressStart={full.onPressStart}
@@ -231,11 +244,9 @@ describe('TextOffice form imprints', () => {
         onReset={full.onReset}
       />,
     );
-    const after = full.imprints()[11];
-    expect(full.imprints()).toHaveLength(12);
-    // A fresh element, so the ink-settle animation plays again.
-    expect(after).not.toBe(before);
-    expect(after?.getAttribute('data-newest')).toBe('true');
+    const after = full.imprints()[0];
+    expect(full.imprints()).toHaveLength(1);
+    expect(after).toBe(before);
   });
 });
 
@@ -257,17 +268,17 @@ describe('TextOffice controls', () => {
   });
 
   it('shows the memo button only once the memo is revealed', () => {
-    const before = setup(stamped(4));
+    const before = setup(stamped(1));
     expect(screen.queryByRole('button', { name: /Read Memo 001/ })).toBeNull();
     before.unmount();
-    const after = setup(stamped(5));
+    const after = setup(resolved());
     fireEvent.click(screen.getByRole('button', { name: 'Read Memo 001' }));
     expect(after.onOpenMemo).toHaveBeenCalledTimes(1);
   });
 
-  it('offers the memo after the stillness path too', () => {
+  it('does not reveal a memo when the visitor waits', () => {
     setup(stateAfter({ type: 'STILLNESS' }));
-    expect(screen.getByRole('button', { name: 'Read Memo 001' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Read Memo 001' })).toBeNull();
   });
 
   it('offers Start over only once there is something to start over from', () => {
@@ -280,7 +291,7 @@ describe('TextOffice controls', () => {
     expect(used.onReset).toHaveBeenCalledTimes(1);
     used.unmount();
 
-    setup(stateAfter({ type: 'STILLNESS' }));
+    setup(resolved());
     expect(screen.getByRole('button', { name: 'Start over' })).toBeTruthy();
   });
 });

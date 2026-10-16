@@ -1,7 +1,7 @@
 import { sceneTimeout } from './timeouts.ts';
 import { toggleOfficePlaces } from './officePlaces.ts';
 import { expect, test } from '@playwright/test';
-import { app, approachDesk, audioContexts, closeMenu, countAudioContexts, expectStamps, openMenu, roomReady, stampTarget, stampWithKeyboard } from './helpers.ts';
+import { app, approachDesk, audioContexts, closeMenu, countAudioContexts, engageGameWindow, expectStamps, openMenu, roomReady, stampTarget, stampWithKeyboard } from './helpers.ts';
 
 test('R-8: tapping the desk station allows a physical stamp', async ({ page }, info) => {
   await page.goto('/certification-office');
@@ -47,6 +47,7 @@ test('dragging across the core view looks without changing station or stamping',
   await page.goto('/certification-office');
   await roomReady(page);
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1\.62/, { timeout: sceneTimeout(25_000) });
+  await engageGameWindow(page);
   const canvas = page.locator('.tqw-canvas');
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
@@ -153,5 +154,11 @@ test('a station-held press preserves its authored camera framing', async ({ page
   if (touch) { await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await touch.detach(); }
   else await page.mouse.up();
   await expectStamps(page, 1);
+  await expect(app(page)).toHaveAttribute('data-processing', 'false');
+  const again = await stampTarget(page);
+  if (info.project.name === 'mobile') await page.touchscreen.tap(again.x, again.y);
+  else await page.mouse.click(again.x, again.y);
+  await expectStamps(page, 1);
+  await expect(page.getByRole('status')).toContainText('APPLICATION ALREADY RECEIVED');
   await expect(canvas).toHaveAttribute('data-pose', before ?? '');
 });

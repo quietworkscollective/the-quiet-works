@@ -5,9 +5,7 @@ import { OFFICE_LEGIBILITY as COPY } from '@tqw/engine';
 import { officeAssetPose, officeAssetSlot } from './assetSlots.ts';
 import { useHeroModel } from './HeroModel.tsx';
 import { useScene } from './context.ts';
-import { beatDuration } from './beatMotion.ts';
 import { nameplateRotation } from './nameplate.ts';
-import { applicationAt } from './application.ts';
 import { createCanvas, context2d, FONT_COND, makeTexture } from './textures.ts';
 
 function placard(lines: readonly string[], width = 1024, height = 320, font = 62, dark = false) {
@@ -30,7 +28,7 @@ export function Application() {
   const lamps = useRef<Array<Mesh | null>>([]), catches = useRef<Array<Mesh | null>>([]);
   const windowLight = useRef<PointLight>(null);
   const nameplate = useRef<Mesh>(null);
-  const sim = useRef({ step: store.getState().stamps, at: Number.NEGATIVE_INFINITY });
+  const sim = useRef({ revealAt: store.getState().memo.revealed ? 0 : Number.NEGATIVE_INFINITY });
   const art = useMemo(() => {
     const sign = placard([COPY.sign], 1536, 180, 112, true);
     const certificate = placard([COPY.certificate, ...COPY.certificateBody, `${COPY.approvalLine} __________________`], 1024, 720, 72);
@@ -54,24 +52,24 @@ export function Application() {
     art.bulb.dispose();art.unlit.dispose();
   }, [art]);
   useEffect(() => director.subscribe(event => {
-    if(event.type === 'reply' && event.step <= 5) { sim.current = {step:event.step,at:event.printAt};invalidate(); }
-    if(event.type === 'reset') { sim.current = {step:0,at:Number.NEGATIVE_INFINITY};invalidate(); }
+    if (event.type === 'memo-revealed') { sim.current.revealAt = event.hatchAt; invalidate(); }
+    if (event.type === 'reset') { sim.current.revealAt = Number.NEGATIVE_INFINITY; invalidate(); }
   }), [director,invalidate]);
   useFrame(() => {
-    const s=sim.current,elapsed=performance.now()-s.at,pose=applicationAt(s.step,elapsed,motion.reduced);
+    const revealAt = sim.current.revealAt;
+    const elapsed = performance.now() - revealAt;
+    const reveal = Number.isFinite(revealAt) ? (motion.reduced ? 1 : Math.max(0, Math.min(1, (elapsed - 800) / 700))) : 0;
     const bulbs = boardHero ? Array.from({length:4},(_,i) => boardHero.getObjectByName(`lamp-${i+1}`) as Mesh | undefined) : lamps.current;
-    bulbs.forEach((mesh,i) => { if(mesh) mesh.material=pose.lamps[i] ? art.bulb : art.unlit; });
+    bulbs.forEach(mesh => { if (mesh) mesh.material = art.unlit; });
     if (boardHero) for (let i=0;i<4;i++) {
       const tab = boardHero.getObjectByName(`catch-${i+1}`);
-      if (tab) {const t=pose.catches[i]??0;tab.visible=t>0;tab.position.y=-.17-(1-t)*.12;}
+      if (tab) tab.visible = false;
     }
-    catches.current.forEach((mesh,i) => {if(mesh){ const t=pose.catches[i]??0;mesh.visible=t>0;mesh.position.y=-.15-(1-t)*.12; }});
-    if(nameplate.current)nameplate.current.rotation.set(...nameplateRotation(pose.reveal));
-    art.officer.material.emissiveIntensity=.55*pose.reveal;
-    art.officer.material.color.setScalar(.08+.92*pose.reveal);
-    if(windowLight.current)windowLight.current.intensity=3+7*pose.reveal;
-    const end = motion.reduced ? 0 : beatDuration(s.step) + (s.step >= 5 ? 1500 : 180);
-    if(Number.isFinite(s.at) && elapsed < end)invalidate();
+    catches.current.forEach(mesh => { if (mesh) mesh.visible = false; });
+    if(nameplate.current)nameplate.current.rotation.set(...nameplateRotation(reveal));
+    art.officer.material.emissiveIntensity=.55*reveal;
+    art.officer.material.color.setScalar(.08+.92*reveal);
+    if (Number.isFinite(revealAt) && reveal < 1) invalidate();
   });
   const plane = (name: string, item: {material:MeshStandardMaterial}, position: readonly [number,number,number], size:[number,number]) =>
     <mesh name={name} geometry={art.plane} material={item.material} position={[...position]} rotation={[0,Math.PI,0]} scale={[...size,1]} />;

@@ -2,8 +2,8 @@
   "version": 1,
   "space": "office",
   "hash": "e3d7fe5a94becabb86fadd82e8f80cb44e174d7f4e7f2b6b3f7a0462094eaea2",
-  "materialHash": "829580fcee6756b5f5c76d6406b065fc109f5fa457ed82713c3a49f4bea0858c",
-  "baselineHash": "64d06976a7f11c58a517a2ea052651c2787f3f65b6661fc1d9e4ae5db787fe56",
+  "materialHash": "d452ed57579ab234efc2e96dabb4ea77130934ac9a028a207921c0254ab26be5",
+  "baselineHash": "b2edfddc291af2935e361fac5b051161707213247308461fe6cb2a936408dbee",
   "meshes": [
     "056184693e05ebf0b836c3444bec9a0fa9b44de44e607254a8c41078e1bb4026",
     "08bd7927cc424ea441e326a353c901c3029c061513bd62b6b93980e2e52ab696",
@@ -180,9 +180,9 @@
       "file": "office-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 1.5176159143447876,
+      "scale": 1.558944582939148,
       "encoding": "srgb-scale",
-      "bytes": 171598,
+      "bytes": 169402,
       "density": {
         "foreground": {
           "min": 31.99524701136264,
@@ -208,9 +208,9 @@
       "file": "office-1.webp",
       "width": 1152,
       "height": 1152,
-      "scale": 0.08549536019563675,
+      "scale": 0.08542752265930176,
       "encoding": "srgb-scale",
-      "bytes": 35310,
+      "bytes": 35318,
       "density": {
         "archive": {
           "min": 11.999980813470431,
@@ -221,5 +221,5 @@
       }
     }
   ],
-  "sourceHash": "ab1f0a84ae9cbd0e08f253243e656f8e70ac63724bbc266321488312a7eac605"
+  "sourceHash": "e0860843252abc05a6e1a098093a18bb01407ec2b2f39d47b7a594182132c700"
 }

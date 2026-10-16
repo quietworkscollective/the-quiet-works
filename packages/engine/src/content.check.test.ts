@@ -18,6 +18,7 @@ import * as chambers from './chambers.ts';
 import * as copy from './copy.ts';
 import * as siteCopy from './siteCopy.ts';
 import * as officeObjects from './office/objects.ts';
+import * as officePlay from './office/play.ts';
 import * as officeMemos from './office/memos.ts';
 import type { MachineLine, Memo, MemoSource } from './copy.ts';
 
@@ -268,6 +269,7 @@ const ALL_COPY: readonly CopyString[] = [
   ...collectModule(siteCopy),
   ...collectModule(chambers),
   ...collectModule(officeObjects),
+  ...collectModule(officePlay),
   ...collectModule(officeMemos),
 ];
 
@@ -303,9 +305,8 @@ describe('copy collection', () => {
       'INITIAL_DISPLAY',
       'ESCALATION[0].display',
       'AFTERMATH[0].receipt',
-      'STILLNESS_LINE.display',
       'MEMO_001.body[0]',
-      'MEMO_001.provenance.overload',
+      'MEMO_001.provenance.inspection',
       'CAPTIONS.contact',
       'CAPTION_REPLY_SAGGING',
       'TEXT_MODE_SCENE[0]',
@@ -392,7 +393,7 @@ describe('no remote references in copy', () => {
   });
 });
 
-const MEMO_SOURCES: Record<MemoSource, true> = { overload: true, stillness: true };
+const MEMO_SOURCES: Record<MemoSource, true> = { inspection: true, overload: true, stillness: true };
 
 /**
  * The memo dialog marks every memo as fictional with a footnote. Accepts either a string
@@ -515,12 +516,13 @@ describe('machine lines', () => {
   const lines: readonly (readonly [string, MachineLine])[] = [
     ...copy.ESCALATION.map((line, index): [string, MachineLine] => [`ESCALATION[${index}]`, line]),
     ...copy.AFTERMATH.map((line, index): [string, MachineLine] => [`AFTERMATH[${index}]`, line]),
-    ['STILLNESS_LINE', copy.STILLNESS_LINE],
   ];
 
-  it('covers the escalation and aftermath loops', () => {
-    expect(copy.ESCALATION.length).toBeGreaterThan(0);
-    expect(copy.AFTERMATH.length).toBeGreaterThan(0);
+  it('covers one submission and non-advancing repeat replies', () => {
+    expect(copy.ESCALATION).toHaveLength(1);
+    expect(copy.AFTERMATH).toHaveLength(3);
+    expect(copy.ESCALATION.some(line => /APPROVED/.test(line.display))).toBe(false);
+    expect(copy.AFTERMATH.some(line => /APPROVED|FINE/.test(line.display))).toBe(false);
   });
 
   it.each(lines)('%s display is uppercase and at most 40 characters', (path, line) => {
@@ -533,9 +535,9 @@ describe('machine lines', () => {
 
   it.each(lines)('%s receipt is at most 60 characters', (path, line) => {
     expect(line.receipt, `${path} receipt is empty`).not.toBe('');
-    expect(line.receipt.length, `${path} receipt is ${line.receipt.length} characters`).toBeLessThanOrEqual(
-      RECEIPT_MAX_CHARS,
-    );
+    for (const printedLine of line.receipt.split('\n')) {
+      expect(printedLine.length, `${path} receipt line is ${printedLine.length} characters`).toBeLessThanOrEqual(RECEIPT_MAX_CHARS);
+    }
   });
 
   it('the opening display follows the same display rules', () => {

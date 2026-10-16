@@ -11,7 +11,7 @@ vi.mock('react', async importActual => ({ ...await importActual<typeof import('r
 vi.mock('@react-three/fiber', () => ({ useFrame: (frame: () => void) => { harness.frame = frame; }, useThree: () => () => {} }));
 vi.mock('./textures.ts', () => ({ FONT_COND: 'sans-serif', createCanvas: (width: number, height: number) => ({ width, height }), context2d: () => ({fillRect: vi.fn(), strokeRect: vi.fn(), fillText: vi.fn()}), makeTexture: (image: unknown) => new Texture(image as HTMLCanvasElement) }));
 vi.mock('./context.ts', () => ({ useScene: () => ({
-  store: { getState: () => ({ stamps: harness.step }) }, director: {}, motion: { reduced: true },
+  store: { getState: () => ({ stamps: harness.step, memo: { revealed: harness.step > 0 } }) }, director: {}, motion: { reduced: true },
   materials: { wood: new MeshStandardMaterial(), enamelDark: new MeshStandardMaterial(), frame: new MeshStandardMaterial(), brass: new MeshStandardMaterial() },
 }) }));
 

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
+  ARCHIVE_COPY,
   OFFICE_LEGIBILITY,
   CAPTION_REPLY_SAGGING,
   CAPTIONS,
@@ -10,11 +11,16 @@ import {
   type OfficeArchive,
   type OfficeItemId,
   OFFICE_OBJECTS,
+  OFFICE_PLAY_FINDINGS,
+  OFFICE_PLAY_HINTS,
+  restoreOfficePlayStep,
+  OFFICE_PLAY_EVIDENCE,
+  type OfficeEvidenceId,
   type OfficeObjectId,
+  type OfficePlayStep,
   type OfficeStore,
   type MemoSource,
   MEMO_001,
-  STILLNESS_MS,
   TEXT_MODE_NOTICE,
   type CertificationStore,
   type Cue,
@@ -30,6 +36,10 @@ import sealedOffice from '../../../../../packages/engine/src/sealed/certificatio
 
 const OfficeScene = lazy(() => import('./scene/OfficeScene.tsx'));
 const ignoreSceneFocus = () => {};
+const MEMO_FILED_CAPTION = '[Paper slips into the archive]';
+const OPTIONAL_EVIDENCE_BY_OBJECT: Partial<Record<OfficeObjectId, OfficeEvidenceId>> = {
+  'routing-tray': 'routing-slips', register: 'register', conduit: 'conduit',
+};
 const hasCoarsePointer = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
 const stationControlStyle: CSSProperties = {
   position: 'absolute', right: 'max(16px, env(safe-area-inset-right))', top: '50%', transform: 'translateY(-50%)',
@@ -49,11 +59,10 @@ let visitStore: CertificationStore | null = null;
 let visitObjects: OfficeStore | null = null;
 let visitArchive: OfficeArchive | null = null;
 let visitCounterSource: MemoSource | null = null;
-let visitShadow = false;
 function archiveForVisit(): OfficeArchive { visitArchive ??= createOfficeArchive(parseSealedFile(sealedOffice)); return visitArchive; }
 function objectsForVisit(): OfficeStore { visitObjects ??= createOfficeStore(); return visitObjects; }
 const OBJECT_STATIONS: Record<OfficeObjectId, Viewpoint> = {
-  press: 'desk', 'ink-pad': 'ink', machine: 'machine', lamp: 'lamp', drawer: 'drawer',
+  press: 'desk', 'ink-pad': 'ink', machine: 'machine-detail', lamp: 'lamp', drawer: 'drawer',
   'tiny-stamp': 'underside', register: 'records', window: 'window', bell: 'bell',
   sign: 'exit', 'side-door': 'exit', 'service-panel': 'service', chair: 'window',
   stack: 'stack', clock: 'clock', conduit: 'maintenance', 'routing-tray': 'records', 'coat-hook': 'hook',
@@ -70,26 +79,32 @@ function captionFor(cue: Cue): string | null {
 
 /** The Certification Office (TQW-001), the first chamber behind the corridor's first open door. */
 export default function OfficeChamber(props: ChamberProps) {
-  const { settings, text, sound, caption, onReady, onContextLost, onSceneError, onLeave } = props;
-  const [roomReady, setRoomReady] = useState(text !== null);
+  const { settings, text, sound, caption, discoveries, onReady, onContextLost, onSceneError, onLeave } = props;
   const [store] = useState(officeStore);
   const state = useCertification(store);
   const [office] = useState(objectsForVisit);
   const [archive] = useState(archiveForVisit);
   const opened = useSyncExternalStore(archive.subscribe, archive.getState);
   const objects = useSyncExternalStore(office.subscribe, office.getState);
+  const [archiveAck, setArchiveAck] = useState<{ title: string; stored: boolean } | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
+  const idleTaps = useRef({ step: store.getState().playStep, count: 0 });
+  const acceptedPress = useRef(false);
+  const pressStartedMoving = useRef(false);
+  const [optionalEvidence, setOptionalEvidence] = useState<OfficeEvidenceId | null>(null);
   useEffect(() => {
     for (const [id, token] of Object.entries(objects.discoveries)) {
       void archive.open(id as OfficeItemId, token);
     }
   }, [archive, objects.discoveries]);
-  const [shadow, setShadow] = useState(visitShadow);
+  const shadow = false;
   const [counterSource, setCounterSource] = useState<MemoSource | null>(() => visitCounterSource ?? store.getState().memo.source);
   const [counterOpen, setCounterOpen] = useState(false);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
   const [touchDevice, setTouchDevice] = useState(hasCoarsePointer);
   const [cue, setCue] = useState<OfficeCue | null>(null);
+  const [responseCue, setResponseCue] = useState<{ id: OfficeObjectId; text: string } | null>(null);
   const [freshForPress, setFreshForPress] = useState(false);
   const [framed, setFramed] = useState<OfficeObjectId | null>(null);
   const [focused, setFocused] = useState<OfficeObjectId | null>(null);
@@ -111,6 +126,15 @@ export default function OfficeChamber(props: ChamberProps) {
     return () => media.removeEventListener('change', update);
   }, []);
   useEffect(() => { navigation.setReducedMotion(textMode || settings.reducedMotion); }, [navigation, settings.reducedMotion, textMode]);
+
+  // The archive is the durable record for this authored chain. A fresh app visit reconstructs its
+  // furthest physical state from findings; a state already advanced in this visit is never rolled back.
+  useEffect(() => {
+    const restored = restoreOfficePlayStep(discoveries?.getState().found['certification-office'] ?? []);
+    const rank = { ready: 0, refused: 1, 'drawer-open': 2, 'inspection-recorded': 3, resolved: 4 } as const;
+    if (rank[restored] > rank[store.getState().playStep]) store.dispatch({ type: 'RESTORE_PLAY', step: restored });
+    idleTaps.current = { step: store.getState().playStep, count: 0 };
+  }, [discoveries, store]);
 
   // Cues drive sound and captions; neither has authority over state.
   const captionRef = useRef(caption);
@@ -140,38 +164,26 @@ export default function OfficeChamber(props: ChamberProps) {
     if (textMode) readyRef.current();
   }, [textMode]);
 
-  const wait = useCallback((gesture = false) => {
-    if (store.getState().processing || shadow) return;
-    if (gesture) sound.unlock();
-    const known = store.getState().memo.revealed;
-    store.dispatch({ type: 'STILLNESS' });
-    if (known) sound.play({ type: 'stillness' });
-    visitShadow = true; setShadow(true);
-    office.pause();
-    const token = office.getState().discoveries['office-10'];
-    if (token) void archive.open('office-10', token).then(opened => {
-      const line = opened?.item.body[0];
-      if (line) captionRef.current(line);
-    });
-  }, [store, sound, shadow, office, archive]);
-  useEffect(() => {
-    if ((!roomReady && !textMode) || state.processing || shadow) return;
-    const timer = window.setTimeout(wait, STILLNESS_MS);
-    return () => window.clearTimeout(timer);
-  }, [wait, state.stamps, state.processing, shadow, roomReady, textMode]);
   // HTML has no pending scene animation: its committed reply is the completed response.
   useEffect(() => {
     if (textMode && state.processing && !state.pressing) store.dispatch({ type: 'RESPONSE_SETTLED', step: state.stamps });
   }, [store, textMode, state.processing, state.pressing, state.stamps]);
   useEffect(() => {
     let previous = office.getState().response;
-    return office.subscribe(() => {
+    let reset: number | undefined;
+    const unsubscribe = office.subscribe(() => {
       const response = office.getState().response;
       if (response === null || response === previous) return;
       previous = response;
-      if (response.id !== 'chair') { sound.unlock(); sound.play({ type: 'object', kind: response.soundKind }); }
+      sound.unlock();
+      sound.play({ type: 'object', kind: response.soundKind });
       captionRef.current(response.caption);
+      const shown = { id: response.id, text: response.caption };
+      setResponseCue(shown);
+      if (reset !== undefined) window.clearTimeout(reset);
+      reset = window.setTimeout(() => setResponseCue(current => current === shown ? null : current), 1400);
     });
+    return () => { unsubscribe(); if (reset !== undefined) window.clearTimeout(reset); };
   }, [office, sound]);
   useEffect(() => () => { office.readMemo(null); store.dispatch({ type: 'CLOSE_MEMO' }); }, [office, store]);
 
@@ -195,28 +207,76 @@ export default function OfficeChamber(props: ChamberProps) {
   // text mode or leaving the chamber must lift, or the press would stay stuck in the store.
   useEffect(() => liftHeldStamp, [liftHeldStamp, textMode]);
 
-  const physicalPressStart = useCallback(() => {
+  const physicalPressStart = useCallback((wasMoving = navigation.moving) => {
+    const current = store.getState();
+    acceptedPress.current = !current.pressing && !current.processing;
+    pressStartedMoving.current = wasMoving;
     sound.unlock();
     setFreshForPress(office.getState().freshInk);
     office.useInk();
     store.dispatch({ type: 'PRESS' });
-  }, [store, sound, office]);
+  }, [store, sound, office, navigation]);
   const pressStart = useCallback(() => {
-    approach(); physicalPressStart();
-  }, [approach, physicalPressStart]);
+    const wasMoving = navigation.moving;
+    approach(); physicalPressStart(wasMoving);
+  }, [approach, physicalPressStart, navigation]);
+
+  const recordFindings = useCallback((findings: readonly (typeof OFFICE_PLAY_FINDINGS)[keyof typeof OFFICE_PLAY_FINDINGS][]) => {
+    findings.forEach(finding => discoveries?.record('certification-office', finding));
+    return findings.every(finding => discoveries?.isStored('certification-office', finding.id) ?? false);
+  }, [discoveries]);
+
+  const clearHint = useCallback((step: OfficePlayStep) => {
+    idleTaps.current = { step, count: 0 };
+    setHint(null);
+  }, []);
+
+  const recordIdleTap = useCallback((acceptedBeforeResponse = false) => {
+    const current = store.getState();
+    if (current.playStep === 'resolved' || (!acceptedBeforeResponse && current.processing) || navigation.moving) return;
+    if (idleTaps.current.step !== current.playStep) idleTaps.current = { step: current.playStep, count: 0 };
+    idleTaps.current.count += 1;
+    const rung = Math.floor(idleTaps.current.count / 3);
+    if (rung > 0) setHint(OFFICE_PLAY_HINTS[current.playStep][Math.min(rung, 3) - 1] ?? null);
+  }, [navigation, store]);
 
   const pressEnd = useCallback(() => {
     // Touch input only grants audio activation on pointerup, so unlock again here.
     sound.unlock();
+    const wasAccepted = acceptedPress.current;
+    acceptedPress.current = false;
+    const before = store.getState().playStep;
+    const firstPress = wasAccepted && before === 'ready';
     store.dispatch({ type: 'RELEASE' });
-  }, [store, sound]);
+    if (firstPress && store.getState().playStep === 'refused') {
+      clearHint('refused');
+      const finding = OFFICE_PLAY_FINDINGS.applicationReceipt;
+      setArchiveAck({ title: finding.title, stored: recordFindings([finding]) });
+    } else if (wasAccepted && before !== 'resolved' && !pressStartedMoving.current) recordIdleTap(true);
+    pressStartedMoving.current = false;
+  }, [store, sound, recordFindings, recordIdleTap, clearHint]);
 
   const openMemo = useCallback(() => {
-    if (store.getState().memo.revealed) store.dispatch({ type: 'OPEN_MEMO' });
+    if (store.getState().memo.revealed) {
+      store.dispatch({ type: 'OPEN_MEMO' });
+      const finding = OFFICE_PLAY_FINDINGS.memo;
+      setArchiveAck({ title: finding.title, stored: recordFindings([finding]) });
+    }
     else if (counterSource !== null) setCounterOpen(true);
-  }, [store, counterSource]);
+  }, [store, counterSource, recordFindings]);
+  const readMemo = useCallback((id: OfficeItemId) => {
+    const item = archive.getState()[id]?.item;
+    if (!item) return;
+    const title = item.title ?? ARCHIVE_COPY.kinds[item.kind];
+    const finding = { id: item.id, kind: item.kind, ...(item.title === undefined ? {} : { title: item.title }) } as const;
+    discoveries?.record('certification-office', finding);
+    setArchiveAck({ title, stored: discoveries?.isStored('certification-office', item.id) ?? false });
+    sound.unlock();
+    sound.play({ type: 'object', kind: 'paper' });
+    captionRef.current(MEMO_FILED_CAPTION);
+  }, [archive, discoveries, sound]);
   const closeMemo = useCallback(() => { setCounterOpen(false); store.dispatch({ type: 'CLOSE_MEMO' }); }, [store]);
-  const reset = useCallback(() => store.dispatch({ type: 'RESET' }), [store]);
+  const reset = useCallback(() => { store.dispatch({ type: 'RESET' }); clearHint('ready'); }, [store, clearHint]);
 
   const lost = useCallback(() => {
     liftHeldStamp();
@@ -226,7 +286,7 @@ export default function OfficeChamber(props: ChamberProps) {
     liftHeldStamp();
     onSceneError();
   }, [liftHeldStamp, onSceneError]);
-  const ready = useCallback(() => { setRoomReady(true); readyRef.current(); }, []);
+  const ready = useCallback(() => { readyRef.current(); }, []);
 
   const memoButton = state.memo.revealed || counterSource !== null ? <MemoButton onOpen={openMemo} /> : null;
 
@@ -237,12 +297,61 @@ export default function OfficeChamber(props: ChamberProps) {
   }, [store, liftHeldStamp, sound, onLeave]);
   const operate = useCallback((id: OfficeObjectId) => {
     setInspectionOpen(true);
-    office.inspect(id, store.getState().stamps);
+    const before = store.getState().playStep;
+    const alreadyRead = office.getState().uses[id] > 0;
+    office.inspect(id, store.getState().stamps, false);
+    if (id === 'drawer' && before === 'refused') {
+      store.dispatch({ type: 'DRAWER_OPENED' });
+      const findings = [OFFICE_PLAY_FINDINGS.inspectionCopy, OFFICE_PLAY_FINDINGS.duckRequisition, OFFICE_PLAY_FINDINGS.queueTicket];
+      const stored = recordFindings(findings);
+      setArchiveAck({ title: OFFICE_PLAY_FINDINGS.inspectionCopy.title, stored });
+    }
+    if (id === 'tiny-stamp' && before === 'drawer-open') {
+      store.dispatch({ type: 'INSPECTION_MARKED' });
+      const findings = [OFFICE_PLAY_FINDINGS.inspectionStamp, OFFICE_PLAY_FINDINGS.markedCopy];
+      const stored = recordFindings(findings);
+      setArchiveAck({ title: OFFICE_PLAY_FINDINGS.inspectionStamp.title, stored });
+    }
+    if (id === 'machine' && before === 'inspection-recorded') {
+      store.dispatch({ type: 'PULL_HATCH' });
+      const findings = [OFFICE_PLAY_FINDINGS.emptyBay, OFFICE_PLAY_FINDINGS.memo, OFFICE_PLAY_FINDINGS.completion];
+      const stored = recordFindings(findings);
+      setArchiveAck({
+        title: OFFICE_PLAY_FINDINGS.emptyBay.title,
+        stored,
+      });
+    }
+    const evidenceId = OPTIONAL_EVIDENCE_BY_OBJECT[id];
+    if (evidenceId !== undefined) {
+      setOptionalEvidence(evidenceId);
+      const findings = evidenceId === 'routing-slips'
+        ? [OFFICE_PLAY_FINDINGS.routingSlip, OFFICE_PLAY_FINDINGS.witnessSlip, OFFICE_PLAY_FINDINGS.unrequestedCopy]
+        : evidenceId === 'register'
+          ? [OFFICE_PLAY_FINDINGS.certificate, OFFICE_PLAY_FINDINGS.expiredApproval, OFFICE_PLAY_FINDINGS.chairRepair, OFFICE_PLAY_FINDINGS.induction]
+          : [OFFICE_PLAY_FINDINGS.conduit];
+      const stored = recordFindings(findings);
+      const firstFinding = findings[0];
+      if (firstFinding) setArchiveAck({ title: firstFinding.title, stored });
+    }
     if (!textMode && id === 'side-door') leave('side');
     if (!textMode && id === 'service-panel' && store.getState().phase === 'overloaded') leave('service');
-  }, [office, store, textMode, leave]);
+    const after = store.getState().playStep;
+    const leaving = !textMode && (id === 'side-door' || (id === 'service-panel' && store.getState().phase === 'overloaded'));
+    if (after !== before) clearHint(after);
+    else if (alreadyRead && OPTIONAL_EVIDENCE_BY_OBJECT[id] === undefined && !leaving) recordIdleTap();
+  }, [office, store, textMode, leave, recordFindings, clearHint, recordIdleTap]);
+  const openEvidence = useCallback((id: OfficeEvidenceId) => {
+    const object = id === 'routing-slips' ? 'routing-tray' : id === 'register' ? 'register' : 'conduit';
+    if (!textMode) navigation.approach(OBJECT_STATIONS[object], settings.reducedMotion);
+    operate(object);
+  }, [navigation, operate, settings.reducedMotion, textMode]);
   const inspect = useCallback((id: OfficeObjectId) => {
     setFramed(id);
+    const evidenceId = OPTIONAL_EVIDENCE_BY_OBJECT[id];
+    if (evidenceId !== undefined) {
+      openEvidence(evidenceId);
+      return;
+    }
     const point = OBJECT_STATIONS[id];
     const destination = VIEWPOINTS[point];
     const distance = Math.hypot(navigation.pose.x - destination.x, navigation.pose.z - destination.z);
@@ -251,12 +360,13 @@ export default function OfficeChamber(props: ChamberProps) {
       return;
     }
     operate(id);
-  }, [navigation, textMode, settings.reducedMotion, operate]);
+  }, [navigation, textMode, settings.reducedMotion, operate, openEvidence]);
   const entrance = useCallback(() => {
     if (Math.hypot(navigation.pose.x, navigation.pose.z - .8) > .3) navigation.approach('arrival', settings.reducedMotion);
     else leave('entrance');
   }, [navigation, settings.reducedMotion, leave]);
   const selected = OFFICE_OBJECTS.find(object => object.id === objects.response?.id);
+  const openEvidenceCopy = optionalEvidence === null ? null : OFFICE_PLAY_EVIDENCE[optionalEvidence];
 
   return (
     <div
@@ -271,6 +381,7 @@ export default function OfficeChamber(props: ChamberProps) {
       data-shadow={shadow}
       data-mode={textMode ? 'text' : '3d'}
       data-stamps={state.stamps}
+      data-play-step={state.playStep}
       data-phase={state.phase}
       data-pressing={state.pressing}
       data-processing={state.processing}
@@ -296,6 +407,14 @@ export default function OfficeChamber(props: ChamberProps) {
             onPressEnd={pressEnd}
             onOpenMemo={openMemo}
             onReset={reset}
+            onOpenDrawer={() => operate('drawer')}
+            onMarkInspection={() => operate('tiny-stamp')}
+            onPullHatch={() => operate('machine')}
+            archiveAck={archiveAck}
+            hint={hint}
+            onIdleTap={recordIdleTap}
+            optionalEvidence={optionalEvidence}
+            onOpenEvidence={openEvidence}
           />
         </main>
       ) : (
@@ -313,6 +432,7 @@ export default function OfficeChamber(props: ChamberProps) {
                 shadow={shadow}
                 freshInk={freshForPress}
                 onInspect={inspect}
+                onIdleTap={recordIdleTap}
                 onFocusObject={ignoreSceneFocus}
                 focusedObject={focused}
                 framedObject={framed}
@@ -340,11 +460,30 @@ export default function OfficeChamber(props: ChamberProps) {
             style={{ left: cue.x, top: cue.y }}>
             <button type="button" onFocus={() => setFocused(cue.id)} onBlur={() => setFocused(null)}
               onClick={() => { if (cue.id === 'press') { if (station === 'desk') { pressStart(); pressEnd(); } else approach(); } else operate(cue.id); }}>
-              {cue.id === 'press' ? (station === 'desk' ? OFFICE_LEGIBILITY.submit : 'Approach the desk') :
+              {responseCue?.id === cue.id ? responseCue.text : cue.id === 'press' ? (station === 'desk' ? OFFICE_LEGIBILITY.submit : 'Approach the desk') :
                 cue.id === 'side-door' && (shadow || state.phase === 'overloaded') ? OFFICE_LEGIBILITY.leave :
-                (() => { const object = OFFICE_OBJECTS.find(object => object.id === cue.id); return objects.uses[cue.id] > 0 ? object?.repeatActions?.[objects.variants[cue.id]] ?? object?.repeatActions?.[0] ?? object?.action : object?.action; })()}
+                (() => {
+                  if (cue.id === 'tiny-stamp' && state.playStep === 'drawer-open') return 'Mark inspection copy';
+                  if (cue.id === 'machine' && state.playStep === 'inspection-recorded') return 'Pull hatch';
+                  const object = OFFICE_OBJECTS.find(object => object.id === cue.id);
+                  return objects.uses[cue.id] > 0 ? object?.repeatActions?.[objects.variants[cue.id]] ?? object?.repeatActions?.[0] ?? object?.action : object?.action;
+                })()}
             </button>
           </div> : null}
+          {openEvidenceCopy ? <section className="tqw-office-play-evidence" role="dialog" aria-label={openEvidenceCopy.title}>
+            <button type="button" className="tqw-office-play-evidence__close" onClick={() => setOptionalEvidence(null)}>Close</button>
+            <h2>{openEvidenceCopy.title}</h2>
+            {archiveAck ? <div className="tqw-office-play-evidence__ack" aria-live="polite">
+              <p>Found: {archiveAck.title}</p>
+              <p>{archiveAck.stored ? 'Saved to Archive' : 'Found — available this visit'}</p>
+            </div> : null}
+            {openEvidenceCopy.lines.map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
+          </section> : null}
+          {archiveAck && optionalEvidence === null ? <div className="tqw-office-play-archive-ack" aria-live="polite">
+            <p>Found: {archiveAck.title}</p>
+            <p>{archiveAck.stored ? 'Saved to Archive' : 'Found — available this visit'}</p>
+          </div> : null}
+          {hint ? <div className="tqw-office-play-hint" aria-live="polite">{hint}</div> : null}
         </main>
       )}
       <details data-fp-ignore className="tqw-places" onToggle={event => setPlacesOpen(event.currentTarget.open)}>
@@ -365,17 +504,19 @@ export default function OfficeChamber(props: ChamberProps) {
           {!textMode ? memoButton : null}
           {!textMode && state.stamps > 0 ? <button type="button" onClick={reset}>Start over</button> : null}
           <aside className="tqw-office-exploration" data-inspection={inspectionOpen} data-exits="true">
-            <OfficeObjects store={office} archive={archive} stamps={state.stamps} overloaded={state.phase === 'overloaded'} stillness={shadow}
-              onInspect={inspect} onFocus={setFocused} showStampAction={false} onStampOnce={() => { pressStart(); pressEnd(); }} onWait={() => wait(true)} onExit={leave} onReadCounterMemo={openMemo} />
+            <OfficeObjects store={office} archive={archive} stamps={state.stamps} playStep={state.playStep} overloaded={state.phase === 'overloaded'} stillness={shadow}
+              onReadMemo={readMemo}
+              onInspect={inspect} onFocus={setFocused} showStampAction={false} onStampOnce={() => { pressStart(); pressEnd(); }} onExit={leave} onReadCounterMemo={openMemo} />
             {selected ? <button type="button" onClick={() => setInspectionOpen(!inspectionOpen)}>{inspectionOpen ? 'Close inspection' : 'Show inspection'}</button> : null}
             <button type="button" onClick={reset}>Reset the apparatus</button>
             {objects.kept.length > 0 ? <details><summary>Copies kept for this visit</summary><ul>{objects.kept.map(id => <li key={id}>{opened[id]?.item.title ?? 'Copy'}</li>)}</ul></details> : null}
           </aside>
         </div>
       </details>
-      {!textMode ? <div data-fp-ignore className="tqw-desk-actions" data-revealed={station === 'desk' || placesOpen}
+      {!textMode ? <div data-fp-ignore className="tqw-desk-actions" data-revealed="true"
         onFocus={() => setFocused('press')} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(null); }}>
         <StampButton pressing={state.pressing} onPressStart={pressStart} onPressEnd={pressEnd} variant="dock" />
+        <button type="button" className="tqw-link-button" onClick={() => openEvidence('routing-slips')}>Read routing slip — The Exchange</button>
         <div className="tqw-desk-options" data-at-desk={station === 'desk'}><StampOptions position={position} pressing={state.pressing} onPosition={setPosition} onOnce={() => { pressStart(); pressEnd(); }} /></div>
       </div> : <StampOptions position={position} pressing={state.pressing} onPosition={setPosition} onOnce={() => { pressStart(); pressEnd(); }} />}
       {textMode && !state.memo.revealed && counterSource !== null ? <div className="tqw-counter-archive">{memoButton}</div> : null}

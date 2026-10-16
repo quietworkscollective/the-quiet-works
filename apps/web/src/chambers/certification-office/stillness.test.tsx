@@ -10,7 +10,7 @@ import OfficeChamber from './OfficeChamber.tsx';
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
-it('excludes a slow stamp response and starts twenty seconds of idleness only when it settles', async () => {
+it('waiting after the application response never advances the Office story', async () => {
   vi.useFakeTimers();
   const props: ChamberProps = {
     settings: { muted: true, reducedMotion: true, captions: false }, text: null,
@@ -22,14 +22,10 @@ it('excludes a slow stamp response and starts twenty seconds of idleness only wh
   const ready = scene.current!;
   act(() => ready.onReady());
   act(() => ready.store.dispatch({ type: 'PRESS' }));
-  act(() => vi.advanceTimersByTime(30_000));
-  expect(ready.store.getState().memo.revealed).toBe(false);
   act(() => ready.store.dispatch({ type: 'RELEASE' }));
-  act(() => vi.advanceTimersByTime(30_000));
-  expect(ready.store.getState().memo.revealed).toBe(false);
   act(() => ready.store.dispatch({ type: 'RESPONSE_SETTLED', step: 1 }));
-  act(() => vi.advanceTimersByTime(19_999));
+  expect(ready.store.getState().playStep).toBe('refused');
+  act(() => vi.advanceTimersByTime(120_000));
+  expect(ready.store.getState().playStep).toBe('refused');
   expect(ready.store.getState().memo.revealed).toBe(false);
-  act(() => vi.advanceTimersByTime(1));
-  expect(ready.store.getState().memo.source).toBe('stillness');
 });

@@ -15,7 +15,7 @@ function setup(overrides: Partial<OfficeObjectsProps> = {}) {
   const archive = overrides.archive ?? createOfficeArchive(parseSealedFile(sealed));
   const props: OfficeObjectsProps = {
     store, archive, stamps: 0, overloaded: false, stillness: false,
-    onInspect: vi.fn((id) => store.inspect(id)), onStampOnce: vi.fn(), onWait: vi.fn(),
+    onInspect: vi.fn((id) => store.inspect(id)), onStampOnce: vi.fn(),
     onExit: vi.fn(), onReadCounterMemo: vi.fn(), ...overrides,
   };
   const view = render(<OfficeObjects {...props} />);
@@ -41,7 +41,7 @@ const controls: readonly [OfficeObjectId, string][] = [
   ['side-door', 'Side door: Inspect side door'], ['service-panel', 'Rear service panel: Inspect service label'],
   ['chair', 'Clerk’s chair: Inspect chair through glass'], ['stack', 'Infinite stack: Lift paper sample'],
   ['clock', 'Office clock: Read clock hands'], ['conduit', 'Maintenance conduit cover: Open conduit cover'],
-  ['routing-tray', 'Routing tray: Separate routing slips'], ['coat-hook', 'Coat hook: Lift empty hanger'],
+  ['routing-tray', 'Routing tray: Read routing slip — The Exchange'], ['coat-hook', 'Coat hook: Lift empty hanger'],
 ];
 
 describe('Office DOM equivalence', () => {
@@ -88,6 +88,15 @@ describe('Office DOM equivalence', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Read /  }));
     fireEvent(screen.getByRole('dialog'), new Event('close'));
     expect(store.getState().activeMemo).toBeNull();
+  });
+
+  it('reports the found paper only when its Read action is activated', async () => {
+    const onReadMemo = vi.fn();
+    const { inspect } = setup({ onReadMemo });
+    await inspect('drawer');
+    expect(onReadMemo).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /^Read / }));
+    expect(onReadMemo).toHaveBeenCalledExactlyOnceWith('office-01');
   });
 
   it('offers Listen only with the flap open and reveals a labelled authored recording deliberately', async () => {
@@ -155,15 +164,10 @@ describe('Office DOM equivalence', () => {
     expect(props.onExit).toHaveBeenLastCalledWith('service');
   });
 
-  it('waits without stamping and retains the decoded description independently of Memo 001', async () => {
-    const { props, store, openKnown, rerender } = setup({ overloaded: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Wait without stamping' }));
-    expect(props.onWait).toHaveBeenCalledTimes(1);
-    expect(props.onStampOnce).not.toHaveBeenCalled();
+  it('does not offer waiting as a route to discovery', () => {
+    setup({ overloaded: true });
+    expect(screen.queryByRole('button', { name: 'Wait without stamping' })).toBeNull();
     expect(document.querySelector('[data-item-id="office-10"]')).toBeNull();
-    act(() => store.pause()); await openKnown();
-    rerender(<OfficeObjects {...props} stillness />);
-    expect(document.querySelector('[data-item-id="office-10"]')?.getAttribute('data-item-digest')).toBe(sealed.items['office-10'].digest);
   });
 
   it('stamps directly through root and offers re-inking only from the open pad', async () => {

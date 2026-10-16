@@ -32,7 +32,8 @@ function saveFile(text: string): void {
  * of spacing, grouping and paper proportions, not another bulletin board. Per room: a plain count
  * ("3 of 7 papers found.") with no bar, ring or total across rooms; found items with an approved
  * title and, where there is one, a reread action; and unfound papers as compact, neutral rows that
- * say only "Sealed". No title, excerpt, hint or token for an item that has not
+ * say only "Sealed". The Certification Office appears only after its first finding and uses the
+ * authored finding titles without room totals or silhouettes. No title, excerpt, hint or token for an item that has not
  * been found is anywhere in this component's markup or code.
  *
  * Secrets appear only once found, and are counted without a total, so how many exist is not given
@@ -65,6 +66,7 @@ export function Unlocks({ store, chambers, production = !import.meta.env.DEV, de
       continue;
     }
     if (!count || count.papers.total + count.papers.found + count.secrets.found === 0) continue;
+    if (chamber.id === 'certification-office' && (state.found[chamber.id]?.length ?? 0) === 0) continue;
     rooms.push({ chamber, count });
   }
   const names = state.recognitions.flatMap((id) => {
@@ -118,23 +120,24 @@ export function Unlocks({ store, chambers, production = !import.meta.env.DEV, de
             );
           }
           const found: readonly Finding[] = state.found[count.chamber] ?? [];
+          const office = count.chamber === 'certification-office';
           const sealedPapers = Math.max(0, count.papers.total - count.papers.found);
           return (
             <section key={count.chamber} className="tqw-archive__room" aria-labelledby={`${titleId}-${count.chamber}`} data-room={count.chamber}>
               <h3 id={`${titleId}-${count.chamber}`} className="tqw-archive__room-title">
                 {room?.title ?? count.chamber}
               </h3>
-              <p className="tqw-archive__room-count">
+              {!office ? <p className="tqw-archive__room-count">
                 {fillCopy(ARCHIVE_COPY.papersFound, { found: count.papers.found, total: count.papers.total })}
                 {count.secrets.found > 0
                   ? ` ${count.secrets.found === 1 ? ARCHIVE_COPY.secretsOne : fillCopy(ARCHIVE_COPY.secretsMany, { n: count.secrets.found })}`
                   : ''}
-              </p>
+              </p> : null}
               {found.length > 0 ? (
                 <ul className="tqw-archive__items">
                   {found.map((finding) => {
                     const info = describe?.(count.chamber, finding) ?? null;
-                    const title = info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
+                    const title = finding.title ?? info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
                     return (
                       <li
                         key={finding.id}
@@ -160,7 +163,7 @@ export function Unlocks({ store, chambers, production = !import.meta.env.DEV, de
                   })}
                 </ul>
               ) : null}
-              {sealedPapers > 0 ? (
+              {!office && sealedPapers > 0 ? (
                 <ul className="tqw-archive__sealed" aria-label={`Sealed papers in ${room?.title ?? count.chamber}`}>
                   {Array.from({ length: sealedPapers }, (_, index) => (
                     <li key={`sealed-${index}`} className="tqw-archive__sealed-row">

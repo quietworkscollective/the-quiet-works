@@ -19,6 +19,8 @@ export interface Finding {
   /** The sealed item id (ADR 0002), or `memo-001`. */
   id: string;
   kind: FindingKind;
+  /** Optional authored archive title; older `unheld.v1` entries remain readable without one. */
+  title?: string;
 }
 
 export interface DiscoveryState {
@@ -49,6 +51,8 @@ export interface DiscoveryStore {
   /** Records a finding. Idempotent. The first call is the first write to storage. */
   record(chamber: ChamberId, finding: Finding): void;
   has(chamber: ChamberId, id: string): boolean;
+  /** True when the finding is present in this visit and its device write succeeded. */
+  isStored(chamber: ChamberId, id: string): boolean;
   /** One entry per open chamber, from `CHAMBERS[n].findings`. */
   counts(): readonly RoomCount[];
   /** Erases the storage key and resets to empty. */
@@ -67,6 +71,7 @@ export interface DiscoveryStore {
 const MAX_TEXT_LENGTH = 64 * 1024;
 /** Finding and recognition ids are short slugs (`memo-001`); this keeps anything longer out of storage. */
 const MAX_ID_LENGTH = 64;
+const MAX_TITLE_LENGTH = 160;
 const MAX_RECOGNITIONS = 64;
 const KINDS: readonly FindingKind[] = ['memo', 'secret', 'payoff', 'line'];
 const DOCUMENT_KEYS: readonly string[] = ['version', 'found', 'recognitions'];
@@ -81,8 +86,15 @@ function isId(value: unknown): value is string {
   return typeof value === 'string' && value.length <= MAX_ID_LENGTH && ID_PATTERN.test(value);
 }
 
+function isTitle(value: unknown): value is string {
+  return typeof value === 'string' && value.trim() !== '' && value.length <= MAX_TITLE_LENGTH;
+}
+
 function isFinding(value: unknown): value is Finding {
-  return isRecord(value) && isId(value['id']) && KINDS.some((kind) => kind === value['kind']);
+  return isRecord(value)
+    && isId(value['id'])
+    && KINDS.some((kind) => kind === value['kind'])
+    && (value['title'] === undefined || isTitle(value['title']));
 }
 
 /** Chambers in corridor order and empty ones dropped, so the same findings always serialise the same way. */
@@ -91,8 +103,12 @@ function makeState(found: Found, recognitions: readonly string[]): DiscoveryStat
   for (const { id } of CHAMBERS) {
     const list = found[id];
     if (list === undefined || list.length === 0) continue;
-    // Copy to just id and kind, so nothing else a caller passes along can reach storage.
-    ordered[id] = Object.freeze(list.map((f) => Object.freeze({ id: f.id, kind: f.kind })));
+    // Only the finding identity and an optional short title can reach device storage.
+    ordered[id] = Object.freeze(list.map((f) => Object.freeze({
+      id: f.id,
+      kind: f.kind,
+      ...(f.title === undefined ? {} : { title: f.title }),
+    })));
   }
   return Object.freeze({
     version: 1,
@@ -133,7 +149,9 @@ function readState(text: unknown): DiscoveryState | null {
     if (!isChamberId(chamber) || !Array.isArray(list)) return null;
     const findings: Finding[] = [];
     for (const entry of list as unknown[]) {
-      if (!isFinding(entry) || Object.keys(entry).length !== 2) return null;
+      if (!isFinding(entry)
+        || (Object.keys(entry).length !== 2 && Object.keys(entry).length !== 3)
+        || Object.keys(entry).some((key) => key !== 'id' && key !== 'kind' && key !== 'title')) return null;
       if (findings.some((f) => f.id === entry.id)) return null;
       findings.push(entry);
     }
@@ -175,6 +193,7 @@ function countsOf(state: DiscoveryState): readonly RoomCount[] {
  */
 export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStore {
   const listeners = new Set<() => void>();
+  let mirrored = false;
   let state = loadState();
   let counted: { state: DiscoveryState; counts: readonly RoomCount[] } | null = null;
 
@@ -182,7 +201,10 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
   function loadState(): DiscoveryState {
     try {
       const read = readState(storage?.getItem(DISCOVERY_STORAGE_KEY));
-      if (read !== null) return read;
+      if (read !== null) {
+        mirrored = storage !== null;
+        return read;
+      }
     } catch {
       // Storage refused the read: start empty.
     }
@@ -190,18 +212,21 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
   }
 
   /** An empty state removes the key rather than writing an empty document: nothing found, nothing kept. */
-  function mirror(next: DiscoveryState): void {
+  function mirror(next: DiscoveryState): boolean {
+    if (storage === null) return false;
     try {
       if (isEmpty(next)) storage?.removeItem(DISCOVERY_STORAGE_KEY);
       else storage?.setItem(DISCOVERY_STORAGE_KEY, JSON.stringify(next));
+      return true;
     } catch {
       // Quota or blocked storage: this visit keeps what it found in memory; the next write retries.
+      return false;
     }
   }
 
   function change(next: DiscoveryState): void {
     state = next;
-    mirror(next);
+    mirrored = mirror(next);
     for (const listener of [...listeners]) listener();
   }
 
@@ -216,12 +241,22 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
     },
 
     record(chamber, finding) {
-      if (!isChamberId(chamber) || !isFinding(finding) || hasFinding(state, chamber, finding.id)) return;
+      if (!isChamberId(chamber) || !isFinding(finding)) return;
+      const current = state.found[chamber]?.find((entry) => entry.id === finding.id);
+      if (current) {
+        if (current.title !== undefined || finding.title === undefined || current.kind !== finding.kind) return;
+        const found = { ...state.found, [chamber]: (state.found[chamber] ?? []).map(entry =>
+          entry.id === finding.id ? { ...entry, title: finding.title } : entry) };
+        change(makeState(found, state.recognitions));
+        return;
+      }
       const found = { ...state.found, [chamber]: [...(state.found[chamber] ?? []), finding] };
       change(makeState(found, state.recognitions));
     },
 
     has: (chamber, id) => isChamberId(chamber) && hasFinding(state, chamber, id),
+
+    isStored: (chamber, id) => mirrored && isChamberId(chamber) && hasFinding(state, chamber, id),
 
     counts() {
       if (counted?.state !== state) counted = { state, counts: countsOf(state) };
@@ -232,7 +267,7 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
       // The key is removed even when the state is already empty, so a stored value that was
       // ignored on load goes too. Only a real change is announced.
       if (isEmpty(state)) {
-        mirror(state);
+        mirrored = mirror(state);
         return;
       }
       change(makeState({}, []));

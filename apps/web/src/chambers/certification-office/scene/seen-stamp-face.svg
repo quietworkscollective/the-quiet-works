@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="192" viewBox="0 0 384 192">
+  <defs>
+    <linearGradient id="rubber" x2="0" y2="1">
+      <stop stop-color="#393633"/>
+      <stop offset="1" stop-color="#171615"/>
+    </linearGradient>
+    <pattern id="grain" width="9" height="9" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="3" r=".8" fill="#eee7d7" opacity=".09"/>
+      <circle cx="7" cy="7" r=".6" fill="#080808" opacity=".3"/>
+    </pattern>
+  </defs>
+  <rect width="384" height="192" rx="24" fill="#100f0e"/>
+  <rect x="9" y="9" width="366" height="174" rx="18" fill="url(#rubber)" stroke="#665d50" stroke-width="4"/>
+  <rect x="18" y="18" width="348" height="156" rx="13" fill="url(#grain)"/>
+  <path d="M30 34h324M30 158h324" stroke="#0b0a09" stroke-width="3" opacity=".7"/>
+  <text x="192" y="111" text-anchor="middle" fill="#e0d9c9" font-family="monospace" font-size="65" font-weight="700" letter-spacing="7">SEEN</text>
+</svg>

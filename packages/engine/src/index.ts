@@ -8,3 +8,4 @@ export * from './spineStore.ts';
 export * from './siteCopy.ts';
 export * from './sealed/index.ts';
 export * from './discoveries.ts';
+export * from './office/play.ts';
