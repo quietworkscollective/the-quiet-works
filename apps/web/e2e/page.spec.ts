@@ -1464,8 +1464,15 @@ test.describe('small screens and zoom', () => {
 
   test('the archive\'s papers are three across on a desktop, two on a phone and one at 320 px', async ({ page }, info) => {
     await page.goto('/');
+    await importArchive(page, {
+      'certification-office': [
+        { id: 'office-application-receipt', kind: 'line', title: 'Application receipt' },
+        { id: 'office-inspection-copy', kind: 'memo', title: 'Inspection copy' },
+        { id: 'office-empty-authority-bay', kind: 'payoff', title: 'The empty authority bay' },
+      ],
+    });
     const columns = async () =>
-      page.locator('.tqw-archive__sealed').first().evaluate((list) => {
+      page.locator('.tqw-archive__items').first().evaluate((list) => {
         const lefts = [...list.children].map((c) => Math.round(c.getBoundingClientRect().left));
         const first = Math.round(list.children[0]!.getBoundingClientRect().top);
         return new Set(lefts.filter((_, i) => Math.round(list.children[i]!.getBoundingClientRect().top) === first)).size;
@@ -1479,7 +1486,7 @@ test.describe('small screens and zoom', () => {
 // ----------------------------------------------------------------------------------- archive
 
 interface DiscoveryFile {
-  [chamber: string]: Array<{ id: string; kind: 'memo' | 'secret' | 'payoff' | 'line' }>;
+  [chamber: string]: Array<{ id: string; kind: 'memo' | 'secret' | 'payoff' | 'line'; title?: string }>;
 }
 
 /** Imports an archive through the page's own file input, as a visitor restoring one would. */
@@ -1494,27 +1501,26 @@ const papers = (page: Page, state: 'found' | 'sealed') => page.locator(
 );
 
 test.describe('the archive', () => {
-  test('with nothing found: every paper is the same closed silhouette that says only "Sealed", counted in plain words, with no score', { tag: '@fast' }, async ({ page }) => {
+  test('before an Office finding: it writes nothing and other unopened rooms stay plain', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
     await expect(archive.getByRole('heading', { level: 3 })).toHaveText([
-      'The Certification Office',
       'The Apartment',
       'The Tomorrow Engine',
       'The Great Atrium',
       'The Exchange',
       'The Outline Room',
     ]);
+    await expect(archive.locator('.tqw-archive__room[data-room="certification-office"]')).toHaveCount(0);
     await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
-      '0 of 7 papers found.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
     ]);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(0);
     await expect(papers(page, 'found')).toHaveCount(0);
     for (const [id, room] of [
       ['apartment', 'The Apartment'],
@@ -1525,30 +1531,24 @@ test.describe('the archive', () => {
     ]) {
       await expect(archive.locator(`.tqw-archive__room[data-room="${id}"]`)).toHaveText(`${room}Not yet open.`);
     }
-    const sealed = await papers(page, 'sealed').evaluateAll((els) => els.map((el) => ({ text: el.textContent, html: el.outerHTML, attrs: el.getAttributeNames().sort() })));
-    expect(new Set(sealed.map((s) => s.html)).size).toBe(1);
-    for (const paper of sealed) {
-      expect(paper.text).toBe('Sealed');
-      expect(paper.attrs).toEqual(['class']);
-    }
-    // Counts, never scores: no bar, ring, meter or percentage, and no mention of secrets still hidden.
+    // The Office has no unopened inventory; its empty bay is its completion record.
+    // Other closed rooms remain plainly marked, without scores or hidden-secret totals.
     expect(await archive.locator('progress, meter, [role="progressbar"], svg, canvas').count()).toBe(0);
     const roomText = (await archive.locator('.tqw-archive__room').allTextContents()).join(' ');
     expect(roomText).not.toMatch(/%|secret/i);
   });
 
-  test('found papers show title and count; the rest stay sealed; secrets are counted without a total', { tag: '@fast' }, async ({ page }) => {
+  test('Office findings show their authored titles without a collectible total or sealed placeholders', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, {
       'certification-office': [
-        { id: 'memo-a', kind: 'memo' },
-        { id: 'memo-b', kind: 'memo' },
-        { id: 'secret-a', kind: 'secret' },
+        { id: 'office-inspection-copy', kind: 'memo', title: 'Inspection copy' },
+        { id: 'office-duck-requisition', kind: 'secret', title: 'Duck Requisition' },
+        { id: 'office-mystery-resolved', kind: 'payoff', title: 'Certification Office — mystery resolved' },
       ],
     });
     const archive = page.locator('#archive');
     await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
-      '2 of 7 papers found. 1 secret found.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
@@ -1556,11 +1556,15 @@ test.describe('the archive', () => {
       'Not yet open.',
     ]);
     await expect(papers(page, 'found')).toHaveCount(3);
-    await expect(papers(page, 'sealed')).toHaveCount(5);
-    await expect(papers(page, 'found').first().locator('.tqw-paper__title')).toHaveText('A paper');
-    // Nothing of what was imported is shown but what the visitor can already name: no ids.
-    expect((await archive.textContent()) ?? '').not.toMatch(/memo-a|secret-a/);
-    expect((await archive.textContent()) ?? '').not.toMatch(/of 5/);
+    await expect(papers(page, 'sealed')).toHaveCount(0);
+    await expect(papers(page, 'found').locator('.tqw-paper__title')).toHaveText([
+      'Inspection copy',
+      'Duck Requisition',
+      'Certification Office — mystery resolved',
+    ]);
+    const office = archive.locator('.tqw-archive__room[data-room="certification-office"]');
+    await expect(office.locator('.tqw-archive__room-count, .tqw-archive__sealed')).toHaveCount(0);
+    expect((await archive.textContent()) ?? '').not.toMatch(/office-inspection-copy|office-duck-requisition|office-mystery-resolved|of 7|of 5/);
   });
 
   test('importing replaces the archive, and the hero does not call it this visit\'s discovery', { tag: '@fast' }, async ({ page }) => {
@@ -1577,14 +1581,18 @@ test.describe('the archive', () => {
     await expect(papers(page, 'found')).toHaveCount(1);
   });
 
-  test('export saves unheld-discoveries.json from the device: versioned, ids and kinds only', { tag: '@fast' }, async ({ page }) => {
+  test('export saves unheld-discoveries.json with its authored title and no other fields', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
-    await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
+    await importArchive(page, { 'certification-office': [
+      { id: 'office-empty-authority-bay', kind: 'payoff', title: 'The empty authority bay' },
+    ] });
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export discoveries' }).click()]);
     expect(download.suggestedFilename()).toBe('unheld-discoveries.json');
     const body = JSON.parse(await readFile((await download.path())!, 'utf8')) as { version: number; found: DiscoveryFile };
     expect(body.version).toBe(1);
-    expect(body.found['certification-office']).toEqual([{ id: 'memo-a', kind: 'memo' }]);
+    expect(body.found['certification-office']).toEqual([
+      { id: 'office-empty-authority-bay', kind: 'payoff', title: 'The empty authority bay' },
+    ]);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Saved as unheld-discoveries.json.');
   });
 
@@ -1611,10 +1619,9 @@ test.describe('the archive', () => {
     await dialog.getByRole('button', { name: 'Forget everything' }).click();
     await expect(dialog).toBeHidden();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(0);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Forgotten. This device remembers nothing.');
     await expect(page.locator('.tqw-archive__room-count')).toHaveText([
-      '0 of 7 papers found.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
@@ -1765,16 +1772,18 @@ test.describe('what the page stores and sends', () => {
     expect(connections).toEqual([]);
   });
 
-  test('the first discovery writes the one versioned key, unheld.v1: ids and kinds only, nothing else', async ({ page, context }) => {
+  test('the first discovery writes the one versioned key, unheld.v1: identity, kind and authored title only', async ({ page, context }) => {
     await page.goto('/');
     const stored = () => page.evaluate(() => Object.fromEntries(Object.keys(localStorage).map((key) => [key, localStorage.getItem(key)])));
     expect(await stored()).toEqual({});
-    await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'secret-a', kind: 'secret' }] });
+    await importArchive(page, { 'certification-office': [
+      { id: 'office-empty-authority-bay', kind: 'payoff', title: 'The empty authority bay' },
+    ] });
     const written = await stored();
     expect(Object.keys(written)).toEqual(['unheld.v1']);
     expect(JSON.parse(written['unheld.v1']!)).toEqual({
       version: 1,
-      found: { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'secret-a', kind: 'secret' }] },
+      found: { 'certification-office': [{ id: 'office-empty-authority-bay', kind: 'payoff', title: 'The empty authority bay' }] },
       recognitions: [],
     });
     expect(await page.evaluate(() => sessionStorage.length)).toBe(0);
@@ -1787,7 +1796,6 @@ test.describe('what the page stores and sends', () => {
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(2);
     await expect(page.locator('.tqw-archive__room-count')).toHaveText([
-      '2 of 7 papers found.',
       'Not yet open.',
       'Not yet open.',
       'Not yet open.',
@@ -1806,14 +1814,14 @@ test.describe('what the page stores and sends', () => {
     expect(await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)])).toEqual([]);
     await page.reload();
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(0);
   });
 
   test('a damaged key is ignored and the page still loads with an empty archive', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('unheld.v1', '{"version":9,"found":'));
     await page.goto('/');
     await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(7);
+    await expect(papers(page, 'sealed')).toHaveCount(0);
   });
 
   test('a browser that refuses storage still gets a working archive for the visit', async ({ page }) => {

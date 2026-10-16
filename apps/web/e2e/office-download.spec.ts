@@ -83,10 +83,14 @@ test('completing the deferred dressing leaves the arrival frame visually unchang
     await page.waitForTimeout(500);
     const canvas = page.locator('.tqw-canvas canvas').first();
     const before = await canvas.screenshot();
-    const frame = Number(await page.locator('.tqw-canvas').getAttribute('data-frame'));
+    const deferredResponses = deferredFiles.map(file => page.waitForResponse(
+      response => new URL(response.url()).pathname === file,
+      { timeout: sceneTimeout(60_000) },
+    ));
     release();
+    const responses = await Promise.all(deferredResponses);
+    expect(responses.every(response => response.ok())).toBe(true);
     await page.waitForLoadState('networkidle');
-    await expect.poll(async () => Number(await page.locator('.tqw-canvas').getAttribute('data-frame'))).toBeGreaterThan(frame);
     await page.waitForTimeout(500);
     const after = await canvas.screenshot();
     await testInfo.attach('before-dressing', { body: before, contentType: 'image/png' });

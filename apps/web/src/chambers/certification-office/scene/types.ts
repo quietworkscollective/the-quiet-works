@@ -10,6 +10,7 @@ export interface OfficeSceneProps {
   shadow: boolean;
   freshInk: boolean;
   onInspect(id: OfficeObjectId): void;
+  onIdleTap(): void;
   onFocusObject(id: OfficeObjectId | null): void;
   onEntrance(): void;
   framedObject: OfficeObjectId | null;

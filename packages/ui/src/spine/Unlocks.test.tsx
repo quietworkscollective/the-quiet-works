@@ -8,9 +8,10 @@ import type { UnlocksProps } from './types.ts';
 
 const OFFICE = 'certification-office';
 const OFFICE_PAPERS = CHAMBERS.find((chamber) => chamber.id === OFFICE)?.findings.papers ?? 0;
+const APARTMENT = 'apartment';
 const APARTMENT_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'apartment')?.findings.papers ?? 0;
 const EXCHANGE_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'exchange')?.findings.papers ?? 0;
-const PAPERS = CHAMBERS.filter((chamber) => chamber.status === 'open').reduce((total, chamber) => total + chamber.findings.papers, 0);
+const PAPERS = CHAMBERS.filter((chamber) => chamber.status === 'open' && chamber.id !== OFFICE).reduce((total, chamber) => total + chamber.findings.papers, 0);
 
 function setup(over: Partial<UnlocksProps> = {}, store: DiscoveryStore = createMemoryDiscoveryStore()) {
   const view = render(<Unlocks store={store} chambers={CHAMBERS} {...over} />);
@@ -69,8 +70,7 @@ describe('Unlocks: the archive section', () => {
   it('groups by room, and shows only rooms that have something to find', () => {
     const { section } = setup();
     const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((h) => h.textContent)).toEqual(['The Certification Office', 'The Apartment', 'The Exchange']);
-    expect(within(section).getByText(`0 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(rooms.map((h) => h.textContent)).toEqual(['The Apartment', 'The Exchange']);
     expect(within(section).getByText(`0 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
     expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
   });
@@ -82,7 +82,6 @@ describe('Unlocks: the archive section', () => {
     const { section } = setup({ chambers, production: true });
     const rooms = within(section).getAllByRole('heading', { level: 3 });
     expect(rooms.map((heading) => heading.textContent)).toEqual([
-      'The Certification Office',
       'The Apartment',
       'The Tomorrow Engine',
       'The Great Atrium',
@@ -103,16 +102,34 @@ describe('Unlocks: the archive section', () => {
     expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
   });
 
-  it('says, with nothing found, "0 of 7 papers found." in plain words', () => {
+  it('says the Apartment paper count in plain words', () => {
     setup();
-    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found.`).className).toContain('tqw-archive__room-count');
+    expect(screen.getByText(`0 of ${APARTMENT_PAPERS} papers found.`).className).toContain('tqw-archive__room-count');
+  });
+});
+
+describe('Unlocks: Office findings', () => {
+  it('keeps an empty Office out of the archive until its first find', () => {
+    const { section } = setup();
+    expect(section.querySelector(`[data-room="${OFFICE}"]`)).toBeNull();
+    expect(section.textContent).not.toContain(`0 of ${OFFICE_PAPERS} papers found.`);
+  });
+
+  it('shows authored Office titles without room counts or sealed slots', () => {
+    const store = createMemoryDiscoveryStore();
+    store.record(OFFICE, { id: 'office-mystery-resolved', kind: 'payoff', title: 'Certification Office — mystery resolved' });
+    const { section } = setup({}, store);
+    const room = section.querySelector(`[data-room="${OFFICE}"]`) as HTMLElement;
+    expect(within(room).getByRole('heading', { level: 4, name: 'Certification Office — mystery resolved' })).toBeTruthy();
+    expect(room.querySelector('.tqw-archive__room-count')).toBeNull();
+    expect(room.querySelector('.tqw-archive__sealed')).toBeNull();
   });
 });
 
 describe('Unlocks: sealed papers (nothing about an unfound item is in the page)', () => {
   it('keeps sealed finds in their own compact room list, outside the documents grid', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-3', kind: 'memo' });
+    store.record(APARTMENT, { id: 'memo-3', kind: 'memo' });
     const { section } = setup({}, store);
     const documents = section.querySelector('.tqw-archive__items') as HTMLElement;
     expect(documents.querySelectorAll('.tqw-paper')).toHaveLength(1);
@@ -154,13 +171,13 @@ describe('Unlocks: sealed papers (nothing about an unfound item is in the page)'
 
   it('one paper found leaves one fewer sealed, never changing the total', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-3', kind: 'memo' });
+    store.record(APARTMENT, { id: 'memo-3', kind: 'memo' });
     const { section } = setup({}, store);
     const papers = papersOf(section);
     expect(papers).toHaveLength(1);
     expect(papers.filter((p) => p.dataset['state'] === 'found')).toHaveLength(1);
     expect(sealedRowsOf(section)).toHaveLength(PAPERS - 1);
-    expect(screen.getByText(`1 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(screen.getByText(`1 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
   });
 });
 
@@ -169,10 +186,10 @@ describe('Unlocks: found papers', () => {
 
   it('names a found paper with its approved title and fragment when the shell supplies them', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found());
+    store.record(APARTMENT, found());
     const describe = vi.fn((_room: string, finding: Finding) => ({ title: `Title for ${finding.id}`, fragment: 'A modest fragment.' }));
     setup({ describe }, store);
-    expect(describe).toHaveBeenCalledWith(OFFICE, found());
+    expect(describe).toHaveBeenCalledWith(APARTMENT, found());
     const paper = screen.getByRole('heading', { level: 4, name: 'Title for memo-3' }).closest('.tqw-paper') as HTMLElement;
     expect(paper.dataset['state']).toBe('found');
     expect(within(paper).getByText('A modest fragment.').className).toContain('tqw-paper__fragment');
@@ -180,7 +197,7 @@ describe('Unlocks: found papers', () => {
 
   it('falls back to the kind of thing it is, never to its id, when there is no approved title', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found('memo-3'));
+    store.record(APARTMENT, found('memo-3'));
     const { section } = setup({}, store);
     expect(within(section).getByRole('heading', { level: 4, name: ARCHIVE_COPY.kinds.memo })).toBeTruthy();
     expect(section.textContent).not.toContain('memo-3');
@@ -193,34 +210,34 @@ describe('Unlocks: found papers', () => {
     ['line', 'A note'],
   ] as const)('calls an untitled %s "%s"', (kind, label) => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found('x-1', kind));
+    store.record(APARTMENT, found('x-1', kind));
     setup({}, store);
     expect(screen.getByRole('heading', { level: 4, name: label })).toBeTruthy();
   });
 
   it('shows a paper\'s fragment only when there is one', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found());
+    store.record(APARTMENT, found());
     const { section } = setup({ describe: () => ({ title: 'Form 27-B' }) }, store);
     expect(section.querySelector('.tqw-paper__fragment')).toBeNull();
   });
 
   it('counts secrets only once found, in words, with no total', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found('secret-1', 'secret'));
+    store.record('exchange', found('secret-1', 'secret'));
     const { view, section } = setup({}, store);
-    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 1 secret found.`)).toBeTruthy();
-    expect(section.querySelector('.tqw-archive__room-count')?.textContent).toBe(`0 of ${OFFICE_PAPERS} papers found. 1 secret found.`);
+    expect(screen.getByText(`0 of ${EXCHANGE_PAPERS} papers found. 1 secret found.`)).toBeTruthy();
+    expect(section.querySelector('[data-room="exchange"] .tqw-archive__room-count')?.textContent).toBe(`0 of ${EXCHANGE_PAPERS} papers found. 1 secret found.`);
     expect(section.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
-    act(() => store.record(OFFICE, found('secret-2', 'secret')));
-    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
-    expect(section.querySelector('.tqw-archive__room-count')?.textContent).toBe(`0 of ${OFFICE_PAPERS} papers found. 2 secrets found.`);
+    act(() => store.record('exchange', found('secret-2', 'secret')));
+    expect(screen.getByText(`0 of ${EXCHANGE_PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
+    expect(section.querySelector('[data-room="exchange"] .tqw-archive__room-count')?.textContent).toBe(`0 of ${EXCHANGE_PAPERS} papers found. 2 secrets found.`);
     expect(view.container.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
   });
 
   it('lists a found secret among the papers, but never draws a sealed one', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found('secret-1', 'secret'));
+    store.record(APARTMENT, found('secret-1', 'secret'));
     const { section } = setup({}, store);
     const papers = papersOf(section);
     expect(papers.filter((p) => p.dataset['state'] === 'found')).toHaveLength(1);
@@ -229,22 +246,22 @@ describe('Unlocks: found papers', () => {
 
   it('gives a found item a "Read again" action only when the shell can open it', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found());
+    store.record(APARTMENT, found());
     const { section } = setup({}, store);
     expect(within(section).queryByRole('button', { name: /Read again/ })).toBeNull();
     cleanup();
     const onReread = vi.fn();
     setup({ onReread, describe: () => ({ title: 'Form 27-B' }) }, store);
     fireEvent.click(screen.getByRole('button', { name: 'Read again: Form 27-B' }));
-    expect(onReread).toHaveBeenCalledWith(OFFICE, found());
+    expect(onReread).toHaveBeenCalledWith(APARTMENT, found());
   });
 
   it('fades a newly found paper in, and does not animate what was already there', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, found('memo-1'));
+    store.record(APARTMENT, found('memo-1'));
     const { section } = setup({}, store);
     expect(papersOf(section).find((p) => p.dataset['state'] === 'found')?.hasAttribute('data-new')).toBe(false);
-    act(() => store.record(OFFICE, found('memo-2')));
+    act(() => store.record(APARTMENT, found('memo-2')));
     const fresh = papersOf(section).filter((p) => p.dataset['state'] === 'found');
     expect(fresh).toHaveLength(2);
     expect(fresh.filter((p) => p.dataset['new'] === 'true')).toHaveLength(1);
@@ -254,7 +271,7 @@ describe('Unlocks: found papers', () => {
 describe('Unlocks: no scores, no progress', () => {
   it('draws no progress bar, meter, ring or percentage, and no total across rooms', () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-1', kind: 'memo' });
+    store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
     const { section } = setup({}, store);
     expect(section.querySelector('progress, meter, [role="progressbar"], [role="meter"], svg, canvas')).toBeNull();
     expect(section.textContent).not.toMatch(/%/);
@@ -325,7 +342,7 @@ describe('Unlocks: its messages', () => {
 describe('Unlocks: export', () => {
   it('saves the archive as unheld-discoveries.json, from this device, and says so', async () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-1', kind: 'memo' });
+    store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
     const capture = captureDownload();
     setup({}, store);
     fireEvent.click(screen.getByRole('button', { name: ARCHIVE_COPY.export }));
@@ -369,22 +386,22 @@ describe('Unlocks: import', () => {
   it('replaces the archive with a valid file, says so, and tells the shell it was replaced', async () => {
     const onReplaced = vi.fn();
     const { section, store } = setup({ onReplaced });
-    const text = JSON.stringify({ version: 1, found: { [OFFICE]: [{ id: 'memo-1', kind: 'memo' }] }, recognitions: [] });
+    const text = JSON.stringify({ version: 1, found: { [APARTMENT]: [{ id: 'memo-1', kind: 'memo' }] }, recognitions: [] });
     fireEvent.change(fileInput(section), { target: { files: [jsonFile(text)] } });
     await waitFor(() => expect(message().textContent).toBe(ARCHIVE_COPY.imported));
-    expect(store.has(OFFICE, 'memo-1')).toBe(true);
+    expect(store.has(APARTMENT, 'memo-1')).toBe(true);
     expect(onReplaced).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(`1 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(screen.getByText(`1 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
   });
 
   it('changes nothing for a file it cannot read, and says so', async () => {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-1', kind: 'memo' });
+    store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
     const onReplaced = vi.fn();
     const { section } = setup({ onReplaced }, store);
     fireEvent.change(fileInput(section), { target: { files: [jsonFile('this is not an archive')] } });
     await waitFor(() => expect(message().textContent).toBe(ARCHIVE_COPY.importFailed));
-    expect(store.getState().found[OFFICE]).toEqual([{ id: 'memo-1', kind: 'memo' }]);
+    expect(store.getState().found[APARTMENT]).toEqual([{ id: 'memo-1', kind: 'memo' }]);
     expect(onReplaced).not.toHaveBeenCalled();
   });
 
@@ -400,8 +417,8 @@ describe('Unlocks: forget everything', () => {
 
   function withFound() {
     const store = createMemoryDiscoveryStore();
-    store.record(OFFICE, { id: 'memo-1', kind: 'memo' });
-    store.record(OFFICE, { id: 'secret-1', kind: 'secret' });
+    store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
+    store.record(APARTMENT, { id: 'secret-1', kind: 'secret' });
     return store;
   }
 
@@ -411,7 +428,7 @@ describe('Unlocks: forget everything', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: ARCHIVE_COPY.forget }));
     expect(confirmation()).toBeTruthy();
-    expect(store.getState().found[OFFICE]).toHaveLength(2);
+    expect(store.getState().found[APARTMENT]).toHaveLength(2);
   });
 
   it('names the consequence: every paper and secret, no copy elsewhere, cannot be undone', () => {
@@ -441,7 +458,7 @@ describe('Unlocks: forget everything', () => {
     fireEvent.click(screen.getByRole('button', { name: ARCHIVE_COPY.forget }));
     fireEvent.click(within(confirmation()).getByRole('button', { name: ARCHIVE_COPY.forgetCancel }));
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(store.getState().found[OFFICE]).toHaveLength(2);
+    expect(store.getState().found[APARTMENT]).toHaveLength(2);
     expect(onReplaced).not.toHaveBeenCalled();
   });
 
@@ -451,7 +468,7 @@ describe('Unlocks: forget everything', () => {
     fireEvent.click(screen.getByRole('button', { name: ARCHIVE_COPY.forget }));
     (confirmation() as HTMLDialogElement).close();
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(store.getState().found[OFFICE]).toHaveLength(2);
+    expect(store.getState().found[APARTMENT]).toHaveLength(2);
   });
 
   it('forgets everything only on the explicit confirmation, then says so and tells the shell', () => {
@@ -464,7 +481,7 @@ describe('Unlocks: forget everything', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(message().textContent).toBe(ARCHIVE_COPY.forgotten);
     expect(onReplaced).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(`0 of ${OFFICE_PAPERS} papers found.`)).toBeTruthy();
+    expect(section.querySelector(`[data-room="${OFFICE}"]`)).toBeNull();
     expect(papersOf(section)).toHaveLength(0);
     expect(sealedRowsOf(section)).toHaveLength(PAPERS);
   });
@@ -477,7 +494,7 @@ describe('Unlocks: forget everything', () => {
     fireEvent.click(within(confirmation()).getByRole('button', { name: ARCHIVE_COPY.forgetExport }));
     expect(capture.downloads).toEqual(['unheld-discoveries.json']);
     expect(await capture.read()).toBe(store.exportText());
-    expect(store.getState().found[OFFICE]).toHaveLength(2);
+    expect(store.getState().found[APARTMENT]).toHaveLength(2);
     expect(confirmation()).toBeTruthy();
   });
 });

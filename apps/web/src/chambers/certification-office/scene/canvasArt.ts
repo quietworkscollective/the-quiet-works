@@ -1,4 +1,4 @@
-import { OFFICE_LEGIBILITY, HATCH_INTERIOR, OVERLOAD_AT, STAMP_WORD } from '@tqw/engine';
+import { HATCH_INTERIOR, MEMO_001, OFFICE_LEGIBILITY, OVERLOAD_AT, STAMP_WORD } from '@tqw/engine';
 import { hash2, mulberry32 } from './anim.ts';
 import { impression } from './beatMotion.ts';
 import { PALETTE } from './palette.ts';
@@ -69,7 +69,7 @@ export const FORM_W = 1024;
 export const FORM_H = 1365;
 /** Canvas pixels per metre on the form (0.36 m wide paper). */
 export const FORM_PX_PER_M = FORM_W / 0.36;
-/** Where the stamp lands: centre of the FOR OFFICE USE ONLY box. */
+/** Where the stamp lands: centre of the marked application's box. */
 export const FORM_STAMP_X = FORM_W / 2;
 export const FORM_STAMP_Y = 819;
 
@@ -131,27 +131,10 @@ export function drawFormBase(): HTMLCanvasElement {
   ctx.fillRect(70, 150, FORM_W - 140, 4);
   ctx.fillRect(70, 162, FORM_W - 140, 1.5);
 
-  // Form number block.
-  ctx.strokeStyle = ink(0.8);
-  ctx.lineWidth = 3;
-  ctx.strokeRect(836, 60, 118, 70);
-  ctx.font = `600 36px ${FONT_MONO}`;
-  ctx.textAlign = 'center';
-  ctx.fillText('W-1', 895, 108);
-  ctx.textAlign = 'left';
-
-  // Subhead.
+  // The applicant line remains blank; no keyboard or personal details are requested.
   ctx.fillStyle = ink(0.78);
-  ctx.font = `400 25px ${FONT_MONO}`;
-  ctx.font = `600 65px ${FONT_COND}`;
+  ctx.font = `600 36px ${FONT_COND}`;
   ctx.fillText(OFFICE_LEGIBILITY.applicant, 70, 242);
-
-  // Fields.
-  const label = (text: string, x: number, y: number) => {
-    ctx.font = `600 21px ${FONT_COND}`;
-    ctx.fillStyle = ink(0.8);
-    spacedText(ctx, text, x, y, 2.2);
-  };
   const rule = (x0: number, x1: number, y: number) => {
     ctx.strokeStyle = ink(0.55);
     ctx.lineWidth = 1.6;
@@ -160,28 +143,12 @@ export function drawFormBase(): HTMLCanvasElement {
     ctx.lineTo(x1, y);
     ctx.stroke();
   };
-  label('APPLICANT', 70, 338);
-  rule(260, FORM_W - 70, 342);
-  label('EVIDENCE ENCLOSED', 70, 428);
-  const boxes: Array<[string, number]> = [
-    ['COMPETENCE', 400],
-    ['ADEQUACY', 626],
-    ['OTHER', 820],
-  ];
-  for (const [text, x] of boxes) {
-    ctx.strokeStyle = ink(0.8);
-    ctx.lineWidth = 2.6;
-    ctx.strokeRect(x - 38, 407, 26, 26);
-    label(text, x, 428);
-  }
-  label('WITNESSED BY', 70, 518);
-  rule(260, FORM_W - 70, 522);
-  label('DATE', 70, 598);
-  rule(260, 520, 602);
-  label('NO. OF PAGES', 570, 598);
-  rule(790, FORM_W - 70, 602);
+  rule(70, FORM_W - 70, 258);
 
-  // FOR OFFICE USE ONLY box (stamp lands in its centre).
+  // The printed requirement and its box are the only action cues on the form.
+  ctx.fillStyle = ink(0.8);
+  ctx.font = `600 36px ${FONT_COND}`;
+  ctx.fillText(OFFICE_LEGIBILITY.evidence, 70, 390, FORM_W - 140);
   const bx = FORM_STAMP_X - 280;
   const by = FORM_STAMP_Y - 165;
   ctx.strokeStyle = ink(0.8);
@@ -193,48 +160,10 @@ export function drawFormBase(): HTMLCanvasElement {
   ctx.fillRect(bx, by, 560, 40);
   ctx.fillStyle = PALETTE.bone;
   ctx.font = `600 22px ${FONT_COND}`;
-  ctx.font = `600 41px ${FONT_COND}`;
-  ctx.fillText(OFFICE_LEGIBILITY.evidence, bx + 20, by + 32, 520);
-  ctx.fillStyle = ink(0.6);
-  ctx.font = `400 15px ${FONT_MONO}`;
-  ctx.fillText('RECEIVED', bx + 20, by + 296);
-  rule(bx + 110, bx + 270, by + 298);
-  ctx.fillText('DISPOSITION', bx + 290, by + 296);
-  rule(bx + 410, bx + 540, by + 298);
-
-  // Small print.
-  ctx.fillStyle = ink(0.62);
-  ctx.font = `400 19px ${FONT_COND}`;
-  const small =
-    '1. The Applicant certifies that the evidence enclosed is true, sufficient, and was not obtained under duress. ' +
-    '2. The Office accepts no liability for the sufficiency of the Office. ' +
-    '3. Approval of this form acknowledges that approval was requested, not that it was granted. ' +
-    '4. This form must be submitted in duplicate; the duplicate has been submitted. ' +
-    '5. Evidence expires on receipt.';
-  const smallLines = wrapWords(ctx, small, FORM_W - 140);
-  smallLines.forEach((line, i) => ctx.fillText(line, 70, 1046 + i * 27));
-
-  // Signatures.
-  rule(70, 440, 1262);
-  label('APPLICANT SIGNATURE', 70, 1290);
-  rule(570, FORM_W - 70, 1262);
-  label('APPROVING CLERK', 570, 1290);
-  ctx.fillStyle = ink(0.5);
-  ctx.font = `400 15px ${FONT_MONO}`;
-  ctx.textAlign = 'right';
-  ctx.fillText('W-1 (REV. 1971)', FORM_W - 70, 1334);
+  ctx.font = `600 32px ${FONT_COND}`;
+  ctx.textAlign = 'center';
+  ctx.fillText(OFFICE_LEGIBILITY.stampHere, FORM_STAMP_X, by + 30, 520);
   ctx.textAlign = 'left';
-
-  // Editorial purpose labels on the near edge stay readable beneath the resting carriage.
-  ctx.fillStyle = PALETTE.bone;
-  ctx.fillRect(70, 1020, FORM_W - 140, FORM_H - 1040);
-  ctx.fillStyle = ink(.9);
-  ctx.textAlign = 'left';
-  ctx.font = `600 55px ${FONT_COND}`;
-  ctx.fillText(OFFICE_LEGIBILITY.form, 70, 1100, FORM_W - 140);
-  ctx.font = `600 66px ${FONT_COND}`;
-  ctx.fillText(OFFICE_LEGIBILITY.applicant, 70, 1190, FORM_W - 140);
-  ctx.fillText(OFFICE_LEGIBILITY.evidence, 70, 1290, FORM_W - 140);
   return canvas;
 }
 
@@ -828,26 +757,33 @@ export function drawMemoFace(canvas: HTMLCanvasElement, creaseV: number): void {
   spacedText(ctx, 'MEMO 001', 70, 170, 9);
   ctx.fillStyle = 'rgba(45,42,38,0.6)';
   ctx.fillRect(70, 204, w - 140, 2.4);
-  ctx.font = `italic 400 30px ${FONT_SERIF}`;
+  ctx.font = `italic 400 24px ${FONT_SERIF}`;
   ctx.fillStyle = 'rgba(45,42,38,0.72)';
-  ctx.fillText('From the desk of the Approving Clerk', 70, 262);
-  ctx.fillText('(position vacant)', 70, 302);
-  // Body, suggested.
-  ctx.fillStyle = 'rgba(45,42,38,0.2)';
-  for (let i = 0; i < 6; i += 1) {
-    const lineW = (i === 5 ? 0.42 : 0.84 + rng() * 0.14) * (w - 140);
-    ctx.fillRect(70, 352 + i * 36, lineW, 9);
+  let y = 258;
+  for (const line of wrapWords(ctx, MEMO_001.from, w - 140)) {
+    ctx.fillText(line, 70, y);
+    y += 30;
+  }
+  y += 18;
+  ctx.font = `400 19px ${FONT_SERIF}`;
+  ctx.fillStyle = 'rgba(45,42,38,0.86)';
+  for (const paragraph of MEMO_001.body) {
+    for (const line of wrapWords(ctx, paragraph, w - 140)) {
+      ctx.fillText(line, 70, y);
+      y += 24;
+    }
+    y += 10;
   }
   // The fold: a soft shadow on one side, a thin light line on the other.
-  const y = creaseV * h;
-  const shade = ctx.createLinearGradient(0, y - 46, 0, y + 46);
+  const foldY = creaseV * h;
+  const shade = ctx.createLinearGradient(0, foldY - 46, 0, foldY + 46);
   shade.addColorStop(0, 'rgba(60,45,25,0)');
   shade.addColorStop(0.5, 'rgba(60,45,25,0.22)');
   shade.addColorStop(1, 'rgba(60,45,25,0)');
   ctx.fillStyle = shade;
-  ctx.fillRect(0, y - 46, w, 92);
+  ctx.fillRect(0, foldY - 46, w, 92);
   ctx.fillStyle = 'rgba(255,252,244,0.4)';
-  ctx.fillRect(0, y + 1, w, 2);
+  ctx.fillRect(0, foldY + 1, w, 2);
 }
 
 /** Adopted material labels; these do not introduce another machine reply. */

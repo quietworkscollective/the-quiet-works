@@ -1567,6 +1567,106 @@ button {
   border-radius: 3px;
 }
 
+.tqw-drawer-records {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.tqw-inspection-copy,
+.tqw-duck-requisition {
+  position: relative;
+  padding: var(--sp-3);
+  color: var(--paper-ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.025) 0 1px, transparent 1px 4px),
+    #ded5c3;
+  box-shadow: 2px 3px 0 #a9a18f, 0 9px 18px rgba(0, 0, 0, 0.28);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+}
+
+.tqw-inspection-copy p:first-child,
+.tqw-duck-requisition p:first-child {
+  font-weight: 700;
+  letter-spacing: 0.045em;
+}
+
+.tqw-inspection-copy p:last-of-type,
+.tqw-duck-requisition p:last-child {
+  margin-bottom: 0;
+}
+
+.tqw-seen-stamp-face {
+  display: inline-grid;
+  min-width: 5rem;
+  min-height: 2.4rem;
+  place-items: center;
+  margin-top: var(--sp-2);
+  border: 3px solid #514b43;
+  border-radius: 5px;
+  color: #ded7c8;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,.08) 0 1px, transparent 1.5px) 0 0 / 7px 9px,
+    linear-gradient(#393633, #171615);
+  box-shadow: inset 0 2px 3px rgba(255,255,255,.08), inset 0 -3px 4px rgba(0,0,0,.5), 0 2px 3px rgba(0,0,0,.25);
+  font-size: var(--step-0);
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+.tqw-seen-impression {
+  display: inline-block;
+  margin-top: var(--sp-1);
+  padding: .12em .42em;
+  border: 2px solid rgba(44, 70, 59, .78);
+  color: rgba(44, 70, 59, .86);
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  font-weight: 700;
+  letter-spacing: .14em;
+  transform: rotate(-3deg);
+  text-shadow: 0 0 .4px currentColor;
+}
+
+.tqw-office-completion {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 2px solid var(--amber);
+  color: var(--bone);
+  background: rgba(28, 34, 42, .7);
+}
+
+.tqw-office-completion h2 {
+  margin: 0 0 var(--sp-1);
+  font-family: var(--font-serif);
+  font-size: var(--step-1);
+  font-weight: 400;
+}
+
+.tqw-office-completion p:last-child { margin-bottom: 0; }
+
+.tqw-memo-preview {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  color: var(--paper-ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(45, 42, 38, 0.025) 0 1px, transparent 1px 4px),
+    #ded5c3;
+  box-shadow: 2px 3px 0 #a9a18f, 0 9px 18px rgba(0, 0, 0, .28);
+  font-family: var(--font-serif);
+  line-height: 1.45;
+}
+
+.tqw-memo-preview h2 {
+  margin-top: 0;
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  letter-spacing: .1em;
+}
+
+.tqw-memo-preview p:last-child { margin-bottom: 0; }
+
 .tqw-imprint {
   container-type: inline-size;
   display: grid;
@@ -1647,6 +1747,98 @@ button {
 
 .tqw-office__secondary:empty {
   display: none;
+}
+
+.tqw-office__curiosities {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-1);
+  margin-block: var(--sp-2);
+}
+
+.tqw-office__curiosities h2 {
+  flex: 0 0 100%;
+  margin: 0;
+  text-align: center;
+  font-size: var(--step-1);
+}
+
+.tqw-office__archive-ack {
+  margin: var(--sp-1) auto;
+  text-align: center;
+  color: var(--paper);
+  font-size: var(--step-0);
+}
+
+.tqw-office__archive-ack p,
+.tqw-office-play-evidence__ack p { margin: 0.15rem 0; }
+.tqw-office__hint {
+  max-width: 34rem;
+  margin: var(--sp-2) auto;
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 2px solid var(--amber);
+  color: var(--paper);
+  background: rgba(28, 34, 42, .82);
+  text-align: center;
+}
+
+.tqw-office-evidence {
+  margin: var(--sp-2) auto;
+  padding: var(--sp-2);
+  max-width: 46rem;
+  border: 1px solid var(--bone-dim);
+  background: var(--coal-2);
+  color: var(--paper);
+}
+
+.tqw-office-evidence h2 { margin-top: 0; }
+.tqw-office-evidence p { margin-block: var(--sp-1); line-height: 1.5; }
+
+.tqw-office-play-evidence {
+  position: absolute;
+  z-index: 15;
+  inset: 50% auto auto 50%;
+  width: min(36rem, calc(100vw - 2rem));
+  max-height: min(70svh, 42rem);
+  overflow: auto;
+  transform: translate(-50%, -50%);
+  padding: var(--sp-3);
+  border: 1px solid var(--bone-dim);
+  background: var(--coal-2);
+  color: var(--paper);
+  box-shadow: 0 1rem 3rem #000a;
+}
+
+.tqw-office-play-evidence h2 { margin-top: 0; }
+.tqw-office-play-evidence p { line-height: 1.5; }
+.tqw-office-play-evidence__close { min-height: 44px; float: right; }
+.tqw-office-play-evidence__ack { color: var(--amber); }
+.tqw-office-play-archive-ack {
+  position: absolute;
+  z-index: 9;
+  top: 5.5rem;
+  right: 1rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: .45rem .7rem;
+  border-left: 2px solid var(--amber);
+  color: var(--paper);
+  background: #151a20e8;
+  font-size: var(--step--1);
+}
+.tqw-office-play-archive-ack p { margin: .15rem 0; }
+.tqw-office-play-hint {
+  position: absolute;
+  z-index: 9;
+  top: 9rem;
+  right: 1rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: .45rem .7rem;
+  border-left: 2px solid var(--amber);
+  color: var(--paper);
+  background: #151a20e8;
+  font-size: var(--step--1);
+  pointer-events: none;
 }
 
 /* Once the memo is found it joins the stamp's row; Start over keeps its own. */

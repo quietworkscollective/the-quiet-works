@@ -123,8 +123,19 @@ export async function closeMenu(page: Page): Promise<void> {
   await expect(menu).toBeHidden();
 }
 
+/** Direct Office routes rest at the window until the visitor presses its explicit Enter control. */
+export async function engageGameWindow(page: Page): Promise<void> {
+  if (await app(page).getAttribute('data-mode') === 'text') return;
+  const site = page.locator('.tqw-site');
+  if (await site.getAttribute('data-engaged') !== 'true') {
+    await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
+    await expect(site).toHaveAttribute('data-engaged', 'true');
+  }
+}
+
 /** The Office station is reached before pointer/touch press tests operate the physical handle. */
 export async function approachDesk(page: Page): Promise<void> {
+  await engageGameWindow(page);
   const places = page.locator('.tqw-places');
   const summary = places.locator(':scope > summary');
   const wasOpen = await places.evaluate((node: HTMLDetailsElement) => node.open);

@@ -224,7 +224,7 @@ function hatchSettled(plan: HatchPlan, now: number): boolean {
 }
 
 /** The Certification machine: body, amber display, indicator lamps, bell, hatch and cavity. */
-export function Machine() {
+export function Machine({ inspectionCount }: { readonly inspectionCount: number }) {
   const { store, director, materials, motion } = useScene();
   const invalidate = useThree((s) => s.invalidate);
   const fontsReady = useFontsReady();
@@ -417,7 +417,14 @@ export function Machine() {
     drawnLayout: '',
     drawnVis: -2,
   });
+  const inspectionAt = useRef(Number.NEGATIVE_INFINITY);
   const scratch = useMemo<DisplayOut>(() => ({ text: '', layout: '', vis: -1, bright: 1 }), []);
+
+  useEffect(() => {
+    if (inspectionCount === 0) return;
+    inspectionAt.current = performance.now();
+    invalidate();
+  }, [inspectionCount, invalidate]);
 
   // Fonts arrived: repaint every piece of canvas art that carries text.
   useEffect(() => {
@@ -545,6 +552,16 @@ export function Machine() {
           b = 0.55;
           c = 0.05;
         }
+      }
+      const inspectionAge = now - inspectionAt.current;
+      if (inspectionAge >= 0 && inspectionAge < 520) {
+        const relay = reduced ? 0.88 : smoothstep(0, 45, inspectionAge) * (1 - smoothstep(145, 190, inspectionAge));
+        const authority = reduced ? 0.58 : smoothstep(170, 210, inspectionAge) * (1 - smoothstep(310, 370, inspectionAge));
+        b = Math.max(b, relay);
+        c = Math.max(c, authority);
+        active = true;
+      } else if (Number.isFinite(inspectionAt.current)) {
+        inspectionAt.current = Number.NEGATIVE_INFINITY;
       }
       l0.color.copy(AMBER).multiplyScalar(a);
       l1.color.copy(AMBER).multiplyScalar(b);

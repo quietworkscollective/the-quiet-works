@@ -31,7 +31,7 @@ export const OFFICE_OBJECTS: readonly OfficeObjectSpec[] = [
     first: 'The enamel lid opens. The felt can be re-inked without changing any approval.',
     repeats: ['The ink-pad lid closes.', 'The ink-pad lid opens again.'], repeatActions: ['Close ink pad', 'Open ink pad'], caption: '[Enamel lid clacks]', soundKind: 'metal' },
   { id: 'machine', name: 'Approval machine', position: [1, 0.68, 4.9], action: 'Inspect machine',
-    first: 'The amber display faces the current receipt. An approval can expire on arrival.',
+    first: 'The display and receipt remain readable. The front inspection bay has a hinged cover.',
     repeats: ['The display and receipt remain readable. The front inspection bay has a hinged cover.'], caption: '[A small relay clicks]', soundKind: 'metal' },
   { id: 'lamp', name: 'Desk lamp', position: [-1.9, 1.2, 4.3], action: 'Turn lamp shade',
     first: 'The shade turns towards the wall. A loose sheet rests beneath its base.',
@@ -72,7 +72,7 @@ export const OFFICE_OBJECTS: readonly OfficeObjectSpec[] = [
   { id: 'conduit', name: 'Maintenance conduit cover', position: [3.7, 1.05, 5.4], action: 'Open conduit cover',
     first: 'The tethered cover opens over the conduit.',
     repeats: ['The cover remains tethered beside the exposed conduit.'], repeatActions: ['Inspect conduit'], caption: '[Tethered metal cover ticks]', soundKind: 'metal' },
-  { id: 'routing-tray', name: 'Routing tray', position: [-2.7, 0.95, 5.8], action: 'Separate routing slips',
+  { id: 'routing-tray', name: 'Routing tray', position: [-2.7, 0.95, 5.8], action: 'Read routing slip — The Exchange',
     first: 'Three paper slips separate in the tray.',
     repeats: ['The first slip lies on top.', 'The second slip lies on top.', 'The third slip lies on top.'], repeatActions: ['Read next routing slip'], caption: '[Three paper slips shuffle]', soundKind: 'paper', memoId: 'office-02' },
   { id: 'coat-hook', name: 'Coat hook', position: [-3.8, 1.55, 2], action: 'Lift empty hanger',
@@ -148,7 +148,7 @@ export interface OfficeState {
 export interface OfficeStore {
   getState(): OfficeState;
   subscribe(listener: () => void): () => void;
-  inspect(id: OfficeObjectId, stamps?: number): OfficeResponse;
+  inspect(id: OfficeObjectId, stamps?: number, recordFindings?: boolean): OfficeResponse;
   pause(): void;
   reink(): void;
   useInk(): void;
@@ -179,7 +179,7 @@ export function createOfficeStore(): OfficeStore {
   return {
     getState: () => state,
     subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
-    inspect(id, stamps = 0) {
+    inspect(id, stamps = 0, recordFindings = true) {
       const spec = OFFICE_OBJECTS.find((object) => object.id === id);
       if (!spec) throw new RangeError('Unknown office object');
       const first = state.uses[id] === 0;
@@ -189,8 +189,8 @@ export function createOfficeStore(): OfficeStore {
       };
       update({
         ...state, response,
-        discoveries: discoveries((OFFICE_FINDINGS[id] ?? []).filter(item =>
-          item !== 'office-09' && item !== 'office-11' && (id !== 'window' || item !== 'office-12') && (item !== 'office-13' || stamps >= 2))),
+        discoveries: recordFindings ? discoveries((OFFICE_FINDINGS[id] ?? []).filter(item =>
+          item !== 'office-09' && item !== 'office-11' && (id !== 'window' || item !== 'office-12') && (item !== 'office-13' || stamps >= 2))) : state.discoveries,
         uses: { ...state.uses, [id]: Math.min(state.uses[id] + 1, spec.repeats.length + 1) },
         variants: { ...state.variants, [id]: first ? 0 :
           id === 'drawer' || id === 'tiny-stamp'
@@ -198,7 +198,7 @@ export function createOfficeStore(): OfficeStore {
             : (state.variants[id] + 1) % spec.repeats.length },
         toggles: { ...state.toggles, [id]: id === 'drawer' || id === 'conduit' || id === 'tiny-stamp'
           ? true : !state.toggles[id] },
-        discoveredMemos: spec.memoId && !state.discoveredMemos.includes(spec.memoId)
+        discoveredMemos: recordFindings && spec.memoId && !state.discoveredMemos.includes(spec.memoId)
           ? [...state.discoveredMemos, spec.memoId] : state.discoveredMemos,
       });
       return response;

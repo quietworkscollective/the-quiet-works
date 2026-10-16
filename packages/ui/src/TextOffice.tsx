@@ -1,13 +1,13 @@
 import { OfficeApplicationReadout } from './OfficeApplicationReadout.tsx';
 import { useId, type CSSProperties } from 'react';
-import { HATCH_INTERIOR, OFFICE_PAPER_BEATS, STAMP_WORD, TEXT_MODE_SCENE } from '@tqw/engine';
+import { HATCH_INTERIOR, MEMO_001, OFFICE_LEGIBILITY, OFFICE_PAPER_BEATS, OFFICE_PLAY_EVIDENCE, STAMP_WORD, TEXT_MODE_SCENE } from '@tqw/engine';
 import { imprintPose, MAX_IMPRINTS } from './imprints.ts';
 import { MachineReadout } from './MachineReadout.tsx';
 import { MemoButton } from './MemoButton.tsx';
 import { StampButton } from './StampButton.tsx';
 import type { TextOfficeProps } from './types.ts';
 
-/** Lamps on the machine, one per escalation step. Decorative. */
+/** Five labels remain visible on the board; none of its indicators advances. */
 const LAMPS = 5;
 
 function poseStyle(index: number, position: 'left' | 'centre' | 'right'): CSSProperties {
@@ -46,15 +46,27 @@ export function TextOffice({
   onPressEnd,
   onOpenMemo,
   onReset,
+  onOpenDrawer,
+  onMarkInspection,
+  onPullHatch,
+  archiveAck,
+  hint = null,
+  onIdleTap,
+  optionalEvidence = null,
+  onOpenEvidence,
 }: TextOfficeProps) {
   const machineId = useId();
   const formId = useId();
   const revealed = state.memo.revealed;
   const imprints = Math.min(state.stamps, MAX_IMPRINTS);
-  const lit = Math.min(state.stamps, LAMPS);
+  const lit = 0;
   const [opening, ...rest] = TEXT_MODE_SCENE;
   const stencil = splitStencil(HATCH_INTERIOR);
   const beat = state.stamps <= 5 ? state.stamps : 6 + (state.stamps - 6) % 3;
+  const inspectionCopyVisible = state.playStep === 'drawer-open' || state.playStep === 'inspection-recorded' || state.playStep === 'resolved';
+  const inspectionMarked = state.playStep === 'inspection-recorded' || state.playStep === 'resolved';
+  const inspectionLines = OFFICE_PLAY_EVIDENCE['inspection-copy'].lines;
+  const openedEvidence = optionalEvidence === null ? null : OFFICE_PLAY_EVIDENCE[optionalEvidence];
 
   return (
     <div
@@ -71,7 +83,7 @@ export function TextOffice({
           </p>
           {noticeAction}
         </div>
-        <div className="tqw-office__scene">{opening !== undefined ? <p>{opening}</p> : null}</div>
+        <div className="tqw-office__scene" onClick={onIdleTap}>{opening !== undefined ? <p>{opening}</p> : null}</div>
       </div>
 
       <OfficeApplicationReadout stamps={state.stamps} />
@@ -82,7 +94,7 @@ export function TextOffice({
               The machine
             </h2>
             <div className="tqw-machine__body">
-              <div className="tqw-machine__lamps" aria-hidden="true">
+            <div className="tqw-machine__lamps" aria-hidden="true">
                 {Array.from({ length: LAMPS }, (_, i) => (
                   <span key={i} className="tqw-machine__lamp" data-lit={i < lit} />
                 ))}
@@ -118,7 +130,11 @@ export function TextOffice({
               variant="desk"
             />
             <div className="tqw-office__secondary">
+              {state.playStep === 'refused' ? <button type="button" className="tqw-link-button" onClick={onOpenDrawer}>Open drawer</button> : null}
+              {state.playStep === 'drawer-open' ? <button type="button" className="tqw-link-button" onClick={onMarkInspection}>Mark inspection copy</button> : null}
+              {state.playStep === 'inspection-recorded' ? <button type="button" className="tqw-link-button" onClick={onPullHatch}>Pull hatch</button> : null}
               {revealed ? <MemoButton onOpen={onOpenMemo} /> : null}
+              {onOpenEvidence ? <button type="button" className="tqw-link-button" onClick={() => onOpenEvidence('routing-slips')}>Read routing slip — The Exchange</button> : null}
               {state.stamps > 0 || revealed ? (
                 <button type="button" className="tqw-link-button" onClick={onReset}>
                   Start over
@@ -126,6 +142,17 @@ export function TextOffice({
               ) : null}
             </div>
           </div>
+
+          {onOpenEvidence ? <div className="tqw-office__curiosities" aria-label="Curiosities">
+            <h2>Curiosities</h2>
+            <button type="button" className="tqw-link-button" onClick={() => onOpenEvidence('register')}>Open register</button>
+            <button type="button" className="tqw-link-button" onClick={() => onOpenEvidence('conduit')}>Open conduit cover</button>
+          </div> : null}
+          {archiveAck && optionalEvidence === null && state.playStep !== 'resolved' ? <div className="tqw-office__archive-ack" aria-live="polite">
+            <p>Found: {archiveAck.title}</p>
+            <p>{archiveAck.stored ? 'Saved to Archive' : 'Found — available this visit'}</p>
+          </div> : null}
+          {hint ? <p className="tqw-office__hint" aria-live="polite">{hint}</p> : null}
         </div>
 
         <div className="tqw-office__sheet">
@@ -140,22 +167,16 @@ export function TextOffice({
           <div className="tqw-paper-action" data-beat={beat} role="group" aria-label="Paper action">
             <p>{OFFICE_PAPER_BEATS[beat]}</p>
             <div className="tqw-paper-action__stock" aria-hidden="true">
-              {beat === 2 ? <span className="tqw-paper-action__expiry">EXPIRED</span> : null}
-              {beat === 3 ? <span className="tqw-paper-action__carbon">Unsigned copy</span> : null}
-              {beat === 4 ? Array.from({ length: 6 }, (_, i) => <span key={i} className="tqw-paper-action__fold">Approval →</span>) : null}
-              {beat === 5 ? <span className="tqw-paper-action__empty">RECEIVING AUTHORITY — NOT INSTALLED</span> : null}
             </div>
           </div>
           <section className="tqw-form" aria-labelledby={formId}>
             <h2 id={formId} className="tqw-form__title">
-              <span className="tqw-form__no">Form W-1</span>
-              <span className="tqw-visually-hidden"> — </span>
-              <span className="tqw-form__name">Application for Certification of Worth</span>
+              <span className="tqw-form__name">{OFFICE_LEGIBILITY.form}</span>
             </h2>
             <div className="tqw-form__fields" aria-hidden="true">
-              <span />
-              <span />
-              <span />
+              <span>{OFFICE_LEGIBILITY.evidence}</span>
+              <span>{OFFICE_LEGIBILITY.applicant}</span>
+              <span>{OFFICE_LEGIBILITY.stampHere}</span>
             </div>
             <ul
               className="tqw-form__stamps"
@@ -179,6 +200,38 @@ export function TextOffice({
               })}
             </ul>
           </section>
+          {inspectionCopyVisible ? <div className="tqw-drawer-records">
+            <article className="tqw-inspection-copy" aria-label="Inspection copy" data-marked={inspectionMarked}>
+              <p>{inspectionLines[0]}</p>
+              <p>{inspectionLines[1]}</p>
+              <p>{inspectionLines[2]}</p>
+              {inspectionMarked ? <span className="tqw-seen-impression" aria-label="SEEN impression">SEEN</span> : null}
+              <span className="tqw-seen-stamp-face" aria-label="SEEN stamp face">SEEN</span>
+            </article>
+            <article className="tqw-duck-requisition" aria-label="Duck Requisition">
+              <p>{inspectionLines[3]}</p>
+              {inspectionLines.slice(4).map(line => <p key={line}>{line}</p>)}
+            </article>
+          </div> : null}
+          {openedEvidence ? <article className="tqw-office-evidence" aria-label={openedEvidence.title} aria-live="polite">
+              <h2>{openedEvidence.title}</h2>
+              {archiveAck ? <div className="tqw-office__archive-ack">
+                <p>Found: {archiveAck.title}</p>
+                <p>{archiveAck.stored ? 'Saved to Archive' : 'Found — available this visit'}</p>
+              </div> : null}
+              {openedEvidence.lines.map((line, index) => <p key={`${index}-${line}`}>{line}</p>)}
+            </article> : null}
+          {state.playStep === 'resolved' ? <>
+            <section className="tqw-office-completion" aria-label="Room completion" aria-live="polite">
+              <h2>Certification Office — mystery resolved</h2>
+              <p>Found: {archiveAck?.title ?? 'The empty authority bay'}</p>
+              <p>{archiveAck?.stored ? 'Saved to Archive' : 'Found — available this visit'}</p>
+            </section>
+            <article className="tqw-memo-preview" aria-label={MEMO_001.title}>
+              <h2>{MEMO_001.title}</h2>
+              {MEMO_001.body.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+            </article>
+          </> : null}
         </div>
       </div>
     </div>

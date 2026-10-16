@@ -455,11 +455,10 @@ class Engine {
     voices.glassHarmonic(this.envs.music, now + STILLNESS_GLASS_DELAY_S);
   }
 
-  private onMemoRevealed(now: number, source: 'overload' | 'stillness'): void {
-    const at =
-      source === 'overload'
-        ? (this.overloadAt ?? now) + seconds(TIMING.overloadMs + TIMING.memoAfterLandMs)
-        : now + STILLNESS_MEMO_DELAY_S;
+  private onMemoRevealed(now: number, source: 'overload' | 'stillness' | 'inspection'): void {
+    const at = source === 'overload'
+      ? (this.overloadAt ?? now) + seconds(TIMING.overloadMs + TIMING.memoAfterLandMs)
+      : source === 'stillness' ? now + STILLNESS_MEMO_DELAY_S : now;
     this.overloadAt = null;
     if (source === 'stillness' && this.ambience) {
       const revealAt = Math.max(at, now);

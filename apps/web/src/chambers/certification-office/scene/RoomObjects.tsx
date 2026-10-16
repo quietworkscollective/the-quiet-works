@@ -1,13 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useMemo, useState, useSyncExternalStore } from 'react';
-import { useThree, type ThreeEvent } from '@react-three/fiber';
-import { BoxGeometry, CylinderGeometry, SphereGeometry, MeshBasicMaterial, MeshStandardMaterial, CanvasTexture, SRGBColorSpace, type Material, type Group } from 'three';
-import { OFFICE_OBJECTS, type OfficeObjectId, type OfficeStore, type OfficeArchive } from '@tqw/engine';
+import { useLoader, useThree, type ThreeEvent } from '@react-three/fiber';
+import { BoxGeometry, CylinderGeometry, PlaneGeometry, SphereGeometry, MeshBasicMaterial, MeshStandardMaterial, CanvasTexture, SRGBColorSpace, TextureLoader, type Material, type Group } from 'three';
+import { OFFICE_OBJECTS, type OfficeObjectId, type OfficeStore, type OfficeArchive, type OfficePlayStep } from '@tqw/engine';
 import { batchFittings } from './batchFittings.ts';
 import { useHeroModel } from './HeroModel.tsx';
 import { OfficeAsset } from './OfficeAsset.tsx';
 import { officeAssetPose, officeAssetSlot, officeInteractionAnchor } from './assetSlots.ts';
 import { useScene } from './context.ts';
 import { boxAt, merge } from './geometry.ts';
+import seenStampFaceUrl from './seen-stamp-face.svg?url';
 
 function label(text: string, rotateForCounter = false) {
   const canvas = document.createElement('canvas');
@@ -24,13 +25,14 @@ function label(text: string, rotateForCounter = false) {
   return { texture, material: new MeshBasicMaterial({map: texture}) };
 }
 
-export function RoomObjects({ office, archive, overloaded, shadow, onInspect, onFocus, onEntrance }: {
-  office: OfficeStore; archive: OfficeArchive; overloaded: boolean; shadow: boolean;
+export function RoomObjects({ office, archive, playStep, overloaded, shadow, onInspect, onFocus, onEntrance }: {
+  office: OfficeStore; archive: OfficeArchive; playStep: OfficePlayStep; overloaded: boolean; shadow: boolean;
   onInspect(id: OfficeObjectId): void; onFocus(id: OfficeObjectId | null): void; onEntrance(): void;
 }) {
   const root=useRef<Group>(null);
   const deskHero=useHeroModel('desk'), windowHero=useHeroModel('employee-window');
   const { materials, cursor } = useScene();
+  const stampTexture = useLoader(TextureLoader, seenStampFaceUrl);
   const state = useSyncExternalStore(office.subscribe, office.getState);
   const opened = useSyncExternalStore(archive.subscribe, archive.getState);
   const reverse = opened['office-14']?.item.fields?.['reverse'] ?? '';
@@ -46,6 +48,8 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
     const cube = new BoxGeometry(1, 1, 1);
     const sphere = new SphereGeometry(1, 12, 8);
     const cylinder = new CylinderGeometry(1, 1, 1, 24);
+    const stampFace = new PlaneGeometry(.045, .022);
+    const stampFaceMaterial = new MeshBasicMaterial({ map: stampTexture, toneMapped: false });
     const stack = merge(Array.from({length: 12}, (_,i) => boxAt(.5,.034,.45, Math.sin(i)*.004, -.208+i*.037, Math.cos(i)*.004)));
     const chair = merge([
       boxAt(.5,.09,.5,0,.05,0),boxAt(.48,.48,.06,0,.45,.24),
@@ -65,17 +69,18 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
       panel: label(overloaded ? 'SERVICE — RELEASED' : 'SERVICE — LOCKED'),
       clock: label(clockHeading),
       register: label(heading), issue: label(issue), tiny: label(inscription), ticket: label(ticket),
+      inspection: label('INSPECTION COPY'), seen: label('SEEN'), seenBox: label('SEEN □'),
       bell: label(bellTicket, true),
       door: label('SIDE EXIT'),
     };
-    return {cube,sphere,cylinder,stack,chair,frame,hook,hit,outline,figure,dark,doorPaint,shadowMaterial,labels};
+    return {cube,sphere,cylinder,stampFace,stampFaceMaterial,stack,chair,frame,hook,hit,outline,figure,dark,doorPaint,shadowMaterial,labels};
   // Only changed inscriptions recreate their texture set; ordinary inspections keep it stable.
-  }, [overloaded, reverse, heading, issue, inscription, ticket, bellTicket, clockHeading]);
+  }, [overloaded, reverse, heading, issue, inscription, ticket, bellTicket, clockHeading, stampTexture]);
   useEffect(() => {
     invalidate();
     return () => {
-      for (const g of [parts.cube,parts.sphere,parts.cylinder,parts.stack,parts.chair,parts.frame,parts.hook]) g.dispose();
-      for (const m of [parts.hit,parts.outline,parts.figure,parts.dark,parts.doorPaint,parts.shadowMaterial]) m.dispose();
+      for (const g of [parts.cube,parts.sphere,parts.cylinder,parts.stampFace,parts.stack,parts.chair,parts.frame,parts.hook]) g.dispose();
+      for (const m of [parts.hit,parts.outline,parts.figure,parts.dark,parts.doorPaint,parts.shadowMaterial,parts.stampFaceMaterial]) m.dispose();
       for (const item of Object.values(parts.labels)) { item.texture.dispose(); item.material.dispose(); }
     };
   }, [parts,invalidate]);
@@ -86,7 +91,9 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
     <mesh key={position.join(',')} geometry={parts.cube} material={material} scale={[...size]} position={[...position]} />
   );
   const inkOpen = state.toggles['ink-pad'];
-  const drawerOpen = state.uses.drawer > 0;
+  const drawerOpen = state.uses.drawer > 0 || playStep === 'drawer-open' || playStep === 'inspection-recorded' || playStep === 'resolved';
+  const inspectionCopyVisible = playStep === 'drawer-open' || playStep === 'inspection-recorded' || playStep === 'resolved';
+  const inspectionMarked = playStep === 'inspection-recorded' || playStep === 'resolved';
   const signTurned = state.toggles.sign;
   const windowOpen = state.toggles.window;
   useLayoutEffect(() => {
@@ -117,11 +124,17 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
           {box([.031,.012,.019],[0,.027,-.061],materials.brassWorn)}
           <mesh geometry={parts.sphere} material={parts.dark} scale={.004} position={[-.018,.042,-.052]} />
           {box([.065,.002,.035],[.095,-.013,-.04],parts.labels.ticket.material)}
+          {inspectionCopyVisible ? <group position={[-.095,.015,.055]}>
+            {box([.2,.003,.14],[0,0,0],materials.boneSheet)}
+            {box([.17,.002,.035],[0,.003,-.035],parts.labels.inspection.material)}
+            {box([.055,.002,.035],[.03,.003,.035],inspectionMarked ? parts.labels.seen.material : parts.labels.seenBox.material)}
+          </group> : null}
         </group> : null}
       </group>
       <group userData={{ bake: 'dynamic' }} position={[-.45,.75,4]} rotation={[state.uses['tiny-stamp'] ? Math.PI/2 : 0,0,0]}>
         {box([.045,.035,.025],[0,0,0],materials.wood)}
         {box([.045,.002,.025],[0,-.018,0],parts.labels.tiny.material)}
+        <mesh geometry={parts.stampFace} material={parts.stampFaceMaterial} position={[0,-.019,0]} rotation={[Math.PI / 2,0,0]} />
       </group>
       <group {...officeAssetPose('register')} userData={{officeObjectId:'register'}}>
         {box([.32,.04,.24],[0,0,0],materials.enamelDark)}

@@ -84,8 +84,8 @@ export function PaperBeats({
 
   useEffect(() => director.subscribe((event) => {
     const s = sim.current;
-    if (event.type === 'contact' && store.getState().stamps < 5) {
-      s.step = store.getState().stamps + 1;
+    if (event.type === 'contact' && store.getState().playStep === 'ready') {
+      s.step = 1;
       s.preparing = true;
     }
     if (event.type === 'lift') { s.inked = event.n; s.liftAt = event.at; }

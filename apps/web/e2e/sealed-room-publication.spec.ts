@@ -4,16 +4,16 @@ import { openMenu } from './helpers.ts';
 
 const rooms = chambersForBuild(REPO_ROOT, false);
 const sealed = rooms.filter(room => room.status === 'sealed');
+const emptyArchiveRooms = rooms.filter(room => room.status === 'sealed');
 
 // Keep the live publication guards alongside the unchanged protected page specification.
 test('sealed rooms expose only their names and status in doors, clippings and the archive', async ({ page }) => {
   await page.goto('/?mode=text');
   const archive = page.locator('#archive');
-  await expect(archive.getByRole('heading', { level: 3 })).toHaveText(rooms.map(room => room.title));
-  await expect(archive.locator('.tqw-archive__room-count')).toHaveText(rooms.map(room =>
-    room.status === 'sealed' ? 'Not yet open.' : `0 of ${room.findings.papers} papers found.`));
-  await expect(archive.locator('.tqw-archive__sealed-row')).toHaveCount(
-    rooms.filter(room => room.status === 'open').reduce((total, room) => total + room.findings.papers, 0));
+  await expect(archive.getByRole('heading', { level: 3 })).toHaveText(emptyArchiveRooms.map(room => room.title));
+  await expect(archive.locator('.tqw-archive__room-count')).toHaveText(emptyArchiveRooms.map(() => 'Not yet open.'));
+  await expect(archive.locator('.tqw-archive__room[data-room="certification-office"]')).toHaveCount(0);
+  await expect(archive.locator('.tqw-archive__sealed-row')).toHaveCount(0);
   for (const room of sealed) {
     await expect(archive.locator(`[data-room="${room.id}"]`)).toHaveText(`${room.title}Not yet open.`);
     const door = page.getByRole('button', { name: `${room.title}, not yet open`, exact: true });

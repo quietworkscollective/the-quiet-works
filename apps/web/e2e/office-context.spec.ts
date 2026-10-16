@@ -13,7 +13,7 @@ async function openOfficeAtArrival(page: Page) {
 
 test('Office controls are contextual and its accessible stamp acts at the desk station', async ({ page }) => {
   const app = await openOfficeAtArrival(page);
-  await expect(page.getByRole('button', { name: 'Hold to stamp the form', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Hold to stamp the form', exact: true })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeHidden();
   await toggleOfficePlaces(page);
   await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeHidden();

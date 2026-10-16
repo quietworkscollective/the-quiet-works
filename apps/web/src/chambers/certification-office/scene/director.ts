@@ -2,6 +2,9 @@ import { OFFICE_PRESS_TIMING, type CertificationStore, type Cue, type MachineLin
 import { beatDuration } from './beatMotion.ts';
 import { TIMING } from '../../../timing.ts';
 
+/** Give one final render a chance to present before releasing the temporary press lock. */
+const RESPONSE_FRAME_GRACE_MS = 250;
+
 /**
  * Cue timing resolved once, for every scene component.
  *
@@ -74,6 +77,7 @@ export class Director {
   private invalidateFn: (() => void) | null = null;
   private response: { step: number; readyAt: number; reducedReadyAt: number; generation: number } | null = null;
   private responseWake: ReturnType<typeof setTimeout> | null = null;
+  private responseFallback: ReturnType<typeof setTimeout> | null = null;
   private generation = 0;
   private frameStartedAt = 0;
   private reducedMotion = false;
@@ -99,7 +103,7 @@ export class Director {
     return this.detach;
   }
 
-  /** A clock deadline requests a frame; only the completed draw may release the idle clock. */
+  /** A deadline requests a frame; a bounded fallback prevents a stopped renderer trapping input. */
   beginFrame(now: number, reducedMotion = false): void {
     this.frameStartedAt = now;
     if (this.reducedMotion !== reducedMotion) {
@@ -119,6 +123,8 @@ export class Director {
     this.response = null;
     if (this.responseWake !== null) clearTimeout(this.responseWake);
     this.responseWake = null;
+    if (this.responseFallback !== null) clearTimeout(this.responseFallback);
+    this.responseFallback = null;
     queueMicrotask(() => {
       if (response.generation === this.generation) this.store.dispatch({ type: 'RESPONSE_SETTLED', step: response.step });
     });
@@ -129,12 +135,33 @@ export class Director {
     this.response = null;
     if (this.responseWake !== null) clearTimeout(this.responseWake);
     this.responseWake = null;
+    if (this.responseFallback !== null) clearTimeout(this.responseFallback);
+    this.responseFallback = null;
   }
 
   private wakeForResponse(now: number): void {
     if (this.responseWake !== null) clearTimeout(this.responseWake);
     this.responseWake = null;
-    if (this.response) this.responseWake = setTimeout(() => { this.responseWake = null; this.invalidateFn?.(); }, Math.max(0, this.responseReadyAt() - now));
+    if (this.responseFallback !== null) clearTimeout(this.responseFallback);
+    this.responseFallback = null;
+    if (this.response) {
+      this.responseWake = setTimeout(() => {
+        this.responseWake = null;
+        this.invalidateFn?.();
+        const response = this.response;
+        if (!response) return;
+        this.responseFallback = setTimeout(() => {
+          this.responseFallback = null;
+          if (this.response !== response) return;
+          // A renderer can stop submitting frames after a context or driver failure. Finishing
+          // this transient reply only unlocks input; the play step still requires its own action.
+          this.response = null;
+          queueMicrotask(() => {
+            if (response.generation === this.generation) this.store.dispatch({ type: 'RESPONSE_SETTLED', step: response.step });
+          });
+        }, RESPONSE_FRAME_GRACE_MS);
+      }, Math.max(0, this.responseReadyAt() - now));
+    }
   }
 
   subscribe(listener: DirectorListener): () => void {
@@ -164,10 +191,14 @@ export class Director {
         return;
       }
       case 'reply': {
+        const actionReply = cue.step > this.store.getState().stamps;
+        if (actionReply) this.liftAt = now;
         const printAt = this.liftAt + TIMING.replyDelayMs;
         this.printEnd = printAt + TIMING.printMs;
-        this.response = { step: cue.step, readyAt: Math.max(this.printEnd, printAt + beatDuration(cue.step)), reducedReadyAt: printAt + 120, generation: this.generation };
-        this.wakeForResponse(now);
+        if (!actionReply) {
+          this.response = { step: cue.step, readyAt: Math.max(this.printEnd, printAt + beatDuration(cue.step)), reducedReadyAt: printAt + 120, generation: this.generation };
+          this.wakeForResponse(now);
+        }
         this.emit({ type: 'reply', step: cue.step, line: cue.line, printAt, printEnd: this.printEnd });
         return;
       }
@@ -199,7 +230,7 @@ export class Director {
         } else {
           this.emit({
             type: 'memo-revealed',
-            source: 'stillness',
+            source: cue.source,
             hatchAt: now,
             slideAt: now + QUIET_HATCH_MS,
           });

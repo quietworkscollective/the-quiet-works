@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
+import { engageGameWindow } from './helpers.ts';
 
 const OFFICE = '/certification-office';
 type Station = 'desk' | 'machine' | 'certificate' | 'service';
@@ -50,6 +51,7 @@ test('opens on the core area, visits every authored station, and returns to the 
   await page.goto(OFFICE);
   await expect(page.locator('.tqw-app')).toHaveAttribute('data-mode', '3d');
   await ready(page);
+  await engageGameWindow(page);
   await expectStation(page, 'machine');
   await expect(page.locator('.tqw-game__mode')).toHaveText('Stations');
   await expect(page.getByRole('button', { name: 'Return to the corridor' })).toBeVisible();
@@ -96,6 +98,7 @@ test('free walking input cannot move off authored stations, and a held step adva
   test.setTimeout(180_000);
   await page.goto(OFFICE);
   await ready(page);
+  await engageGameWindow(page);
   const canvas = page.locator('.tqw-canvas');
   const before = await canvas.getAttribute('data-pose');
   const box = await canvas.boundingBox();

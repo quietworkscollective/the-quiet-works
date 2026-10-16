@@ -4,7 +4,7 @@ import css from './styles.css?raw';
 import { MemoButton } from './MemoButton.tsx';
 import { StampButton } from './StampButton.tsx';
 import { TextOffice } from './TextOffice.tsx';
-import { stamped } from './testUtils.ts';
+import { stateAfter } from './testUtils.ts';
 
 /**
  * These tests run the real stylesheet through jsdom's cascade, so they check what the
@@ -82,9 +82,12 @@ describe('dock hierarchy after the memo is found', () => {
 });
 
 function office(revealed: boolean): RenderResult {
+  const state = revealed
+    ? stateAfter({ type: 'PRESS' }, { type: 'RELEASE' }, { type: 'DRAWER_OPENED' }, { type: 'INSPECTION_MARKED' }, { type: 'PULL_HATCH' })
+    : stateAfter({ type: 'PRESS' }, { type: 'RELEASE' });
   return render(
     <TextOffice
-      state={stamped(revealed ? 5 : 2)}
+      state={state}
       notice={TEXT_MODE_NOTICE.chosen}
       reducedMotion={false}
       onPressStart={() => {}}
@@ -105,6 +108,7 @@ describe('text mode controls', () => {
   });
 
   it('the desk stamp steps back once the memo is found', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
     const before = px(stampOf(office(false)).minHeight);
     const after = px(stampOf(office(true)).minHeight);
     expect(after).toBeLessThan(before);

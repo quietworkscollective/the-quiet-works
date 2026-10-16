@@ -22,6 +22,7 @@ export const VIEWPOINTS = {
   underside: { x: -0.45, z: 2.05, yawDeg: 180, pitchDeg: -25 },
   clock: { x: 0, z: 5.95, yawDeg: 180, pitchDeg: 25 },
   machine: { x: .2, z: .25, yawDeg: 184, pitchDeg: -10 },
+  'machine-detail': { x: 1, z: 3.3, yawDeg: 180, pitchDeg: -10 },
   bell: { x: 1, z: 3.3, yawDeg: 192, pitchDeg: -2 },
   service: { x: 2.8, z: 5.3, yawDeg: 164, pitchDeg: -10 },
   maintenance: { x: 2.7, z: 4.1, yawDeg: 140, pitchDeg: -20 },

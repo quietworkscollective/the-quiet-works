@@ -1,11 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { BufferAttribute, type BufferGeometry } from 'three';
+import type { ThreeEvent } from '@react-three/fiber';
 import { documentChannelGeometry } from './documentChannel.ts';
 import { boxAt, merge } from './geometry.ts';
 import type { Materials } from './materials.ts';
 
 /** The archive is real depth behind a physical barrier; its repeating modules share one draw. */
-export function Room({ materials, heroWindow = false }: { materials: Materials; heroWindow?: boolean }) {
+export function Room({ materials, heroWindow = false, onIdleTap }: { materials: Materials; heroWindow?: boolean; onIdleTap(): void }) {
 
   const geometry = useMemo(() => {
     const concrete = [
@@ -56,8 +57,8 @@ export function Room({ materials, heroWindow = false }: { materials: Materials; 
   useEffect(() => () => { for (const item of Object.values(geometry)) item.dispose(); }, [geometry]);
   return (
     <group dispose={null}>
-      <mesh geometry={geometry.concrete} material={materials.concreteFrame} receiveShadow />
-      <mesh geometry={geometry.floor} material={materials.floor} receiveShadow />
+      <mesh geometry={geometry.concrete} material={materials.concreteFrame} receiveShadow onClick={(event: ThreeEvent<MouseEvent>) => { event.stopPropagation(); onIdleTap(); }} />
+      <mesh geometry={geometry.floor} material={materials.floor} receiveShadow onClick={(event: ThreeEvent<MouseEvent>) => { event.stopPropagation(); onIdleTap(); }} />
       <mesh geometry={geometry.archiveConcrete} material={materials.concreteFrame} receiveShadow />
       <mesh geometry={geometry.archiveFloor} material={materials.floor} receiveShadow />
       <mesh geometry={geometry.ribs} material={materials.pillar} />

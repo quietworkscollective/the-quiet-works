@@ -73,6 +73,8 @@ function OfficeScene(props: OfficeSceneProps) {
   const handlers = useRef(props);
   const loseCleanup = useRef<(() => void) | null>(null);
   const mounted = useRef(false);
+  const cleanupGeneration = useRef(0);
+  const lossCanvas = useRef<HTMLCanvasElement | null>(null);
 
   const coarse = useMemo(() => window.matchMedia(COARSE_QUERY).matches, []);
   const dpr = useMemo<[number, number]>(
@@ -94,11 +96,18 @@ function OfficeScene(props: OfficeSceneProps) {
   // that event fires within the same commit. Unmounting is not a lost context.
   useLayoutEffect(() => {
     mounted.current = true;
+    cleanupGeneration.current++;
     return () => {
       mounted.current = false;
-      loseCleanup.current?.();
-      loseCleanup.current = null;
-      director.setInvalidate(null);
+      const generation = ++cleanupGeneration.current;
+      // StrictMode replays layout-effect cleanup while retaining the Canvas instance. Let the
+      // entire commit finish so its second setup can cancel this teardown before the next task.
+      window.setTimeout(() => {
+        if (mounted.current || cleanupGeneration.current !== generation) return;
+        loseCleanup.current?.();
+        loseCleanup.current = null;
+        director.setInvalidate(null);
+      });
     };
   }, [director]);
 
@@ -109,31 +118,9 @@ function OfficeScene(props: OfficeSceneProps) {
       gl.toneMapping = ACESFilmicToneMapping;
       // Exposure stays at 1: the mood is set by the light intensities, not by lifting the whole frame.
       gl.toneMappingExposure = 1;
-      const onLost = () => {
-        if (mounted.current) handlers.current.onContextLost();
-      };
-      gl.domElement.addEventListener('webglcontextlost', onLost);
-      const previous = state.scene.onAfterRender;
-      const metrics: typeof previous = (...args) => {
-        previous.apply(state.scene, args);
-        if (args[1] !== state.scene || args[2] !== state.camera) return;
-        director.afterFrame();
-        queueMicrotask(() => {
-          if (!mounted.current || !containerRef.current) return;
-          let lights = 0; state.scene.traverse(object => { if ('isLight' in object && object.isLight) lights++; });
-          const data = containerRef.current.dataset;
-          data['drawCalls'] = String(gl.info.render.calls);
-          data['triangles'] = String(gl.info.render.triangles);
-          data['lights'] = String(lights);
-          data['frame'] = String(gl.info.render.frame);
-        });
-      };
-      state.scene.onAfterRender = metrics;
       director.setInvalidate(state.invalidate);
       const cancelLog = import.meta.env.DEV ? logFirstFrame(state) : () => {};
       loseCleanup.current = () => {
-        gl.domElement.removeEventListener('webglcontextlost', onLost);
-        if (state.scene.onAfterRender === metrics) state.scene.onAfterRender = previous;
         cancelLog();
       };
     },
@@ -143,6 +130,13 @@ function OfficeScene(props: OfficeSceneProps) {
   const onPrepared = useCallback(() => {
     queueMicrotask(() => {
       if (!mounted.current) return;
+      const canvas = containerRef.current?.querySelector('canvas') ?? null;
+      if (canvas && lossCanvas.current !== canvas) {
+        lossCanvas.current = canvas;
+        canvas.addEventListener('webglcontextlost', () => {
+          if (mounted.current) handlers.current.onContextLost();
+        });
+      }
       if (containerRef.current) containerRef.current.dataset['ready'] = 'true';
       setPrepared(true);
       handlers.current.onReady?.();
@@ -199,6 +193,7 @@ function OfficeScene(props: OfficeSceneProps) {
             framedObject={props.framedObject}
             onCue={props.onCue}
             onInspect={props.onInspect}
+            onIdleTap={props.onIdleTap}
             onFocusObject={props.onFocusObject}
             onEntrance={props.onEntrance}
             container={containerRef}
@@ -237,6 +232,7 @@ interface SceneProps {
   framedObject: OfficeSceneProps['framedObject'];
   onCue: OfficeSceneProps['onCue'];
   onInspect: OfficeSceneProps['onInspect'];
+  onIdleTap: OfficeSceneProps['onIdleTap'];
   onFocusObject: OfficeSceneProps['onFocusObject'];
   onEntrance: OfficeSceneProps['onEntrance'];
   container: React.RefObject<HTMLDivElement | null>;
@@ -259,10 +255,25 @@ function pressHandlers(handlers: React.RefObject<OfficeSceneProps>): Pick<SceneC
   };
 }
 
-function Scene({ assets, deferredModels, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
+function Scene({ assets, deferredModels, store, director, motion, view, coarse, selectedPosition, navigation, office, archive, shadow, freshInk, focusedObject, framedObject, onCue, onInspect, onIdleTap, onFocusObject, onEntrance, container, overlay, handlers, onStampTarget, onPrepared }: SceneProps) {
   // Sample before pose updates; a slow draw must not claim it presented a later resting pose.
   useFrame(() => director.beginFrame(performance.now(), motion.reduced), -100);
   const mountedScene=useRef(false);
+  useFrame(({ gl, scene }) => {
+    // useFrame runs before the draw. Its microtask runs after the renderer has updated its counts,
+    // without taking part in the scene.onAfterRender chain used by readiness and baked lighting.
+    queueMicrotask(() => {
+      if (!mountedScene.current || !container.current) return;
+      director.afterFrame();
+      let lights = 0;
+      scene.traverse(object => { if ('isLight' in object && object.isLight) lights++; });
+      const data = container.current.dataset;
+      data['drawCalls'] = String(gl.info.render.calls);
+      data['triangles'] = String(gl.info.render.triangles);
+      data['lights'] = String(lights);
+      data['frame'] = String(gl.info.render.frame);
+    });
+  });
   useLayoutEffect(()=>{mountedScene.current=true;return ()=>{mountedScene.current=false;};},[]);
   const certification = useSyncExternalStore(store.subscribe, store.getState);
   const objects = useSyncExternalStore(office.subscribe, office.getState);
@@ -270,6 +281,10 @@ function Scene({ assets, deferredModels, store, director, motion, view, coarse, 
   const room = useThree((s) => s.scene);
   const invalidate = useThree((s) => s.invalidate);
   const camera = useThree(s => s.camera);
+  const onInactiveSceneTap = useCallback(() => {
+    if (navigation.wasDrag() || navigation.moving || certification.processing) return;
+    onIdleTap();
+  }, [navigation, certification.processing, onIdleTap]);
 
   const baseMaterials = useMemo(() => createMaterials(gl.capabilities.getMaxAnisotropy(), coarse), [gl, coarse]);
   const materials = useMemo(() => ({...baseMaterials,
@@ -340,7 +355,7 @@ function Scene({ assets, deferredModels, store, director, motion, view, coarse, 
       <pointLight position={[-3.45,2.15,6.75]} color="#f3cf96" intensity={.9} distance={5.6} decay={2} />
 
       <group dispose={null}>
-        <Room materials={materials} heroWindow={assets.models.has('office-hero-employee-window')} />
+        <Room materials={materials} heroWindow={assets.models.has('office-hero-employee-window')} onIdleTap={onInactiveSceneTap} />
         <BakedSpace space="office" onReady={onBakeReady} />
         <Application />
         <Sunlight />
@@ -349,14 +364,14 @@ function Scene({ assets, deferredModels, store, director, motion, view, coarse, 
         <group userData={{ bake: 'dynamic' }}>
           <InspectionLamp understood={shadow || certification.memo.revealed || objects.uses.sign > 0 || objects.uses.conduit > 0} />
         </group>
-        <RoomObjects office={office} archive={archive} overloaded={certification.phase === 'overloaded'} shadow={shadow} onInspect={id => { if (!navigation.wasDrag()) onInspect(id); }} onFocus={onFocusObject} onEntrance={() => { if (!navigation.wasDrag()) onEntrance(); }} />
+        <RoomObjects office={office} archive={archive} playStep={certification.playStep} overloaded={certification.phase === 'overloaded'} shadow={shadow} onInspect={id => { if (!navigation.wasDrag()) onInspect(id); }} onFocus={onFocusObject} onEntrance={() => { if (!navigation.wasDrag()) onEntrance(); }} />
 
         <group {...officeAssetPose('press-rig')} userData={{officeObjectId:'press'}}>
           <StampPress freshInk={freshInk} selectedPosition={selectedPosition} windowClipWorld={[-2.25, 1.08, 7.85]} channelDirection={[-2, -0.9]} />
         </group>
         <group userData={{ bake: 'dynamic' }}><BankerLight towardWall={objects.toggles.lamp} /></group>
         <group {...officeAssetPose('machine-rig')} userData={{officeObjectId:'machine'}} scale={[1.7, 2.9, 1.9]}>
-          <Machine />
+          <Machine inspectionCount={objects.uses.machine} />
         </group>
       </group>
       <OfficeCamera selectedPosition={selectedPosition} navigation={navigation} onStampTarget={onStampTarget} overlay={overlay} onGesture={() => handlers.current.onGesture()} />
@@ -389,6 +404,12 @@ function logFirstFrame(state: RootState): () => void {
   dev.__tqwScene = state.scene;
   return () => {
     cancelAnimationFrame(frame);
-    if (dev.__tqwGl === gl) { delete dev.__tqwGl; delete dev.__tqwCamera; delete dev.__tqwScene; delete dev.__tqwFreeze; }
+    // StrictMode can replay layout-effect cleanup while a Suspense scene is revealed. Keep the
+    // workbench handle when that simulated unmount leaves this canvas attached to the document.
+    queueMicrotask(() => {
+      if (!gl.domElement.isConnected && dev.__tqwGl === gl) {
+        delete dev.__tqwGl; delete dev.__tqwCamera; delete dev.__tqwScene; delete dev.__tqwFreeze;
+      }
+    });
   };
 }
