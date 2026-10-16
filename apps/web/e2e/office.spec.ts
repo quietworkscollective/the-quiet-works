@@ -151,20 +151,17 @@ test.describe('3D office', () => {
 });
 
 test.describe('sound', () => {
-test('no AudioContext exists until deliberate entry; the first stamp reuses it', async ({ page }) => {
+test('no AudioContext exists until a deliberate stamp press', async ({ page }) => {
     await countAudioContexts(page);
     await page.goto(OFFICE);
     await expect(app(page)).toHaveAttribute('data-mode', '3d');
-    expect(await audioContexts(page)).toBe(0);
     // Settings are in the Menu (ADR 0003).
     const menu = await openMenu(page);
     await menu.getByRole('button', { name: 'Reduced motion' }).click();
     await menu.getByRole('button', { name: 'Captions' }).click();
     await closeMenu(page);
-    expect(await audioContexts(page)).toBe(0);
     await prepareDesk(page);
-    // Enter is the explicit gesture that unlocks the shared sound engine.
-    expect(await audioContexts(page)).toBe(1);
+    expect(await audioContexts(page)).toBe(0);
 
     await stampWithKeyboard(page);
     await expect(app(page)).toHaveAttribute('data-processing', 'false');
