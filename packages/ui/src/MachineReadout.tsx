@@ -48,7 +48,6 @@ export function MachineReadout({ state, visible }: MachineReadoutProps) {
           <span className="tqw-readout__sep">
             {/* Non-breaking before the dash keeps it on the display's line when the readout wraps. */}
             <span aria-hidden="true">{'\u00a0— '}</span>
-            <span className="tqw-visually-hidden">. </span>
           </span>
           <span key={version} className="tqw-readout__receipt">
             <span className="tqw-readout__receipt-text">{receipt}</span>
