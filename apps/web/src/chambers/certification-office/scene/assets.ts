@@ -29,7 +29,11 @@ export function useOfficeAssets(onFailure: () => void): OfficeResources | null {
    handles.push(handle);models.set(id,handle.object);
   });
   const scanLoads=OFFICE_SURFACES.map(async id=>{
-   const handle=surface(id,{repeat:id==='concrete'? .5 : id==='linoleum'?.5:1,colour:id==='linoleum'?'#5e5545':'#ffffff'});
+   const handle=surface(id,{
+    repeat:id==='concrete'? .5 : id==='linoleum'?.5:1,
+    // Keep empty shell and floor surfaces warm but low so the practicals make the pools.
+    colour:id==='linoleum'?'#46301f':id==='concrete'?'#50331f':'#ffffff',
+   });
    scans.push(handle);await handle.ready;surfaces.set(id,handle.material);
   });
   Promise.all([...modelLoads,...scanLoads]).then(()=>{

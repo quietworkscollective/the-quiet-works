@@ -4,7 +4,6 @@ import { createFirstPerson, type Hold, type Pose } from '../../../firstPerson/co
 import type { InputControls } from '../../../firstPerson/bindings.ts';
 
 export const EYE_HEIGHT = 1.62;
-export type Station = 'room' | 'desk';
 export const ARRIVAL: Pose = { x: 0, z: 0.8, yawDeg: 188.02, pitchDeg: -4.58 };
 export const DESK: Pose = { x: -1, z: 2.9, yawDeg: 180, pitchDeg: -25 };
 export const VIEWPOINTS = {
@@ -22,7 +21,7 @@ export const VIEWPOINTS = {
   lamp: { x: -1.9, z: 2.9, yawDeg: 180, pitchDeg: -12 },
   underside: { x: -0.45, z: 2.05, yawDeg: 180, pitchDeg: -25 },
   clock: { x: 0, z: 5.95, yawDeg: 180, pitchDeg: 25 },
-  machine: { x: 1, z: 3.3, yawDeg: 180, pitchDeg: -25 },
+  machine: { x: .2, z: .25, yawDeg: 184, pitchDeg: -10 },
   bell: { x: 1, z: 3.3, yawDeg: 192, pitchDeg: -2 },
   service: { x: 2.8, z: 5.3, yawDeg: 164, pitchDeg: -10 },
   maintenance: { x: 2.7, z: 4.1, yawDeg: 140, pitchDeg: -20 },
@@ -31,6 +30,8 @@ export const VIEWPOINTS = {
   exit: { x: 2.8, z: 4.7, yawDeg: 147, pitchDeg: 0 },
 } satisfies Record<string, Pose>;
 export type Viewpoint = keyof typeof VIEWPOINTS;
+export type Station = Viewpoint;
+export const OFFICE_STATIONS = ['desk', 'machine', 'certificate', 'service'] as const satisfies readonly Viewpoint[];
 
 // Standing clearance around the installed furniture, including the transformed machine.
 const FURNITURE: Bounds = [
@@ -120,22 +121,22 @@ export interface Navigation {
 export function createNavigation(): Navigation {
   let beforeCut: (() => void) | null = null;
   let wasDrag: (() => boolean) | null = null;
-  const controller = createFirstPerson({ start: ARRIVAL, bounds: ROOM_BOUNDS, beforeCut: () => beforeCut?.() });
   let fov = horizontalFov(48, 1.6);
+  const controller = createFirstPerson({ start: stagePose(VIEWPOINTS.machine, fov), bounds: ROOM_BOUNDS, beforeCut: () => beforeCut?.() });
   const turning = new Map<string, Hold>();
   const turnInput = () => Math.sign([...turning.values()].reduce<number>((sum, dir) => sum + dir, 0));
-  let station: Station = 'room';
+  let station: Station = 'machine';
   let requestedAt: number | null = null;
   let authored = false;
   let generation = 0;
-  let named: Viewpoint = 'arrival';
+  let named: Viewpoint = 'machine';
   const listeners = new Set<() => void>();
   const notify = () => { for (const listener of listeners) listener(); };
   const wake = () => {
     if ((controller.active || turnInput()) && requestedAt === null) requestedAt = performance.now();
     notify();
   };
-  const release = () => { station = 'room'; authored = false; generation++; };
+  const release = () => { authored = false; generation++; };
   const releaseTurn = () => turning.clear();
   const halt = () => {
     release(); releaseTurn();
@@ -145,21 +146,13 @@ export function createNavigation(): Navigation {
     requestedAt = null;
   };
   const controls: InputControls = {
-    hold(source, dir) {
-      if (dir && !controller.reducedMotion) release();
-      controller.hold(source, dir); wake();
-    },
+    hold() {},
     turn(source, dir) {
-      if (dir && !controller.reducedMotion) { release(); controller.cancelGlide(); }
       controller.turn(source, 0);
       turning.set(source, controller.reducedMotion ? 0 : dir); wake();
     },
-    nudge(metres) {
-      if (metres && !controller.reducedMotion) release();
-      controller.nudge(metres); wake();
-    },
+    nudge() {},
     look(yaw, pitch) {
-      if (yaw || pitch) release();
       controller.look(stageLook(controller.pose.yawDeg, yaw, fov), pitch); wake();
     },
   };
@@ -177,7 +170,7 @@ export function createNavigation(): Navigation {
       const done = () => {
         if (token !== generation) return;
         authored = false;
-        station = point === 'desk' ? 'desk' : 'room';
+        station = point;
         requestedAt = null;
         notify();
       };
@@ -194,24 +187,24 @@ export function createNavigation(): Navigation {
       leg(); wake();
     },
     stepBack() {
-      halt();
-      if (controller.reducedMotion) controller.cutTo(ARRIVAL);
-      else {
-        controller.look(0, ARRIVAL.pitchDeg - controller.pose.pitchDeg);
-        controller.nudge(-0.45);
-      }
-      wake();
+      navigation.stepViewpoint(-1);
     },
     stepViewpoint(dir) {
-      const names = Object.keys(VIEWPOINTS) as Viewpoint[];
-      navigation.approach(names[(names.indexOf(named) + dir + names.length) % names.length] ?? 'arrival', true);
+      const at = OFFICE_STATIONS.findIndex(point => point === named);
+      const next = at < 0 ? (dir > 0 ? 0 : OFFICE_STATIONS.length - 1) : (at + dir + OFFICE_STATIONS.length) % OFFICE_STATIONS.length;
+      navigation.approach(OFFICE_STATIONS[next] ?? 'desk', true);
     },
     input(forward, turn) {
       const hold = (value: number): Hold => Math.sign(value) as Hold;
-      controls.hold('button', hold(forward));
+      if (forward) navigation.stepViewpoint(Math.sign(forward) as -1 | 1);
       controls.turn('button', hold(turn));
     },
-    stop() { const current = station; halt(); station = current; notify(); },
+    stop() {
+      const destination = authored ? named : null;
+      halt();
+      if (destination) { controller.cutTo(stagePose(VIEWPOINTS[destination], fov)); station = destination; }
+      notify();
+    },
     releaseInput() {
       releaseTurn();
       // A press or reader owns input, but an authored approach must still reach its station.
@@ -243,9 +236,13 @@ export function createNavigation(): Navigation {
     },
     setReducedMotion(reduced) {
       if (reduced === controller.reducedMotion) return;
-      const current = station;
-      release(); releaseTurn(); station = current;
+      const destination = authored ? named : null;
+      release(); releaseTurn();
       controller.setReducedMotion(reduced);
+      if (destination) {
+        controller.cutTo(stagePose(VIEWPOINTS[destination], fov));
+        station = destination;
+      }
       if (!controller.active) requestedAt = null;
       wake();
     },

@@ -7,17 +7,21 @@ async function openOfficeAtArrival(page: Page) {
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-position', /1.62/, { timeout: sceneTimeout(30_000) });
   await expect(page.locator('.tqw-canvas')).toHaveAttribute('data-ready', 'true', { timeout: sceneTimeout(30_000) });
   const app = page.locator('.tqw-app');
-  await expect(app).toHaveAttribute('data-station', 'room');
+  await expect(app).toHaveAttribute('data-station', 'machine');
   return app;
 }
 
-test('Office controls are contextual and its accessible stamp operates directly from arrival', async ({ page }) => {
+test('Office controls are contextual and its accessible stamp acts at the desk station', async ({ page }) => {
   const app = await openOfficeAtArrival(page);
   await expect(page.getByRole('button', { name: 'Hold to stamp the form', exact: true })).toBeHidden();
   await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeHidden();
   await toggleOfficePlaces(page);
   await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeHidden();
+  await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
+  await expect(app).toHaveAttribute('data-station', 'desk');
   const stamp = page.getByRole('button', { name: 'Hold to stamp the form', exact: true });
+  await expect(stamp).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Impression position' })).toBeVisible();
   await stamp.focus();
   await page.keyboard.down('Space');
   await expect(app).toHaveAttribute('data-pressing', 'true');
@@ -33,6 +37,8 @@ test('Office controls are contextual and its accessible stamp operates directly 
 test('a focused Office cue survives movement and clears when focus leaves its control', async ({ page }) => {
   const app = await openOfficeAtArrival(page);
   await toggleOfficePlaces(page);
+  await page.getByRole('button', { name: 'Approach the desk', exact: true }).click();
+  await expect(app).toHaveAttribute('data-station', 'desk');
   const stamp = page.getByRole('button', { name: 'Hold to stamp the form', exact: true });
   await stamp.focus();
   await stamp.press('Space');

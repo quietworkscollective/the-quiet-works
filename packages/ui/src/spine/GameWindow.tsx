@@ -6,6 +6,7 @@ import { useFullscreen } from './useFullscreen.ts';
 
 /** Where the chrome begins to appear, and is fully there: the last fifth of the run, as the smoke clears. */
 const CHROME_FROM = 0.8;
+const OFFICE_STATION_MODE = 'Stations';
 
 /**
  * The game window (ADR 0003): the page's centrepiece, full bleed, with no frame. Its own strip and
@@ -156,7 +157,11 @@ export function GameWindow({
               <p className="tqw-game__enter-line">{GAME_WINDOW_COPY.enterLine}</p>
             </div>
           )}
-          <p className="tqw-game__mode">{engaged ? GAME_WINDOW_COPY.modeEngaged : GAME_WINDOW_COPY.modeResting}</p>
+          <p className="tqw-game__mode">
+            {engaged
+              ? location.includes('Certification Office') ? OFFICE_STATION_MODE : GAME_WINDOW_COPY.modeEngaged
+              : GAME_WINDOW_COPY.modeResting}
+          </p>
         </div>
       </div>
     </section>

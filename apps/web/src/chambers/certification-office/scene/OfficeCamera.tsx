@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { bindInput, type InputBinding, type InputControls } from '../../../firstPerson/bindings.ts';
+import { bindInput, keyIntent, type InputBinding, type InputControls } from '../../../firstPerson/bindings.ts';
 import { DEFAULT_TUNING } from '../../../firstPerson/controller.ts';
 import { createDissolve } from '../../../firstPerson/dissolve.ts';
 import { applyPose, lensFor, lookScale } from '../../../firstPerson/three.ts';
@@ -20,6 +20,8 @@ export interface OfficeCameraProps {
 
 const FOV = { landscape: 48, portrait: 58 };
 const dialogOpen = () => document.querySelector('dialog[open], [role="dialog"]:not([hidden])') !== null;
+const keyboardControl = (target: EventTarget | null) =>
+  target instanceof Element && target.closest('button, a[href], input, textarea, select, summary, [role="button"], [role="link"], [role="menuitem"], [role="tab"], [role="dialog"], dialog, [contenteditable="true"], [data-fp-ignore]') !== null;
 
 export function OfficeCamera({ navigation, onStampTarget, overlay, onGesture }: OfficeCameraProps) {
   const { store, motion, view } = useScene();
@@ -79,7 +81,9 @@ export function OfficeCamera({ navigation, onStampTarget, overlay, onGesture }: 
       // Inside a chamber the game window is engaged (ADR 0003); a dialog or a held press hands
       // input back, and the wrappers above still gate every move.
       mode: () => (enabled() ? 'engaged' : 'page'),
-      reducedMotion: () => motion.reduced,
+      // The binding's stationary path turns movement presses and vertical swipes into station
+      // steps. Navigation still receives the visitor's actual reduced-motion setting above.
+      reducedMotion: () => true,
       lookScale: () => {
         const s = get().size;
         return lookScale(s.width, s.height, camera instanceof PerspectiveCamera ? camera.fov : FOV.landscape);
@@ -89,6 +93,17 @@ export function OfficeCamera({ navigation, onStampTarget, overlay, onGesture }: 
       onActivity: invalidate,
       onStep: dir => navigation.stepViewpoint(dir),
     });
+    const turnSource = 'station-keyboard';
+    const turnDown = (event: KeyboardEvent) => {
+      if (!event.defaultPrevented || event.repeat || keyboardControl(event.target)) return;
+      const intent = keyIntent(event.code);
+      if (intent?.kind === 'turn') navigation.controls.turn(turnSource, intent.dir);
+    };
+    const turnUp = (event: KeyboardEvent) => {
+      if (keyIntent(event.code)?.kind === 'turn') navigation.controls.turn(turnSource, 0);
+    };
+    window.addEventListener('keydown', turnDown);
+    window.addEventListener('keyup', turnUp);
     navigation.setWasDrag(() => input.wasDrag());
     const suspend = () => { input.releaseAll(); navigation.stop(); };
     const checkOwnership = () => {
@@ -102,6 +117,8 @@ export function OfficeCamera({ navigation, onStampTarget, overlay, onGesture }: 
     document.addEventListener('visibilitychange', visibility);
     return () => {
       off(); observer.disconnect();
+      window.removeEventListener('keydown', turnDown);
+      window.removeEventListener('keyup', turnUp);
       window.removeEventListener('blur', suspend);
       document.removeEventListener('visibilitychange', visibility);
       input.dispose(); navigation.setWasDrag(null); navigation.stop();

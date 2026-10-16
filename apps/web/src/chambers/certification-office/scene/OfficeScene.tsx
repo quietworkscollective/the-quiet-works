@@ -55,7 +55,7 @@ const OFFICE_LAMPS: readonly AtmosphereLamp[] = [
 
 // Module-level so a parent re-render never hands fiber a "new" configuration, which would reset
 // the standing camera framing.
-const CAMERA_PROPS = { fov: 48, near: 0.05, far: 45, position: [0, 1.62, 0.8] } as const;
+const CAMERA_PROPS = { fov: 48, near: 0.05, far: 45, position: [.2, 1.62, .25] } as const;
 const GL_PROPS = { antialias: true, powerPreference: 'high-performance' } as const;
 
 /**
@@ -334,10 +334,10 @@ function Scene({ assets, deferredModels, store, director, motion, view, coarse, 
 
   return (
     <SceneContext.Provider value={context}>
-      <color attach="background" args={['#514f47']} />
-      <fog attach="fog" args={['#514f47', 13, 38]} />
-      <hemisphereLight args={['#d4dad5', '#6c6355', .40]} />
-      <pointLight position={[-3.45,2.15,6.75]} color="#f3cf96" intensity={5} distance={7} decay={2} />
+      <color attach="background" args={['#100805']} />
+      <fog attach="fog" args={['#140b06', 13, 38]} />
+      <hemisphereLight args={['#87552f', '#362116', .12]} />
+      <pointLight position={[-3.45,2.15,6.75]} color="#f3cf96" intensity={.9} distance={5.6} decay={2} />
 
       <group dispose={null}>
         <Room materials={materials} heroWindow={assets.models.has('office-hero-employee-window')} />

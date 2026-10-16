@@ -25,11 +25,11 @@ export function Sunlight() {
   for(let i=1;i<3;i++)frame.push(boxAt(1.5,.02,.025,-2.25,2.7+i*.4,7.9));
   return {texture,patch,glass,frame:merge(frame),plane:new PlaneGeometry(1,1)};
  },[]);
- useEffect(()=>{art.patch.opacity=fallback ? .12 : .055;},[art,fallback]);
+ useEffect(()=>{art.patch.opacity=fallback ? .055 : .028;},[art,fallback]);
  useEffect(()=>()=>{art.texture.dispose();art.patch.dispose();art.glass.dispose();art.frame.dispose();art.plane.dispose();},[art]);
  return <group dispose={null}>
   <primitive object={target} />
-  <spotLight position={[-2.25,3.3,7.9]} target={target} color="#ffe4c4" intensity={32} distance={14} angle={.50} penumbra={.3} decay={2} />
+  <spotLight position={[-2.25,3.3,7.9]} target={target} color="#ffe4c4" intensity={22} distance={12} angle={.46} penumbra={.38} decay={2} />
   <mesh name="office-high-window" geometry={art.plane} material={art.glass} position={[-2.25,3.3,8.12]} rotation={[0,Math.PI,0]} scale={[1.5,1.2,1]} />
   <mesh geometry={art.frame} material={materials.frame} />
   <mesh name="office-sun-floor" geometry={art.plane} material={art.patch} position={[-1.7,.005,3.9]} rotation={[-Math.PI/2,0,-.24]} scale={[2.1,3.9,1]} />

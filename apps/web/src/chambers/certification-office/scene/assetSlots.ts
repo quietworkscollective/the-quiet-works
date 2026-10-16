@@ -3,6 +3,12 @@ import { OFFICE_OBJECTS, type OfficeObjectId } from '@tqw/engine';
 /** Metres and radians. Catalogue references are local licensed assets, never executable URLs. */
 export type OfficeZone = 'floor' | 'walls' | 'ceiling' | 'desk' | 'machine' | 'window' | 'archive';
 type Triple = readonly [number, number, number];
+export interface OfficeSupport {
+  readonly kind: 'rests-on' | 'attached-to';
+  readonly target: string;
+  readonly surfaceY: number;
+  readonly contactShadow: { readonly width: number; readonly depth: number };
+}
 export interface OfficeAssetSlot {
   readonly id: string;
   readonly zone: OfficeZone;
@@ -17,6 +23,7 @@ export interface OfficeAssetSlot {
   readonly modelRotation?: Triple;
   readonly modelValue?: number;
   readonly fittings?: readonly OfficeObjectId[];
+  readonly support?: OfficeSupport;
 }
 const slot = (id: string, zone: OfficeZone, position: Triple, footprint: readonly [number, number],
   rotation: Triple = [0,0,0], placeholder: OfficeAssetSlot['placeholder'] = 'pending', variant?: string): OfficeAssetSlot => ({
@@ -115,11 +122,32 @@ const OFFICE_PLACEMENTS: readonly OfficeAssetSlot[] = [
   slot('clerk-typewriter','window',[-2.2,1.01,8.5],[.43,.38],[0,0,0]),
   slot('window-plant','window',[-2.92,1,7.85],[.17,.19]),
   slot('archive-kettle','archive',[-3.65,1.325,5.97],[.33,.25]),
-  slot('archive-anglepoise','window',[-1.58,1,7.96],[.21,.62]),
+  slot('archive-anglepoise','window',[-1.58,1.084,7.96],[.21,.62]),
   ...Array.from({length:80},(_,i)=>slot(`archive-books-${i+1}`,'archive',[i%16<8?-3.52:3.52,.23+Math.floor((i%8)/2)*.82,9.4+Math.floor(i/16)*3+(i%2)*.85],[.88,.26],[0,i%16<8?Math.PI/2:-Math.PI/2,0])),
   ...['a','b','c'].map((variant,i)=>slot(`desk-ledger-${variant}`,'desk',[-2.02+i*.085,.82,4.18],[.08,.3],[0,Math.PI,0])),
   ...['a','b'].map((variant,i)=>slot(`archive-file-${variant}`,'archive',[-3.35+i*.12,1.325,6.02],[.09,.3])),
 ];
+/** Physical support and contact are authored in the same world coordinates as the prop slots. */
+export const OFFICE_SUPPORT_HARDWARE = {
+  trayRunners: [
+    { size: [.34,.024,.022] as Triple, position: [-3.02,.93,5.70] as Triple },
+    { size: [.34,.024,.022] as Triple, position: [-3.02,.93,5.90] as Triple },
+  ],
+  lampSillClamp: [
+    { size: [.18,.018,.28] as Triple, position: [-1.58,1.075,7.88] as Triple },
+    { size: [.18,.205,.018] as Triple, position: [-1.58,.9725,7.74] as Triple },
+    { size: [.18,.018,.28] as Triple, position: [-1.58,.879,7.88] as Triple },
+  ],
+} as const;
+
+const OFFICE_SUPPORTS: Readonly<Record<string, OfficeSupport>> = {
+  'routing-tray': {kind:'rests-on',target:'tray-runners',surfaceY:.942,contactShadow:{width:.4,depth:.31}},
+  'attended-stack': {kind:'rests-on',target:'attended-cabinet',surfaceY:1.325,contactShadow:{width:.62,depth:.56}},
+  'pencil-cup': {kind:'rests-on',target:'office-desk',surfaceY:.82,contactShadow:{width:.18,depth:.16}},
+  'archive-anglepoise': {kind:'rests-on',target:'lamp-sill-clamp',surfaceY:1.084,contactShadow:{width:.27,depth:.21}},
+  'archive-file-a': {kind:'rests-on',target:'records-cabinet',surfaceY:1.325,contactShadow:{width:.14,depth:.35}},
+  'archive-file-b': {kind:'rests-on',target:'records-cabinet',surfaceY:1.325,contactShadow:{width:.14,depth:.35}},
+};
 type Visual = Pick<OfficeAssetSlot,'catalogueId'|'modelScale'|'modelOffset'|'modelRotation'|'modelValue'|'fittings'>;
 const VISUALS: Readonly<Record<string,Visual>> = {
   'visitor-chair': {catalogueId:'chair-painted-wood'},
@@ -158,8 +186,10 @@ export const OFFICE_ASSET_SLOTS: readonly OfficeAssetSlot[] = OFFICE_PLACEMENTS.
   if(item.id.startsWith('archive-bay-'))visual={catalogueId:'office-hero-archive-bay-distant',modelRotation:item.rotation};
   if(item.id.startsWith('archive-books-'))visual={catalogueId:Number(item.id.split('-').at(-1))%2?'book-row-60':'book-row-90'};
   const depth=item.zone==='archive' && item.position[2]>=9 ? (item.position[2]<15 ? .45 : .2) : 1;
-  return {...item,...visual,modelValue:depth};
+  const support = OFFICE_SUPPORTS[item.id];
+  return {...item,...visual,modelValue:depth,...(support ? {support} : {})};
 });
+
 const slots = new Map(OFFICE_ASSET_SLOTS.map(item => [item.id,item]));
 export function officeAssetSlot(id: string): OfficeAssetSlot {
   const item=slots.get(id);
