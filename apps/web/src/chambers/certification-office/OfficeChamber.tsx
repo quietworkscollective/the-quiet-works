@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ARCHIVE_COPY,
   OFFICE_LEGIBILITY,
@@ -41,16 +41,6 @@ const OPTIONAL_EVIDENCE_BY_OBJECT: Partial<Record<OfficeObjectId, OfficeEvidence
   'routing-tray': 'routing-slips', register: 'register', conduit: 'conduit',
 };
 const hasCoarsePointer = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
-const stationControlStyle: CSSProperties = {
-  position: 'absolute', right: 'max(16px, env(safe-area-inset-right))', top: '50%', transform: 'translateY(-50%)',
-  display: 'flex', flexDirection: 'column', gap: 12, zIndex: 12,
-};
-const stationButtonStyle: CSSProperties = {
-  appearance: 'none', display: 'grid', placeItems: 'center', width: 56, height: 56, padding: 0, borderRadius: '50%',
-  border: '1.5px solid color-mix(in srgb, #ddd5c8 70%, transparent)', background: 'color-mix(in srgb, #151a20 62%, transparent)',
-  color: '#ddd5c8', touchAction: 'none', WebkitTapHighlightColor: 'transparent',
-};
-
 /**
  * The office keeps its state for the whole visit: leaving through the door and coming back finds
  * the forms as they were. "Start over" is the only reset. Nothing is stored beyond the page.
@@ -481,14 +471,6 @@ export default function OfficeChamber(props: ChamberProps) {
             </Suspense>
           </SceneBoundary>
           <div className="tqw-visually-hidden"><MachineReadout state={state} visible /><OfficeApplicationReadout stamps={state.stamps} /></div>
-          {touchDevice ? <div data-fp-ignore role="group" aria-label="Office stations" style={stationControlStyle}>
-            <button type="button" aria-label="Next view" style={stationButtonStyle} onClick={() => navigation.stepViewpoint(1)}>
-              <span aria-hidden="true">⌄</span>
-            </button>
-            <button type="button" aria-label="Previous view" style={stationButtonStyle} onClick={() => navigation.stepViewpoint(-1)}>
-              <span aria-hidden="true">⌃</span>
-            </button>
-          </div> : null}
           {cue && (!placesOpen || cue.focused) ? <div data-fp-ignore className="tqw-context-cue" data-focused={cue.focused} data-side={cue.side}
             style={{ left: cue.x, top: cue.y }}>
             <button type="button" onFocus={() => setFocused(cue.id)} onBlur={() => setFocused(null)}
@@ -519,6 +501,14 @@ export default function OfficeChamber(props: ChamberProps) {
           {hint ? <div className="tqw-office-play-hint" aria-live="polite">{hint}</div> : null}
         </main>
       )}
+      {!textMode && touchDevice ? <div data-fp-ignore className="tqw-office-stations" role="group" aria-label="Office stations">
+        <button type="button" className="tqw-office-stations__button" aria-label="Next view" onClick={() => navigation.stepViewpoint(1)}>
+          <span aria-hidden="true">⌄</span>
+        </button>
+        <button type="button" className="tqw-office-stations__button" aria-label="Previous view" onClick={() => navigation.stepViewpoint(-1)}>
+          <span aria-hidden="true">⌃</span>
+        </button>
+      </div> : null}
       <details data-fp-ignore className="tqw-places" onToggle={event => setPlacesOpen(event.currentTarget.open)}>
         <summary>Places and actions</summary>
         <div className="tqw-places__content" onWheel={event => event.stopPropagation()}>

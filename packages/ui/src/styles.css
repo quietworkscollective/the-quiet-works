@@ -2120,3 +2120,12 @@ button {
 .tqw-desk-options[data-at-desk="false"]:not(:focus-within) { display:none; }
 /* Early keyboard access stays available without a permanent Office panel. */
 .tqw-app[data-mode="3d"] .tqw-places:not([open]):not(:focus-within) { opacity:0; pointer-events:none; }
+.tqw-app[data-station] .tqw-places__content { max-height:calc(100svh - 20rem); }
+.tqw-office-stations__button { appearance:none; display:grid; place-items:center; width:56px; height:56px; padding:0; border-radius:50%; border:1.5px solid color-mix(in srgb, #ddd5c8 70%, transparent); background:color-mix(in srgb, #151a20 62%, transparent); color:#ddd5c8; touch-action:none; -webkit-tap-highlight-color:transparent; }
+@media (max-width:600px) {
+  .tqw-app[data-station] { --tqw-office-station-rail:calc(72px + env(safe-area-inset-right, 0px)); }
+  .tqw-app[data-station] .tqw-stage { right:var(--tqw-office-station-rail); }
+  .tqw-app[data-station] .tqw-office-stations { position:absolute; z-index:12; top:50%; right:0; width:var(--tqw-office-station-rail); transform:translateY(-50%); display:grid; justify-items:center; align-items:center; gap:12px; box-sizing:border-box; padding-right:env(safe-area-inset-right, 0px); background:linear-gradient(90deg, #15100c00, #15100cd9 20%); }
+  .tqw-app[data-station] .tqw-places { top:8rem; }
+  .tqw-app[data-station] .tqw-places__content { max-height:calc(100svh - 25rem); }
+}
