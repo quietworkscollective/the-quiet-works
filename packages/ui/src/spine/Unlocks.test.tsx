@@ -74,16 +74,19 @@ describe('Unlocks: the archive section', () => {
     expectNoUnfoundArchiveCopy(section);
   });
 
-  it('groups found items by room, even when a room is sealed elsewhere on the site', () => {
+  it('does not render findings stored under a sealed room', () => {
     const chambers = CHAMBERS.map((chamber) => chamber.id === 'exchange' ? { ...chamber, status: 'sealed' as const } : chamber);
     const store = createMemoryDiscoveryStore();
     store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
-    store.record('exchange', { id: 'memo-2', kind: 'memo' });
+    const sealedFinding = { id: 'memo-2', kind: 'memo' as const };
+    store.record('exchange', sealedFinding);
     const { section } = setup({ chambers }, store);
     const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((heading) => heading.textContent)).toEqual(['The Apartment', 'The Exchange']);
-    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(2);
-    expect(papersOf(section)).toHaveLength(2);
+    expect(rooms.map((heading) => heading.textContent)).toEqual(['The Apartment']);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(1);
+    expect(section.querySelector('[data-room="exchange"]')).toBeNull();
+    expect(papersOf(section)).toHaveLength(1);
+    expect(store.getState().found['exchange']).toEqual([sealedFinding]);
     expectNoUnfoundArchiveCopy(section);
   });
 });

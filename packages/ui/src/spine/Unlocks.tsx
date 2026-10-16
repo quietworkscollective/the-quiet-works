@@ -50,6 +50,7 @@ export function Unlocks({ store, chambers, describe, onReread, onReplaced }: Unl
   }, [confirming]);
 
   const rooms = chambers.flatMap((chamber) => {
+    if (chamber.status !== 'open') return [];
     const findings = state.found[chamber.id] ?? [];
     return findings.length > 0 ? [{ chamber, findings }] : [];
   });
