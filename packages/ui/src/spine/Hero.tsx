@@ -14,8 +14,8 @@ const FONTS_TIMEOUT_MS = 1500;
 /**
  * The first screen (ADR 0003): a bold, centred UNHELD with a small .space under its last letter,
  * the tagline, one quiet line of live details from this visit, a scroll cue, and a direct way in.
- * The 3D world is behind it (the same renderer as the game); the lockup sits on a gentle coal
- * scrim, laid by CSS, so it reads over any frame of the camera's slow drift.
+ * The 3D world is behind it (the same renderer as the game); a full-height coal scrim and a slow,
+ * light smoke plane keep the lettering clear over each frame of the camera's drift.
  *
  * The document is real: the heading is "UNHELD", the details are one paragraph, and both ways
  * onward are controls with names. `.space` is secondary notation, not part of the heading's name.
@@ -126,6 +126,7 @@ export function Hero({ menu, details, onScrollCue, onEnter, text, progress, keyf
       data-arrive={still ? 'done' : initial}
     >
       <div className="tqw-hero__scrim" aria-hidden="true" />
+      {text ? null : <div className="tqw-hero__smoke" aria-hidden="true" />}
       <div className="tqw-hero__menu">{menu}</div>
       <div ref={lockup} className="tqw-hero__lockup" onPointerEnter={gather} onFocus={gather}>
         <h1 id="tqw-hero-title" className="tqw-hero__name">
