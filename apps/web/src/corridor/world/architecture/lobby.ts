@@ -169,10 +169,20 @@ export function buildLobby(b: Buckets, styles: OpeningStyles): void {
   const coreZ = (CORRIDOR_START_Z + LOBBY_ZONE.zNear) / 2;
   const coreDepth = END_WALL_THICKNESS - 0.01;
   const coreStyle: Style = { shade: wallShade, uv: { du: 0.4, dv: 0.2 } };
+  // The end faces are buried only 5 mm behind the finished walls. The corridor bake's position
+  // quantization can push them in front of those faces, where their separate lightmap charts fight.
+  const coreEndCaps = ['+z', '-z'] as const;
   const coreHalf = INNER_OPENING.width / 2 - 0.003;
   const pierWidth = HW - coreHalf;
   for (const sign of [-1, 1] as const) {
-    box(b.plaster, [sign * (HW + coreHalf) / 2, LOBBY_ZONE.height / 2, coreZ], [pierWidth, LOBBY_ZONE.height, coreDepth], 0, coreStyle);
+    box(
+      b.plaster,
+      [sign * (HW + coreHalf) / 2, LOBBY_ZONE.height / 2, coreZ],
+      [pierWidth, LOBBY_ZONE.height, coreDepth],
+      0,
+      coreStyle,
+      coreEndCaps,
+    );
   }
   const coreHead = LOBBY_ZONE.height - INNER_OPENING.height + 0.003;
   box(
@@ -181,6 +191,7 @@ export function buildLobby(b: Buckets, styles: OpeningStyles): void {
     [2 * coreHalf, coreHead, coreDepth],
     0,
     coreStyle,
+    coreEndCaps,
   );
 
   // Cornice all round.
