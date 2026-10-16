@@ -128,24 +128,39 @@ describe('contrast', () => {
     expect(contrastHex(color('--page-text'), color('--page-surface'))).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('the hero lays a light coal wash over the live world and a plate behind the lockup', () => {
+  it('the hero lays a smooth, full-height coal wash under a soft lockup glow', () => {
     const scrim = declarationsOf('.tqw-hero__scrim');
-    expect(scrim).toMatch(/rgba\(23, 25, 24, var\(--hero-wash, 0\.15\)\)/);
-    // Heavy enough to hold the type, light enough that the doorway and the warm light stay visible.
-    for (const [, alpha = ''] of scrim.matchAll(/rgba\(23, 25, 24, ([\d.]+)\)/g)) expect(Number(alpha)).toBeLessThanOrEqual(0.55);
+    expect(scrim).toMatch(/inset:\s*0/);
+    expect(scrim).toMatch(/linear-gradient\(\s*to bottom/);
+    expect(scrim).toMatch(/rgba\(23, 25, 24, 0\.34\) 0%/);
+    expect(scrim).toMatch(/rgba\(23, 25, 24, 0\.2\) 100%/);
+    expect(scrim).toMatch(/radial-gradient\(/);
+    for (const [, alpha = ''] of scrim.matchAll(/rgba\(23, 25, 24, ([\d.]+)\)/g)) expect(Number(alpha)).toBeLessThanOrEqual(0.34);
+
+    const smoke = declarationsOf('.tqw-hero__smoke');
+    expect(smoke).toMatch(/rgba\(233, 228, 218, 0\.23\)/);
+    expect(smoke).toMatch(/rgba\(189, 184, 174, 0\.16\)/);
+    expect(smoke).toMatch(/tqw-hero-smoke-drift 9s/);
+    expect(smoke).toMatch(/will-change:\s*transform/);
   });
 
-  it('the plate is attached to the lockup, so it follows the type at every width: solid across it, fading to nothing', () => {
+  it('the lockup glow feathers from the title without a broad dark panel', () => {
     const plate = declarationsOf('.tqw-hero__lockup::before');
-    expect(plate).toMatch(/radial-gradient\(\s*ellipse at 50% 50%/);
-    expect(plate).toMatch(/rgba\(23, 25, 24, var\(--hero-plate, 0\.92\)\) var\(--plate-solid, 90%\)/);
+    expect(plate).toMatch(/radial-gradient\(\s*ellipse closest-side at 50% 50%/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, var\(--hero-plate, 0\.8\)\) 0%/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, 0\.74\) 48%/);
+    expect(plate).toMatch(/rgba\(23, 25, 24, 0\.28\) 85%/);
     expect(plate).toMatch(/rgba\(23, 25, 24, 0\) 100%/);
     expect(plate).toMatch(/pointer-events:\s*none/);
     expect(plate).toMatch(/z-index:\s*-1/);
-    // Anchored to the type, not to the lockup's top padding: it starts where the padding for the menu ends.
-    expect(plate).toMatch(/inset:\s*calc\(4\.5rem - var\(--plate-y, 2\.5rem\)\) calc\(var\(--plate-x, 4rem\) \* -1\) calc\(1rem - var\(--plate-y, 2\.5rem\)\)/);
+    expect(plate).toMatch(/inset:\s*calc\(var\(--plate-y, 8rem\) \* -1\) calc\(var\(--plate-x, 4rem\) \* -1\)/);
     expect(declarationsOf('.tqw-hero__lockup')).toMatch(/padding-block:\s*4\.5rem 1rem/);
     expect(declarationsOf('.tqw-hero__lockup')).toMatch(/isolation:\s*isolate/);
+  });
+
+  it('keeps the scroll cue free of a background pseudo-panel', () => {
+    expect(declarationsOf('.tqw-hero__cue')).toMatch(/background:\s*none/);
+    expect(css).not.toMatch(/\.tqw-hero__cue::before\s*\{/);
   });
 
   it('the plate reaches past the lockup, so the hero clips it sideways and the page never scrolls sideways at 320 px', () => {
@@ -820,9 +835,9 @@ describe('the hero lockup\'s motion (the founder\'s direction: the word is about
   });
 
   it('pauses every animation while the hero is off screen', () => {
-    // The plate's own fade (on ::before) is paused too: an animation left running off screen still makes frames.
+    // The local glow and drifting smoke are paused too; no compositor work continues off screen.
     const rule = declarationsOf(
-      ".tqw-hero[data-visible='false'] :is(.tqw-hero__word, .tqw-hero__arrive, .tqw-hero__glyph, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details),\n.tqw-hero[data-visible='false'] .tqw-hero__lockup::before",
+      ".tqw-hero[data-visible='false'] :is(.tqw-hero__word, .tqw-hero__arrive, .tqw-hero__glyph, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details),\n.tqw-hero[data-visible='false'] .tqw-hero__lockup::before,\n.tqw-hero[data-visible='false'] .tqw-hero__smoke",
     );
     // !important: the arrival rules are more specific, and each animation shorthand resets the play state.
     expect(rule).toMatch(/animation-play-state:\s*paused !important/);

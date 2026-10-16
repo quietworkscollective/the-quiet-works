@@ -237,18 +237,38 @@ html {
   pointer-events: auto;
 }
 
-/*
- * A gentle coal scrim over the live world: a fade at the very top for the menu and a 15% wash over
- * everything. The doorway and the warm light stay visible. The lockup's own plate (below) is what
- * holds the type's contrast.
- */
+/* A full-height wash of warm coal, feathered from the top into the lit floor without a cutoff. */
 .tqw-hero__scrim {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(23, 25, 24, 0.55), rgba(23, 25, 24, 0) 9rem),
-    rgba(23, 25, 24, var(--hero-wash, 0.15));
+    radial-gradient(ellipse 82% 58% at 50% 44%, rgba(23, 25, 24, 0.16) 0%, rgba(23, 25, 24, 0) 100%),
+    linear-gradient(
+      to bottom,
+      rgba(23, 25, 24, 0.34) 0%,
+      rgba(23, 25, 24, 0.24) 26%,
+      rgba(23, 25, 24, 0.17) 62%,
+      rgba(23, 25, 24, 0.2) 100%
+    );
+}
+
+/* One textured plane of warm, pale haze; transform-only drift avoids per-frame repainting. */
+.tqw-hero__smoke {
+  position: absolute;
+  inset: -4%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.78;
+  background:
+    radial-gradient(ellipse 39% 16% at 22% 34%, rgba(233, 228, 218, 0.23) 0%, rgba(233, 228, 218, 0.11) 37%, rgba(233, 228, 218, 0) 74%),
+    radial-gradient(ellipse 43% 17% at 76% 49%, rgba(220, 216, 208, 0.2) 0%, rgba(220, 216, 208, 0.09) 39%, rgba(220, 216, 208, 0) 75%),
+    radial-gradient(ellipse 54% 18% at 47% 78%, rgba(189, 184, 174, 0.16) 0%, rgba(189, 184, 174, 0.07) 38%, rgba(189, 184, 174, 0) 74%);
+  transform: translate3d(-1.1%, 0.3%, 0) scale(1.01);
+  transform-origin: center;
+  animation: tqw-hero-smoke-drift 9s ease-in-out infinite;
+  will-change: transform;
 }
 
 .tqw-hero__menu {
@@ -260,12 +280,12 @@ html {
 
 /* The lockup's visual centre sits near 43% down: the row above the foot, centred. */
 .tqw-hero__lockup {
-  /* Cover the moving letters over the rebuilt lobby; keep the wash local to the type. */
-  --plate-x: 8rem;
-  --plate-y: 6rem;
-  --plate-solid: 80%;
-  --hero-plate: 0.82;
+  /* A broad feathered glow gives the lettering local contrast without a dark panel. */
+  --plate-x: clamp(3.5rem, 8vw, 6rem);
+  --plate-y: clamp(8rem, 14vh, 12rem);
+  --hero-plate: 0.8;
   position: relative;
+  z-index: 2;
   isolation: isolate;
   align-self: center;
   justify-self: center;
@@ -275,21 +295,18 @@ html {
   text-align: center;
 }
 
-/*
- * A soft plate of coal behind the lockup, attached to it so it follows it at every width: the lockup
- * sits over the brightest part of the lobby (a lamp can sit right behind the tagline), and a scrim
- * that does not move with the type cannot promise contrast. Solid across the type, fading to nothing
- * beyond it; the corridor stays visible around it. Measured on real frames by the browser spec.
- */
+/* A low, soft radial shadow follows the title without a box edge at the foot of the text. */
 .tqw-hero__lockup::before {
   content: '';
   position: absolute;
   z-index: -1;
-  inset: calc(4.5rem - var(--plate-y, 2.5rem)) calc(var(--plate-x, 4rem) * -1) calc(1rem - var(--plate-y, 2.5rem));
+  inset: calc(var(--plate-y, 8rem) * -1) calc(var(--plate-x, 4rem) * -1);
   pointer-events: none;
   background: radial-gradient(
-    ellipse at 50% 50%,
-    rgba(23, 25, 24, var(--hero-plate, 0.92)) var(--plate-solid, 90%),
+    ellipse closest-side at 50% 50%,
+    rgba(23, 25, 24, var(--hero-plate, 0.8)) 0%,
+    rgba(23, 25, 24, 0.74) 48%,
+    rgba(23, 25, 24, 0.28) 85%,
     rgba(23, 25, 24, 0) 100%
   );
 }
@@ -303,6 +320,7 @@ html {
   font-weight: 700;
   line-height: 0.9444;
   color: var(--bone);
+  text-shadow: 0 1px 12px rgba(12, 12, 14, 0.72);
 }
 
 /* Tracking is in em of the word's own size: set on the h1 it would be em of the h1's 16 px and inherited as a fixed length. */
@@ -420,8 +438,20 @@ html {
  * rules above are more specific and each `animation` shorthand sets the play state to running.
  */
 .tqw-hero[data-visible='false'] :is(.tqw-hero__word, .tqw-hero__arrive, .tqw-hero__glyph, .tqw-hero__space, .tqw-hero__tagline, .tqw-hero__details),
-.tqw-hero[data-visible='false'] .tqw-hero__lockup::before {
+.tqw-hero[data-visible='false'] .tqw-hero__lockup::before,
+.tqw-hero[data-visible='false'] .tqw-hero__smoke {
   animation-play-state: paused !important;
+  will-change: auto;
+}
+
+@keyframes tqw-hero-smoke-drift {
+  0%,
+  100% {
+    transform: translate3d(-1.1%, 0.3%, 0) scale(1.01);
+  }
+  50% {
+    transform: translate3d(1.1%, -0.4%, 0) scale(1.035);
+  }
 }
 
 @keyframes tqw-fade-in {
@@ -516,6 +546,7 @@ html {
   line-height: 1.2857;
   text-wrap: balance;
   color: var(--bone);
+  text-shadow: 0 1px 10px rgba(12, 12, 14, 0.78);
 }
 
 .tqw-hero__details {
@@ -553,6 +584,7 @@ html {
 
 .tqw-hero__foot {
   position: absolute;
+  z-index: 2;
   inset: 58% 0 auto;
   display: grid;
   grid-template-columns: auto auto;
@@ -567,8 +599,6 @@ html {
 }
 
 .tqw-hero__cue {
-  position: relative;
-  isolation: isolate;
   grid-area: cue;
   justify-self: center;
   display: inline-flex;
@@ -583,24 +613,15 @@ html {
   font-size: var(--page-control-size);
   line-height: var(--page-control-leading);
   letter-spacing: 0;
-  color: var(--menu-muted);
+  color: var(--menu-text);
+  text-shadow: 0 1px 10px rgba(12, 12, 14, 0.9);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.tqw-hero__cue::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: -0.5rem -1rem;
-  border-radius: 2px;
-  background: radial-gradient(ellipse at center, rgba(23, 25, 24, 0.88) 65%, rgba(23, 25, 24, 0.58) 85%, rgba(23, 25, 24, 0) 100%);
-  pointer-events: none;
-}
-
 .tqw-hero__cue svg {
-  color: var(--muted);
+  color: var(--menu-text);
 }
 
 .tqw-hero__enter {
@@ -3010,6 +3031,13 @@ button.tqw-footer__link {
 }
 
 /* ------------------------------------------------------------ reduced motion */
+
+/* The smoke remains as a still haze; reduced motion removes drift, never the atmosphere. */
+.tqw-hero[data-motion='still'] .tqw-hero__smoke {
+  animation: none;
+  transform: none;
+  will-change: auto;
+}
 
 /*
  * Reduced motion holds every surface still: no hero drift, no smoke movement (the veil is plain coal
