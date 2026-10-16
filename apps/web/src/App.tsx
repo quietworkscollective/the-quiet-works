@@ -414,15 +414,9 @@ export function App() {
     };
   }, [spine, progress, textMode, runViewports]);
 
-  // While the window is only resting, the wheel and the walking keys are the page's, whatever the scene does.
-  useRestingInputGate(engaged, !textMode);
-
-  // Fine-pointer desktops hold the page at the game while engaged. Touch devices keep the
-  // document's native scroll so a hand-over gesture can continue beyond the window.
+  // While engaged the page does not scroll: it is held at the game window.
   useEffect(() => {
     if (!holding) return;
-    const touchOrCoarse = navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches;
-    if (touchOrCoarse) return;
     const root = document.documentElement;
     const previous = root.style.overflow;
     root.style.overflow = 'hidden';
@@ -430,6 +424,9 @@ export function App() {
       root.style.overflow = previous;
     };
   }, [holding]);
+
+  // While the window is only resting, the wheel and the walking keys are the page's, whatever the scene does.
+  useRestingInputGate(engaged, !textMode);
 
   /** Browser fullscreen was left (by any route): the window no longer holds the page. */
   const release = useCallback(() => {
@@ -441,55 +438,6 @@ export function App() {
     release();
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
   }, [release]);
-
-  // A window that has moved mostly out of view no longer owns page input. The 40% threshold lets a
-  // visitor scroll away naturally on touch devices and releases the desktop hold after momentum.
-  useEffect(() => {
-    if (!holding || textMode) return;
-    const gameWindow = document.querySelector<HTMLElement>('.tqw-game__window');
-    if (!gameWindow) return;
-
-    const visibleRatio = () => {
-      const rect = gameWindow.getBoundingClientRect();
-      if (rect.height <= 0) return 0;
-      const visibleHeight = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
-      return visibleHeight / rect.height;
-    };
-    const releaseIfAway = () => { if (visibleRatio() < 0.4) release(); };
-    const observer = typeof IntersectionObserver === 'undefined'
-      ? null
-      : new IntersectionObserver((entries) => {
-          if (entries.some((entry) => entry.target === gameWindow && entry.intersectionRatio < 0.4)) release();
-        }, { threshold: [0, 0.4] });
-    observer?.observe(gameWindow);
-    window.addEventListener('scroll', releaseIfAway, { passive: true });
-    window.addEventListener('resize', releaseIfAway);
-
-    const isInsideWindow = (event: Event) => {
-      const target = event.target;
-      return target instanceof Node && gameWindow.contains(target);
-    };
-    const onWheelOutsideWindow = (event: WheelEvent) => {
-      if (isInsideWindow(event)) return;
-      release();
-      // Let the page keep its default scroll; the corridor's bubble listener must not capture it.
-      event.stopImmediatePropagation();
-    };
-    const onPointerDownOutsideWindow = (event: PointerEvent) => {
-      if (!isInsideWindow(event)) release();
-    };
-    window.addEventListener('wheel', onWheelOutsideWindow, { capture: true, passive: true });
-    window.addEventListener('pointerdown', onPointerDownOutsideWindow, { capture: true, passive: true });
-    releaseIfAway();
-
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener('scroll', releaseIfAway);
-      window.removeEventListener('resize', releaseIfAway);
-      window.removeEventListener('wheel', onWheelOutsideWindow, { capture: true });
-      window.removeEventListener('pointerdown', onPointerDownOutsideWindow, { capture: true });
-    };
-  }, [holding, release, textMode]);
 
   const releaseAtHandover = useCallback((distance: number) => {
     engagedRef.current = false;
