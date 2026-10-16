@@ -172,12 +172,8 @@ export interface LoreItemInfo {
 export interface UnlocksProps {
   store: DiscoveryStore;
   chambers: readonly ChamberEntry[];
-  /** Production hides counts and found details for rooms still behind release flags. */
-  production?: boolean | undefined;
   /** Approved public text for a found item, or null when there is none to show. */
   describe?: ((chamber: ChamberId, finding: Finding) => LoreItemInfo | null) | undefined;
-  /** The name of a recognition, or null when it has none to show (its id is never shown). */
-  recognitionName?: ((id: string) => string | null) | undefined;
   /** Opens a found item to read again. When absent the item has no reread action. */
   onReread?: ((chamber: ChamberId, finding: Finding) => void) | undefined;
   /** The archive was replaced wholesale (an import, or forgetting everything), not found into. */

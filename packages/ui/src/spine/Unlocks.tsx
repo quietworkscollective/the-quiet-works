@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { ARCHIVE_COPY, type ChamberEntry, type Finding, type RoomCount } from '@tqw/engine';
-import { fillCopy } from './fillCopy.ts';
+import { ARCHIVE_COPY } from '@tqw/engine';
 import type { UnlocksProps } from './types.ts';
 import { useDiscoveries } from './useDiscoveries.ts';
 import { useModalDialog } from './useModalDialog.ts';
@@ -28,23 +27,15 @@ function saveFile(text: string): void {
 }
 
 /**
- * The archive (ADR 0003): what this visitor's own device has opened, to read again. A cabinet made
- * of spacing, grouping and paper proportions, not another bulletin board. Per room: a plain count
- * ("3 of 7 papers found.") with no bar, ring or total across rooms; found items with an approved
- * title and, where there is one, a reread action; and unfound papers as compact, neutral rows that
- * say only "Sealed". The Certification Office appears only after its first finding and uses the
- * authored finding titles without room totals or silhouettes. No title, excerpt, hint or token for an item that has not
- * been found is anywhere in this component's markup or code.
- *
- * Secrets appear only once found, and are counted without a total, so how many exist is not given
- * away. Counts describe what was found, never how well anyone did.
+ * The archive (ADR 0003): only what this visitor's own device has opened, to read again. A cabinet
+ * made of spacing, grouping and paper proportions, not another bulletin board. Rooms appear only
+ * when they hold a finding; unfound items, counts and totals have no place in the archive.
  *
  * Below, the only controls: export, import, and forget everything (behind a confirmation that says
  * what it does and offers the export first).
  */
-export function Unlocks({ store, chambers, production = !import.meta.env.DEV, describe, recognitionName, onReread, onReplaced }: UnlocksProps) {
+export function Unlocks({ store, chambers, describe, onReread, onReplaced }: UnlocksProps) {
   const state = useDiscoveries(store);
-  const counts = store.counts();
   const titleId = useId();
   const fileInput = useRef<HTMLInputElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -58,20 +49,9 @@ export function Unlocks({ store, chambers, production = !import.meta.env.DEV, de
     if (confirming) cancelRef.current?.focus();
   }, [confirming]);
 
-  const rooms: Array<{ chamber: ChamberEntry; count: RoomCount | null }> = [];
-  for (const chamber of chambers) {
-    const count = counts.find((entry) => entry.chamber === chamber.id);
-    if (production && chamber.status === 'sealed') {
-      rooms.push({ chamber, count: null });
-      continue;
-    }
-    if (!count || count.papers.total + count.papers.found + count.secrets.found === 0) continue;
-    if (chamber.id === 'certification-office' && (state.found[chamber.id]?.length ?? 0) === 0) continue;
-    rooms.push({ chamber, count });
-  }
-  const names = state.recognitions.flatMap((id) => {
-    const name = recognitionName?.(id);
-    return name ? [name] : [];
+  const rooms = chambers.flatMap((chamber) => {
+    const findings = state.found[chamber.id] ?? [];
+    return findings.length > 0 ? [{ chamber, findings }] : [];
   });
 
   const exportArchive = () => {
@@ -108,81 +88,41 @@ export function Unlocks({ store, chambers, production = !import.meta.env.DEV, de
           <p className="tqw-archive__intro">{ARCHIVE_COPY.intro}</p>
         </header>
 
-        {rooms.length === 0 ? <p className="tqw-archive__none">{ARCHIVE_COPY.noRooms}</p> : null}
-
-        {rooms.map(({ chamber: room, count }) => {
-          if (count === null) {
-            return (
-              <section key={room.id} className="tqw-archive__room" aria-labelledby={`${titleId}-${room.id}`} data-room={room.id}>
-                <h3 id={`${titleId}-${room.id}`} className="tqw-archive__room-title">{room.title}</h3>
-                <p className="tqw-archive__room-count">Not yet open.</p>
-              </section>
-            );
-          }
-          const found: readonly Finding[] = state.found[count.chamber] ?? [];
-          const office = count.chamber === 'certification-office';
-          const sealedPapers = Math.max(0, count.papers.total - count.papers.found);
+        {rooms.map(({ chamber: room, findings }) => {
           return (
-            <section key={count.chamber} className="tqw-archive__room" aria-labelledby={`${titleId}-${count.chamber}`} data-room={count.chamber}>
-              <h3 id={`${titleId}-${count.chamber}`} className="tqw-archive__room-title">
-                {room?.title ?? count.chamber}
-              </h3>
-              {!office ? <p className="tqw-archive__room-count">
-                {fillCopy(ARCHIVE_COPY.papersFound, { found: count.papers.found, total: count.papers.total })}
-                {count.secrets.found > 0
-                  ? ` ${count.secrets.found === 1 ? ARCHIVE_COPY.secretsOne : fillCopy(ARCHIVE_COPY.secretsMany, { n: count.secrets.found })}`
-                  : ''}
-              </p> : null}
-              {found.length > 0 ? (
-                <ul className="tqw-archive__items">
-                  {found.map((finding) => {
-                    const info = describe?.(count.chamber, finding) ?? null;
-                    const title = finding.title ?? info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
-                    return (
-                      <li
-                        key={finding.id}
-                        className="tqw-paper"
-                        data-state="found"
-                        data-kind={finding.kind}
-                        data-new={alreadyThere.has(`${count.chamber}/${finding.id}`) ? undefined : 'true'}
-                      >
-                        <h4 className="tqw-paper__title">{title}</h4>
-                        {info?.fragment ? <p className="tqw-paper__fragment">{info.fragment}</p> : null}
-                        {onReread ? (
-                          <button
-                            type="button"
-                            className="tqw-paper__reread"
-                            aria-label={`${ARCHIVE_COPY.reread}: ${title}`}
-                            onClick={() => onReread(count.chamber, finding)}
-                          >
-                            {ARCHIVE_COPY.reread}
-                          </button>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : null}
-              {!office && sealedPapers > 0 ? (
-                <ul className="tqw-archive__sealed" aria-label={`Sealed papers in ${room?.title ?? count.chamber}`}>
-                  {Array.from({ length: sealedPapers }, (_, index) => (
-                    <li key={`sealed-${index}`} className="tqw-archive__sealed-row">
-                      <span>{ARCHIVE_COPY.sealed}</span>
+            <section key={room.id} className="tqw-archive__room" aria-labelledby={`${titleId}-${room.id}`} data-room={room.id}>
+              <h3 id={`${titleId}-${room.id}`} className="tqw-archive__room-title">{room.title}</h3>
+              <ul className="tqw-archive__items">
+                {findings.map((finding) => {
+                  const info = describe?.(room.id, finding) ?? null;
+                  const title = finding.title ?? info?.title ?? ARCHIVE_COPY.kinds[finding.kind];
+                  return (
+                    <li
+                      key={finding.id}
+                      className="tqw-paper"
+                      data-state="found"
+                      data-kind={finding.kind}
+                      data-new={alreadyThere.has(`${room.id}/${finding.id}`) ? undefined : 'true'}
+                    >
+                      <h4 className="tqw-paper__title">{title}</h4>
+                      {info?.fragment ? <p className="tqw-paper__fragment">{info.fragment}</p> : null}
+                      {onReread ? (
+                        <button
+                          type="button"
+                          className="tqw-paper__reread"
+                          aria-label={`${ARCHIVE_COPY.reread}: ${title}`}
+                          onClick={() => onReread(room.id, finding)}
+                        >
+                          {ARCHIVE_COPY.reread}
+                        </button>
+                      ) : null}
                     </li>
-                  ))}
-                </ul>
-              ) : null}
+                  );
+                })}
+              </ul>
             </section>
           );
         })}
-
-        {names.length > 0 ? (
-          <ul className="tqw-archive__recognitions">
-            {names.map((name) => (
-              <li key={name}>{name}</li>
-            ))}
-          </ul>
-        ) : null}
 
         <div className="tqw-archive__utility">
           <p className="tqw-archive__device">{ARCHIVE_COPY.deviceOnly}</p>

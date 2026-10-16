@@ -7,11 +7,7 @@ import { Unlocks } from './Unlocks.tsx';
 import type { UnlocksProps } from './types.ts';
 
 const OFFICE = 'certification-office';
-const OFFICE_PAPERS = CHAMBERS.find((chamber) => chamber.id === OFFICE)?.findings.papers ?? 0;
 const APARTMENT = 'apartment';
-const APARTMENT_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'apartment')?.findings.papers ?? 0;
-const EXCHANGE_PAPERS = CHAMBERS.find((chamber) => chamber.id === 'exchange')?.findings.papers ?? 0;
-const PAPERS = CHAMBERS.filter((chamber) => chamber.status === 'open' && chamber.id !== OFFICE).reduce((total, chamber) => total + chamber.findings.papers, 0);
 
 function setup(over: Partial<UnlocksProps> = {}, store: DiscoveryStore = createMemoryDiscoveryStore()) {
   const view = render(<Unlocks store={store} chambers={CHAMBERS} {...over} />);
@@ -22,7 +18,10 @@ function setup(over: Partial<UnlocksProps> = {}, store: DiscoveryStore = createM
 const message = (): HTMLElement => document.querySelector('.tqw-archive__message') as HTMLElement;
 
 const papersOf = (section: HTMLElement) => [...section.querySelectorAll<HTMLElement>('.tqw-paper')];
-const sealedRowsOf = (section: HTMLElement) => [...section.querySelectorAll<HTMLElement>('.tqw-archive__sealed-row')];
+const expectNoUnfoundArchiveCopy = (section: HTMLElement) => {
+  expect(section.textContent).not.toMatch(/\b\d+\s*(?:of|out of|\/)\s*\d+\b|\b\d+\s+(?:papers?|secrets?|items?|findings?|discoveries|rooms?|entries|documents?)\b|\b(?:count|counts|total|totals|sealed|slot|slots|not yet open|more rooms will appear)\b/i);
+  expect(section.querySelector('.tqw-archive__room-count, .tqw-archive__sealed, .tqw-archive__sealed-row')).toBeNull();
+};
 
 /** Captures what the export hands the browser: the blob, the file name, and that a download was triggered. */
 function captureDownload() {
@@ -67,44 +66,25 @@ describe('Unlocks: the archive section', () => {
     expect(screen.getByText(ARCHIVE_COPY.intro)).toBeTruthy();
   });
 
-  it('groups by room, and shows only rooms that have something to find', () => {
+  it('leaves an empty archive with no room groups or empty-state message', () => {
     const { section } = setup();
+    expect(within(section).queryAllByRole('heading', { level: 3 })).toHaveLength(0);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(0);
+    expect(section.querySelector('.tqw-archive__none')).toBeNull();
+    expectNoUnfoundArchiveCopy(section);
+  });
+
+  it('groups found items by room, even when a room is sealed elsewhere on the site', () => {
+    const chambers = CHAMBERS.map((chamber) => chamber.id === 'exchange' ? { ...chamber, status: 'sealed' as const } : chamber);
+    const store = createMemoryDiscoveryStore();
+    store.record(APARTMENT, { id: 'memo-1', kind: 'memo' });
+    store.record('exchange', { id: 'memo-2', kind: 'memo' });
+    const { section } = setup({ chambers }, store);
     const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((h) => h.textContent)).toEqual(['The Apartment', 'The Exchange']);
-    expect(within(section).getByText(`0 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
-    expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
-  });
-
-  it('shows only each sealed room name and status, with no archive totals or findings', () => {
-    const chambers = CHAMBERS.map((chamber) => chamber.id === 'exchange' || chamber.id === 'outline-room'
-      ? { ...chamber, status: 'sealed' as const }
-      : chamber);
-    const { section } = setup({ chambers, production: true });
-    const rooms = within(section).getAllByRole('heading', { level: 3 });
-    expect(rooms.map((heading) => heading.textContent)).toEqual([
-      'The Apartment',
-      'The Tomorrow Engine',
-      'The Great Atrium',
-      'The Exchange',
-      'The Outline Room',
-    ]);
-    expect(section.textContent).not.toContain(`0 of ${EXCHANGE_PAPERS} papers found.`);
-    for (const room of chambers.filter((chamber) => chamber.status === 'sealed')) {
-      const sectionForRoom = section.querySelector(`[data-room="${room.id}"]`);
-      expect(sectionForRoom?.textContent).toBe(`${room.title}Not yet open.`);
-      expect(sectionForRoom?.textContent).not.toContain(room.clipping.headline);
-      expect(sectionForRoom?.textContent).not.toContain(room.doorDescription);
-    }
-  });
-
-  it('keeps authored archive totals visible in development builds', () => {
-    const { section } = setup({ production: false });
-    expect(within(section).getByText(`0 of ${EXCHANGE_PAPERS} papers found.`)).toBeTruthy();
-  });
-
-  it('says the Apartment paper count in plain words', () => {
-    setup();
-    expect(screen.getByText(`0 of ${APARTMENT_PAPERS} papers found.`).className).toContain('tqw-archive__room-count');
+    expect(rooms.map((heading) => heading.textContent)).toEqual(['The Apartment', 'The Exchange']);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(2);
+    expect(papersOf(section)).toHaveLength(2);
+    expectNoUnfoundArchiveCopy(section);
   });
 });
 
@@ -112,7 +92,8 @@ describe('Unlocks: Office findings', () => {
   it('keeps an empty Office out of the archive until its first find', () => {
     const { section } = setup();
     expect(section.querySelector(`[data-room="${OFFICE}"]`)).toBeNull();
-    expect(section.textContent).not.toContain(`0 of ${OFFICE_PAPERS} papers found.`);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(0);
+    expectNoUnfoundArchiveCopy(section);
   });
 
   it('shows authored Office titles without room counts or sealed slots', () => {
@@ -123,61 +104,28 @@ describe('Unlocks: Office findings', () => {
     expect(within(room).getByRole('heading', { level: 4, name: 'Certification Office — mystery resolved' })).toBeTruthy();
     expect(room.querySelector('.tqw-archive__room-count')).toBeNull();
     expect(room.querySelector('.tqw-archive__sealed')).toBeNull();
+    expectNoUnfoundArchiveCopy(section);
   });
 });
 
-describe('Unlocks: sealed papers (nothing about an unfound item is in the page)', () => {
-  it('keeps sealed finds in their own compact room list, outside the documents grid', () => {
-    const store = createMemoryDiscoveryStore();
-    store.record(APARTMENT, { id: 'memo-3', kind: 'memo' });
-    const { section } = setup({}, store);
-    const documents = section.querySelector('.tqw-archive__items') as HTMLElement;
-    expect(documents.querySelectorAll('.tqw-paper')).toHaveLength(1);
-    expect(sealedRowsOf(section)).toHaveLength(PAPERS - 1);
-    expect(sealedRowsOf(section).every((row) => row.textContent === 'Sealed')).toBe(true);
-    expect(sealedRowsOf(section).every((row) => row.parentElement?.classList.contains('tqw-archive__sealed'))).toBe(true);
-  });
-
-  it('shows one identical neutral row for every unfound paper, each saying only "Sealed"', () => {
-    const { section } = setup();
-    const rows = sealedRowsOf(section);
-    expect(rows).toHaveLength(PAPERS);
-    for (const row of rows) {
-      expect(row.textContent).toBe('Sealed');
-      expect(row.querySelectorAll('*')).toHaveLength(1);
-    }
-    expect(new Set(rows.map((row) => row.outerHTML)).size).toBe(1);
-  });
-
-  it('gives a sealed row no attribute but its class: no id, kind, title, label or data', () => {
-    const { section } = setup();
-    for (const row of sealedRowsOf(section)) {
-      expect(row.getAttributeNames()).toEqual(['class']);
-    }
-  });
-
-  it('asks for no title or fragment of anything unfound, and shows no secret silhouettes', () => {
+describe('Unlocks: only found items appear', () => {
+  it('does not call the descriptor or create a room when nothing is found', () => {
     const describe = vi.fn(() => ({ title: 'SPOILER', fragment: 'SPOILER' }));
     const { section } = setup({ describe });
     expect(describe).not.toHaveBeenCalled();
-    expect(section.textContent).not.toContain('SPOILER');
-    // Secrets have no silhouettes: how many exist stays unspoken. (The Forget dialog, closed, names
-    // them in its sentence, so only the rooms are looked at.)
-    const rooms = section.querySelector('.tqw-archive__room') as HTMLElement;
-    expect(rooms.textContent).not.toMatch(/secret/i);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(0);
     expect(papersOf(section)).toHaveLength(0);
-    expect(sealedRowsOf(section)).toHaveLength(PAPERS);
+    expectNoUnfoundArchiveCopy(section);
   });
 
-  it('one paper found leaves one fewer sealed, never changing the total', () => {
+  it('shows one room with only its one found paper', () => {
     const store = createMemoryDiscoveryStore();
     store.record(APARTMENT, { id: 'memo-3', kind: 'memo' });
     const { section } = setup({}, store);
-    const papers = papersOf(section);
-    expect(papers).toHaveLength(1);
-    expect(papers.filter((p) => p.dataset['state'] === 'found')).toHaveLength(1);
-    expect(sealedRowsOf(section)).toHaveLength(PAPERS - 1);
-    expect(screen.getByText(`1 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(1);
+    expect(section.querySelector('[data-room="apartment"]')).toBeTruthy();
+    expect(papersOf(section)).toHaveLength(1);
+    expectNoUnfoundArchiveCopy(section);
   });
 });
 
@@ -222,26 +170,24 @@ describe('Unlocks: found papers', () => {
     expect(section.querySelector('.tqw-paper__fragment')).toBeNull();
   });
 
-  it('counts secrets only once found, in words, with no total', () => {
+  it('lists found secrets without a count or total', () => {
     const store = createMemoryDiscoveryStore();
     store.record('exchange', found('secret-1', 'secret'));
-    const { view, section } = setup({}, store);
-    expect(screen.getByText(`0 of ${EXCHANGE_PAPERS} papers found. 1 secret found.`)).toBeTruthy();
-    expect(section.querySelector('[data-room="exchange"] .tqw-archive__room-count')?.textContent).toBe(`0 of ${EXCHANGE_PAPERS} papers found. 1 secret found.`);
-    expect(section.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
+    const { section } = setup({}, store);
+    expect(section.querySelectorAll('[data-room="exchange"] .tqw-paper')).toHaveLength(1);
+    expectNoUnfoundArchiveCopy(section);
     act(() => store.record('exchange', found('secret-2', 'secret')));
-    expect(screen.getByText(`0 of ${EXCHANGE_PAPERS} papers found. 2 secrets found.`)).toBeTruthy();
-    expect(section.querySelector('[data-room="exchange"] .tqw-archive__room-count')?.textContent).toBe(`0 of ${EXCHANGE_PAPERS} papers found. 2 secrets found.`);
-    expect(view.container.textContent).not.toMatch(/\b\d+ of \d+ secrets?\b|\b\d+\/\s*\d+\b/);
+    expect(section.querySelectorAll('[data-room="exchange"] .tqw-paper')).toHaveLength(2);
+    expectNoUnfoundArchiveCopy(section);
   });
 
-  it('lists a found secret among the papers, but never draws a sealed one', () => {
+  it('lists a found secret as an item without drawing unfound rows', () => {
     const store = createMemoryDiscoveryStore();
     store.record(APARTMENT, found('secret-1', 'secret'));
     const { section } = setup({}, store);
     const papers = papersOf(section);
     expect(papers.filter((p) => p.dataset['state'] === 'found')).toHaveLength(1);
-    expect(sealedRowsOf(section)).toHaveLength(PAPERS);
+    expectNoUnfoundArchiveCopy(section);
   });
 
   it('gives a found item a "Read again" action only when the shell can open it', () => {
@@ -276,6 +222,7 @@ describe('Unlocks: no scores, no progress', () => {
     expect(section.querySelector('progress, meter, [role="progressbar"], [role="meter"], svg, canvas')).toBeNull();
     expect(section.textContent).not.toMatch(/%/);
     expect(section.textContent).not.toMatch(/complete(?!\.)|score|achievement|level|rank|best|streak/i);
+    expectNoUnfoundArchiveCopy(section);
   });
 
   it('says there is nothing to complete', () => {
@@ -284,20 +231,13 @@ describe('Unlocks: no scores, no progress', () => {
   });
 });
 
-describe('Unlocks: recognitions', () => {
-  it('shows a recognition only by a name the shell gives it, never by its id', () => {
+describe('Unlocks: found items only', () => {
+  it('keeps separately stored recognitions out of the room groups', () => {
     const store = createMemoryDiscoveryStore({ version: 1, found: {}, recognitions: ['r-1', 'r-2'] });
-    const { section } = setup({ recognitionName: (id) => (id === 'r-1' ? 'Noticed the lamp' : null) }, store);
-    expect(within(section).getByText('Noticed the lamp')).toBeTruthy();
-    expect(section.textContent).not.toContain('r-1');
-    expect(section.textContent).not.toContain('r-2');
-    expect(section.querySelectorAll('.tqw-archive__recognitions li')).toHaveLength(1);
-  });
-
-  it('shows no recognition list when none has a name', () => {
-    const store = createMemoryDiscoveryStore({ version: 1, found: {}, recognitions: ['r-1'] });
     const { section } = setup({}, store);
     expect(section.querySelector('.tqw-archive__recognitions')).toBeNull();
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(0);
+    expectNoUnfoundArchiveCopy(section);
   });
 });
 
@@ -391,7 +331,8 @@ describe('Unlocks: import', () => {
     await waitFor(() => expect(message().textContent).toBe(ARCHIVE_COPY.imported));
     expect(store.has(APARTMENT, 'memo-1')).toBe(true);
     expect(onReplaced).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(`1 of ${APARTMENT_PAPERS} papers found.`)).toBeTruthy();
+    expect(section.querySelectorAll('[data-room="apartment"] .tqw-paper')).toHaveLength(1);
+    expectNoUnfoundArchiveCopy(section);
   });
 
   it('changes nothing for a file it cannot read, and says so', async () => {
@@ -483,7 +424,8 @@ describe('Unlocks: forget everything', () => {
     expect(onReplaced).toHaveBeenCalledTimes(1);
     expect(section.querySelector(`[data-room="${OFFICE}"]`)).toBeNull();
     expect(papersOf(section)).toHaveLength(0);
-    expect(sealedRowsOf(section)).toHaveLength(PAPERS);
+    expect(section.querySelectorAll('.tqw-archive__room')).toHaveLength(0);
+    expectNoUnfoundArchiveCopy(section);
   });
 
   it('can export from inside the confirmation without forgetting', async () => {

@@ -71,7 +71,7 @@ describe('site tokens', () => {
 describe('contrast', () => {
   const text: Array<[string, string, string]> = [
     ['--bone', '--coal', 'page text, the lockup and the section titles'],
-    ['--muted', '--coal', 'tagline detail line, .space, archive counts, utility text'],
+    ['--muted', '--coal', 'tagline detail line, .space, utility text'],
     ['--amber', '--coal', 'the open door in the text-mode list'],
     ['--paper-ink', '--stock-bone', 'a found paper in the archive, and the notice board headline'],
     ['--paper-ink', '--stock-buff', 'headline and description on buff stock'],
@@ -118,14 +118,6 @@ describe('contrast', () => {
     expect(contrastHex(color('--paper-ink'), color('--stock-grey-green'))).toBeGreaterThanOrEqual(3);
     expect(contrastHex(color('--amber'), color('--stock-bone'))).toBeLessThan(3);
     expect(declarationsOf('.tqw-clipping :focus-visible,\n.tqw-paper :focus-visible')).toMatch(/outline-color:\s*var\(--paper-ink\)/);
-  });
-
-  it('the sealed rows and archive lines are 4.5 : 1 on their neutral surface', () => {
-    const row = declarationsOf('.tqw-archive__sealed-row');
-    expect(row).toMatch(/background:\s*var\(--coal-2\)/);
-    expect(row).toMatch(/color:\s*var\(--muted\)/);
-    expect(contrastHex(color('--page-muted'), color('--page-surface'))).toBeGreaterThanOrEqual(4.5);
-    expect(contrastHex(color('--page-text'), color('--page-surface'))).toBeGreaterThanOrEqual(4.5);
   });
 
   it('the hero lays a smooth, full-height coal wash under a soft lockup glow', () => {
@@ -506,7 +498,7 @@ describe('the smoke veil', () => {
   });
 });
 
-describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
+describe('the archive (ADR 0003: found discoveries only)', () => {
   it('lays papers out three across on a screen, two on a phone and one at 320 px, 20 / 12 px apart', () => {
     expect(declarationsOf('.tqw-archive__items')).toMatch(/grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
     expect(declarationsOf('.tqw-archive__items')).toMatch(/gap:\s*1\.25rem/);
@@ -521,24 +513,13 @@ describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
     expect(css).not.toContain(".tqw-paper[data-state='sealed']");
   });
 
-  it('sets sealed finds in compact, neutral 64 px rows, separate from found documents', () => {
-    const row = declarationsOf('.tqw-archive__sealed-row');
-    expect(row).toMatch(/height:\s*64px/);
-    expect(row).toMatch(/background:\s*var\(--coal-2\)/);
-    expect(row).not.toMatch(/clip-path/);
-    expect(declarationsOf('.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
-    expect(inMedia('(max-width: 40rem)', '.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-    expect(inMedia('(max-width: 22.5rem)', '.tqw-archive__sealed')).toMatch(/grid-template-columns:\s*minmax\(0, 1fr\)/);
+  it('has no styles for empty-room counts, sealed entries or room slots', () => {
+    expect(css).not.toMatch(/\.tqw-archive__(?:none|room-count|sealed|sealed-row|recognitions)\b/);
   });
 
   it('puts Forget everything on its own ruled row after export and import', () => {
     expect(declarationsOf('.tqw-archive__forget')).toMatch(/border-top:\s*1px solid var\(--divider\)/);
     expect(declarationsOf('.tqw-archive__actions')).toMatch(/display:\s*flex/);
-  });
-
-  it('adds no decorative shape or generated text to the sealed rows', () => {
-    expect(css).not.toMatch(/\.tqw-archive__sealed-row[^{}]*::?(?:before|after)/);
-    expect(css).not.toMatch(/\.tqw-archive__sealed-row[^{}]*\{[^}]*(?<![-\w])content:/);
   });
 
   it('draws no progress bar, ring, meter or percentage anywhere in the stylesheet', () => {
@@ -553,12 +534,11 @@ describe('the archive (ADR 0003 R-3: counts, never scores)', () => {
     expect(frames).not.toMatch(/transform|translate|scale/);
   });
 
-  it('sets the room title in Newsreader and its count line to metadata scale', () => {
+  it('sets the room title in Newsreader and found paper titles at reading size', () => {
     const title = declarationsOf('.tqw-archive__room-title');
     expect(title).toMatch(/font-family:\s*var\(--font-serif\)/);
     expect(title).toMatch(/font-size:\s*1\.75rem/);
     expect(inMedia('(max-width: 40rem)', '.tqw-archive__room-title')).toMatch(/font-size:\s*1\.5rem/);
-    expect(declarationsOf('.tqw-archive__room-count')).toMatch(/font-size:\s*var\(--page-meta-size\)/);
     expect(declarationsOf('.tqw-paper__title')).toMatch(/font-size:\s*1\.125rem/);
   });
 
