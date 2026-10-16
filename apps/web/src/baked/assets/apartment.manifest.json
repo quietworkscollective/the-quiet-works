@@ -2,8 +2,8 @@
   "version": 1,
   "space": "apartment",
   "hash": "0e182fc973730c5939bd75eea42b5227a23b7a5b6e7097f84893306bd015f1ed",
-  "materialHash": "cd623f2c36c15fbb2ef3e097af7f7ddc85c23cbd7459effce6f81623a7ed06f3",
-  "baselineHash": "03d19def3b87991741c7c1682efb768866fb459af02f000612326ec330d5538f",
+  "materialHash": "1f942fab101923dde3033698e6140e150ed0ed538401fa3643c1f51da7678d8f",
+  "baselineHash": "26f43c05e0ccd1fa54b1a5810b363da2ae10f103b4c86a6adbb1f7caaa0f7b66",
   "meshes": [
     "01f762dd0218f5bd05cecf30d4fc3439bae4822eee8036c6f07a01fb851add52",
     "02a07a991b672fd6f89586523c779f9d503501432a9649c3eadcd7004c24b319",
@@ -212,24 +212,24 @@
       "file": "apartment-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 0.6463364958763123,
+      "scale": 0.6515017747879028,
       "encoding": "srgb-scale",
-      "bytes": 198970,
+      "bytes": 199066,
       "density": {
         "foreground": {
-          "min": 31.99606004463991,
-          "max": 32.00195002997107,
+          "min": 31.99538201362545,
+          "max": 32.00436935186268,
           "area": 440.2315151996325,
           "target": 32
         },
         "desk": {
-          "min": 63.9986355241848,
-          "max": 64.00237693274335,
+          "min": 63.999195297409976,
+          "max": 64.00244464546913,
           "area": 1.365546850509993,
           "target": 64
         }
       }
     }
   ],
-  "sourceHash": "dba3a6ceff3501fb708dd0fbc7f110d67b12eaa062a5e80211b2cce5f0ee000a"
+  "sourceHash": "8945978692626ca69928716bcb38b04dafce0600f6bb3ba5a2ab2f2ddab42490"
 }

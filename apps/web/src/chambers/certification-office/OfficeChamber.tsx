@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
   OFFICE_LEGIBILITY,
   CAPTION_REPLY_SAGGING,
@@ -30,6 +30,16 @@ import sealedOffice from '../../../../../packages/engine/src/sealed/certificatio
 
 const OfficeScene = lazy(() => import('./scene/OfficeScene.tsx'));
 const ignoreSceneFocus = () => {};
+const hasCoarsePointer = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+const stationControlStyle: CSSProperties = {
+  position: 'absolute', right: 'max(16px, env(safe-area-inset-right))', top: '50%', transform: 'translateY(-50%)',
+  display: 'flex', flexDirection: 'column', gap: 12, zIndex: 12,
+};
+const stationButtonStyle: CSSProperties = {
+  appearance: 'none', display: 'grid', placeItems: 'center', width: 56, height: 56, padding: 0, borderRadius: '50%',
+  border: '1.5px solid color-mix(in srgb, #ddd5c8 70%, transparent)', background: 'color-mix(in srgb, #151a20 62%, transparent)',
+  color: '#ddd5c8', touchAction: 'none', WebkitTapHighlightColor: 'transparent',
+};
 
 /**
  * The office keeps its state for the whole visit: leaving through the door and coming back finds
@@ -78,6 +88,7 @@ export default function OfficeChamber(props: ChamberProps) {
   const [counterOpen, setCounterOpen] = useState(false);
   const [inspectionOpen, setInspectionOpen] = useState(false);
   const [placesOpen, setPlacesOpen] = useState(false);
+  const [touchDevice, setTouchDevice] = useState(hasCoarsePointer);
   const [cue, setCue] = useState<OfficeCue | null>(null);
   const [freshForPress, setFreshForPress] = useState(false);
   const [framed, setFramed] = useState<OfficeObjectId | null>(null);
@@ -91,6 +102,14 @@ export default function OfficeChamber(props: ChamberProps) {
   const unlockSound = useCallback(() => sound.unlock(), [sound]);
   const textMode = text !== null;
   const appRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const media = window.matchMedia('(pointer: coarse)');
+    const update = () => setTouchDevice(media.matches);
+    media.addEventListener('change', update);
+    update();
+    return () => media.removeEventListener('change', update);
+  }, []);
   useEffect(() => { navigation.setReducedMotion(textMode || settings.reducedMotion); }, [navigation, settings.reducedMotion, textMode]);
 
   // Cues drive sound and captions; neither has authority over state.
@@ -309,6 +328,14 @@ export default function OfficeChamber(props: ChamberProps) {
             </Suspense>
           </SceneBoundary>
           <div className="tqw-visually-hidden"><MachineReadout state={state} visible /><OfficeApplicationReadout stamps={state.stamps} /></div>
+          {touchDevice ? <div data-fp-ignore role="group" aria-label="Office stations" style={stationControlStyle}>
+            <button type="button" aria-label="Next view" style={stationButtonStyle} onClick={() => navigation.stepViewpoint(1)}>
+              <span aria-hidden="true">⌄</span>
+            </button>
+            <button type="button" aria-label="Previous view" style={stationButtonStyle} onClick={() => navigation.stepViewpoint(-1)}>
+              <span aria-hidden="true">⌃</span>
+            </button>
+          </div> : null}
           {cue && (!placesOpen || cue.focused) ? <div data-fp-ignore className="tqw-context-cue" data-focused={cue.focused} data-side={cue.side}
             style={{ left: cue.x, top: cue.y }}>
             <button type="button" onFocus={() => setFocused(cue.id)} onBlur={() => setFocused(null)}
@@ -325,7 +352,7 @@ export default function OfficeChamber(props: ChamberProps) {
         <div className="tqw-places__content" onWheel={event => event.stopPropagation()}>
           <nav aria-label="Office movement">
             <button type="button" onFocus={() => setFocused('press')} onBlur={() => setFocused(null)} onClick={approach}>Approach the desk</button>
-            <button type="button" onClick={() => navigation.stepBack()}>Step back</button>
+            <button type="button" onClick={() => navigation.stepBack()}>Previous station</button>
             <button type="button" onClick={() => navigation.approach('certificate', settings.reducedMotion)}>View the certificate</button>
             {state.stamps >= 5 ? <button type="button" onClick={() => navigation.approach(window.innerHeight > window.innerWidth ? 'reveal-wide' : 'reveal', settings.reducedMotion)}>View the officer’s window</button> : null}
             <button type="button" onClick={() => navigation.approach('window', settings.reducedMotion)}>View the window</button>
@@ -334,7 +361,7 @@ export default function OfficeChamber(props: ChamberProps) {
             <button type="button" onClick={() => navigation.approach('arrival', settings.reducedMotion)}>View the entrance</button>
             <button type="button" onClick={() => navigation.approach('exit', settings.reducedMotion)}>View the side exit</button>
           </nav>
-          <p>W / S or up / down: walk. A / D or left / right: turn. Drag to look.</p>
+          <p>Stations: W / S or ↑ / ↓; phone: swipe. Look: A / D, ← / →, or drag.</p>
           {!textMode ? memoButton : null}
           {!textMode && state.stamps > 0 ? <button type="button" onClick={reset}>Start over</button> : null}
           <aside className="tqw-office-exploration" data-inspection={inspectionOpen} data-exits="true">

@@ -9,7 +9,7 @@ import { officeAssetPose, officeAssetSlot, officeInteractionAnchor } from './ass
 import { useScene } from './context.ts';
 import { boxAt, merge } from './geometry.ts';
 
-function label(text: string) {
+function label(text: string, rotateForCounter = false) {
   const canvas = document.createElement('canvas');
   canvas.width = 512; canvas.height = 160;
   const ctx = canvas.getContext('2d');
@@ -17,7 +17,9 @@ function label(text: string) {
   ctx.fillStyle = '#ddd5c8'; ctx.fillRect(0, 0, 512, 160);
   ctx.fillStyle = '#2c3431'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = '28px "IBM Plex Mono", monospace';
+  if (rotateForCounter) { ctx.save(); ctx.translate(512, 160); ctx.rotate(Math.PI); }
   ctx.fillText(text, 256, 80, 480);
+  if (rotateForCounter) ctx.restore();
   const texture = new CanvasTexture(canvas); texture.colorSpace = SRGBColorSpace;
   return { texture, material: new MeshBasicMaterial({map: texture}) };
 }
@@ -63,7 +65,7 @@ export function RoomObjects({ office, archive, overloaded, shadow, onInspect, on
       panel: label(overloaded ? 'SERVICE — RELEASED' : 'SERVICE — LOCKED'),
       clock: label(clockHeading),
       register: label(heading), issue: label(issue), tiny: label(inscription), ticket: label(ticket),
-      bell: label(bellTicket),
+      bell: label(bellTicket, true),
       door: label('SIDE EXIT'),
     };
     return {cube,sphere,cylinder,stack,chair,frame,hook,hit,outline,figure,dark,doorPaint,shadowMaterial,labels};

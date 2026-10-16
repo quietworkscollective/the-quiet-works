@@ -1,9 +1,9 @@
 {
   "version": 1,
   "space": "office",
-  "hash": "60bf146ccb0d4ef0c56feef49c05ea45a23d09394e0e6d7f836568108983e182",
-  "materialHash": "0b57e700f8b2a55b6e6efa3952277bf3a6bf717a0ae016e160d63c3ddb57b896",
-  "baselineHash": "5ff17d66135d92970961851ef67644a3b351c9cbbc527cf7b2850829839e12f3",
+  "hash": "e3d7fe5a94becabb86fadd82e8f80cb44e174d7f4e7f2b6b3f7a0462094eaea2",
+  "materialHash": "829580fcee6756b5f5c76d6406b065fc109f5fa457ed82713c3a49f4bea0858c",
+  "baselineHash": "64d06976a7f11c58a517a2ea052651c2787f3f65b6661fc1d9e4ae5db787fe56",
   "meshes": [
     "056184693e05ebf0b836c3444bec9a0fa9b44de44e607254a8c41078e1bb4026",
     "08bd7927cc424ea441e326a353c901c3029c061513bd62b6b93980e2e52ab696",
@@ -60,11 +60,11 @@
         0
       ],
       "colour": [
-        0.40416730353658553,
-        0.4129368547391229,
-        0.378114504725138
+        0.1395852864249344,
+        0.053025112796874316,
+        0.018224616240796562
       ],
-      "intensity": 0.4,
+      "intensity": 0.12,
       "distance": 0,
       "decay": 2
     },
@@ -97,10 +97,10 @@
         0.623960391667596,
         0.3049873140591091
       ],
-      "intensity": 5,
-      "distance": 7,
+      "intensity": 0.9,
+      "distance": 5.6,
       "decay": 2,
-      "power": 62.83185307179586
+      "power": 11.309733552923255
     },
     {
       "type": "SpotLight",
@@ -138,17 +138,17 @@
         0.775822218312646,
         0.55201140150344
       ],
-      "intensity": 32,
-      "distance": 14,
+      "intensity": 22,
+      "distance": 12,
       "decay": 2,
-      "power": 100.53096491487338,
+      "power": 69.11503837897544,
       "direction": [
         0.22189154887278323,
         -0.5591667031594137,
         -0.7988095759420196
       ],
-      "angle": 0.5,
-      "penumbra": 0.3
+      "angle": 0.46,
+      "penumbra": 0.38
     },
     {
       "type": "SpotLight",
@@ -180,9 +180,9 @@
       "file": "office-0.webp",
       "width": 2048,
       "height": 2048,
-      "scale": 1.5697933435440063,
+      "scale": 1.5176159143447876,
       "encoding": "srgb-scale",
-      "bytes": 286436,
+      "bytes": 171598,
       "density": {
         "foreground": {
           "min": 31.99524701136264,
@@ -208,9 +208,9 @@
       "file": "office-1.webp",
       "width": 1152,
       "height": 1152,
-      "scale": 0.11269363015890121,
+      "scale": 0.08549536019563675,
       "encoding": "srgb-scale",
-      "bytes": 40774,
+      "bytes": 35310,
       "density": {
         "archive": {
           "min": 11.999980813470431,
@@ -221,5 +221,5 @@
       }
     }
   ],
-  "sourceHash": "d4694474be283bf04e7cc287695a86779046b7a25af7ee2ef0a0baac5fe12d8b"
+  "sourceHash": "ab1f0a84ae9cbd0e08f253243e656f8e70ac63724bbc266321488312a7eac605"
 }
