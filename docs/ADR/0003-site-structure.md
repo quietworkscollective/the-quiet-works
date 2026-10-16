@@ -132,3 +132,15 @@ Further hero draws pause through the handoff and for one second after removal, s
 keep GPU work queued ahead of the deadline or its observation. Scrolling or engaging the experience
 resumes drawing immediately. Hardware renderers retain their ambient motion. This changes scheduling,
 not the scene, its lighting or its assets. Maintainer review is required before merging.
+
+## Founder amendment — archive lists found discoveries only (17 October 2026)
+
+The founder's decision of 17 October 2026 amends Decision 4 and R-3 above. The archive lists only
+findings the visitor has actually found, grouped by room. A room appears only when it contains at
+least one finding. The archive has no counts or totals, no sealed or otherwise unfound entries, and
+no empty slots. It never scores the visitor. This supersedes the earlier requirements for per-room
+counts, sealed inventory and a separate recognition list in the archive.
+
+When the archive is empty, it uses only its existing approved heading and introduction; it adds no
+empty-state copy. Import, export and Forget everything remain unchanged. Sealed rooms and their
+contents retain their existing behavior elsewhere on the site.

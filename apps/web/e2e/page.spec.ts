@@ -9,7 +9,7 @@ import { contrast, decodePng, luminance, parseColour } from './png.ts';
  * ADR 0003 in a real browser: the page as one column (hero, smoke, game window, archive, details,
  * footer), the game window's engagement (arriving by scrolling never captures input; Enter, Leave,
  * Escape and Fullscreen), the hero over the live world, reduced motion, text mode, small screens and
- * zoom, the archive (found and sealed papers, export, import, Forget) and what the page stores.
+ * zoom, the archive (found papers, export, import, Forget) and what the page stores.
  */
 
 const ENTER = 'Enter The Quiet Works';
@@ -1496,49 +1496,21 @@ async function importArchive(page: Page, found: DiscoveryFile): Promise<void> {
   await expect(page.locator('.tqw-archive__message')).toHaveText(/Imported/);
 }
 
-const papers = (page: Page, state: 'found' | 'sealed') => page.locator(
-  state === 'sealed' ? '.tqw-archive__sealed-row' : '.tqw-archive .tqw-paper[data-state="found"]',
-);
+const papers = (page: Page) => page.locator('.tqw-archive .tqw-paper[data-state="found"]');
 
 test.describe('the archive', () => {
-  test('before an Office finding: it writes nothing and other unopened rooms stay plain', { tag: '@fast' }, async ({ page }) => {
+  test('an empty archive has no room groups or unopened inventory', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     const archive = page.locator('#archive');
     await expect(archive.getByRole('heading', { level: 2, name: 'Your archive' })).toBeAttached();
-    await expect(archive.getByRole('heading', { level: 3 })).toHaveText([
-      'The Apartment',
-      'The Tomorrow Engine',
-      'The Great Atrium',
-      'The Exchange',
-      'The Outline Room',
-    ]);
-    await expect(archive.locator('.tqw-archive__room[data-room="certification-office"]')).toHaveCount(0);
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-    ]);
-    await expect(papers(page, 'sealed')).toHaveCount(0);
-    await expect(papers(page, 'found')).toHaveCount(0);
-    for (const [id, room] of [
-      ['apartment', 'The Apartment'],
-      ['tomorrow-engine', 'The Tomorrow Engine'],
-      ['great-atrium', 'The Great Atrium'],
-      ['exchange', 'The Exchange'],
-      ['outline-room', 'The Outline Room'],
-    ]) {
-      await expect(archive.locator(`.tqw-archive__room[data-room="${id}"]`)).toHaveText(`${room}Not yet open.`);
-    }
-    // The Office has no unopened inventory; its empty bay is its completion record.
-    // Other closed rooms remain plainly marked, without scores or hidden-secret totals.
+    await expect(archive.locator('.tqw-archive__room')).toHaveCount(0);
+    await expect(papers(page)).toHaveCount(0);
+    await expect(archive.locator('.tqw-archive__room-count, .tqw-archive__sealed, .tqw-archive__sealed-row')).toHaveCount(0);
     expect(await archive.locator('progress, meter, [role="progressbar"], svg, canvas').count()).toBe(0);
-    const roomText = (await archive.locator('.tqw-archive__room').allTextContents()).join(' ');
-    expect(roomText).not.toMatch(/%|secret/i);
+    expect(await archive.innerText()).not.toMatch(/\b(?:count|counts|total|totals|sealed|slot|slots|not yet open|more rooms will appear)\b|\b\d+\s*(?:of|\/)\s*\d+\b/i);
   });
 
-  test('Office findings show their authored titles without a collectible total or sealed placeholders', { tag: '@fast' }, async ({ page }) => {
+  test('Office findings show their authored titles without unopened inventory', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, {
       'certification-office': [
@@ -1548,23 +1520,17 @@ test.describe('the archive', () => {
       ],
     });
     const archive = page.locator('#archive');
-    await expect(archive.locator('.tqw-archive__room-count')).toHaveText([
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-    ]);
-    await expect(papers(page, 'found')).toHaveCount(3);
-    await expect(papers(page, 'sealed')).toHaveCount(0);
-    await expect(papers(page, 'found').locator('.tqw-paper__title')).toHaveText([
+    await expect(archive.locator('.tqw-archive__room')).toHaveCount(1);
+    await expect(papers(page)).toHaveCount(3);
+    await expect(papers(page).locator('.tqw-paper__title')).toHaveText([
       'Inspection copy',
       'Duck Requisition',
       'Certification Office — mystery resolved',
     ]);
     const office = archive.locator('.tqw-archive__room[data-room="certification-office"]');
-    await expect(office.locator('.tqw-archive__room-count, .tqw-archive__sealed')).toHaveCount(0);
-    expect((await archive.textContent()) ?? '').not.toMatch(/office-inspection-copy|office-duck-requisition|office-mystery-resolved|of 7|of 5/);
+    await expect(office).toHaveCount(1);
+    await expect(archive.locator('.tqw-archive__room-count, .tqw-archive__sealed, .tqw-archive__sealed-row')).toHaveCount(0);
+    expect(await archive.innerText()).not.toMatch(/office-inspection-copy|office-duck-requisition|office-mystery-resolved|\b(?:count|counts|total|totals|sealed|slot|slots)\b|\b\d+\s*(?:of|\/)\s*\d+\b/i);
   });
 
   test('importing replaces the archive, and the hero does not call it this visit\'s discovery', { tag: '@fast' }, async ({ page }) => {
@@ -1578,7 +1544,7 @@ test.describe('the archive', () => {
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
     await page.locator('.tqw-archive input[type="file"]').setInputFiles({ name: 'nope.json', mimeType: 'application/json', buffer: Buffer.from('{"version":9}') });
     await expect(page.locator('.tqw-archive__message')).toHaveText(/could not be read/);
-    await expect(papers(page, 'found')).toHaveCount(1);
+    await expect(papers(page)).toHaveCount(1);
   });
 
   test('export saves unheld-discoveries.json with its authored title and no other fields', { tag: '@fast' }, async ({ page }) => {
@@ -1609,25 +1575,19 @@ test.describe('the archive', () => {
     // Cancel, and Escape, keep everything.
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(dialog).toBeHidden();
-    await expect(papers(page, 'found')).toHaveCount(2);
+    await expect(papers(page)).toHaveCount(2);
     await page.locator('#archive').getByRole('button', { name: 'Forget everything' }).click();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await expect(papers(page, 'found')).toHaveCount(2);
+    await expect(papers(page)).toHaveCount(2);
 
     await page.locator('#archive').getByRole('button', { name: 'Forget everything' }).click();
     await dialog.getByRole('button', { name: 'Forget everything' }).click();
     await expect(dialog).toBeHidden();
-    await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(0);
+    await expect(papers(page)).toHaveCount(0);
+    await expect(page.locator('#archive .tqw-archive__room')).toHaveCount(0);
     await expect(page.locator('.tqw-archive__message')).toHaveText('Forgotten. This device remembers nothing.');
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText([
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-    ]);
+    await expect(page.locator('#archive .tqw-archive__room-count, #archive .tqw-archive__sealed, #archive .tqw-archive__sealed-row')).toHaveCount(0);
   });
 
   test('the Forget dialog is a dialog: Escape closing it does not release the game window', async ({ page }) => {
@@ -1794,14 +1754,9 @@ test.describe('what the page stores and sends', () => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }, { id: 'memo-b', kind: 'memo' }] });
     await page.reload();
-    await expect(papers(page, 'found')).toHaveCount(2);
-    await expect(page.locator('.tqw-archive__room-count')).toHaveText([
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-      'Not yet open.',
-    ]);
+    await expect(papers(page)).toHaveCount(2);
+    await expect(page.locator('#archive .tqw-archive__room')).toHaveCount(1);
+    await expect(page.locator('#archive .tqw-archive__room-count, #archive .tqw-archive__sealed, #archive .tqw-archive__sealed-row')).toHaveCount(0);
     await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
   });
 
@@ -1810,18 +1765,18 @@ test.describe('what the page stores and sends', () => {
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
     await page.locator('#archive').getByRole('button', { name: 'Forget everything' }).click();
     await page.getByRole('dialog', { name: 'Forget everything?' }).getByRole('button', { name: 'Forget everything' }).click();
-    await expect(papers(page, 'found')).toHaveCount(0);
+    await expect(papers(page)).toHaveCount(0);
     expect(await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)])).toEqual([]);
     await page.reload();
-    await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(0);
+    await expect(papers(page)).toHaveCount(0);
+    await expect(page.locator('#archive .tqw-archive__room')).toHaveCount(0);
   });
 
   test('a damaged key is ignored and the page still loads with an empty archive', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('unheld.v1', '{"version":9,"found":'));
     await page.goto('/');
-    await expect(papers(page, 'found')).toHaveCount(0);
-    await expect(papers(page, 'sealed')).toHaveCount(0);
+    await expect(papers(page)).toHaveCount(0);
+    await expect(page.locator('#archive .tqw-archive__room')).toHaveCount(0);
   });
 
   test('a browser that refuses storage still gets a working archive for the visit', async ({ page }) => {
@@ -1834,7 +1789,7 @@ test.describe('what the page stores and sends', () => {
     });
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
-    await expect(papers(page, 'found')).toHaveCount(1);
+    await expect(papers(page)).toHaveCount(1);
   });
 
   test('the content security policy still allows no connections and only blob images for the smoke', async ({ page }) => {
