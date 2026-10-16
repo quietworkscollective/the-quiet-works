@@ -27,66 +27,37 @@ async function scrollPage(page: Page, mobile: boolean, down: boolean, fine = fal
   await page.waitForTimeout(250);
 }
 
-async function pose(page: Page): Promise<{ x: number; z: number; yaw: number; pitch: number }> {
-  return world(page).evaluate((el) => {
-    const [x, z, yaw] = (el.getAttribute('data-pose') ?? '').split(',').map(Number);
-    return { x: x ?? NaN, z: z ?? NaN, yaw: yaw ?? NaN, pitch: Number(el.getAttribute('data-pitch')) };
-  });
-}
-
+/** Scrolls from the hero through the smoke until the game window is in view, as a visitor would. */
 async function handover(page: Page, mobile: boolean): Promise<void> {
   await page.goto('/');
   await expect(world(page).locator('canvas')).toHaveAttribute('data-world', 'ready', { timeout: 90_000 });
-  if (!mobile) {
-    for (let i = 0; i < 14 && await site(page).getAttribute('data-engaged') !== 'true'; i += 1) {
-      await page.mouse.wheel(0, 280);
-      await page.waitForTimeout(80);
-    }
-  } else {
-    for (let i = 0; i < 8 && await site(page).getAttribute('data-engaged') !== 'true'; i += 1) {
-      await scrollPage(page, true, true);
-    }
+  for (let i = 0; i < 30 && (await site(page).getAttribute('data-spine')) !== 'corridor'; i += 1) {
+    await scrollPage(page, mobile, true);
   }
   await expect(site(page)).toHaveAttribute('data-spine', 'corridor');
 }
 
-test('the smoke hand-over engages and scrolling walks, then scrolls back to the hero without a click', async ({ page, isMobile }, info) => {
+const scrollY = (page: Page) => page.evaluate(() => window.scrollY);
+
+test('scrolling through the smoke never takes the page: it scrolls on past the game window and back to the hero', async ({ page, isMobile }, info) => {
   // GitHub's software-rendered phone profile walks the whole hand-over far slower than a GPU.
   test.setTimeout(process.env['CI'] ? 420_000 : 180_000);
   test.skip(!['desktop', 'mobile'].includes(info.project.name), 'covered on desktop and Pixel 7');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await handover(page, isMobile);
-  await expect(site(page)).toHaveAttribute('data-engaged', 'true');
-  await expect(world(page)).toHaveAttribute('data-at-handover', 'true');
-  const start = await pose(page);
-  await scrollPage(page, isMobile, true);
-  await expect.poll(async () => (await pose(page)).z, { timeout: 10_000 }).toBeLessThan(start.z - 0.08);
-
-  for (
-    let i = 0;
-    i < 20 &&
-    (await site(page).getAttribute('data-engaged')) === 'true' &&
-    (await world(page).getAttribute('data-at-handover')) !== 'true';
-    i += 1
-  ) {
-    await scrollPage(page, isMobile, false, true);
-  }
-  if ((await site(page).getAttribute('data-engaged')) === 'true') {
-    await expect(world(page)).toHaveAttribute('data-at-handover', 'true');
-    await scrollPage(page, isMobile, false);
-  }
   await expect(site(page)).toHaveAttribute('data-engaged', 'false');
-  await expect(site(page)).toHaveAttribute('data-spine', 'entrance');
 
-  for (let i = 0; i < 12 && (await page.evaluate(() => window.scrollY)) > 0; i += 1) {
-    await scrollPage(page, isMobile, false);
-  }
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
-  await expect.poll(async () => (await pose(page)).z, { timeout: 10_000 }).toBeCloseTo(9.8, 1);
-  const entrance = await pose(page);
-  expect(entrance.x).toBeCloseTo(0, 1);
-  expect(entrance.yaw).toBeCloseTo(0, 0);
-  expect(entrance.pitch).toBeCloseTo(0, 0);
+  // The next gestures move the page, not the visitor: no hold.
+  const atWindow = await scrollY(page);
+  for (let i = 0; i < 3; i += 1) await scrollPage(page, isMobile, true);
+  await expect.poll(() => scrollY(page)).toBeGreaterThan(atWindow);
+  await expect(site(page)).toHaveAttribute('data-engaged', 'false');
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe('');
+
+  for (let i = 0; i < 40 && (await scrollY(page)) > 0; i += 1) await scrollPage(page, isMobile, false);
+  await expect.poll(() => scrollY(page)).toBe(0);
+  await expect(site(page)).toHaveAttribute('data-spine', 'entrance');
+  await expect(site(page)).toHaveAttribute('data-engaged', 'false');
 });
 
 test('reduced motion keeps the invitation at rest at the hand-over', async ({ page }, info) => {
@@ -121,6 +92,7 @@ test('Leave and Escape release the engaged window', async ({ page }, info) => {
   test.setTimeout(180_000);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await handover(page, false);
+  await page.getByRole('button', { name: 'Enter The Quiet Works' }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'true');
   await page.getByRole('button', { name: 'Leave', exact: true }).click();
   await expect(site(page)).toHaveAttribute('data-engaged', 'false');
