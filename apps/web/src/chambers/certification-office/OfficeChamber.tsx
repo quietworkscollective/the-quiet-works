@@ -111,6 +111,8 @@ export default function OfficeChamber(props: ChamberProps) {
   const [position, setPosition] = useState<ImpressionPosition>('centre');
   const [navigation] = useState(createNavigation);
   const station = useSyncExternalStore(navigation.subscribe, () => navigation.station);
+  const navigationMoving = useSyncExternalStore(navigation.subscribe, () => navigation.moving);
+  const pendingInspections = useRef<Array<{ id: OfficeObjectId; point: Viewpoint }>>([]);
   const approach = useCallback(() => {
     if (navigation.station !== 'desk') navigation.approach('desk', text !== null || settings.reducedMotion);
   }, [navigation, text, settings.reducedMotion]);
@@ -276,7 +278,11 @@ export default function OfficeChamber(props: ChamberProps) {
     captionRef.current(MEMO_FILED_CAPTION);
   }, [archive, discoveries, sound]);
   const closeMemo = useCallback(() => { setCounterOpen(false); store.dispatch({ type: 'CLOSE_MEMO' }); }, [store]);
-  const reset = useCallback(() => { store.dispatch({ type: 'RESET' }); clearHint('ready'); }, [store, clearHint]);
+  const reset = useCallback(() => {
+    pendingInspections.current = [];
+    store.dispatch({ type: 'RESET' });
+    clearHint('ready');
+  }, [store, clearHint]);
 
   const lost = useCallback(() => {
     liftHeldStamp();
@@ -355,12 +361,39 @@ export default function OfficeChamber(props: ChamberProps) {
     const point = OBJECT_STATIONS[id];
     const destination = VIEWPOINTS[point];
     const distance = Math.hypot(navigation.pose.x - destination.x, navigation.pose.z - destination.z);
-    if (!textMode && (navigation.moving || distance > .3)) {
-      navigation.approach(point, settings.reducedMotion);
+    if (textMode) {
+      operate(id);
+      return;
+    }
+    if (settings.reducedMotion && (navigation.moving || distance > .3)) {
+      navigation.approach(point, true);
+      return;
+    }
+    const pending = pendingInspections.current;
+    if (pending.some(action => action.id === id)) return;
+    if (pending.length > 0 || navigation.moving || distance > .3) {
+      pending.push({ id, point });
+      if (pending.length === 1 && !navigation.moving) navigation.approach(point, settings.reducedMotion);
       return;
     }
     operate(id);
   }, [navigation, textMode, settings.reducedMotion, operate, openEvidence]);
+  useEffect(() => {
+    if (navigationMoving) return;
+    const pending = pendingInspections.current;
+    while (pending.length > 0) {
+      const next = pending[0];
+      if (!next) return;
+      const destination = VIEWPOINTS[next.point];
+      const distance = Math.hypot(navigation.pose.x - destination.x, navigation.pose.z - destination.z);
+      if (navigation.station !== next.point || distance > .3) {
+        navigation.approach(next.point, settings.reducedMotion);
+        return;
+      }
+      pending.shift();
+      operate(next.id);
+    }
+  }, [navigationMoving, station, navigation, settings.reducedMotion, operate]);
   const entrance = useCallback(() => {
     if (Math.hypot(navigation.pose.x, navigation.pose.z - .8) > .3) navigation.approach('arrival', settings.reducedMotion);
     else leave('entrance');
@@ -459,7 +492,7 @@ export default function OfficeChamber(props: ChamberProps) {
           {cue && (!placesOpen || cue.focused) ? <div data-fp-ignore className="tqw-context-cue" data-focused={cue.focused} data-side={cue.side}
             style={{ left: cue.x, top: cue.y }}>
             <button type="button" onFocus={() => setFocused(cue.id)} onBlur={() => setFocused(null)}
-              onClick={() => { if (cue.id === 'press') { if (station === 'desk') { pressStart(); pressEnd(); } else approach(); } else operate(cue.id); }}>
+              onClick={() => { if (cue.id === 'press') { if (station === 'desk') { pressStart(); pressEnd(); } else approach(); } else inspect(cue.id); }}>
               {responseCue?.id === cue.id ? responseCue.text : cue.id === 'press' ? (station === 'desk' ? OFFICE_LEGIBILITY.submit : 'Approach the desk') :
                 cue.id === 'side-door' && (shadow || state.phase === 'overloaded') ? OFFICE_LEGIBILITY.leave :
                 (() => {
