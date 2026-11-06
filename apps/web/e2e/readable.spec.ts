@@ -12,6 +12,7 @@ const routes = [
 const introduction = 'UNHELD is an interactive artwork about the expectations men carry without saying so, and the inner lives that go on underneath them.';
 const privacy = 'UNHELD has no accounts, no cookies, no analytics and no advertising. Until you find something, it stores nothing in your browser.';
 const rooms = ['The Certification Office', 'The Apartment', 'The Tomorrow Engine', 'The Great Atrium', 'The Exchange', 'The Outline Room'];
+const openRooms = ['The Certification Office', 'The Tomorrow Engine'];
 const links = ['/', '/about', '/credits', '/privacy', '/licences', '/agents', '/llms.txt', '/sitemap.xml'];
 const evidence = process.env.TQW_READABLE_EVIDENCE;
 
@@ -27,8 +28,8 @@ for (const [route, heading] of routes) {
     await expect(reading.getByText(privacy, { exact: true }).first()).toBeVisible();
     const doors = reading.getByRole('navigation', { name: 'Doors', exact: true });
     for (const room of rooms) await expect(doors.getByText(new RegExp(`${room}, (open the door|not yet open)$`))).toBeVisible();
-    await expect(doors.getByText('The Certification Office, open the door', { exact: true })).toBeVisible();
-    for (const room of rooms.slice(1)) await expect(doors.getByText(`${room}, not yet open`, { exact: true })).toBeVisible();
+    for (const room of openRooms) await expect(doors.getByText(`${room}, open the door`, { exact: true })).toBeVisible();
+    for (const room of rooms.filter((title) => !openRooms.includes(title))) await expect(doors.getByText(`${room}, not yet open`, { exact: true })).toBeVisible();
     for (const href of links) await expect(reading.locator(`a[href="${href}"]`).first()).toBeVisible();
     if (evidence && ['/', '/certification-office', '/credits'].includes(route)) {
       await mkdir(evidence, { recursive: true });
@@ -45,7 +46,7 @@ for (const [route, heading] of routes) {
     expect.soft(reading).toContain(`<h1>${heading}</h1>`);
     for (const copy of [introduction, 'A space for everything we carry.', privacy, ...rooms]) expect.soft(reading).toContain(copy);
     for (const href of links) expect.soft(reading).toContain(`href="${href}"`);
-    expect.soft(reading.match(/not yet open/g)).toHaveLength(5);
+    expect.soft(reading.match(/not yet open/g)).toHaveLength(4);
     const canonical = `https://unheld.space${route}`;
     expect.soft(html).toContain(`href="${canonical}"`);
     for (const tag of ['title', 'description', 'url', 'type', 'site_name', 'image']) expect.soft(html).toContain(`property="og:${tag}"`);
