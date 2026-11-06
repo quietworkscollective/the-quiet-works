@@ -645,7 +645,7 @@ test.describe('doors', () => {
     expectPose(await pose(page), frameOf('apartment'));
     await expect(door(page, 'The Apartment', 'sealed')).toHaveAttribute('aria-current', 'true');
     // And on to the next door in corridor order.
-    await door(page, 'The Tomorrow Engine', 'sealed').focus();
+    await door(page, 'The Tomorrow Engine', 'open').focus();
     await expect
       .poll(async () => (await pose(page)).z, { timeout: 60_000 })
       .toBeCloseTo(frameOf('tomorrow-engine').z, 1);

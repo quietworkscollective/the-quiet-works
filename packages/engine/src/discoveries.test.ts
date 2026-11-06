@@ -118,6 +118,49 @@ describe('recording findings', () => {
     expect([...storage.data.keys()]).toEqual([DISCOVERY_STORAGE_KEY]);
   });
 
+  it('stores the version 6 Tomorrow payload in the same document without altering Office findings', () => {
+    const storage = memoryStorage();
+    const store = createDiscoveryStore(storage);
+    store.record(OFFICE, { id: 'office-expired-approval', kind: 'line', title: 'Expired Approval — Sample' });
+    store.setRoomState('tomorrow-engine', {
+      scriptVersion: 6,
+      phase: 'braked',
+      station: 'winding-control',
+      sleeveOpen: true,
+      stopTabOpen: false,
+      completed: false,
+    });
+    const written = JSON.parse(storage.data.get(DISCOVERY_STORAGE_KEY)!);
+    expect(written.roomState['tomorrow-engine']).toEqual({
+      scriptVersion: 6,
+      phase: 'braked',
+      station: 'winding-control',
+      sleeveOpen: true,
+      stopTabOpen: false,
+      completed: false,
+    });
+    expect(written.found[OFFICE]).toEqual([{ id: 'office-expired-approval', kind: 'line', title: 'Expired Approval — Sample' }]);
+    expect(store.getRoomState('tomorrow-engine')).toEqual(written.roomState['tomorrow-engine']);
+    store.record('tomorrow-engine', { id: 'unused-hour', kind: 'specimen', title: 'Unused Hour' });
+    expect(store.getRoomState('tomorrow-engine')).toEqual(written.roomState['tomorrow-engine']);
+    expect(store.getState().found[OFFICE]).toEqual([{ id: 'office-expired-approval', kind: 'line', title: 'Expired Approval — Sample' }]);
+    expect(store.getState().found['tomorrow-engine']).toEqual([{ id: 'unused-hour', kind: 'specimen', title: 'Unused Hour' }]);
+  });
+
+  it('keeps an older Tomorrow payload inert and leaves other room records readable', () => {
+    const storage = memoryStorage({
+      [DISCOVERY_STORAGE_KEY]: JSON.stringify({
+        version: 1,
+        found: { [OFFICE]: [memo(1)] },
+        recognitions: [],
+        roomState: { 'tomorrow-engine': { path: 'wind', unusedHour: true, lunchNoteRead: true } },
+      }),
+    });
+    const store = createDiscoveryStore(storage);
+    expect(store.getState().found[OFFICE]).toEqual([memo(1)]);
+    expect(store.getRoomState('tomorrow-engine')).toEqual({ path: 'wind', unusedHour: true, lunchNoteRead: true });
+  });
+
   it('stores the versioned document and nothing more: no timestamps, no content, no tokens', () => {
     const storage = memoryStorage();
     const store = createDiscoveryStore(storage);
@@ -394,6 +437,7 @@ describe('export and import', () => {
     ['no found', JSON.stringify({ version: 1, recognitions: [] })],
     ['no recognitions', JSON.stringify({ version: 1, found: {} })],
     ['an unknown top-level field', JSON.stringify({ version: 1, found: {}, recognitions: [], savedAt: 1 })],
+    ['an incomplete version 6 Tomorrow payload', JSON.stringify({ version: 1, found: {}, recognitions: [], roomState: { 'tomorrow-engine': { scriptVersion: 6, phase: 'braked' } } })],
     ['an unknown chamber', documentOf({ basement: [memo(1)] })],
     ['an unknown chamber beside a valid one', documentOf({ [OFFICE]: [memo(1)], basement: [memo(2)] })],
     ['a prototype key as a chamber', '{"version":1,"found":{"__proto__":[]},"recognitions":[]}'],

@@ -10,7 +10,7 @@ function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/([\w:-]+)=["']([^"']*)["']/g)].map(match => [match[1], match[2]]));
 }
 for (const agent of agents) {
-  for (const route of ['/', '/certification-office']) {
+  for (const route of ['/', '/certification-office', '/tomorrow-engine']) {
     const url = new URL(route, base);
     const html = await new Promise((resolve, reject) => {
       const request = (url.protocol === 'https:' ? https : http).get(url, { headers: { 'User-Agent': agent } }, response => {

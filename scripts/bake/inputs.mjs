@@ -48,6 +48,12 @@ const roomInputs = {
     'apps/web/src/chambers/apartment/assets/apartment.glb',
     'apps/web/src/chambers/apartment/assets/apartment.glb.gz',
   ],
+  'tomorrow-engine': [
+    'apps/web/src/chambers/tomorrow-engine',
+    'scripts/blender/rooms/tomorrow-engine',
+    'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb',
+    'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb.gz',
+  ],
 };
 const productionInput = name => /\.(?:[cm]?[jt]sx?|py|json|css|glb|gltf|bin|gz|png|jpe?g|webp|svg|avif|woff2?|ttf|otf)$/i.test(name) && !name.startsWith('.') && !/\.(test|spec|integration)\.[^.]+$/.test(name) && !['testUtils.ts', 'testSetup.ts', 'domStub.ts', 'README.md'].includes(name);
 async function collect(root, directory, excluded = new Set()) {

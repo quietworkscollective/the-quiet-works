@@ -15,7 +15,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(new URL('../../apps/web/package.json', import.meta.url));
 const ansiEscape = new RegExp(`${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`, 'g');
 const checking = process.argv.includes('--check');
-const availableSpaces = ['corridor', 'office', 'codex-room', 'exchange', 'apartment'];
+const availableSpaces = ['corridor', 'office', 'codex-room', 'exchange', 'apartment', 'tomorrow-engine'];
 const requested = process.argv.find(value => availableSpaces.includes(value));
 const spaces = checking ? (requested ? [requested] : availableSpaces) : [process.argv[2]];
 if (spaces.some(space => !availableSpaces.includes(space))) throw new Error(`Usage: pnpm bake ${availableSpaces.join('|')}`);
@@ -46,6 +46,10 @@ if (!checking && spaces[0] === 'codex-room') {
 if (!checking && spaces[0] === 'apartment') {
   const built = spawnSync('node', ['scripts/blender/rooms/apartment/run.ts'], { cwd: root, stdio: 'inherit' });
   if (built.status !== 0) throw new Error(`Apartment Blender source failed: ${built.status}`);
+}
+if (!checking && spaces[0] === 'tomorrow-engine') {
+  const built = spawnSync('node', ['scripts/blender/rooms/tomorrow-engine/run.ts'], { cwd: root, stdio: 'inherit' });
+  if (built.status !== 0) throw new Error(`Tomorrow Engine Blender source failed: ${built.status}`);
 }
 
 // The Annex door uses the same reproducible Blender-to-quantized-glTF path as its chamber.
@@ -211,7 +215,13 @@ try {
     const geometryFiles = await splitGeometry(path.join(dir, 'quantized.glb'), out, space);
     for (const atlas of manifest.atlases) await cp(path.join(dir, atlas.file), path.join(out, atlas.file));
     await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-    await writeFile(path.join(out, `${space}.ts`), assetsModuleSource({ space, geometryFiles, atlasFiles: manifest.atlases.map(atlas => atlas.file) }));
+    const emittedModule = assetsModuleSource({
+      space,
+      geometryFiles,
+      atlasFiles: manifest.atlases.map(atlas => atlas.file),
+      inlineAtlases: space === 'tomorrow-engine',
+    });
+    await writeFile(path.join(out, `${space}.ts`), emittedModule);
     console.log(`${space}: ${bytes} lightmap bytes; ${((performance.now() - started) / 1000).toFixed(1)}s; hash ${manifest.hash}`);
   }
 } finally {

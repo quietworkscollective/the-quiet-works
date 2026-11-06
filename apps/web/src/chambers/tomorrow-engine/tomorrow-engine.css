@@ -1,0 +1,360 @@
+.tqw-tomorrow-engine {
+  --te-bg: #100c08;
+  --te-panel: #17110c;
+  --te-ink: #f2e6d2;
+  --te-muted: #d0c1aa;
+  --te-edge: #8c7555;
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--te-ink);
+  background: var(--te-bg);
+  font: 500 0.94rem/1.42 var(--font-ui, "IBM Plex Sans", system-ui, sans-serif);
+}
+
+.tqw-game__window:has(.tqw-tomorrow-engine) .tqw-game__mode { display: none; }
+
+.tqw-tomorrow-engine button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--te-edge);
+  border-radius: 2px;
+  padding: 0.42rem 0.58rem;
+  color: var(--te-ink);
+  background: #211911;
+  font: 600 0.8rem/1.18 var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  cursor: pointer;
+}
+
+.tqw-tomorrow-engine button:hover:not(:disabled),
+.tqw-tomorrow-engine button[aria-pressed="true"] {
+  border-color: #e1bf88;
+  background: #352719;
+}
+
+.tqw-tomorrow-engine button:focus-visible,
+.tqw-tomorrow-engine canvas:focus-visible,
+.tqw-tomorrow-panel-header h2:focus-visible,
+.tqw-tomorrow-reader-body:focus-visible,
+.tqw-tomorrow-archive-list:focus-visible,
+.tqw-tomorrow-text-examines:focus-visible {
+  outline: 2px solid #f1d09b;
+  outline-offset: 2px;
+}
+
+.tqw-tomorrow-engine button:disabled {
+  color: #b7a68b;
+  border-color: #5a4934;
+  background: #17120d;
+  cursor: not-allowed;
+}
+
+.tqw-tomorrow-topbar {
+  position: absolute;
+  z-index: 10;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  right: 0;
+  display: grid;
+  width: 390px;
+  height: 56px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px 8px;
+  background: #100c08;
+}
+
+.tqw-tomorrow-topbar button { height: 44px; min-height: 44px; padding: 0.35rem; }
+.tqw-tomorrow-topbar > button:first-child { grid-column: 1; grid-row: 1; }
+.tqw-tomorrow-topbar .tqw-tomorrow-archive { grid-column: 2; grid-row: 1; }
+.tqw-tomorrow-topbar .tqw-tomorrow-hint { grid-column: 3; grid-row: 1; }
+.tqw-tomorrow-topbar > button:last-child { grid-column: 4; grid-row: 1; }
+
+.tqw-tomorrow-stage {
+  position: absolute;
+  inset: 0 390px 0 0;
+  overflow: hidden;
+  background: #100c08;
+  touch-action: manipulation;
+}
+
+.tqw-tomorrow-engine-canvas,
+.tqw-tomorrow-engine-canvas > div,
+.tqw-tomorrow-engine-canvas canvas {
+  position: absolute !important;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tqw-tomorrow-loading {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #ae8d5e;
+  background: #1c140c;
+  transform: translate(-50%, -50%);
+}
+
+.tqw-tomorrow-cue {
+  position: absolute;
+  z-index: 5;
+  min-width: 44px;
+  min-height: 44px;
+  border-color: #efd09d !important;
+  background: #382716 !important;
+  box-shadow: 0 0 0 2px #100c08, 0 3px 20px #000;
+  transform: translate(-50%, -110%);
+}
+
+.tqw-tomorrow-rail {
+  position: absolute;
+  top: 112px;
+  right: 0;
+  bottom: 44px;
+  width: 390px;
+  background: #100c08;
+}
+
+.tqw-tomorrow-primary,
+.tqw-tomorrow-result,
+.tqw-tomorrow-acknowledgement,
+.tqw-tomorrow-panel,
+.tqw-tomorrow-stations,
+.tqw-tomorrow-actions {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  margin: 0;
+}
+
+.tqw-tomorrow-primary { top: 64px; height: 56px; font-size: 0.9rem !important; }
+
+.tqw-tomorrow-result {
+  top: 72px;
+  display: block;
+  height: 48px;
+  overflow: auto;
+  border: 1px solid #544330;
+  padding: 0.25rem 0.5rem;
+  color: #f1dfc2;
+  background: #17110c;
+  font-size: 1.125rem;
+  line-height: 1.2;
+  overscroll-behavior: contain;
+}
+
+.tqw-tomorrow-result:focus-visible,
+.tqw-tomorrow-acknowledgement:focus-visible {
+  outline: 2px solid #f1d09b;
+  outline-offset: 2px;
+}
+
+.tqw-tomorrow-result-caption { display: block; color: #d8c5a5; font-size: 0.86em; }
+
+.tqw-tomorrow-acknowledgement {
+  top: 120px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: #e9d7b8;
+  font-size: 1rem;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+.tqw-tomorrow-panel {
+  top: 152px;
+  height: 380px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.tqw-tomorrow-panel--open {
+  border-color: var(--te-edge);
+  background: var(--te-panel);
+}
+
+.tqw-tomorrow-panel-header {
+  display: grid;
+  height: 48px;
+  grid-template-columns: minmax(0, 1fr) 110px 64px;
+  gap: 8px;
+  align-items: center;
+  padding: 0 5px;
+  border-bottom: 1px solid #50402e;
+}
+
+.tqw-tomorrow-panel-header h2 {
+  min-width: 0;
+  max-height: 42px;
+  overflow: auto;
+  margin: 0;
+  color: #e8d1ac;
+  font: 500 1.03rem/1.15 var(--font-display, "Newsreader", Georgia, serif);
+}
+
+.tqw-tomorrow-panel-header button {
+  min-height: 44px;
+  height: 44px;
+  overflow: hidden;
+  padding: 0.28rem 0.25rem;
+  font-size: 0.7rem;
+}
+
+.tqw-tomorrow-context-slot { display: block; min-width: 0; }
+.tqw-tomorrow-close { width: 64px; }
+
+.tqw-tomorrow-reader-body,
+.tqw-tomorrow-archive-list {
+  max-height: calc(100% - 48px);
+  overflow: auto;
+  padding: 0.5rem 0.65rem;
+  overscroll-behavior: contain;
+  scrollbar-color: #735c3d #17110c;
+}
+
+.tqw-tomorrow-reader-body p { margin: 0 0 0.7rem; color: #f0e5d3; font-size: 1rem; line-height: 1.38; white-space: pre-line; }
+.tqw-tomorrow-reader-body p:last-child { margin-bottom: 0; }
+.tqw-tomorrow-reader-body h3 { margin: 0 0 0.3rem; color: #ead3ad; font: 500 1.02rem/1.2 var(--font-display, "Newsreader", Georgia, serif); }
+.tqw-tomorrow-original { padding-bottom: 0.7rem; }
+.tqw-tomorrow-original + .tqw-tomorrow-original { border-top: 1px solid #544330; padding-top: 0.7rem; }
+
+.tqw-tomorrow-ticket-reference {
+  height: 60px;
+  overflow: auto;
+  margin: 0;
+  border-bottom: 1px solid #50402e;
+  padding: 0.42rem 0.65rem;
+  color: #f0e2cc;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.tqw-tomorrow-panel:has(.tqw-tomorrow-ticket-reference) .tqw-tomorrow-reader-body {
+  max-height: calc(100% - 108px);
+}
+
+.tqw-tomorrow-ticket-lines { margin: 0; padding-left: 1.15rem; }
+.tqw-tomorrow-ticket-lines li { margin: 0 0 0.6rem; padding-left: 0.12rem; color: #f0e5d3; font-size: 1rem; line-height: 1.32; }
+.tqw-tomorrow-ticket-lines li:last-child { margin-bottom: 0; }
+.tqw-tomorrow-comparison-status { border-top: 1px solid #544330; padding-top: 0.5rem; color: #d8c5a5 !important; }
+
+.tqw-tomorrow-archive-list p { margin: 0; color: #e9dcc8; }
+.tqw-tomorrow-archive-list ul { display: grid; gap: 0.3rem; margin: 0; padding: 0; list-style: none; }
+.tqw-tomorrow-archive-list button { width: 100%; min-height: 44px; text-align: left; }
+
+.tqw-tomorrow-stations {
+  top: 540px;
+  display: grid;
+  height: 104px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 48px);
+  gap: 8px;
+}
+
+.tqw-tomorrow-stations button { height: 48px; min-height: 48px; padding: 0.3rem 0.45rem; }
+
+.tqw-tomorrow-actions {
+  top: 652px;
+  display: grid;
+  height: 48px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tqw-tomorrow-actions button { height: 48px; min-height: 48px; padding: 0.25rem 0.35rem; }
+
+.tqw-tomorrow-text-scene {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  align-content: stretch;
+  justify-items: stretch;
+  gap: 0.2rem;
+  overflow: hidden;
+  padding: 0.45rem 0.6rem;
+  color: #e2d0b4;
+  background: #100c08;
+  text-align: left;
+}
+
+.tqw-tomorrow-text-scene p { margin: 0; }
+.tqw-tomorrow-text-scene h2 { margin: 0; font: 500 1rem/1.15 var(--font-display, "Newsreader", Georgia, serif); }
+.tqw-tomorrow-text-examines { min-height: 0; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.tqw-tomorrow-text-examines button { width: 100%; min-height: 44px; text-align: left; }
+.tqw-tomorrow-engine[data-reduced-motion="true"] button[data-early-feedback="true"] { outline: 2px solid #f1d09b; outline-offset: 2px; }
+
+.tqw-tomorrow-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  clip-path: inset(50%) !important;
+}
+
+@media (max-width: 799px) {
+  .tqw-tomorrow-topbar {
+    top: calc(56px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tqw-tomorrow-stage {
+    inset: calc(56px + env(safe-area-inset-top)) 0 auto;
+    height: min(240px, calc(100dvh - 560px - env(safe-area-inset-top) - max(44px, env(safe-area-inset-bottom))));
+    min-height: 144px;
+  }
+
+  .tqw-tomorrow-rail {
+    top: min(calc(296px + env(safe-area-inset-top)), calc(100dvh - 504px - max(44px, env(safe-area-inset-bottom))));
+    right: 0;
+    bottom: max(44px, env(safe-area-inset-bottom));
+    left: 0;
+    width: 100%;
+  }
+
+  .tqw-tomorrow-topbar .tqw-tomorrow-primary {
+    top: min(248px, calc(100dvh - 552px - max(44px, env(safe-area-inset-bottom)) - env(safe-area-inset-top)));
+  }
+
+  .tqw-tomorrow-primary,
+  .tqw-tomorrow-result,
+  .tqw-tomorrow-acknowledgement,
+  .tqw-tomorrow-panel,
+  .tqw-tomorrow-stations,
+  .tqw-tomorrow-actions {
+    left: 16px;
+    right: 16px;
+  }
+
+  .tqw-tomorrow-primary {
+    top: min(248px, calc(100dvh - 552px - max(44px, env(safe-area-inset-bottom)) - env(safe-area-inset-top)));
+    height: 56px;
+  }
+  .tqw-tomorrow-result { top: 72px; height: 40px; font-size: 1.125rem; }
+  .tqw-tomorrow-acknowledgement { top: 112px; height: 24px; }
+  .tqw-tomorrow-panel { top: 144px; height: 192px; }
+  .tqw-tomorrow-panel-header { grid-template-columns: minmax(0, 1fr) 110px 64px; }
+  .tqw-tomorrow-stations { top: 344px; height: 104px; }
+  .tqw-tomorrow-actions { top: 456px; height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tqw-tomorrow-engine *,
+  .tqw-tomorrow-engine *::before,
+  .tqw-tomorrow-engine *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -1,7 +1,7 @@
 import { chamberById } from '@tqw/engine';
 import type { DoorSpec } from '../../corridor/doorKit.ts';
 
-/** A riveted 1928 plant-room door: iron, a wheel handle, a pressure gauge, sealed. */
+/** A steel-insertion door; the room's only exit is Leave. */
 export const DOOR: DoorSpec = {
   family: 'steel-insertion',
   width: 1.25,
@@ -10,8 +10,8 @@ export const DOOR: DoorSpec = {
   material: { primary: '#365D69', secondary: '#969C97', metal: '#8A6A44', glazing: 'porthole' },
   handle: 'wheel',
   topper: 'lamp',
-  plaque: { text: chamberById('tomorrow-engine').plaque, code: 'PLANT 02 · 1928' },
-  closure: 'seal',
+  plaque: { text: chamberById('tomorrow-engine').plaque },
+  spill: { kelvin: 3100, colour: '#FFCF9A' },
   fittings: ['pressure-gauge', 'rivets'],
   character: {
     note: 'An industrial repair made permanent: riveted steel, a copper aperture, a handwheel with one replacement grip.',
@@ -21,7 +21,7 @@ export const DOOR: DoorSpec = {
     lamp: { kelvin: 3400, strength: 0.35 },
     history: 'repaired',
     exposure: 0.07,
-    marks: [{ kind: 'stencil', text: 'DO NOT STOP' }, { kind: 'stripe' }],
+    marks: [{ kind: 'stripe' }],
     motif: 'round-aperture',
   },
 };

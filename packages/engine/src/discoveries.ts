@@ -12,8 +12,8 @@ import { ID_PATTERN } from './sealed/source.ts';
 
 export const DISCOVERY_STORAGE_KEY = 'unheld.v1';
 
-/** What kind of thing was found. Matches `SealedItem.kind`, plus Memo 001, which is public. */
-export type FindingKind = 'memo' | 'secret' | 'payoff' | 'line';
+/** What kind of thing was found in the shared on-device archive. */
+export type FindingKind = 'memo' | 'secret' | 'payoff' | 'line' | 'specimen';
 
 export interface Finding {
   /** The sealed item id (ADR 0002), or `memo-001`. */
@@ -28,7 +28,12 @@ export interface DiscoveryState {
   found: Partial<Record<ChamberId, readonly Finding[]>>;
   /** Named recognitions earned by how the visitor explored (ids, e.g. `listener`). */
   recognitions: readonly string[];
+  /** Small resettable room payloads. Only Tomorrow Engine currently uses this field. */
+  roomState?: Partial<Record<ChamberId, RoomStateRecord>>;
 }
+
+export type RoomStateScalar = string | number | boolean;
+export type RoomStateRecord = Readonly<Record<string, RoomStateScalar>>;
 
 export interface RoomCount {
   chamber: ChamberId;
@@ -53,6 +58,9 @@ export interface DiscoveryStore {
   has(chamber: ChamberId, id: string): boolean;
   /** True when the finding is present in this visit and its device write succeeded. */
   isStored(chamber: ChamberId, id: string): boolean;
+  /** Reads or updates a room's small scalar payload within the same unheld.v1 document. */
+  getRoomState(chamber: ChamberId): RoomStateRecord | null;
+  setRoomState(chamber: ChamberId, value: RoomStateRecord | null): void;
   /** One entry per open chamber, from `CHAMBERS[n].findings`. */
   counts(): readonly RoomCount[];
   /** Erases the storage key and resets to empty. */
@@ -73,8 +81,8 @@ const MAX_TEXT_LENGTH = 64 * 1024;
 const MAX_ID_LENGTH = 64;
 const MAX_TITLE_LENGTH = 160;
 const MAX_RECOGNITIONS = 64;
-const KINDS: readonly FindingKind[] = ['memo', 'secret', 'payoff', 'line'];
-const DOCUMENT_KEYS: readonly string[] = ['version', 'found', 'recognitions'];
+const KINDS: readonly FindingKind[] = ['memo', 'secret', 'payoff', 'line', 'specimen'];
+const DOCUMENT_KEYS: readonly string[] = ['version', 'found', 'recognitions', 'roomState'];
 
 type Found = Partial<Record<ChamberId, readonly Finding[]>>;
 
@@ -98,7 +106,7 @@ function isFinding(value: unknown): value is Finding {
 }
 
 /** Chambers in corridor order and empty ones dropped, so the same findings always serialise the same way. */
-function makeState(found: Found, recognitions: readonly string[]): DiscoveryState {
+function makeState(found: Found, recognitions: readonly string[], roomState?: Partial<Record<ChamberId, RoomStateRecord>>): DiscoveryState {
   const ordered: Found = {};
   for (const { id } of CHAMBERS) {
     const list = found[id];
@@ -110,19 +118,47 @@ function makeState(found: Found, recognitions: readonly string[]): DiscoveryStat
       ...(f.title === undefined ? {} : { title: f.title }),
     })));
   }
+  const orderedRoomState: Partial<Record<ChamberId, RoomStateRecord>> = {};
+  for (const { id } of CHAMBERS) {
+    const payload = roomState?.[id];
+    if (payload === undefined) continue;
+    orderedRoomState[id] = Object.freeze({ ...payload });
+  }
   return Object.freeze({
     version: 1,
     found: Object.freeze(ordered),
     recognitions: Object.freeze([...recognitions]),
+    ...(Object.keys(orderedRoomState).length > 0 ? { roomState: Object.freeze(orderedRoomState) } : {}),
   });
 }
 
 function isEmpty(state: DiscoveryState): boolean {
-  return Object.keys(state.found).length === 0 && state.recognitions.length === 0;
+  return Object.keys(state.found).length === 0 && state.recognitions.length === 0 && state.roomState === undefined;
 }
 
 function hasFinding(state: DiscoveryState, chamber: ChamberId, id: string): boolean {
   return state.found[chamber]?.some((f) => f.id === id) ?? false;
+}
+
+function isRoomStateRecord(chamber: ChamberId, value: unknown): value is RoomStateRecord {
+  if (!isRecord(value) || Object.keys(value).length === 0 || Object.keys(value).length > 12) return false;
+  for (const [key, entry] of Object.entries(value)) {
+    if (!/^[a-z][a-zA-Z0-9-]{0,31}$/.test(key)) return false;
+    if (typeof entry === 'string') {
+      if (entry.length > 64) return false;
+    } else if (typeof entry === 'number') {
+      if (!Number.isSafeInteger(entry)) return false;
+    } else if (typeof entry !== 'boolean') return false;
+  }
+  if (chamber !== 'tomorrow-engine' || value['scriptVersion'] !== 6) return true;
+  const required = ['scriptVersion', 'phase', 'station', 'sleeveOpen', 'stopTabOpen', 'completed'];
+  if (Object.keys(value).length !== required.length || required.some((key) => !(key in value))) return false;
+  return ['ready', 'wound', 'record-opened', 'braked', 'withdrawn'].includes(String(value['phase']))
+    && ['winding-control', 'date-display', 'carriage', 'service-hatch'].includes(String(value['station']))
+    && typeof value['sleeveOpen'] === 'boolean'
+    && typeof value['stopTabOpen'] === 'boolean'
+    && typeof value['completed'] === 'boolean'
+    && (value['phase'] !== 'withdrawn' || value['completed'] === true);
 }
 
 /**
@@ -158,6 +194,16 @@ function readState(text: unknown): DiscoveryState | null {
     found[chamber] = findings;
   }
 
+  let roomState: Partial<Record<ChamberId, RoomStateRecord>> | undefined;
+  if (raw['roomState'] !== undefined) {
+    if (!isRecord(raw['roomState'])) return null;
+    roomState = {};
+    for (const [chamber, payload] of Object.entries(raw['roomState'])) {
+      if (!isChamberId(chamber) || !isRoomStateRecord(chamber, payload)) return null;
+      roomState[chamber] = payload;
+    }
+  }
+
   const recognitionsRaw = raw['recognitions'];
   if (!Array.isArray(recognitionsRaw) || recognitionsRaw.length > MAX_RECOGNITIONS) return null;
   const recognitions: string[] = [];
@@ -165,7 +211,7 @@ function readState(text: unknown): DiscoveryState | null {
     if (!isId(entry) || recognitions.includes(entry)) return null;
     recognitions.push(entry);
   }
-  return makeState(found, recognitions);
+  return makeState(found, recognitions, roomState);
 }
 
 function countsOf(state: DiscoveryState): readonly RoomCount[] {
@@ -188,8 +234,8 @@ function countsOf(state: DiscoveryState): readonly RoomCount[] {
  * mirror: when it is missing, full or refusing writes, the store keeps working from memory for the
  * rest of the visit.
  *
- * The key is untouched until the first `record`, and holds nothing but the versioned document
- * (finding ids and kinds, recognition ids): no timestamps, no content, no tokens.
+ * The key is untouched until the first finding or room-state write. It holds the versioned document
+ * (finding ids/titles, recognition ids and bounded scalar room state): no timestamps or tokens.
  */
 export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStore {
   const listeners = new Set<() => void>();
@@ -247,16 +293,26 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
         if (current.title !== undefined || finding.title === undefined || current.kind !== finding.kind) return;
         const found = { ...state.found, [chamber]: (state.found[chamber] ?? []).map(entry =>
           entry.id === finding.id ? { ...entry, title: finding.title } : entry) };
-        change(makeState(found, state.recognitions));
+        change(makeState(found, state.recognitions, state.roomState));
         return;
       }
       const found = { ...state.found, [chamber]: [...(state.found[chamber] ?? []), finding] };
-      change(makeState(found, state.recognitions));
+      change(makeState(found, state.recognitions, state.roomState));
     },
 
     has: (chamber, id) => isChamberId(chamber) && hasFinding(state, chamber, id),
 
     isStored: (chamber, id) => mirrored && isChamberId(chamber) && hasFinding(state, chamber, id),
+
+    getRoomState: (chamber) => isChamberId(chamber) ? state.roomState?.[chamber] ?? null : null,
+
+    setRoomState(chamber, value) {
+      if (!isChamberId(chamber) || (value !== null && !isRoomStateRecord(chamber, value))) return;
+      const kept = Object.entries(state.roomState ?? {}).filter(([id]) => id !== chamber);
+      const roomState = Object.fromEntries(value === null ? kept : [...kept, [chamber, value]]) as typeof state.roomState;
+      const next = makeState(state.found, state.recognitions, roomState);
+      if (JSON.stringify(next) !== JSON.stringify(state)) change(next);
+    },
 
     counts() {
       if (counted?.state !== state) counted = { state, counts: countsOf(state) };
@@ -270,7 +326,7 @@ export function createDiscoveryStore(storage: StorageLike | null): DiscoveryStor
         mirrored = mirror(state);
         return;
       }
-      change(makeState({}, []));
+      change(makeState({}, [], {}));
     },
 
     exportText: () => JSON.stringify(state, null, 2),

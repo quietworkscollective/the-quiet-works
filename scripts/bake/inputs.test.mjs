@@ -66,6 +66,12 @@ test('room source lists exclude generated files and detect added modules', async
     'scripts/blender/rooms/apartment/build.py',
     'apps/web/src/chambers/apartment/assets/apartment.glb',
     'apps/web/src/chambers/apartment/assets/apartment.glb.gz',
+    'apps/web/src/chambers/tomorrow-engine/scene/TomorrowScene.tsx',
+    'apps/web/src/chambers/tomorrow-engine/door.ts',
+    'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb',
+    'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb.gz',
+    'scripts/blender/rooms/tomorrow-engine/build.py',
+    'scripts/blender/rooms/tomorrow-engine/run.ts',
     'apps/web/node_modules/@fontsource/test/latin.css',
     'apps/web/node_modules/@fontsource/test/files/sign.woff2',
   ];
@@ -83,7 +89,8 @@ test('room source lists exclude generated files and detect added modules', async
     const codex = await sourceInputs(root, 'codex-room');
     const exchange = await sourceInputs(root, 'exchange');
     const apartment = await sourceInputs(root, 'apartment');
-    for (const [space, input] of [['corridor', before], ['office', office], ['codex-room', codex], ['exchange', exchange], ['apartment', apartment]]) {
+    const tomorrow = await sourceInputs(root, 'tomorrow-engine');
+    for (const [space, input] of [['corridor', before], ['office', office], ['codex-room', codex], ['exchange', exchange], ['apartment', apartment], ['tomorrow-engine', tomorrow]]) {
       assert.ok(input.files.includes('apps/web/bake.html'), `${space} includes the bake entry in its freshness inputs`);
     }
     for (const file of [
@@ -131,6 +138,13 @@ test('room source lists exclude generated files and detect added modules', async
       'apps/web/src/chambers/apartment/assets/apartment.glb',
       'apps/web/src/chambers/apartment/assets/apartment.glb.gz',
     ]) assert.ok(apartment.files.includes(file), file);
+    for (const file of [
+      'apps/web/src/chambers/tomorrow-engine/scene/TomorrowScene.tsx',
+      'scripts/blender/rooms/tomorrow-engine/build.py',
+      'scripts/blender/rooms/tomorrow-engine/run.ts',
+      'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb',
+      'apps/web/src/chambers/tomorrow-engine/assets/tomorrow-engine.glb.gz',
+    ]) assert.ok(tomorrow.files.includes(file), file);
     await put('scripts/blender/rooms/exchange/build.py', 'changed authored source');
     const exchangeChanged = await sourceInputs(root, 'exchange');
     assert.notEqual(exchangeChanged.hash, exchange.hash);

@@ -7,11 +7,13 @@ const requestedSpace = new URLSearchParams(location.search).get('space');
 const space = requestedSpace === 'office' ? 'office'
   : requestedSpace === 'codex-room' ? 'codex-room'
     : requestedSpace === 'exchange' ? 'exchange'
-      : requestedSpace === 'apartment' ? 'apartment' : 'corridor';
+      : requestedSpace === 'apartment' ? 'apartment'
+        : requestedSpace === 'tomorrow-engine' ? 'tomorrow-engine' : 'corridor';
 const route = space === 'office' ? '/certification-office'
   : space === 'codex-room' ? '/outline-room'
     : space === 'exchange' ? '/the-exchange'
-      : space === 'apartment' ? '/apartment' : '/';
+      : space === 'apartment' ? '/apartment'
+        : space === 'tomorrow-engine' ? '/tomorrow-engine' : '/';
 history.replaceState(null, '', `${route}?quality=high&bake=off`);
 await import('../main.tsx');
 const dev = window as unknown as {

@@ -225,7 +225,7 @@ function collectDocumentGraph(distDir, allFiles, htmlFile, corridor) {
   return { files: initialFiles, errors: [...missing] };
 }
 
-export function budgetViolations({ initialGzipBytes, officeFirstVisit, sharedMediaBytes, totalBytes, errors = [] }) {
+export function budgetViolations({ initialGzipBytes, officeFirstVisit, sharedMediaBytes, totalBytes, roomRoutes = [], errors = [] }) {
   const violations = [...errors];
   if (initialGzipBytes > INITIAL_DOWNLOAD_BUDGET_BYTES) {
     violations.push(`first-visit download is ${formatBytes(initialGzipBytes)} gzip; limit ${formatBytes(INITIAL_DOWNLOAD_BUDGET_BYTES)}`);
@@ -238,6 +238,9 @@ export function budgetViolations({ initialGzipBytes, officeFirstVisit, sharedMed
   }
   if (totalBytes > WHOLE_BUILD_BUDGET_BYTES) {
     violations.push(`whole build is ${formatBytes(totalBytes)} raw excluding source maps; backstop ${formatBytes(WHOLE_BUILD_BUDGET_BYTES)}`);
+  }
+  for (const route of roomRoutes.filter(route => route.key === 'src/chambers/tomorrow-engine/index.ts' && route.gzipBytes > ROOM_ROUTE_BUDGET_BYTES)) {
+    violations.push(`Tomorrow Engine expanded lazy route is ${formatBytes(route.gzipBytes)} gzip; limit ${formatBytes(ROOM_ROUTE_BUDGET_BYTES)}`);
   }
   return violations;
 }
@@ -282,7 +285,7 @@ function addManifestGraph(manifest, key, allFiles, files, missing, visiting, cha
   const bakeName = bakeNameForChamber(chamberDirectory);
   for (const imported of entry.dynamicImports ?? []) {
     if (firstOfficeFrame && OFFICE_DEFERRED_MODELS.has(imported)) continue;
-    const bakedModule = /^src\/baked\/assets\/(corridor|office|codex-room|exchange)\.ts$/.exec(imported);
+    const bakedModule = /^src\/baked\/assets\/(corridor|office|codex-room|exchange|tomorrow-engine)\.ts$/.exec(imported);
     if (bakedModule && bakedModule[1] !== bakeName) continue;
     const roomOwnedModule = !bakedModule && isRoomOwnedModule(imported, chamberDirectory);
     const selectedSharedAsset = ROOM_ASSET_IMPORTS.get(chamberDirectory)?.some(pattern => pattern.test(imported)) ?? false;
