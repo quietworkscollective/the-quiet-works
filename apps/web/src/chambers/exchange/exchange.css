@@ -28,8 +28,7 @@
 /* The strip below carries the room's one Leave. The window's own Leave advertises an Escape that this
    room keeps for the reader, and its walking prompt does not apply to fixed views. */
 .tqw-game__window:has(.tqw-exchange) .tqw-game__mode,
-.tqw-game__window:has(.tqw-exchange) .tqw-game__leave,
-.tqw-game__window:has(.tqw-exchange) .tqw-game__tool--return { display: none; }
+.tqw-game__window:has(.tqw-exchange) .tqw-game__leave { display: none; }
 
 .tqw-exchange button {
   box-sizing: border-box;

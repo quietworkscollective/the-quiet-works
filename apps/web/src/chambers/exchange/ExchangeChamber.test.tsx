@@ -844,9 +844,9 @@ describe('Modes', () => {
     expect(onContextLost).toHaveBeenCalledOnce();
   });
 
-  it('hides the shared walking prompt, the second Leave and the corridor return for this room', () => {
+  it('hides the shared walking prompt and second Leave for this room', () => {
     const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'exchange.css'), 'utf8');
-    expect(css).toMatch(/\.tqw-game__window:has\(\.tqw-exchange\) \.tqw-game__mode,\s*\.tqw-game__window:has\(\.tqw-exchange\) \.tqw-game__leave,\s*\.tqw-game__window:has\(\.tqw-exchange\) \.tqw-game__tool--return \{ display: none; \}/);
+    expect(css).toMatch(/\.tqw-game__window:has\(\.tqw-exchange\) \.tqw-game__mode,\s*\.tqw-game__window:has\(\.tqw-exchange\) \.tqw-game__leave \{ display: none; \}/);
   });
 
   it('renders one Leave, one Hint and one Archive', async () => {
