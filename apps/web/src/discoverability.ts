@@ -22,7 +22,7 @@ import type { CreditGroup } from './credits/groupCredits.ts';
 import { SITE } from './site.ts';
 
 const REPOSITORY = 'https://github.com/quietworkscollective/the-quiet-works';
-const SHARE_IMAGE = '/share-unheld-1200x630.png';
+const SHARE_IMAGE = '/share-unheld-1200x630.jpg';
 const AGENTS_PAGE = {
   title: 'Agents',
   body: [
@@ -39,6 +39,8 @@ export interface PublicRoute {
   key: 'home' | 'agents' | 'licences' | PageId | `chamber:${string}`;
   title: string;
   description: string;
+  /** A room not yet open: a short page that stays reachable but is kept out of search indexes. */
+  noindex?: boolean;
 }
 
 export interface RouteMetadata {
@@ -48,6 +50,7 @@ export interface RouteMetadata {
   markdown: string;
   image: string;
   imageAlt: string;
+  robots: 'index, follow' | 'noindex, follow';
 }
 
 type InlinePart = string | { text: string; href: string };
@@ -67,21 +70,56 @@ const chamberDescription = (chamber: ChamberEntry): string => chamber.doorDescri
 
 export const UNHELD_DESCRIPTION = ABOUT.body[0] as string;
 
+/** The landing page's own description: what the work is, who made it, and what a visitor does. */
+export const HOME_DESCRIPTION =
+  'UNHELD is an interactive 3D artwork by Siri (Asiri) Dalugoda about the expectations men carry without saying so. Walk a corridor built around 1910 and open its rooms.';
+
+const PAGE_DESCRIPTIONS = {
+  about: UNHELD_DESCRIPTION,
+  credits: 'Who made UNHELD and how it is licensed, with its typefaces, software and every third-party asset it uses.',
+  privacy: PRIVACY.body[0] as string,
+  licences: CREDITS.body[1] as string,
+  agents: 'How AI agents may read UNHELD and propose rooms or contributions: house rules, licensing and the public proposal routes.',
+} as const;
+
+/** A room's description: where it is, then its door. A room not yet open is only named as closed. */
+export function chamberMetaDescription(chamber: ChamberEntry): string {
+  return chamber.status === 'open'
+    ? `${chamber.title} is a room in The Quiet Works, part of UNHELD. ${chamber.doorDescription}`
+    : `${chamber.title} is a door in The Quiet Works, part of UNHELD. It is not yet open.`;
+}
+
+/** When each public route last changed, for the sitemap. Update a route's date when its content changes. */
+const LAST_MODIFIED: Readonly<Record<string, string>> = {
+  '/': '2026-11-08',
+  '/about': '2026-11-08',
+  '/credits': '2026-11-08',
+  '/privacy': '2026-10-16',
+  '/licences': '2026-10-16',
+  '/agents': '2026-10-16',
+  '/certification-office': '2026-10-16',
+  '/tomorrow-engine': '2026-11-08',
+  '/the-exchange': '2026-11-08',
+};
+const DEFAULT_LAST_MODIFIED = '2026-11-08';
+
+const SHARE_IMAGE_ALT = 'A lamplit office corridor with mismatched doors receding into haze, under the words UNHELD and A space for everything we carry.';
+
 const homeRoute: PublicRoute = {
   path: '/',
   markdownPath: '/index.md',
   key: 'home',
   title: `${SITE.name} — ${SITE.tagline}`,
-  description: UNHELD_DESCRIPTION,
+  description: HOME_DESCRIPTION,
 };
 
 const pageRoutes: readonly PublicRoute[] = [
   homeRoute,
-  { path: '/about', markdownPath: '/about.md', key: 'about', title: ABOUT.title, description: UNHELD_DESCRIPTION },
-  { path: '/credits', markdownPath: '/credits.md', key: 'credits', title: 'Credits — UNHELD', description: UNHELD_DESCRIPTION },
-  { path: '/privacy', markdownPath: '/privacy.md', key: 'privacy', title: 'Privacy — UNHELD', description: UNHELD_DESCRIPTION },
-  { path: '/licences', markdownPath: '/licences.md', key: 'licences', title: 'Licences — UNHELD', description: UNHELD_DESCRIPTION },
-  { path: '/agents', markdownPath: '/agents.md', key: 'agents', title: 'Agents — UNHELD', description: UNHELD_DESCRIPTION },
+  { path: '/about', markdownPath: '/about.md', key: 'about', title: ABOUT.title, description: PAGE_DESCRIPTIONS.about },
+  { path: '/credits', markdownPath: '/credits.md', key: 'credits', title: 'Credits — UNHELD', description: PAGE_DESCRIPTIONS.credits },
+  { path: '/privacy', markdownPath: '/privacy.md', key: 'privacy', title: 'Privacy — UNHELD', description: PAGE_DESCRIPTIONS.privacy },
+  { path: '/licences', markdownPath: '/licences.md', key: 'licences', title: 'Licences — UNHELD', description: PAGE_DESCRIPTIONS.licences },
+  { path: '/agents', markdownPath: '/agents.md', key: 'agents', title: 'Agents — UNHELD', description: PAGE_DESCRIPTIONS.agents },
 ];
 
 export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, production = false): readonly PublicRoute[] {
@@ -92,7 +130,8 @@ export function publicRoutesFor(chambers: readonly ChamberEntry[] = CHAMBERS, pr
       markdownPath: `/${chamber.slug}.md`,
       key: `chamber:${chamber.id}`,
       title: `${chamber.title} — ${SITE.world} — ${SITE.name}`,
-      description: UNHELD_DESCRIPTION,
+      description: chamberMetaDescription(chamber),
+      ...(chamber.status === 'open' ? {} : { noindex: true }),
     })),
   ];
 }
@@ -101,7 +140,7 @@ export const PUBLIC_ROUTES: readonly PublicRoute[] = publicRoutesFor();
 
 export function sitemapForChambers(chambers: readonly ChamberEntry[]): string {
   const routes = PUBLIC_ROUTES.filter(route => !route.key.startsWith('chamber:') || chambers.some(room => route.key === `chamber:${room.id}` && room.status === 'open'));
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(route => `  <url><loc>${metadataForPath(route.path).canonical}</loc><lastmod>2026-10-16</lastmod></url>`).join('\n')}\n</urlset>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${routes.map(route => `  <url><loc>${metadataForPath(route.path).canonical}</loc><lastmod>${LAST_MODIFIED[route.path] ?? DEFAULT_LAST_MODIFIED}</lastmod></url>`).join('\n')}\n</urlset>\n`;
 }
 
 function normalizedPath(pathname: string): string {
@@ -123,7 +162,8 @@ export function metadataForPath(pathname: string, chambers: readonly ChamberEntr
     canonical,
     markdown: new URL(route.markdownPath, SITE.url).toString(),
     image: new URL(SHARE_IMAGE, SITE.url).toString(),
-    imageAlt: `${SITE.name} — ${SITE.tagline}`,
+    imageAlt: SHARE_IMAGE_ALT,
+    robots: route.noindex ? 'noindex, follow' : 'index, follow',
   };
 }
 
@@ -131,9 +171,13 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
   const route = routeForPath(pathname, chambers, production);
   const metadata = metadataForPath(pathname, chambers, production);
   const websiteId = new URL('#website', SITE.url).toString();
-  const artworkId = new URL('#the-quiet-works', SITE.url).toString();
+  const artworkId = new URL('#unheld', SITE.url).toString();
   const authorId = SITE.authorUrl;
   const pageId = `${metadata.canonical}#webpage`;
+  const roomId = (chamber: ChamberEntry) => new URL(`/${chamber.slug}#room`, SITE.url).toString();
+  const openRooms = publicChambers(chambers, production).filter((chamber) => chamber.status === 'open');
+  const pageRoom = openRooms.find((chamber) => route.key === `chamber:${chamber.id}`);
+  const licence = 'https://creativecommons.org/licenses/by/4.0/';
 
   return {
     '@context': 'https://schema.org',
@@ -143,20 +187,41 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
         '@id': websiteId,
         url: SITE.url,
         name: SITE.name,
-        description: UNHELD_DESCRIPTION,
+        description: HOME_DESCRIPTION,
+        inLanguage: 'en-GB',
         publisher: { '@id': authorId },
       },
       {
         '@type': 'VisualArtwork',
         '@id': artworkId,
         name: SITE.name,
-        alternateName: SITE.chapter,
+        alternateName: SITE.world,
+        url: SITE.url,
         description: UNHELD_DESCRIPTION,
         image: metadata.image,
         artform: 'Interactive browser artwork',
+        genre: ['Interactive fiction', 'Browser artwork'],
+        inLanguage: 'en-GB',
+        datePublished: '2026-10-16',
+        license: licence,
+        isAccessibleForFree: true,
+        accessMode: ['textual', 'visual'],
+        accessModeSufficient: ['textual'],
+        accessibilityFeature: ['captions', 'textualAlternative'],
         creator: { '@id': authorId },
         isPartOf: { '@id': websiteId },
+        hasPart: openRooms.map((chamber) => ({ '@id': roomId(chamber) })),
       },
+      ...openRooms.map((chamber) => ({
+        '@type': 'CreativeWork',
+        '@id': roomId(chamber),
+        name: chamber.title,
+        url: new URL(`/${chamber.slug}`, SITE.url).toString(),
+        description: chamber.doorDescription,
+        inLanguage: 'en-GB',
+        license: licence,
+        isPartOf: { '@id': artworkId },
+      })),
       {
         '@type': 'Person',
         '@id': authorId,
@@ -169,8 +234,9 @@ export function jsonLdForPath(pathname: string, chambers: readonly ChamberEntry[
         url: metadata.canonical,
         name: route.title,
         description: route.description,
+        inLanguage: 'en-GB',
         isPartOf: { '@id': websiteId },
-        about: { '@id': artworkId },
+        about: { '@id': pageRoom ? roomId(pageRoom) : artworkId },
         author: { '@id': authorId },
       },
     ],
@@ -420,7 +486,9 @@ export function markdownForPath(pathname: string, creditGroups: readonly CreditG
   const route = routeForPath(pathname, chambers, production);
   const chamber = chambers.find(entry => route.key === `chamber:${entry.id}`);
   if (production && chamber?.status === 'sealed') return `# ${chamber.title}\n\nNot yet open.\n`;
-  const body = page.blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
+  // One H1 per page: the route title. A body that opens with its own H1 drops it.
+  const blocks = page.blocks[0]?.kind === 'heading' && page.blocks[0].level === 1 ? page.blocks.slice(1) : page.blocks;
+  const body = blocks.map(renderBlockMarkdown).filter(Boolean).join('\n\n');
   const siteLinks = `## Site pages\n\n- [About](${new URL('/about.md', SITE.url)})\n- [Credits](${new URL('/credits.md', SITE.url)})\n- [Privacy](${new URL('/privacy.md', SITE.url)})\n- [Agents](${new URL('/agents.md', SITE.url)})\n- [Agent skill](${new URL('/skill.md', SITE.url)})`;
   return `# ${page.title}\n\n${body}\n\n${siteLinks}\n\n[Canonical page](${metadataForPath(route.path).canonical})\n`;
 }
@@ -455,6 +523,8 @@ export function applyRouteMetadata(pathname: string, target: Document = document
   setMeta(target, 'meta[property="og:description"]', 'property', 'og:description', metadata.description);
   setMeta(target, 'meta[property="og:url"]', 'property', 'og:url', metadata.canonical);
   setMeta(target, 'meta[property="og:type"]', 'property', 'og:type', 'website');
+  setMeta(target, 'meta[property="og:locale"]', 'property', 'og:locale', 'en_GB');
+  setMeta(target, 'meta[name="robots"]', 'name', 'robots', metadata.robots);
   setMeta(target, 'meta[property="og:image"]', 'property', 'og:image', metadata.image);
   setMeta(target, 'meta[property="og:image:alt"]', 'property', 'og:image:alt', metadata.imageAlt);
   setMeta(target, 'meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');

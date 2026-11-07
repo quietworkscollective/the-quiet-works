@@ -1,4 +1,5 @@
 import { CHAMBERS } from '@tqw/engine';
+import { linear } from '../colour.ts';
 import { describe, expect, it } from 'vitest';
 import { CHAMBER_MODULES } from '../../../chambers/registry.ts';
 import type { DoorSpec } from '../../doorKit.ts';
@@ -146,5 +147,29 @@ describe('door character, rendered from data', () => {
       expect(far.flat.marks.triangleCount, key).toBe(0);
       expect(far.flat.foliage.triangleCount, key).toBe(0);
     }
+  });
+});
+
+describe('what shows through a chipped door (issue #22)', () => {
+  // Guards a real fault: every door chipped down to timber, which reads orange under the amber
+  // sconces, so the steel doors showed scattered orange flecks at close range.
+  it('a steel door chips to steel, never to timber', () => {
+    const timber = linear('#7A5A38');
+    const steelDoors = all.filter((d) => d.spec.family === 'steel-insertion');
+    expect(steelDoors.length).toBeGreaterThan(0);
+    for (const d of steelDoors) {
+      const chips = planDoor(d.spec).character?.chips ?? [];
+      for (const chip of chips) expect(chip.layers, d.key).not.toContainEqual(timber);
+    }
+  });
+
+  it('gives the Office, the Tomorrow Engine and the Great Atrium three different finishes', () => {
+    const hue = (id: 'certification-office' | 'tomorrow-engine' | 'great-atrium') => CHAMBER_MODULES[id].door.material.primary.toLowerCase();
+    const finishes = new Set([hue('certification-office'), hue('tomorrow-engine'), hue('great-atrium')]);
+    expect(finishes.size).toBe(3);
+    // The Atrium is described as bronze: its primary is a warm, not a teal, colour.
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hue('great-atrium').slice(i, i + 2), 16)) as [number, number, number];
+    expect(r).toBeGreaterThan(b);
+    expect(r).toBeGreaterThan(g);
   });
 });

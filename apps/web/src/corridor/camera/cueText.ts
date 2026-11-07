@@ -2,6 +2,7 @@ import { chamberById, CORRIDOR_PROPS, type ChamberId } from '@tqw/engine';
 import { doorLabel } from '@tqw/ui';
 import type { PropId } from '../props.ts';
 import { readingOf } from '../world/props/reading.ts';
+import { isChamberOpenInBuild } from '../../chambers/registry.ts';
 
 /**
  * The words on the corridor's cues (ADR 0004): what the DOM label near an object says, and what
@@ -32,8 +33,10 @@ export function cueText(target: CueTarget): string {
     case 'board':
       return BOARD_VERB;
     case 'door': {
+      // The released status, as the door itself uses (ChamberDoor): an authored-open room that is
+      // not yet released must not be offered as open.
       const chamber = chamberById(target.id);
-      return chamber.status === 'open' ? doorLabel(chamber.title, 'open') : CORRIDOR_PROPS.sealedDoor;
+      return isChamberOpenInBuild(target.id, false) ? doorLabel(chamber.title, 'open') : CORRIDOR_PROPS.sealedDoor;
     }
   }
 }

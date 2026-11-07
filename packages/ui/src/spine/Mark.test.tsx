@@ -111,7 +111,7 @@ describe('the brand files\' licence is a decision, not a proposal', () => {
       '^apple-touch-icon\\.png$',
       '^icon-512\\.png$',
       '^poster-hero-(?:1440x900|412x915)\\.webp$',
-      '^share-unheld-1200x630\\.png$',
+      '^share-unheld-1200x630\\.jpg$',
       '^(?:corridor|office|codex-room|exchange|apartment)-[0-9]+-[\\w-]+\\.webp$',
     ]);
   });

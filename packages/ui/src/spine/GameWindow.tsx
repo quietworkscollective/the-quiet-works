@@ -89,18 +89,6 @@ export function GameWindow({
           <header className="tqw-game__strip">
             {engaged ? (
               <div className="tqw-game__where">
-                <button
-                  ref={leaveRef}
-                  type="button"
-                  className="tqw-game__leave"
-                  aria-keyshortcuts="Escape"
-                  onClick={onLeave}
-                >
-                  <span>{GAME_WINDOW_COPY.leave}</span>
-                  <span className="tqw-game__key" aria-hidden="true">
-                    · {GAME_WINDOW_COPY.leaveKey}
-                  </span>
-                </button>
                 <p className="tqw-game__location">{location}</p>
                 <p className="tqw-game__location-phone">
                   {location.slice(location.lastIndexOf(' · ') + 3)}
@@ -147,6 +135,20 @@ export function GameWindow({
               <button type="button" className="tqw-game__tool" aria-haspopup="dialog" onClick={onOpenMenu}>
                 {MENU_COPY.menu}
               </button>
+              {engaged ? (
+                <button
+                  ref={leaveRef}
+                  type="button"
+                  className="tqw-game__leave"
+                  aria-keyshortcuts="Escape"
+                  onClick={onLeave}
+                >
+                  <span>{GAME_WINDOW_COPY.leave}</span>
+                  <span className="tqw-game__key" aria-hidden="true">
+                    · {GAME_WINDOW_COPY.leaveKey}
+                  </span>
+                </button>
+              ) : null}
             </div>
           </header>
           {engaged ? null : (

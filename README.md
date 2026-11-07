@@ -6,6 +6,16 @@
 UNHELD is an interactive artwork about the expectations men carry without saying so, and the inner lives that go on underneath them.
 <!-- unheld-description:end -->
 
+UNHELD is made by Siri (Asiri) Dalugoda. It is played in the browser as The Quiet Works: a corridor built around 1910, whose mismatched department doors each open onto one room.
+
+## The rooms
+
+- **The Certification Office**: a steel-framed door from 1971 with a wired-glass panel and a service hatch.
+- **The Tomorrow Engine**: a riveted green steel door with a valve wheel and the plate TOMORROW ENGINE · PLANT ROOM.
+- **The Exchange**: a tall black lacquer door with cream enamel bands, a small engaged lamp, and a brass push plate.
+
+The Apartment, The Great Atrium and The Outline Room appear as closed doors in the corridor and are not yet open. Every room can also be read in text mode.
+
 ## Status
 
 - In active development: the corridor, the site and the rooms are being built and finished in the open.
@@ -17,7 +27,7 @@ UNHELD is an interactive artwork about the expectations men carry without saying
 
 - Node 22 or later.
 - pnpm 10. With Corepack, `corepack enable` selects the version pinned in `package.json` (`pnpm@10.33.0`).
-- A WebGL2 browser for the 3D office. Text mode works without WebGL2.
+- A WebGL2 browser for the 3D world. Text mode works without WebGL2.
 
 ## Launch
 
@@ -42,9 +52,9 @@ pnpm test:e2e                # Playwright; first run: pnpm --filter @tqw/web exe
 
 ## How to play
 
-- Hold the stamp to press it. Release to lift it.
-- Keyboard: focus the stamp button and hold Space or Enter. Release to lift.
-- Touch works the same way as the mouse. What the machine does next is not explained here.
+- Scroll, or choose **Enter The Quiet Works**, to step into the corridor. Choose the notice board or a door to look closer; an open door leads into its room.
+- Every room works with a mouse, touch or the keyboard alone. Each door also has a button in the page's door list.
+- In the Certification Office, hold the stamp to press it and release to lift it; with a keyboard, focus the stamp and hold Space or Enter. What the machines do next is not explained here.
 
 ## Accessibility
 
@@ -68,7 +78,7 @@ No accounts, cookies, analytics, telemetry or advertising. As visitors enter roo
 - IBM Plex Mono and IBM Plex Sans Condensed, copyright IBM Corp., SIL Open Font License 1.1, bundled via Fontsource.
 - Newsreader, copyright The Newsreader Project Authors (Production Type), SIL Open Font License 1.1, bundled via Fontsource.
 - three.js, React, React Three Fiber and their bundled dependencies, MIT. Every production build ships `third-party-notices.txt` with the name, version and full licence text of each bundled package and font; `pnpm audit:assets` fails if it is missing or incomplete.
-- UNHELD: © 2026 Asiri Dalugoda. Code under the [Apache License 2.0](LICENSE); original art and writing under [CC BY 4.0](LICENSES/CC-BY-4.0.txt). The UNHELD name and mark are not licensed. [LICENSING.md](LICENSING.md) maps files to licences.
+- UNHELD: © 2026 Siri (Asiri) Dalugoda. Code under the [Apache License 2.0](LICENSE); original art and writing under [CC BY 4.0](LICENSES/CC-BY-4.0.txt). The UNHELD name and mark are not licensed. [LICENSING.md](LICENSING.md) maps files to licences.
 
 ## Contributing
 

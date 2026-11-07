@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { boardAnchor, propAnchor, propById } from './stations.ts';
 import { FRAME, inCorridor, OFFICE, rig } from './testkit.ts';
 import { doorFrame } from './viewpoints.ts';
+import { isChamberOpenInBuild } from '../../chambers/registry.ts';
 
 /** ADR 0004 through the director: the board pin's glint at arrival, the cue near an object, and acting on props. */
 
@@ -128,7 +129,7 @@ describe('the cue near an object (contextual: found, not hovered)', () => {
       runCue(r, 300);
       expect(r.d.cue()?.target, chamber.id).toEqual({ kind: 'door', id: chamber.id });
       expect(r.d.cue()?.text, chamber.id).toBe(
-        chamber.status === 'open' ? `${chamber.title}, open the door` : CORRIDOR_PROPS.sealedDoor,
+        isChamberOpenInBuild(chamber.id, false) ? `${chamber.title}, open the door` : CORRIDOR_PROPS.sealedDoor,
       );
     }
   });

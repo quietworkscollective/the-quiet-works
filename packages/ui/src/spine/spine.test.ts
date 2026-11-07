@@ -436,10 +436,11 @@ describe('the game window', () => {
     expect(inMedia('(max-width: 40rem)', '.tqw-game__strip')).toMatch(/max\(1rem, env\(safe-area-inset-top, 0px\)\)/);
   });
 
-  it('gives engaged controls a solid 56 px strip and keeps phone labels out of the scene', () => {
+  it('gives engaged controls a 56 px shaded strip over the scene, not a solid band, and keeps phone labels out of the scene', () => {
     const engaged = declarationsOf(".tqw-game__window[data-engaged='true'] .tqw-game__strip");
     expect(engaged).toMatch(/height:\s*calc\(56px \+ env\(safe-area-inset-top, 0px\)\)/);
-    expect(engaged).toMatch(/background:\s*var\(--menu-surface\)/);
+    expect(engaged).toMatch(/background:\s*linear-gradient\(to bottom,[^;]*rgba\(23, 25, 24, 0\)\)/);
+    expect(engaged).not.toMatch(/background:\s*var\(--menu-surface\)/);
     expect(inMedia('(pointer: coarse), (max-width: 40rem)', '.tqw-game__key')).toMatch(/display:\s*none/);
     expect(inMedia('(max-width: 40rem)', ".tqw-game__window[data-engaged='true'] .tqw-game__tool-label")).toMatch(/clip-path:\s*inset\(50%\)/);
   });
@@ -874,5 +875,18 @@ describe('the poster and the seam', () => {
     const override = declarationsOf('.tqw-site .tqw-seam-veil,\n.tqw-site .tqw-chamber-host');
     expect(override).toMatch(/transition-duration:\s*var\(--tqw-seam-ms, 400ms\) !important/);
     expect(override).toMatch(/transition-property:\s*opacity, visibility !important/);
+  });
+});
+
+describe('the engaged strip (issue #22)', () => {
+  it('leads with the place name in the serif small caps, and keeps Leave as quiet text with its key on focus', () => {
+    const location = declarationsOf('.tqw-game__location');
+    expect(location).toMatch(/font-family:\s*var\(--font-serif\)/);
+    expect(location).toMatch(/font-variant-caps:\s*all-small-caps/);
+    const leave = declarationsOf('.tqw-game__leave');
+    expect(leave).toMatch(/border:\s*0/);
+    expect(leave).toMatch(/background:\s*none/);
+    expect(declarationsOf('.tqw-game__key')).toMatch(/display:\s*none/);
+    expect(declarationsOf('.tqw-game__leave:focus-visible .tqw-game__key')).toMatch(/display:\s*inline/);
   });
 });

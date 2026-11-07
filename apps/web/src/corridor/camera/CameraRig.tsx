@@ -9,7 +9,7 @@ import { applyPose, floorPoint, lensFor, lookScale, wrapYaw } from '../../firstP
 import { CHAMBER_MODULES } from '../../chambers/registry.ts';
 import { SITE_SCROLL, SPINE_TIMING } from '../../timing.ts';
 import type { CorridorAnimation } from '../animation.ts';
-import { createFirstHint, type FirstHint } from '../input/hint.ts';
+import { createFirstHint, HINT_WALK_MPS, type FirstHint } from '../input/hint.ts';
 import { createClickRouter } from '../input/engage.ts';
 import type { CueStore } from '../input/cues.ts';
 import { createOverTracker } from '../input/over.ts';
@@ -208,7 +208,11 @@ export function CameraRig(props: CameraRigProps) {
         return (box.height || window.innerHeight) > (box.width || window.innerWidth);
       },
       onSeam: () => handlers.current.onSeam(),
-      onWalk: (mps) => handlers.current.onWalk(mps),
+      onWalk: (mps) => {
+        // The first step answers the hint as well as any choice would (issue #22).
+        if (mps > HINT_WALK_MPS && hint.visible()) hint.dismiss();
+        handlers.current.onWalk(mps);
+      },
       onDoorIntent: (id) => handlers.current.onDoorIntent(id),
       onPropAct,
       onArrive: () => {

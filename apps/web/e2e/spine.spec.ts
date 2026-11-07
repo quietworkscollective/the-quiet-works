@@ -51,6 +51,24 @@ test.describe('landing', () => {
   });
 });
 
+// Guards a real failure: the page's stable scrollbar gutter stayed reserved while the page was held,
+// leaving a dark strip down the right edge of the engaged scene.
+test('engaged, the scene reaches the right edge of the window, with no reserved gutter', async ({ page }) => {
+  await page.goto('/');
+  await expectSpine(page, 'entrance');
+  // Chrome can report no scrollbar width while `scrollbar-gutter: stable` still reserves one, so the
+  // precondition is read from the scene itself: at rest it stops short of the window's right edge.
+  const resting = await page.evaluate(() => window.innerWidth - document.querySelector('.tqw-game__window')!.getBoundingClientRect().right);
+  test.skip(resting < 1, 'this browser reserves no gutter, so there is nothing to release');
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
+  await expectSpine(page, 'corridor');
+  await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+  await expect.poll(() => page.evaluate(() => {
+    const scene = document.querySelector('.tqw-game__window')!.getBoundingClientRect();
+    return Math.round(window.innerWidth - scene.right);
+  })).toBe(0);
+});
+
 test.describe('corridor doors', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');

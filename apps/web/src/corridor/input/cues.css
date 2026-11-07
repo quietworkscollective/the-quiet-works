@@ -24,7 +24,8 @@
  * A screen-space label beside the object it names, shown only while the visitor has found it. The
  * rig sets --tqw-cue-x/y to the point beside the object and data-side to which way the label sits
  * from it (right, left, or above when there is no room); it fades in over --tqw-cue-fade-in and out
- * over --tqw-cue-fade-out (cueTuning.ts). Type is the condensed grotesk of the door plaques.
+ * over --tqw-cue-fade-out (cueTuning.ts). Type is the site's one interface sans (issue #22); the
+ * condensed grotesk stays on the plaques themselves, in the world.
  */
 .tqw-cue {
   position: absolute;
@@ -42,7 +43,7 @@
   border-radius: 2px;
   background: color-mix(in srgb, var(--tqw-coal, #151a20) 90%, transparent);
   color: var(--tqw-bone, #ddd5c8);
-  font-family: 'IBM Plex Sans Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--font-public, 'IBM Plex Sans', Arial, sans-serif);
   font-size: var(--tqw-cue-font, 17px);
   font-weight: 500;
   line-height: 1.2;
@@ -116,20 +117,40 @@
 
 /* ---------------------------------------------------------------- first hint */
 
+/*
+ * Low and centred, clear of the building's sign and the lamps above it, and above the door card's
+ * place at the foot of the view (issue #22). A light shade, not a box: it fades in, and the first
+ * step, choice or Escape closes it.
+ */
 .tqw-hint {
   position: absolute;
   left: 50%;
-  top: max(5.5rem, 16vh);
+  bottom: calc(max(1.5rem, env(safe-area-inset-bottom, 0px)) + 6rem);
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 0.25rem;
   max-width: min(26rem, calc(100% - 2rem));
-  padding: 0.25rem 0.25rem 0.25rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--tqw-bone, #ddd5c8) 32%, transparent);
+  padding: 0 0 0 1rem;
+  border: 1px solid color-mix(in srgb, var(--tqw-bone, #ddd5c8) 14%, transparent);
   border-radius: 2px;
-  background: color-mix(in srgb, var(--tqw-coal, #151a20) 82%, transparent);
+  background: color-mix(in srgb, var(--tqw-coal, #151a20) 52%, transparent);
+  text-shadow: 0 1px 6px rgba(12, 12, 14, 0.85);
   pointer-events: auto;
+  animation: tqw-hint-in 400ms ease-out both;
+}
+@keyframes tqw-hint-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tqw-hint {
+    animation: none;
+  }
 }
 .tqw-hint__text {
   margin: 0;
@@ -230,7 +251,7 @@
   border-radius: 2px;
   background: color-mix(in srgb, var(--tqw-coal, #151a20) 90%, transparent);
   color: var(--tqw-bone, #ddd5c8);
-  font-family: 'IBM Plex Sans Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--font-public, 'IBM Plex Sans', Arial, sans-serif);
   font-size: 1.0625rem;
   letter-spacing: 0.03em;
   cursor: pointer;
@@ -269,7 +290,7 @@
   border: 0;
   background: transparent;
   color: var(--tqw-bone, #ddd5c8);
-  font-family: 'IBM Plex Sans Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-family: var(--font-public, 'IBM Plex Sans', Arial, sans-serif);
   font-size: 1.0625rem;
   text-align: left;
   cursor: pointer;

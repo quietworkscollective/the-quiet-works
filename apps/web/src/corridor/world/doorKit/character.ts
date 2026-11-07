@@ -145,13 +145,20 @@ const PRIMER: Rgb = [0.34, 0.31, 0.28];
 const TIMBER: Rgb = linear('#7A5A38');
 const RUST: Rgb = linear('#6E3B22');
 const FILLER: Rgb = linear('#B7AE9A');
+/** Bare steel where paint has gone from a steel door: grey, not the orange of timber under amber light. */
+const STEEL: Rgb = linear('#5E5F5C');
 
-/** The coats under a door's finish: older paints in the same family, then primer, then wood. */
-function coatsOf(primary: Rgb, history: DoorCharacter['history']): { earlier: readonly Rgb[]; base: Rgb } {
+/**
+ * The coats under a door's finish: older paints in the same family, then what the door is made of.
+ * A steel door chips to steel; timber doors to primer or wood (issue #22: timber showing through
+ * steel doors read as orange confetti at close range).
+ */
+function coatsOf(primary: Rgb, history: DoorCharacter['history'], family: DoorSpec['family']): { earlier: readonly Rgb[]; base: Rgb } {
   const cream = mulRgb(mixRgb(primary, [0.7, 0.66, 0.55], 0.42), 0.8);
   const dark = mulRgb(primary, 0.5);
   const warm = mulRgb(mixRgb(primary, [0.55, 0.38, 0.24], 0.4), 0.8);
-  return { earlier: history === 'neglected' ? [cream, dark, warm] : [cream, dark], base: history === 'neglected' ? PRIMER : TIMBER };
+  const base = family === 'steel-insertion' ? STEEL : history === 'neglected' ? PRIMER : TIMBER;
+  return { earlier: history === 'neglected' ? [cream, dark, warm] : [cream, dark], base };
 }
 
 export function characterOf(spec: DoorSpec, geometry: { leaves: readonly LeafPlan[]; opening: { width: number; height: number }; hole: { width: number; height: number }; handle: readonly [number, number]; transomTop: number | null }, seed: number): CharacterPlan | null {
@@ -240,7 +247,7 @@ export function characterOf(spec: DoorSpec, geometry: { leaves: readonly LeafPla
 
   // ---- Exposed substrate: chips and flakes totalling `exposure` of the leaf face -------------
   const target = ch.exposure * faceArea;
-  const { earlier, base } = coatsOf(primary, ch.history);
+  const { earlier, base } = coatsOf(primary, ch.history, spec.family);
   const chips: ChipPart[] = [];
   // How much of a chip's quad is actually bare: a ragged edge band is about half, a flake 55%, pits a quarter.
   const FILL = { edge: 0.5, flake: 0.55, pits: 0.25 } as const;

@@ -7,7 +7,8 @@ export const DOOR: DoorSpec = {
   width: 1.25,
   height: 2.6,
   surround: { width: 1.6, height: 3.0 },
-  material: { primary: '#365D69', secondary: '#969C97', metal: '#8A6A44', glazing: 'porthole' },
+  // Machinery green, apart from the Office's teal (issue #22).
+  material: { primary: '#4A5A3B', secondary: '#969C97', metal: '#8A6A44', glazing: 'porthole' },
   handle: 'wheel',
   topper: 'lamp',
   plaque: { text: chamberById('tomorrow-engine').plaque },
@@ -20,7 +21,7 @@ export const DOOR: DoorSpec = {
     lock: 'handwheel',
     lamp: { kelvin: 3400, strength: 0.35 },
     history: 'repaired',
-    exposure: 0.07,
+    exposure: 0.05,
     marks: [{ kind: 'stripe' }],
     motif: 'round-aperture',
   },

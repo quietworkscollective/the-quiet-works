@@ -21,5 +21,6 @@ try {
     p { margin: 18px 0 0; font: 400 28px Reading; }
   </style><main><h1>${SITE.name}</h1><p>${SITE.tagline}</p></main>`);
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: fileURLToPath(new URL('../public/share-unheld-1200x630.png', import.meta.url)) });
+  // JPEG at quality 90 keeps the card near 110 KB; some link previewers drop images over about 600 KB.
+  await page.screenshot({ path: fileURLToPath(new URL('../public/share-unheld-1200x630.jpg', import.meta.url)), type: 'jpeg', quality: 90 });
 } finally { await browser.close(); }

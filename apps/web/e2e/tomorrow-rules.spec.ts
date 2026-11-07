@@ -43,7 +43,9 @@ test('Leave stays visible at every station, including while the Archive is open'
     await expect(room).toHaveAttribute('data-station', station);
     await expect(leave, `Leave at ${station}`).toBeVisible();
     await expect(leave).toHaveAttribute('title', 'Return to the corridor');
-    await expect(returnToCorridor, `corridor return at ${station}`).toBeVisible();
+    // The room's Leave is its sole exit (script §4, B1): the site strip's exits are hidden here.
+    await expect(returnToCorridor, `no second corridor return at ${station}`).toBeHidden();
+    await expect(page.locator('.tqw-game__leave'), `no second Leave at ${station}`).toBeHidden();
     await page.locator('.tqw-tomorrow-topbar .tqw-tomorrow-archive').click();
     await expect(leave, `Leave at ${station} with Archive open`).toBeVisible();
     await page.getByRole('button', { name: 'Close', exact: true }).click();
@@ -60,7 +62,8 @@ test('the 390 by 844 layout keeps every station action and Leave inside the view
   for (const station of STATIONS) {
     await page.locator(`[data-station-target="${station}"]`).click();
     await expect(leave).toBeVisible();
-    await expect(returnToCorridor).toBeVisible();
+    await expect(returnToCorridor).toBeHidden();
+    await expect(page.locator('.tqw-game__leave')).toBeHidden();
     const leaveBox = await leave.boundingBox();
     const stationAction = page.locator('.tqw-tomorrow-actions button').first();
     await expect(stationAction).toBeVisible();

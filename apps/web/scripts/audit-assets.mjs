@@ -101,7 +101,7 @@ const URL_ALLOWLIST = [
   { url: 'https://unheld.space/skill.md', reason: 'Public agent onboarding context linked from the Agents page and Markdown pages; navigation only.' },
   { url: 'https://unheld.space/?mode=text', reason: 'Link to the visitor-facing text mode from Markdown pages and agent onboarding; navigation only.' },
   { url: 'https://unheld.space/sitemap.xml', reason: 'Public sitemap address in robots.txt; metadata only, not fetched by the site.' },
-  { url: 'https://unheld.space/share-unheld-1200x630.png', reason: 'Static 1200 × 630 Open Graph and X card derived from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/share-unheld-1200x630.jpg', reason: 'Static 1200 × 630 Open Graph and X card derived from the shipped hero poster; not fetched by app code.' },
   { url: 'https://unheld.space/third-party-notices.txt', reason: 'Full bundled software licences linked from the Licences reading page; navigation only.' },
   { url: 'https://unheld.space/#website', reason: 'Schema.org JSON-LD identifier for the website; metadata only, not fetched by the site.' },
   { url: 'https://unheld.space/#the-quiet-works', reason: 'Schema.org JSON-LD identifier for the artwork; metadata only, not fetched by the site.' },

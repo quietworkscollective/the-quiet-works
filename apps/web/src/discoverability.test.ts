@@ -55,7 +55,7 @@ describe('public route discoverability', () => {
       expect(metadata.title).toBe(route.title);
       expect(metadata.description).toBe(route.description);
       expect(metadata.canonical).toBe(`https://unheld.space${route.path === '/' ? '/' : route.path}`);
-      expect(metadata.image).toBe('https://unheld.space/share-unheld-1200x630.png');
+      expect(metadata.image).toBe('https://unheld.space/share-unheld-1200x630.jpg');
       if (route.key.startsWith('chamber:')) {
         expect(metadata.title).toMatch(/ — The Quiet Works — UNHELD$/);
       }
@@ -129,5 +129,49 @@ describe('public route discoverability', () => {
     const destinations = [...copy.matchAll(/https?:\/\/[^\s)\]"'<>]+/g)].map((match) => new URL((match[0] as string).replace(/[.,;]+$/, '')));
     expect(destinations.length).toBeGreaterThan(0);
     expect(destinations.every((url) => url.hostname === 'unheld.space' || url.hostname === 'github.com')).toBe(true);
+  });
+});
+
+describe('route-specific discoverability (issue #22)', () => {
+  it('gives every route its own description, and no two routes share one', () => {
+    const descriptions = PUBLIC_ROUTES.map((route) => metadataForPath(route.path).description);
+    expect(new Set(descriptions).size).toBe(descriptions.length);
+    expect(metadataForPath('/').description).toContain('Siri (Asiri) Dalugoda');
+  });
+
+  it('describes the Tomorrow Engine by its door, not by interface instructions', () => {
+    const tomorrow = CHAMBERS.find((chamber) => chamber.id === 'tomorrow-engine')!;
+    expect(tomorrow.doorDescription).not.toMatch(/\bLeave\b|returns to the corridor/);
+  });
+
+  it('keeps rooms not yet open out of search indexes, and open ones in', () => {
+    for (const chamber of CHAMBERS) {
+      const robots = metadataForPath(`/${chamber.slug}`, CHAMBERS.map((entry) => entry.id === chamber.id ? { ...entry, status: 'sealed' as const } : entry), true).robots;
+      expect(robots, chamber.id).toBe('noindex, follow');
+    }
+    expect(metadataForPath('/').robots).toBe('index, follow');
+  });
+
+  it('dates the sitemap per route instead of one frozen day', () => {
+    const dates = new Set([...sitemapForChambers(CHAMBERS).matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]));
+    expect(dates.size).toBeGreaterThan(1);
+  });
+
+  it('gives each Markdown page exactly one H1', () => {
+    for (const route of PUBLIC_ROUTES) {
+      const headings = markdownForPath(route.path).split('\n').filter((line) => /^# /.test(line));
+      expect(headings, route.path).toHaveLength(1);
+    }
+  });
+
+  it('names the work, its licence and its open rooms in the structured data', () => {
+    const graph = jsonLdForPath('/')['@graph'];
+    const work = graph.find((node) => node['@type'] === 'VisualArtwork')!;
+    expect(work.name).toBe('UNHELD');
+    expect(work.license).toBe('https://creativecommons.org/licenses/by/4.0/');
+    expect(work.inLanguage).toBe('en-GB');
+    expect((work.hasPart as unknown[]).length).toBeGreaterThan(0);
+    const room = jsonLdForPath('/tomorrow-engine')['@graph'].find((node) => node['@type'] === 'WebPage')!;
+    expect((room.about as { '@id': string })['@id']).toBe('https://unheld.space/tomorrow-engine#room');
   });
 });

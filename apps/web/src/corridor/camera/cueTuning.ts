@@ -32,7 +32,7 @@ export const CUE_TUNING = {
   fadeOutMs: 120,
   /** The label stands this many CSS px beside the projected fitting (16 to 24). */
   labelOffsetPx: 20,
-  /** And is set in the condensed grotesk at this size (16 to 18 CSS px), in a 44 px target. */
+  /** And is set in the interface sans at this size (16 to 18 CSS px), in a 44 px target. */
   labelFontPx: 17,
   labelMinTargetPx: 44,
 } as const;

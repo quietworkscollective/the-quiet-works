@@ -414,14 +414,17 @@ export function App() {
     };
   }, [spine, progress, textMode, runViewports]);
 
-  // While engaged the page does not scroll: it is held at the game window.
+  // While engaged the page does not scroll: it is held at the game window. The stable scrollbar
+  // gutter is released too, or it stays reserved as a dark strip down the scene's right edge.
   useEffect(() => {
     if (!holding) return;
     const root = document.documentElement;
-    const previous = root.style.overflow;
+    const previous = { overflow: root.style.overflow, gutter: root.style.scrollbarGutter };
     root.style.overflow = 'hidden';
+    root.style.scrollbarGutter = 'auto';
     return () => {
-      root.style.overflow = previous;
+      root.style.overflow = previous.overflow;
+      root.style.scrollbarGutter = previous.gutter;
     };
   }, [holding]);
 

@@ -33,9 +33,13 @@ for (const agent of agents) {
     for (const href of ['/about', '/privacy', '/llms.txt', '/sitemap.xml']) assert.ok(reading.includes(`href="${href}"`), `${agent} ${route}: missing link ${href}`);
     const meta = new Map([...html.matchAll(/<meta\b[^>]*>/gi)].map(match => { const attrs = attributes(match[0]); return [attrs.property ?? attrs.name, attrs.content]; }));
     for (const name of ['title', 'description', 'url', 'type', 'site_name', 'image']) assert.ok(meta.get(`og:${name}`), `${agent} ${route}: missing og:${name}`);
-    assert.equal(meta.get('og:description'), ABOUT.body[0]);
+    // Each route describes itself: the landing names the work and its maker, a room names the room.
+    assert.equal(meta.get('og:description'), meta.get('description'), `${agent} ${route}: og:description differs from description`);
+    const room = CHAMBERS.find(entry => `/${entry.slug}` === route);
+    assert.ok(meta.get('description').includes(room ? room.title : 'Siri (Asiri) Dalugoda'), `${agent} ${route}: description is not specific to the route`);
+    assert.equal(meta.get('robots'), 'index, follow', `${agent} ${route}: an open route must be indexable`);
     assert.equal(meta.get('og:url'), `https://unheld.space${route}`);
-    assert.equal(meta.get('og:image'), 'https://unheld.space/share-unheld-1200x630.png');
+    assert.equal(meta.get('og:image'), 'https://unheld.space/share-unheld-1200x630.jpg');
     assert.equal(meta.get('twitter:card'), 'summary_large_image');
     console.log(`PASS ${agent} ${route}: readable body and link preview`);
   }
