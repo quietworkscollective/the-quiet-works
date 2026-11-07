@@ -186,8 +186,13 @@ for (const file of ROUTE_HTML.filter(existsSync)) {
   const canonical = new URL(location);
   if (canonical.origin !== 'https://unheld.space') throw new Error('Unexpected canonical origin');
   const markdown = canonical.pathname === '/' ? '/index.md' : `${canonical.pathname}.md`;
-  for (const url of [location, `${location}#webpage`, new URL(markdown, canonical).toString()]) URL_ALLOWLIST.push({ url, reason: 'Built public reading route; navigation only.' });
+  for (const url of [location, `${location}#webpage`, `${location}#room`, new URL(markdown, canonical).toString()]) URL_ALLOWLIST.push({ url, reason: 'Built public reading route; navigation only.' });
 }
+// Structured-data identifiers and the licence the JSON-LD names: never fetched.
+URL_ALLOWLIST.push(
+  { url: 'https://unheld.space/#unheld', reason: 'JSON-LD @id for the work; an identifier, never fetched.' },
+  { url: 'https://creativecommons.org/licenses/by/4.0/', reason: 'JSON-LD licence (CC BY 4.0); an identifier, never fetched.' },
+);
 
 const ALLOWED_URLS = new Map(URL_ALLOWLIST.map(({ url, reason }) => [url, reason]));
 for (const { url, reason } of URL_ALLOWLIST) {
