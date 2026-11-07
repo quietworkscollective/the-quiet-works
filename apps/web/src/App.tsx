@@ -615,7 +615,27 @@ export function App() {
   const closePage = useCallback(() => spine.dispatch({ type: 'CLOSE_PAGE' }), [spine]);
   const openMenu = useCallback(() => setMenuOpen(true), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const leave = useCallback(() => spine.dispatch({ type: 'LEAVE_CHAMBER' }), [spine]);
+  const [reread, setReread] = useState<{ chamber: ChamberId; finding: string; seq: number } | null>(null);
+  const rereadSeq = useRef(0);
+  const leave = useCallback(() => {
+    setReread(null);
+    spine.dispatch({ type: 'LEAVE_CHAMBER' });
+  }, [spine]);
+
+  // Read again, from the archive: go straight to the finding's room, as a link to it would, and ask
+  // the room to open that record. Only released rooms are reachable.
+  const rereadFinding = useCallback((chamber: ChamberId, finding: { id: string }) => {
+    if (!isChamberOpenInBuild(chamber)) return;
+    preloadChamber(chamber);
+    rereadSeq.current += 1;
+    setReread({ chamber, finding: finding.id, seq: rereadSeq.current });
+    const route = { kind: 'chamber', id: chamber } as const;
+    window.history.pushState(null, '', hrefFor(route, window.location));
+    spine.dispatch({ type: 'ROUTE', route });
+    window.scrollTo(0, gameTop());
+  }, [spine]);
+  // The room reports the record open; the request is spent, so a later visit opens nothing.
+  const rereadOpened = useCallback(() => setReread(null), []);
   const backToEntrance = useCallback(() => {
     setMenuOpen(false);
     leaveWindow();
@@ -827,6 +847,8 @@ export function App() {
                     sound={sound}
                     caption={caption}
                     discoveries={discoveries}
+                    reread={reread && reread.chamber === state.chamber ? reread : undefined}
+                    onRereadOpened={rereadOpened}
                     onReady={ready}
                     onLeave={leave}
                     onContextLost={onContextLost}
@@ -839,7 +861,7 @@ export function App() {
         </GameWindow>
       </div>
 
-      <Unlocks store={discoveries} chambers={VISIBLE_CHAMBERS} onReplaced={session.rebaseline} />
+      <Unlocks store={discoveries} chambers={VISIBLE_CHAMBERS} onReread={rereadFinding} onReplaced={session.rebaseline} />
       <Details onOpenPage={openPage} />
       <Footer menu={menu('footer')} onOpenPage={openPage} onOpenMenu={openMenu} trivia={trivia} />
 

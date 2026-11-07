@@ -186,7 +186,7 @@ function renderDocument(key: DocumentKey, officeAvailable: boolean, ticketFace: 
 }
 
 export default function TomorrowEngineChamber(props: ChamberProps) {
-  const { settings, text, sound, onReady, onContextLost, onSceneError, onLeave, discoveries } = props;
+  const { settings, text, sound, onReady, onContextLost, onSceneError, onLeave, discoveries, reread, onRereadOpened } = props;
   const subscribe = useCallback((listener: () => void) => discoveries?.subscribe(listener) ?? EMPTY_SUBSCRIBE(), [discoveries]);
   const getSnapshot = useCallback(() => discoveries?.getState() ?? stableEmptySnapshot(), [discoveries]);
   const discoveryState = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
@@ -390,6 +390,18 @@ export default function TomorrowEngineChamber(props: ChamberProps) {
       setPanel(next);
     }
   }, [rememberPanelOpener]);
+  // Read again from the site's archive: open the chosen record once the room can be seen.
+  const rereadDone = useRef(0);
+  useEffect(() => {
+    if (!reread || !roomReady || rereadDone.current === reread.seq) return;
+    const { finding, seq } = reread;
+    const frame = requestAnimationFrame(() => {
+      rereadDone.current = seq;
+      openFinding(finding);
+      onRereadOpened?.();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [onRereadOpened, openFinding, reread, roomReady]);
   const closePanel = useCallback(() => {
     restorePanelFocus.current = true;
     setPanel(null);
