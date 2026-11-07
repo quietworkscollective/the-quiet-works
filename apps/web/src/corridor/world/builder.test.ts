@@ -1,6 +1,6 @@
 import { Matrix4 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { box, Bucket, breaks, grid, quad, strip } from './builder.ts';
+import { box, Bucket, breaks, grid, planarUv, quad, strip } from './builder.ts';
 import { kelvinToLinear, linear } from './colour.ts';
 
 /** Every triangle's winding must agree with its stored normal, or FrontSide materials show holes. */
@@ -123,5 +123,26 @@ describe('colour', () => {
     expect(warm[2]! / warm[0]!).toBeLessThan(cool[2]! / cool[0]!);
     expect(warm[0]).toBeGreaterThan(warm[1]!);
     expect(warm[1]).toBeGreaterThan(warm[2]!);
+  });
+});
+
+describe('planarUv', () => {
+  // Safari and Chrome can round the components of a 45° normal one bit apart. The projection
+  // must not depend on which way that bit falls, or the two browsers build different UVs.
+  const p = [1.6, 0.17, 1.02] as const;
+  const lo = Math.fround(Math.SQRT1_2);
+  const hi = lo + 2 ** -24;
+  it('projects a 45° bevel the same way whichever component rounds higher', () => {
+    expect(planarUv(p, [0, lo, hi], undefined)).toEqual(planarUv(p, [0, hi, lo], undefined));
+    expect(planarUv(p, [hi, lo, 0], undefined)).toEqual(planarUv(p, [lo, hi, 0], undefined));
+    const third = Math.fround(1 / Math.sqrt(3));
+    const third2 = third + 2 ** -25;
+    expect(planarUv(p, [-third, -third2, -third], undefined)).toEqual(planarUv(p, [-third2, -third, -third], undefined));
+    expect(planarUv(p, [-third, -third, -third2], undefined)).toEqual(planarUv(p, [-third, -third2, -third], undefined));
+  });
+  it('still follows a clearly dominant axis', () => {
+    expect(planarUv(p, [0, 1, 0], undefined)).toEqual([1.6, 1.02]);
+    expect(planarUv(p, [0, 0.6, 0.8], undefined)).toEqual([1.6, 0.17]);
+    expect(planarUv(p, [0.8, 0.6, 0], undefined)).toEqual([1.02, 0.17]);
   });
 });
