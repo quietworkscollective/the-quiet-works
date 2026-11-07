@@ -130,7 +130,14 @@ test('text-only chamber fallbacks describe the open Exchange and keep sealed roo
   const exchangeFallback = exchange.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(exchangeFallback).toContain('The Exchange');
   expect(exchangeFallback).toContain(chamberById('exchange').doorDescription);
-  expect(exchangeFallback).not.toContain('Not yet open.');
+  // Every page lists all six doors, and the sealed ones read "Not yet open." there, so only the
+  // room's own text and its own door entry may be checked for the sealed wording.
+  const exchangeOwn = exchangeFallback.split('<nav aria-label="Doors">')[0];
+  expect(exchangeOwn).toContain('<h1>The Exchange</h1>');
+  expect(exchangeOwn).not.toContain('Not yet open.');
+  const exchangeDoor = exchangeFallback.match(/<li><a href="\/the-exchange"[^>]*>.*?<\/li>/s)?.[0] ?? '';
+  expect(exchangeDoor).toContain('The Exchange, open the door');
+  expect(exchangeDoor).not.toContain('Not yet open.');
   const outline = await (await request.get('/outline-room/')).text();
   const outlineFallback = outline.match(/<main id="static-content"[^>]*>(.*?)<\/main>/s)?.[1] ?? '';
   expect(outlineFallback).toContain('The Outline Room');
@@ -148,7 +155,12 @@ test('text-only chamber fallbacks describe the open Exchange and keep sealed roo
     await reading.goto(new URL('/the-exchange/', page.url()).href);
     await expect(reading.getByRole('heading', { name: 'The Exchange' })).toBeVisible();
     await expect(reading.getByText(chamberById('exchange').doorDescription, { exact: true }).first()).toBeVisible();
-    await expect(reading.getByText('Not yet open.', { exact: true })).toHaveCount(0);
+    // The door list names the sealed rooms as "Not yet open."; the room's own text and door must not.
+    await expect(reading.locator('#static-content article > p').filter({ hasText: /^Not yet open\.$/ })).toHaveCount(0);
+    const ownDoor = reading.getByRole('navigation', { name: 'Doors' }).getByRole('listitem')
+      .filter({ has: reading.getByRole('link', { name: 'The Exchange, open the door' }) });
+    await expect(ownDoor).toHaveCount(1);
+    await expect(ownDoor).not.toContainText('Not yet open.');
     await reading.goto(new URL('/outline-room/', page.url()).href);
     await expect(reading.getByRole('heading', { name: 'The Outline Room' })).toBeVisible();
     await expect(reading.getByText('Not yet open.', { exact: true }).first()).toBeVisible();

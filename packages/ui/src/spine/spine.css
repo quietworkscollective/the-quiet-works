@@ -666,6 +666,33 @@ html {
   }
 }
 
+/*
+ * Phones: the invitation and the live details stack, each on one line, so neither wraps beside the
+ * other. The foot rises to keep the lockup's visual centre near 43% (ADR 0003).
+ */
+@media (max-width: 40rem) {
+  .tqw-hero__foot {
+    /* Tall phones lift to 52%; short ones keep the original 58% so the tagline stays clear. */
+    inset-block-start: clamp(52%, calc(39.5% + 105px), 58%);
+    grid-template-columns: auto;
+    grid-template-areas:
+      'enter'
+      'details'
+      'cue';
+    justify-items: center;
+    row-gap: 8px;
+  }
+  .tqw-hero__details {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 0 0.5rem;
+    padding-block: 0.25rem;
+  }
+  .tqw-hero__sep {
+    display: inline;
+  }
+}
+
 @media (max-width: 22.5rem) {
   .tqw-hero__foot {
     column-gap: 0.5rem;
