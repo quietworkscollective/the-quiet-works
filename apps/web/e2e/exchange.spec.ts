@@ -90,6 +90,28 @@ test('the Archive lists found titles only and contains no counters', async ({ pa
   expect(text, 'archive content must not expose found or unfound totals').not.toMatch(/\d+\s*(?:\/|of)\s*\d+|found\s*:\s*\d+|total\s*:\s*\d+/i);
 });
 
+// Guards a real failure: in phone browsers, whose toolbars leave far less than the script's 844 px,
+// the reserved reader squeezed the scene to 96 px and left an empty band under the primary.
+test('on a phone browser the scene keeps a usable frame, the closed reader takes no room, and the open reader leaves every control in place', async ({ page }) => {
+  const viewport = page.viewportSize()!;
+  test.skip(viewport.width > 799 || viewport.height >= 900, 'short phone layout only');
+  await readyRoom(page);
+  const box = (selector: string) => page.locator(selector).first().boundingBox();
+  const scene = (await box('.tqw-exchange-stage'))!;
+  const primary = (await box('.tqw-exchange-primary'))!;
+  const stations = (await box('.tqw-exchange-stations'))!;
+  const actions = (await box('.tqw-exchange-actions'))!;
+  const credit = (await box('.tqw-exchange-credit'))!;
+  if (viewport.height >= 650) expect(scene.height, 'scene height').toBeGreaterThanOrEqual(160);
+  expect(stations.y - (primary.y + primary.height), 'gap above the stations').toBeLessThanOrEqual(104);
+  expect(credit.y, 'credit below the actions').toBeGreaterThanOrEqual(actions.y + actions.height);
+  await page.locator('.tqw-exchange-primary').click();
+  await expect(page.locator('.tqw-exchange-reader')).toBeVisible();
+  const reader = (await box('.tqw-exchange-reader'))!;
+  expect(Math.round(reader.y)).toBe(Math.round(scene.y));
+  expect((await box('.tqw-exchange-stations'))!.y, 'stations stay put').toBe(stations.y);
+});
+
 test.describe('the fixed stage', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
