@@ -62,6 +62,6 @@ export function stationById(id: TomorrowStationId): StageStation {
 }
 
 export function cameraForViewport(station: StageStation, width: number, height: number): StationCamera {
-  if (height > width) return station.phone;
+  if (height > width * 1.4) return station.phone;
   return width <= 560 ? station.compact : station.desktop;
 }
