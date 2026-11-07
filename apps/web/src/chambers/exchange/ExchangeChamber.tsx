@@ -122,7 +122,7 @@ function SealedBody({ item }: { readonly item: SealedItem | undefined }) {
  * file decides which view, reader and region answer. Nothing here reads a clock.
  */
 export default function ExchangeChamber(props: ChamberProps) {
-  const { settings, text, sound, caption, onReady, onContextLost, onSceneError, onLeave, discoveries } = props;
+  const { settings, text, sound, caption, onReady, onContextLost, onSceneError, onLeave, discoveries, reread, onRereadOpened } = props;
   const subscribe = useCallback((listener: () => void) => discoveries?.subscribe(listener) ?? noSubscription(), [discoveries]);
   const snapshot = useCallback(() => discoveries?.getState() ?? noDiscoveries(), [discoveries]);
   const discoveryState = useSyncExternalStore(subscribe, snapshot, snapshot);
@@ -322,6 +322,21 @@ export default function ExchangeChamber(props: ChamberProps) {
     setNotes(NO_NOTES);
     showReader(next);
   };
+
+  // Read again from the site's archive: open the chosen record once the room can be seen.
+  const rereadDone = useRef(0);
+  useEffect(() => {
+    if (!reread || !(textMode || sceneReady) || rereadDone.current === reread.seq) return;
+    const { finding, seq } = reread;
+    const frame = requestAnimationFrame(() => {
+      rereadDone.current = seq;
+      if (finding in READER_OF_FINDING) openFromPanel(READER_OF_FINDING[finding as keyof typeof READER_OF_FINDING]);
+      onRereadOpened?.();
+    });
+    return () => cancelAnimationFrame(frame);
+    // openFromPanel is recreated each render; the guard above keeps this to one opening per choice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRereadOpened, reread, sceneReady, textMode]);
 
   const askHint = () => {
     const rungs = HINTS[hintStage(stateRef.current)];

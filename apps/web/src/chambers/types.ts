@@ -40,6 +40,14 @@ export interface ChamberProps {
    * wires the store in; chambers must work without it.
    */
   discoveries?: DiscoveryStore | undefined;
+  /**
+   * A finding the visitor chose to read again from the site's archive. A room with its own records
+   * opens that one once it is ready; a room without records ignores it. `seq` changes with every
+   * choice, so choosing the same record again opens it again.
+   */
+  reread?: { readonly finding: string; readonly seq: number } | undefined;
+  /** The room has opened the `reread` record. */
+  onRereadOpened?: (() => void) | undefined;
 }
 
 export type ChamberComponent = ComponentType<ChamberProps>;

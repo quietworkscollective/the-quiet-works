@@ -3,7 +3,7 @@
   "space": "tomorrow-engine",
   "hash": "71a64cfb1a16d3aaf777cf5ba42f266f7d7da62d3f27735ce8ef8b9fa161c458",
   "materialHash": "860e7275803a89cd64d0f72fe0ae0e88a4faaa1083b702c12895a0ca7daeb8c9",
-  "baselineHash": "77fb613aaa33141b6ef45d168f931f98247d117f02dff73ba75147cabe71a5bf",
+  "baselineHash": "d30f8c8324f7ce31f47b5bc3d9627315d3b576102eb1a3ba4f8b1da29044a7a8",
   "meshes": [
     "02ddb0ddb7f15362bbd72a1e789a31aa3ede966e0316132b5d71aa5370a01f57",
     "03459e4482a44bafb5aa8bad0aaea10ffc031d401559f93695bfde687093c6c1",
@@ -127,24 +127,24 @@
       "file": "tomorrow-engine-1.webp",
       "width": 2688,
       "height": 2304,
-      "scale": 1897.0054931640625,
+      "scale": 1891.6263427734375,
       "encoding": "srgb-scale",
-      "bytes": 2378,
+      "bytes": 2376,
       "density": {
         "foreground": {
-          "min": 31.998246619592848,
-          "max": 32.00188841020822,
+          "min": 31.997949159546312,
+          "max": 32.00266309037878,
           "area": 499.80113137778903,
           "target": 32
         },
         "desk": {
-          "min": 63.99904976446691,
-          "max": 64.00128471870552,
+          "min": 63.997920388507154,
+          "max": 64.0005813654131,
           "area": 1.1670689294123828,
           "target": 64
         }
       }
     }
   ],
-  "sourceHash": "f147989f5ea966d544d26fab9a042e9ff40a2fbcb6b9f6fa17bd67321839379e"
+  "sourceHash": "ebc7cd25106d513f98ca3c888a5b67949faf19071b0b4a6c0ec774fec65691a7"
 }
