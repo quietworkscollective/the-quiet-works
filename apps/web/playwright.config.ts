@@ -34,7 +34,7 @@ export default defineConfig({
   testDir: './e2e',
   // The raw authored route contract gates separately against dist-authored; other cases stay here.
   grep: /^(?!.*luna-exit\.spec\.ts.*the corridor return appears only on the current open room across every chamber route)/,
-  testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts', 'apartment.spec.ts'],
+  testIgnore: ['full-tier.spec.ts', 'exchange.spec.ts', 'office-budget.spec.ts', 'apartment.spec.ts', 'tomorrow-engine-authored.spec.ts', 'tomorrow-rules.spec.ts', 'tomorrow-chain.spec.ts'],
   // Cold software renders and repeated room visits need a larger CI budget, not weaker predicates.
   timeout: process.env.CI ? 300_000 : 60_000,
   expect: { timeout: process.env.CI ? 90_000 : 10_000 },

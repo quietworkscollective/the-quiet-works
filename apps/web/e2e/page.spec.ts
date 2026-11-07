@@ -181,7 +181,7 @@ test.describe('the hero', () => {
   test('shows one quiet line of live details, a scroll cue and a way straight in, over the live world', async ({ page }) => {
     await page.goto('/');
     await expectSpine(page, 'entrance');
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-hero__details')).toHaveText('2 doors open');
     await expect(page.getByRole('button', { name: 'Scroll to The Quiet Works' })).toBeVisible();
     await expect(heroEnter(page)).toBeVisible();
     // The world is the page's one renderer, behind the hero (R-4): one WebGL canvas, in the game window.
@@ -207,7 +207,7 @@ test.describe('the hero', () => {
         .map((el) => el.textContent?.replace(/\s+/g, ' ').trim()),
     );
     const menu = isDesktop(info) ? ['Notice board', 'Menu'] : ['Menu'];
-    expect(shown).toEqual([...menu, 'A space for everything we carry.', '1 door open', 'Scroll to The Quiet Works', ENTER]);
+    expect(shown).toEqual([...menu, 'A space for everything we carry.', '2 doors open', 'Scroll to The Quiet Works', ENTER]);
   });
 
   test('menu: Notice board and Menu at the top right with 44 px targets; a phone shows Menu alone', async ({ page }, info) => {
@@ -1536,7 +1536,7 @@ test.describe('the archive', () => {
   test('importing replaces the archive, and the hero does not call it this visit\'s discovery', { tag: '@fast' }, async ({ page }) => {
     await page.goto('/');
     await importArchive(page, { 'certification-office': [{ id: 'memo-a', kind: 'memo' }] });
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-hero__details')).toHaveText('2 doors open');
   });
 
   test('a file that is not an archive changes nothing, and says so', { tag: '@fast' }, async ({ page }) => {
@@ -1757,7 +1757,7 @@ test.describe('what the page stores and sends', () => {
     await expect(papers(page)).toHaveCount(2);
     await expect(page.locator('#archive .tqw-archive__room')).toHaveCount(1);
     await expect(page.locator('#archive .tqw-archive__room-count, #archive .tqw-archive__sealed, #archive .tqw-archive__sealed-row')).toHaveCount(0);
-    await expect(page.locator('.tqw-hero__details')).toHaveText('1 door open');
+    await expect(page.locator('.tqw-hero__details')).toHaveText('2 doors open');
   });
 
   test('Forget everything removes the key: the device holds nothing again, across a reload', async ({ page }) => {

@@ -26,6 +26,7 @@
     "seal": "node scripts/seal-content.ts",
     "bake": "node scripts/bake/run.mjs",
     "build:exchange": "node scripts/blender/rooms/exchange/run.ts",
+    "build:tomorrow-engine": "node scripts/blender/rooms/tomorrow-engine/run.ts",
     "check:bakes": "node scripts/bake/run.mjs --check",
     "test:bake-toolchain": "node --test scripts/bake/encoding.integration.mjs",
     "sync:description": "pnpm --filter @tqw/web exec node scripts/sync-description.mjs",

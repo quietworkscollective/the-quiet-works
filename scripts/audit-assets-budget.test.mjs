@@ -156,6 +156,13 @@ test('counts nested Office model chunks and reports overage as a warning', t => 
   assert.deepEqual(budgetWarnings(restored), []);
 });
 
+test('Tomorrow Engine expanded route fails red and passes green at the 3 MB cap', () => {
+  const route = { key: 'src/chambers/tomorrow-engine/index.ts', label: 'Tomorrow Engine', files: new Set(), gzipBytes: ROOM_ROUTE_BUDGET_BYTES + 1 };
+  assert.ok(budgetViolations({ roomRoutes: [route] }).some(message => message.startsWith('Tomorrow Engine expanded lazy route')));
+  route.gzipBytes = ROOM_ROUTE_BUDGET_BYTES;
+  assert.deepEqual(budgetViolations({ roomRoutes: [route] }), []);
+});
+
 test('does not expand a room through the already-loaded app document', t => {
   const build = fixture(t);
   build.write('assets/visitor-route.js', 'import("./visitor-model.glb");');

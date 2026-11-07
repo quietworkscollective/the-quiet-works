@@ -703,38 +703,39 @@ describe('a sealed door', () => {
   it('rattles for 420 ms, stays shut, and the visitor stays where they were', () => {
     const r = inCorridor();
     r.settle();
-    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'tomorrow-engine' });
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'great-atrium' });
     r.settle();
+    r.settle(); // The Atrium is the corridor's far door: the walk there outlasts one settle.
     const pose = { ...r.d.pose };
-    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'tomorrow-engine', via: 'door' });
+    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'great-atrium', via: 'door' });
     expect(r.spine.getState().phase).toBe('corridor');
     const phases: number[] = [];
-    r.run(600, () => phases.push(r.animation['tomorrow-engine'].rattle));
+    r.run(600, () => phases.push(r.animation['great-atrium'].rattle));
     expect(phases.some((p) => p > 0 && p <= 1)).toBe(true);
     expect(Math.max(...phases)).toBeLessThanOrEqual(1);
     expect(phases.filter((p) => p > 0).length).toBeCloseTo(SPINE_TIMING.rattleMs / FRAME, -1);
-    expect(r.animation['tomorrow-engine'].rattle).toBe(0);
-    expect(r.animation['tomorrow-engine'].open).toBe(0);
+    expect(r.animation['great-atrium'].rattle).toBe(0);
+    expect(r.animation['great-atrium'].open).toBe(0);
     expect(r.d.pose).toEqual(pose);
     expect(r.log.seams).toHaveLength(0);
   });
 
   it('does not rattle under reduced motion (the caption and the DOM say it is sealed)', () => {
     const r = inCorridor({ reduced: true });
-    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'tomorrow-engine' });
-    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'tomorrow-engine', via: 'door' });
-    r.run(600, () => expect(r.animation['tomorrow-engine'].rattle).toBe(0));
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'great-atrium' });
+    r.spine.dispatch({ type: 'OPEN_DOOR', id: 'great-atrium', via: 'door' });
+    r.run(600, () => expect(r.animation['great-atrium'].rattle).toBe(0));
   });
 
   it('can be tried again to rattle again', () => {
     const r = inCorridor();
     r.settle();
-    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'tomorrow-engine' });
+    r.spine.dispatch({ type: 'FOCUS_DOOR', id: 'great-atrium' });
     r.settle();
     for (let i = 0; i < 2; i += 1) {
-      r.spine.dispatch({ type: 'OPEN_DOOR', id: 'tomorrow-engine', via: 'door' });
+      r.spine.dispatch({ type: 'OPEN_DOOR', id: 'great-atrium', via: 'door' });
       let seen = false;
-      r.run(500, () => (seen ||= r.animation['tomorrow-engine'].rattle > 0));
+      r.run(500, () => (seen ||= r.animation['great-atrium'].rattle > 0));
       expect(seen).toBe(true);
     }
   });
@@ -787,12 +788,12 @@ describe('returning from a chamber', () => {
   });
 
   it('a deep link to a sealed chamber stands in front of its closed door', () => {
-    const r = rig({ route: { kind: 'chamber', id: 'tomorrow-engine' } });
+    const r = rig({ route: { kind: 'chamber', id: 'great-atrium' } });
     expect(r.spine.getState().phase).toBe('corridor');
-    const frame = doorFrame('tomorrow-engine');
+    const frame = doorFrame('great-atrium');
     expect(r.d.pose.x).toBe(frame.x);
     expect(r.d.pose.z).toBe(frame.z);
-    expect(r.animation['tomorrow-engine'].open).toBe(0);
+    expect(r.animation['great-atrium'].open).toBe(0);
   });
 
   it('opening again while the door is still closing takes over the door from shut', () => {

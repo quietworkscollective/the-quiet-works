@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "space": "tomorrow-engine",
+  "hash": "71a64cfb1a16d3aaf777cf5ba42f266f7d7da62d3f27735ce8ef8b9fa161c458",
+  "materialHash": "860e7275803a89cd64d0f72fe0ae0e88a4faaa1083b702c12895a0ca7daeb8c9",
+  "baselineHash": "9ee85c931ec17bc4a161c9ddd1959e54d8312748e801bfb766bab37a8b6c086c",
+  "meshes": [
+    "02ddb0ddb7f15362bbd72a1e789a31aa3ede966e0316132b5d71aa5370a01f57",
+    "03459e4482a44bafb5aa8bad0aaea10ffc031d401559f93695bfde687093c6c1",
+    "053c66a25f548fc33c6b03b5c694bba5a740022f47538e003b81d6108d8c0fa0",
+    "0c1ec0d1b5535e2cf11cb67ef4c66038fee8125cfe6e38e6557cea370e848792",
+    "0d26b5f7f39007331752aca1eacd6deeba03c7942949053ac58f615b011feff0",
+    "1201fcf60080854e72753398294a7fac6d89e30178a57797cbf7c4cebcd49189",
+    "203b0e162be2ed76399670d35a780f4f450c7e562aeeb3e873937b9496a7c036",
+    "289d94896fe72e51249991308a33cf346252ee82e2d517f0c79dec0910791cec",
+    "2f8ef5b80d12cc538deaf8eef6f6059de7df3a556e8e03400538c65657a1fac8",
+    "35b72cb557d13e2ec111c1607f69a58e12ea85036ef8be2e986b531db3ac934b",
+    "3c13025f3a6a7fd79b5952ed851ceacecd36300fb8d58d81da2111944d8edb60",
+    "40d5d89426ebe91da6452fa3135d019da90f224a5facbb149505657805097eb2",
+    "440a5ef0dcc2c52d2cef04c55bfcd50f77645e850f7ee521711f1fc949085c17",
+    "4724ddc2bad0bd609fec1c56fb6822fbecf42b2921d384a77aad4303733a7267",
+    "4c48e834fd28d779a02540525ae85ea596f2973bb17b108f916edf5ff37ccb2a",
+    "53ba0919d20c69d1e6cb64671618eb0df64b2a5c5b811a31910c22b28128bd7a",
+    "60184e0e9da21ec4b585ac11b1ee73adde47160b517a6a40b3a8c1e084f104ad",
+    "60a4296b375acd98ff7bb52266883aad2ba832fa29b6667ddb257431a7d057d2",
+    "62d2e2dd7edcca5fa74ccfa82da61729f504b44a447bb0acc87f29646f88182e",
+    "67339c6fc2abd168afbb9142ca37c4d32a13d1750886b3bb932d0e07bbf3c6ee",
+    "7211ba961f5cb9f65cef09c9895147350c7232f4a9823d39099912febadcf77f",
+    "72b1d72118fef88f7d04c02c33e537e8daf291c42d13ca423414cd851a0250a1",
+    "74c8119bd0a83351fe3120b2c4bb00ec3c56495873305c830eb192ee6e35bd11",
+    "7ad37aed9bbde5442dcac08a3d5e6a224b18cc201a9ed992f866385cf935e7c0",
+    "82775d76ca31e49c5a1d77792ee0db55304ec16080ba01b358f92c46c66009d4",
+    "852549b88b065c92fe41021a1a59f00480e4aefcfa5a9260ac6699afeac48523",
+    "9bd3f0b485a9b3360d78e11eef5aae09064c3deae6ba018823558aba3ff49061",
+    "a659c6b59effedf86c78a8789848ea9cf8f4eedf453c82642c527816b3b62ca5",
+    "a9f2cd2f9e44f2e411c9127e4b4bdd090a038eadb6ae0edb4ec69cb94a761cca",
+    "bd850eb71e57028e708813896816833f19928a2b95eca46f91acef767e68f00a",
+    "bec11ee788c2b451b41bc2f21644b712e570ead9eced0c07d5044f11cca6378a",
+    "ce1422d8b7c021d4aa7c8ac9c9df37e4afc4d709876dbd5033919fe92ec66bde",
+    "d2757fe47cfb796b3ce55b24c53dd197c57664c0606eef3659bd6f4212934c08",
+    "d4bf33c9bd7880007ab1858f1ac131f077f4c2a7eb31a848c8c6b3db21e8bc85",
+    "d4e9a76e345cdbf0b1ecb0dc9dd1c53d355376353cae8b772a6ee3428cfabd8d",
+    "db701c477c80b39e422725e57d4878c70ac8aec0b5840b1efe37615939e2dc73",
+    "e3c629d1b664ed5c5aa51f4ad1611bdc6af5264b5c5086674ccba0f22bbde69d",
+    "e4a04f6dca44fcdf60095860a306e245f9090dba1f0c2704a1b691e07cdf5163",
+    "e95810de3cc39655ffdf93b1042cc39210a1bffc1aab97406e2cb823df0715c0",
+    "eabcddb6717fa0e8170ac937af8a202559994414fcb94591d51d514356398290",
+    "eaff665f4ba2618b9620463ea568e4c7d6f22d0729bb69a34172ec6b52c1bd9e",
+    "eb0ae2e15ea38f19a711dd7e0a790611a162f3caf07ed51e90f545de178dc39f",
+    "f5b3d7e91501b01a7724d4872bfc856a42acbdeb590d66856b85cd0ae4f449dd",
+    "f81094f3e0745b6f4ca7363e7aa4c2d602aba48cea2b51e60855631e12f75b5f",
+    "fa083104f4e79598c7b16e06da9c2fa4169c88ccdc5c600f95ee4ac6da494d1b",
+    "fb33a3011a91a6ca846b96e4d20b8a737e00d4373d6c72c2fa3115477cfdddfb"
+  ],
+  "lazyMeshes": [],
+  "lights": [
+    {
+      "type": "PointLight",
+      "position": [
+        -0.92,
+        2.22,
+        3.82
+      ],
+      "colour": [
+        0.7991027380100881,
+        0.4735314961384573,
+        0.1844749944900301
+      ],
+      "intensity": 4.5,
+      "distance": 2.6,
+      "decay": 2,
+      "power": 56.548667764616276
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0,
+        2.22,
+        3.82
+      ],
+      "colour": [
+        0.8069522576650873,
+        0.508881320845802,
+        0.22696587349938613
+      ],
+      "intensity": 5,
+      "distance": 2.8,
+      "decay": 2,
+      "power": 62.83185307179586
+    },
+    {
+      "type": "PointLight",
+      "position": [
+        0.92,
+        2.22,
+        3.82
+      ],
+      "colour": [
+        0.6938717612856897,
+        0.34191442489801843,
+        0.11953842797895521
+      ],
+      "intensity": 4.2,
+      "distance": 2.5,
+      "decay": 2,
+      "power": 52.778756580308524
+    }
+  ],
+  "atlases": [
+    {
+      "file": "tomorrow-engine-0.webp",
+      "width": 2560,
+      "height": 2304,
+      "scale": 0.00195673736743629,
+      "encoding": "srgb-scale",
+      "bytes": 64364,
+      "density": {
+        "foreground": {
+          "min": 31.99999582667888,
+          "max": 32.00000627070506,
+          "area": 543.3413599434815,
+          "target": 32
+        }
+      }
+    },
+    {
+      "file": "tomorrow-engine-1.webp",
+      "width": 2688,
+      "height": 2304,
+      "scale": 1922.9329833984375,
+      "encoding": "srgb-scale",
+      "bytes": 2364,
+      "density": {
+        "foreground": {
+          "min": 31.99816261960259,
+          "max": 32.001468637373,
+          "area": 499.80113137778903,
+          "target": 32
+        },
+        "desk": {
+          "min": 63.998929410289136,
+          "max": 64.00088877707559,
+          "area": 1.1670689294123828,
+          "target": 64
+        }
+      }
+    }
+  ],
+  "sourceHash": "17f01ec8e7497f03cdae7a3bccc386aa3a0e5dc75ffb489a61b8fd66d259dc3c"
+}

@@ -1,11 +1,11 @@
 /** Source for a bake module: initial receivers stay static and dressing receivers stay dynamic. */
-export function assetsModuleSource({ space, geometryFiles, atlasFiles }) {
+export function assetsModuleSource({ space, geometryFiles, atlasFiles, inlineAtlases = false }) {
   const initial = geometryFiles.filter(entry => !entry.lazy);
   const lazy = geometryFiles.filter(entry => entry.lazy);
   const imports = [
     ...initial.map((entry, index) => `import geometry${index} from './${entry.file}';`),
     `import manifest from './${space}.manifest.json';`,
-    ...atlasFiles.map((file, index) => `import image${index} from './${file}';`),
+    ...atlasFiles.map((file, index) => `import image${index} from './${file}${inlineAtlases ? '?url&inline' : ''}';`),
     `import type { BakeAssets } from '../runtime.ts';`,
   ];
   const lazyLoader = lazy.length

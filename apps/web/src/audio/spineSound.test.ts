@@ -455,6 +455,14 @@ describe('a door opening', () => {
 describe('a sealed door', () => {
   const D = 7;
 
+  /** No released door carries a seal now, so the seal voice is exercised on a borrowed door. */
+  function rattleSeal(): { rig: Rig; nodes: FakeNode[] } {
+    const module = CHAMBER_MODULES['great-atrium'];
+    const original = module.door;
+    module.door = { ...original, closure: 'seal' };
+    try { return rattle('great-atrium'); } finally { module.door = original; }
+  }
+
   function rattle(id: ChamberId): { rig: Rig; nodes: FakeNode[] } {
     const rig = build();
     rig.ctx.currentTime = D;
@@ -465,15 +473,13 @@ describe('a sealed door', () => {
   it('rattles over rattleMs, shaped by what holds it: a bolt, a seal, a chain', () => {
     const length = ms(SPINE_TIMING.rattleMs);
     expect(SPINE_TIMING.rattleMs).toBe(420);
-    for (const [id, closure] of [['tomorrow-engine', 'seal'], ['great-atrium', 'chain']] as const) {
-      const { rig } = rattle(id);
-      expect(rig.trace).toEqual([{ voice: `rattle-${closure}`, at: D, length }]);
-    }
+    expect(rattleSeal().rig.trace).toEqual([{ voice: 'rattle-seal', at: D, length }]);
+    expect(rattle('great-atrium').rig.trace).toEqual([{ voice: 'rattle-chain', at: D, length }]);
   });
 
   it('starts at the cue, never begins a sound after the rattle is over, and rings on no longer than a tenth of a second', () => {
     const length = ms(SPINE_TIMING.rattleMs);
-    for (const id of ['tomorrow-engine', 'great-atrium'] as const) {
+    for (const id of ['great-atrium'] as const) {
       const { nodes } = rattle(id);
       const list = sources(nodes);
       expect(startsAt(list, D), id).toBe(true);
@@ -494,7 +500,7 @@ describe('a sealed door', () => {
     const bodyRings = (nodes: readonly FakeNode[], base: number): number =>
       oscillators(nodes).filter((o) => o.type === 'sine' && [2.2, 6.1, 11.4].some((r) => near(o.frequency.valueAt(0), base * r, base * r * 0.05))).length;
 
-    const seal = rattle('tomorrow-engine').nodes;
+    const seal = rattleSeal().nodes;
     const chain = rattle('great-atrium').nodes;
     const boltRig = build();
     const boltEnv: voices.SpineEnv = {
@@ -511,7 +517,7 @@ describe('a sealed door', () => {
     expect(links(chain)).toBeGreaterThanOrEqual(18);
     expect(links(bolt)).toBe(0);
     expect(links(seal)).toBe(0);
-    const sealFeel = doorFeel(CHAMBER_MODULES['tomorrow-engine'].door);
+    const sealFeel = doorFeel(CHAMBER_MODULES['great-atrium'].door);
     expect(bodyRings(seal, sealFeel.bodyHz)).toBe(3);
     expect(bodyRings(bolt, doorFeel(CHAMBER_MODULES.apartment.door).bodyHz)).toBe(0);
     expect(sources(chain).length).toBeGreaterThan(sources(bolt).length + 12);

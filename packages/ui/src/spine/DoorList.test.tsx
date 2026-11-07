@@ -23,7 +23,7 @@ describe('doorLabel', () => {
   it('is "<title>, open the door" or "<title>, not yet open"', () => {
     expect(doorLabel('The Certification Office', 'open')).toBe('The Certification Office, open the door');
     expect(doorLabel('The Apartment', 'open')).toBe('The Apartment, open the door');
-    expect(doorLabel('The Tomorrow Engine', 'sealed')).toBe('The Tomorrow Engine, not yet open');
+    expect(doorLabel('The Great Atrium', 'sealed')).toBe('The Great Atrium, not yet open');
   });
 });
 
@@ -44,8 +44,8 @@ describe.each(['overlay', 'list'] as const)('DoorList (%s)', (variant) => {
 
   it('asks the corridor to turn to a door when it takes focus', () => {
     const { onFocusDoor } = setup({ variant });
-    fireEvent.focus(screen.getByRole('button', { name: 'The Tomorrow Engine, not yet open' }));
-    expect(onFocusDoor).toHaveBeenCalledWith('tomorrow-engine');
+    fireEvent.focus(screen.getByRole('button', { name: 'The Great Atrium, not yet open' }));
+    expect(onFocusDoor).toHaveBeenCalledWith('great-atrium');
   });
 
   it('opens a door when it is activated, sealed or not (the corridor decides what happens)', () => {

@@ -58,12 +58,12 @@ test.describe('corridor doors', () => {
     await expectSpine(page, 'corridor');
   });
 
-  test('the six doors are listed in corridor order, only the released Office open', async ({ page }) => {
+  test('the six doors are listed in corridor order, only the released rooms open', async ({ page }) => {
     const doors = page.getByRole('navigation', { name: 'Doors' }).getByRole('button');
     await expect(doors).toHaveText([
       'The Certification Office, open the door',
       'The Apartment, not yet open',
-      'The Tomorrow Engine, not yet open',
+      'The Tomorrow Engine, open the door',
       'The Great Atrium, not yet open',
       'The Exchange, not yet open',
       'The Outline Room, not yet open',
@@ -96,9 +96,9 @@ test.describe('corridor doors', () => {
   });
 
   test('a sealed door stays shut and the visitor stays in the corridor', async ({ page }) => {
-    await activateDoor(page, 'The Tomorrow Engine', 'sealed');
+    await activateDoor(page, 'The Great Atrium', 'sealed');
     await expectSpine(page, 'corridor');
-    await expect(site(page)).toHaveAttribute('data-focus', 'tomorrow-engine');
+    await expect(site(page)).toHaveAttribute('data-focus', 'great-atrium');
     await expect(page).toHaveURL(/\/$/);
   });
 
@@ -146,7 +146,7 @@ test.describe('notice board', () => {
     const board = page.getByRole('dialog', { name: 'Notice board' });
     await expect(board).toBeVisible();
     await expect(board).toContainText('OFFICE SEEKS EVIDENCE OF COMPETENCE');
-    await expect(board).toContainText('The Tomorrow Engine: Not yet open');
+    await expect(board).toContainText('The Great Atrium: Not yet open');
     await board.getByRole('button', { name: `Go in: ${OFFICE}` }).click();
     await expect(board).toBeHidden();
     await expect(page).toHaveURL(/\/certification-office$/);

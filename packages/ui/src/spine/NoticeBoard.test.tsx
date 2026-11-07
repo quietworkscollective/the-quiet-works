@@ -51,7 +51,7 @@ describe('NoticeBoard', () => {
     CHAMBERS.forEach((chamber, index) => {
       const clipping = clippings[index]!;
       expect(within(clipping).getByRole('heading', { level: 3, name: chamber.clipping.headline })).toBeTruthy();
-      expect(within(clipping).getByText(chamber.clipping.dek)).toBeTruthy();
+      if (chamber.clipping.dek) expect(within(clipping).getByText(chamber.clipping.dek)).toBeTruthy();
       expect(within(clipping).getByText(chamber.clipping.dateline)).toBeTruthy();
     });
   });

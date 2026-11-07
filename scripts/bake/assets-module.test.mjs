@@ -17,3 +17,13 @@ test('generated bake module defers lazy receiver chunks behind a loader', () => 
   assert.match(source, /import\('\.\/corridor-geometry-1\.json'\)/);
   assert.match(source, /loadLazyGeometry/);
 });
+
+test('a room can inline its own atlas into its lazy route', () => {
+  const source = assetsModuleSource({
+    space: 'tomorrow-engine',
+    geometryFiles: [{ file: 'tomorrow-engine-geometry-0.json', lazy: false }],
+    atlasFiles: ['tomorrow-engine-0.webp'],
+    inlineAtlases: true,
+  });
+  assert.match(source, /import image0 from '\.\/tomorrow-engine-0\.webp\?url&inline';/);
+});

@@ -14,4 +14,13 @@ describe('chamber release flags', () => {
     if (!room) throw new Error('The Apartment must load in development');
     await expect(room).resolves.toHaveProperty('default');
   });
+
+  it('opens the Tomorrow Engine in production and development', async () => {
+    expect(isChamberOpenInBuild('tomorrow-engine', false)).toBe(true);
+    expect(isChamberOpenInBuild('tomorrow-engine', true)).toBe(true);
+    const room = preloadChamber('tomorrow-engine', false);
+    expect(room).not.toBeNull();
+    if (!room) throw new Error('Tomorrow Engine must load in production');
+    await expect(room).resolves.toHaveProperty('default');
+  });
 });

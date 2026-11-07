@@ -13,7 +13,7 @@ import { createSpineStore } from './spineStore.ts';
 
 const OPEN: ChamberId = 'certification-office';
 const EXCHANGE: ChamberId = 'exchange';
-const SEALED: ChamberId = 'tomorrow-engine';
+const SEALED: ChamberId = 'great-atrium';
 
 function run(events: readonly SpineEvent[], from: SpineState = spineInitial({ kind: 'home' })) {
   let state = from;
@@ -34,7 +34,7 @@ describe('chamber registry', () => {
   it('has unique ids and slugs, and both Annex rooms and the Office are open', () => {
     expect(new Set(CHAMBERS.map((c) => c.id)).size).toBe(CHAMBERS.length);
     expect(new Set(CHAMBERS.map((c) => c.slug)).size).toBe(CHAMBERS.length);
-    expect(CHAMBERS.filter((c) => c.status === 'open').map((c) => c.id)).toEqual([OPEN, 'apartment', EXCHANGE, 'outline-room']);
+    expect(CHAMBERS.filter((c) => c.status === 'open').map((c) => c.id)).toEqual([OPEN, 'apartment', 'tomorrow-engine', EXCHANGE, 'outline-room']);
     expect(chamberBySlug('certification-office')?.id).toBe(OPEN);
     expect(chamberBySlug('the-exchange')?.id).toBe(EXCHANGE);
     expect(chamberBySlug('nowhere')).toBeUndefined();

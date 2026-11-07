@@ -14,7 +14,7 @@ import type { ChamberComponent, ChamberModule } from './types.ts';
 export const CHAMBER_MODULES: Record<ChamberId, ChamberModule> = {
   'certification-office': { door: OFFICE_DOOR, releaseOpen: true, load: () => import('./certification-office/index.ts') },
   apartment: { door: APARTMENT_DOOR, releaseOpen: false, load: () => import('./apartment/index.ts') },
-  'tomorrow-engine': { door: TOMORROW_DOOR, releaseOpen: false },
+  'tomorrow-engine': { door: TOMORROW_DOOR, releaseOpen: true, load: () => import('./tomorrow-engine/index.ts') },
   'great-atrium': { door: ATRIUM_DOOR, releaseOpen: false },
   exchange: { door: EXCHANGE_DOOR, releaseOpen: false, load: () => import('./exchange/index.ts') },
   'outline-room': { door: OUTLINE_DOOR, releaseOpen: false, load: () => import('./annex-codex/index.ts') },

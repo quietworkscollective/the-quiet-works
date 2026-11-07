@@ -60,9 +60,9 @@ const STILLNESS_GLASS_DELAY_S = 0.45;
 const STILLNESS_MEMO_DELAY_S = 0.9;
 
 /** Open rooms have their own bed; sealed rooms continue to use the corridor. */
-type ToneRoom = 'corridor' | 'certification-office' | 'exchange' | 'outline-room';
+type ToneRoom = 'corridor' | 'certification-office' | 'exchange' | 'outline-room' | 'tomorrow-engine';
 const toneRoom = (room: SoundRoom): ToneRoom =>
-  room === 'certification-office' || room === 'exchange' || room === 'outline-room' ? room : 'corridor';
+  room === 'certification-office' || room === 'exchange' || room === 'outline-room' || room === 'tomorrow-engine' ? room : 'corridor';
 
 const seconds = (ms: number): number => ms / 1000;
 
@@ -102,9 +102,11 @@ class Engine {
   private readonly officeGate: GainNode;
   private readonly exchangeGate: GainNode;
   private readonly outlineGate: GainNode;
+  private readonly tomorrowGate: GainNode;
   private ambience: voices.Ambience | null = null;
   private exchangeAmbience: voices.Ambience | null = null;
   private outlineAir: voices.QuietAir | null = null;
+  private tomorrowAir: voices.QuietAir | null = null;
   private ambienceLevel = 1;
   private room: ToneRoom;
   /** The corridor: built the first time it is needed, so an Office-only session never pays for it. */
@@ -164,12 +166,17 @@ class Engine {
     this.outlineGate = ctx.createGain();
     this.outlineGate.gain.value = this.room === 'outline-room' ? 1 : 0;
     this.outlineGate.connect(this.ambienceFade);
+    this.tomorrowGate = ctx.createGain();
+    this.tomorrowGate.gain.value = this.room === 'tomorrow-engine' ? 1 : 0;
+    this.tomorrowGate.connect(this.ambienceFade);
     if (this.room === 'certification-office') {
       this.ambience = voices.startAmbience(ctx, this.noise, this.officeGate, now);
     } else if (this.room === 'exchange') {
       this.exchangeAmbience = voices.startExchangeAmbience(ctx, this.noise, this.exchangeGate, now);
     } else if (this.room === 'outline-room') {
       this.outlineAir = voices.startQuietAir(ctx, this.noise, this.outlineGate, now, AIR['outline-room']);
+    } else if (this.room === 'tomorrow-engine') {
+      this.tomorrowAir = voices.startQuietAir(ctx, this.noise, this.tomorrowGate, now, AIR['tomorrow-engine']);
     } else {
       this.spine = this.createSpine(true, AMBIENCE_FADE_IN_S);
     }
@@ -224,9 +231,11 @@ class Engine {
       ...(this.ambience?.nodes ?? []),
       ...(this.exchangeAmbience?.nodes ?? []),
       ...(this.outlineAir?.nodes ?? []),
+      ...(this.tomorrowAir?.nodes ?? []),
       this.officeGate,
       this.exchangeGate,
       this.outlineGate,
+      this.tomorrowGate,
       this.ambienceFade,
       this.epoch.interaction,
       this.epoch.music,
@@ -261,12 +270,15 @@ class Engine {
     const inOffice = room === 'certification-office';
     const inExchange = room === 'exchange';
     const inOutline = room === 'outline-room';
+    const inTomorrow = room === 'tomorrow-engine';
     if (inOffice) this.ambience ??= voices.startAmbience(this.ctx, this.noise, this.officeGate, now);
     if (inExchange) this.exchangeAmbience ??= voices.startExchangeAmbience(this.ctx, this.noise, this.exchangeGate, now);
     if (inOutline) this.outlineAir ??= voices.startQuietAir(this.ctx, this.noise, this.outlineGate, now, AIR['outline-room']);
+    if (inTomorrow) this.tomorrowAir ??= voices.startQuietAir(this.ctx, this.noise, this.tomorrowGate, now, AIR['tomorrow-engine']);
     crossfade(this.officeGate.gain, inOffice ? 1 : 0, now, ROOM_FADE_S);
     crossfade(this.exchangeGate.gain, inExchange ? 1 : 0, now, ROOM_FADE_S);
     crossfade(this.outlineGate.gain, inOutline ? 1 : 0, now, ROOM_FADE_S);
+    crossfade(this.tomorrowGate.gain, inTomorrow ? 1 : 0, now, ROOM_FADE_S);
     if (room === 'corridor') (this.spine ?? this.createSpine(true, ROOM_FADE_S))?.setCorridor(true);
     else this.spine?.setCorridor(false);
   }

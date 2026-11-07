@@ -5,8 +5,9 @@ import { isOnScreenSceneTarget } from '../look/render.ts';
 import { bindBake, usesLightmaps, type BakeAssets, type BakeBinding } from './runtime.ts';
 
 const apartmentAssets = import.meta.glob<{ default: BakeAssets }>('./assets/apartment.ts')['./assets/apartment.ts'];
+const tomorrowEngineAssets = import.meta.glob<{ default: BakeAssets }>('./assets/tomorrow-engine.ts')['./assets/tomorrow-engine.ts'];
 
-export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space: 'corridor' | 'office' | 'codex-room' | 'exchange' | 'apartment'; onReady?: () => void; allowLazyMissing?: boolean }) {
+export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space: 'corridor' | 'office' | 'codex-room' | 'exchange' | 'apartment' | 'tomorrow-engine'; onReady?: () => void; allowLazyMissing?: boolean }) {
   const { scene, gl, invalidate } = useThree();
   useEffect(() => {
     const disabledForReview = import.meta.env.DEV && new URLSearchParams(location.search).get('bake') === 'off';
@@ -22,7 +23,9 @@ export function BakedSpace({ space, onReady, allowLazyMissing = false }: { space
           ? import('./assets/codex-room.ts')
           : space === 'exchange'
             ? import('./assets/exchange.ts')
-            : apartmentAssets?.() ?? Promise.reject(new Error('Apartment lightmaps have not been baked'));
+            : space === 'apartment'
+              ? apartmentAssets?.() ?? Promise.reject(new Error('Apartment lightmaps have not been baked'))
+              : tomorrowEngineAssets?.() ?? Promise.reject(new Error('Tomorrow Engine lightmaps have not been baked'));
     void load.then(async ({ default: assets }) => {
       if (cancelled) return;
       if (!assets) throw new Error('Missing baked assets');

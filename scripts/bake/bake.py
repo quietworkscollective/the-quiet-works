@@ -79,8 +79,26 @@ if space == 'office':
 # Corridor uses a single rectangular image equivalent to two 1K tiles: no extra draws.
 groups = ([(meshes, 1860, 930)] if space == 'corridor' else
           [(meshes, 2048, 2048)] if space == 'apartment' else
-          [(meshes, 2048, 2048)] if space == 'codex-room' else
+          [(meshes, 2048, 2048)] if space in ('codex-room', 'tomorrow-engine') else
           [([], 2048, 2048), ([], 1152 if space == 'office' else 1024, 1152 if space == 'office' else 1024)])
+if space == 'tomorrow-engine':
+    # Balance the broad half-stage across two mobile-friendly atlases by largest-first world area.
+    # Input-order assignment bunches the joined wall meshes into one map. The slightly wider
+    # maps retain the established 8-pixel gutter and bake density targets.
+    groups = [([], 2560, 2304), ([], 2688, 2304)]
+    loads = [0.0, 0.0]
+    weighted_meshes = []
+    for obj in meshes:
+        area = 0.0
+        for polygon in obj.data.polygons:
+            vertices = [obj.matrix_world @ obj.data.vertices[index].co for index in polygon.vertices]
+            for index in range(1, len(vertices) - 1):
+                area += (vertices[index] - vertices[0]).cross(vertices[index + 1] - vertices[0]).length / 2
+        weighted_meshes.append((area, obj))
+    for area, obj in sorted(weighted_meshes, key=lambda entry: entry[0], reverse=True):
+        atlas_index = 0 if loads[0] <= loads[1] else 1
+        groups[atlas_index][0].append(obj)
+        loads[atlas_index] += area
 if space == 'office':
     for obj in meshes:
         z = min(-(obj.matrix_world @ vertex.co).y for vertex in obj.data.vertices)

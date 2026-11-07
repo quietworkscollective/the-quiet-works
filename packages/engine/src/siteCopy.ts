@@ -238,7 +238,7 @@ export const ARCHIVE_COPY = {
   sealed: 'Sealed',
   reread: 'Read again',
   /** What a found item is called when no approved title is available. */
-  kinds: { memo: 'A paper', secret: 'A secret', payoff: 'A find', line: 'A note' },
+  kinds: { memo: 'A paper', secret: 'A secret', payoff: 'A find', line: 'A note', specimen: 'A specimen' },
   noRooms: 'More rooms will appear here as they open.',
   export: 'Export discoveries',
   import: 'Import discoveries',

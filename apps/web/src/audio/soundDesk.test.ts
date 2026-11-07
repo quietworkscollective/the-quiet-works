@@ -910,6 +910,19 @@ describe('stillness and reset', () => {
 });
 
 describe('ambience', () => {
+  it('starts Tomorrow Engine low air only after the first gesture, without Office drones', () => {
+    const desk = createSoundDesk();
+    desk.setRoom('tomorrow-engine');
+    expect(FakeAudioContext.instances).toHaveLength(0);
+    desk.unlock();
+    const ctx = context();
+    const vent = ctx.of(FakeBufferSource).filter((source) => source.loop);
+    expect(vent).toHaveLength(1);
+    expect(ctx.of(FakeBiquad).some((filter) => filter.type === 'lowpass' && filter.frequency.value === 700)).toBe(true);
+    expect(ctx.of(FakeOscillator)).toHaveLength(0);
+    desk.dispose();
+  });
+
   it('starts the Outline Room’s low air without the Office’s pitched drones', () => {
     const desk = createSoundDesk();
     desk.setRoom('outline-room');

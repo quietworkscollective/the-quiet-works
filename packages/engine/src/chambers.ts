@@ -79,14 +79,14 @@ export const CHAMBERS: readonly ChamberEntry[] = [
     title: 'The Tomorrow Engine',
     plaque: 'TOMORROW ENGINE · PLANT ROOM',
     era: '1928',
-    status: 'sealed',
+    status: 'open',
     side: 'left',
     clipping: {
       headline: 'ENGINE WILL FINISH EVERYTHING BY TOMORROW',
-      dek: 'Engineers confirm that tomorrow remains on schedule, as it has every day since 1928.',
+      dek: '',
       dateline: 'Notice No. 002 · Plant and Machinery',
     },
-    doorDescription: 'A riveted iron door with a wheel handle and a pressure gauge. It is sealed.',
+    doorDescription: 'The engine room opens from the corridor. Leave returns to the corridor.',
     findings: { papers: 0, secrets: 0 },
   },
   {
