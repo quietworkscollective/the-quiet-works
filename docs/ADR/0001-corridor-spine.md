@@ -125,7 +125,7 @@ TQW-001 shipped one chamber, the Certification Office, opened directly at `/`. U
 - **Materials:** each chamber chooses one dominant material, one metal and one glazing treatment.
 - **Shared grammar:** handle centre at 1.0 m; plaque centre at 1.55 m, about 280 × 90 mm; either a transom or a lamp. Titles are in Sans Condensed and codes in Mono.
 - **States:**
-  - An open door has a readable plaque, an inviting handle and light at its seam.
+  - An open door has a readable plaque, an inviting handle, light at its seam and a teal lamp on a bracket above it. Doors are side-on to a walking visitor and the corridor is amber, so the lamp stands out from the wall in the one hue the corridor does not contain; a sealed door has no lamp and no seam light.
   - A sealed door shows physical closure.
   - A blank door has no departmental fittings.
   - Status is always also in text, never in colour alone.

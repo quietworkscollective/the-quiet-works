@@ -16,6 +16,8 @@ import { CORRIDOR } from '../layout.ts';
 import { nth, noise1, smoothstep } from './math.ts';
 import type { LitMaterial, WorldMaterials } from './materials.ts';
 import { OutlineDoorModel } from './OutlineDoorModel.tsx';
+import { OpenDoorLamp } from './OpenDoorLamp.tsx';
+import { isChamberOpenInBuild } from '../../chambers/registry.ts';
 
 /**
  * One chamber door at runtime: the leaf swings on its hinge (or the Outline Room's paired panels slide), the handle turns, a
@@ -74,6 +76,8 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
   const customOutlineDoor = id === 'outline-room';
   const spec = placement.spec;
   const sign = placement.side === 'left' ? -1 : 1;
+  // The release state, not the development override: a sealed room shows no light in any build.
+  const released = isChamberOpenInBuild(id, false);
 
   const leafGeometries = build.leaves.map((leaf) => leaf.body);
   const handleGeometries = build.leaves.map((leaf) => leaf.handle?.geo ?? null);
@@ -109,7 +113,7 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
   // Seam light: a warm sheet behind the leaf that shows through the gaps while the door is shut,
   // and the interior light spilling over the corridor floor once it opens.
   const light = useMemo(() => {
-    if (!spec.spill) return null;
+    if (!spec.spill || !released) return null;
     const [r, g, b] = kelvinToLinear(spec.spill.kelvin);
     const hole = holeOf(spec);
     const w = spec.width;
@@ -134,7 +138,7 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
       stripMat: materials.glowMaterial(materials.textures.wedge, colour.clone().multiplyScalar(0.8), 0.5),
       wedgeMat: materials.glowMaterial(materials.textures.wedge, colour.clone().multiplyScalar(0.55), 0),
     };
-  }, [spec, materials, customOutlineDoor]);
+  }, [spec, materials, customOutlineDoor, released]);
   useEffect(
     () => () => {
       if (!light) return;
@@ -249,11 +253,12 @@ export function ChamberDoor({ door, materials, animation, reducedMotion, onOutli
       </group>
       {light && (
         <>
-          <mesh geometry={light.sheet} material={light.sheetMat} renderOrder={1} />
+          <mesh name={`door-seam:${id}`} geometry={light.sheet} material={light.sheetMat} renderOrder={1} />
           <mesh geometry={light.strip} material={light.stripMat} renderOrder={3} />
           <mesh geometry={light.wedge} material={light.wedgeMat} renderOrder={3} />
         </>
       )}
+      {released && <OpenDoorLamp id={id} spec={spec} materials={materials} />}
       {/* Generous hit area: the whole leaf and its frame, and a little beyond. Never rendered. */}
       <mesh
         visible={false}

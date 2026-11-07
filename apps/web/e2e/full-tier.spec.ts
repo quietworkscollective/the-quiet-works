@@ -474,3 +474,34 @@ test.describe('the full rendering tier', () => {
     await page.evaluate(() => (window as Window & { __outlineStageProbe?: { setStageShellOnly(enabled: boolean): void } }).__outlineStageProbe?.setStageShellOnly(false));
   });
 });
+
+/**
+ * A visitor tells open rooms from sealed ones by light (ADR 0001), so only a released room may show
+ * any: every sealed door once carried the same seam light as an open one, and nothing told them apart.
+ */
+test('lights the lamp and the seam on released rooms only', async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto('/?quality=high');
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2.6));
+  await expectSpine(page, 'corridor');
+  await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
+  await expect(site(page)).toHaveAttribute('data-engaged', 'true');
+  await expect.poll(() => page.evaluate(() => {
+    const hook = (window as Window & { __tqwA1?: { scene: { getObjectByName(name: string): unknown } } }).__tqwA1;
+    return Boolean(hook?.scene.getObjectByName('OutlineDoorLeafLeft'));
+  }), { timeout: 60_000 }).toBe(true);
+  const lit = await page.evaluate(() => {
+    const hook = (window as Window & { __tqwA1?: { scene: { traverse(visit: (object: { name: string }) => void): void } } }).__tqwA1;
+    const names: string[] = [];
+    hook?.scene.traverse((object) => {
+      if (object.name.startsWith('open-door-lamp:') || object.name.startsWith('door-seam:')) names.push(object.name);
+    });
+    return names.sort();
+  });
+  expect(lit).toEqual([
+    'door-seam:certification-office',
+    'door-seam:tomorrow-engine',
+    'open-door-lamp:certification-office',
+    'open-door-lamp:tomorrow-engine',
+  ]);
+});

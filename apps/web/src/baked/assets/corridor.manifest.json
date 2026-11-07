@@ -2,8 +2,8 @@
   "version": 1,
   "space": "corridor",
   "hash": "b62446f65f9f40c7447a06e093ab6f4d93ec990ad6f460251d48915c9ff7466e",
-  "materialHash": "451d80be277d15505e8dec90edb9bf250f581b982fb984a2205128b7241cb228",
-  "baselineHash": "367abe698b066823406558f87954b384b13a12645177716d1c38eb3157fe0ce4",
+  "materialHash": "c05d14c008bf3beccac7ab021c497f91993411dde0dd7d7020084f0170b30b95",
+  "baselineHash": "a8be9bf9d5601595d541c927e5af600ab5c1f7ada29eb8ebeb34b1117bf78afd",
   "meshes": [
     "0080191774253b264cb20ac58f45f1041d31cc226a62b7ac1cbfa2373423f923",
     "10d7882e81f746372869e40c39c145c97225d21a7aa0899a4dce4e199e8a3a37",
@@ -744,7 +744,7 @@
       "height": 930,
       "scale": 8,
       "encoding": "srgb-scale",
-      "bytes": 347104,
+      "bytes": 347034,
       "density": {
         "near": {
           "min": 16.058791845099037,
@@ -755,5 +755,5 @@
       }
     }
   ],
-  "sourceHash": "bc66e8e883e7f2ef609c31e3c7055d233e9c4613679899ce86e5b5cf7488210e"
+  "sourceHash": "7641316090c7e8b932909d9670130d88d2a76c46949c1f0a38243f1980b43c3b"
 }
