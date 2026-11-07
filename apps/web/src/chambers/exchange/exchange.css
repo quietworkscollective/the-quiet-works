@@ -252,18 +252,41 @@
     line-height: 11px;
   }
 
-  /* A short phone has no reserve to give: the credit waits in the closed reader's bounds instead. */
-  @container (max-height: 700px) {
+  /*
+   * Below the script's full height (its 390 × 844 layout under the site strip), a reserved reader
+   * squeezed the scene to its floor in real phone browsers, whose toolbars leave far less than 844 px.
+   * Here the closed reader takes no room, so the scene keeps it; an open reader covers the scene,
+   * so no control moves (the script reduces the scene before the reader). The credit keeps the
+   * bottom reserve under the actions.
+   */
+  @container (max-height: 899px) {
     .tqw-exchange[data-mode='3d'] .tqw-exchange-stage,
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail { --ex-reserve: max(16px, env(safe-area-inset-bottom, 0px)); }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
+      --ex-reserve: max(40px, env(safe-area-inset-bottom, 0px));
+      --ex-scene: max(96px, calc(100cqh - var(--ex-chrome) - 64px - 320px - var(--ex-reserve)));
+    }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail { overflow: visible; }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-frame { min-height: calc(320px + var(--ex-reserve)); }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-stations { top: 152px; }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-actions { top: 208px; }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-reader {
+      z-index: 4;
+      top: calc(-8px - var(--ex-scene));
+      left: 0;
+      right: 0;
+      height: var(--ex-scene);
+      padding: 0 16px;
+      box-sizing: border-box;
+      background: var(--ex-bg);
+    }
     .tqw-exchange[data-mode='3d'] .tqw-exchange-credit {
-      top: 152px;
+      top: 320px;
       bottom: auto;
-      left: 16px;
-      right: 16px;
-      height: var(--ex-reader);
-      font-size: 12px;
-      line-height: 14px;
+      left: 8px;
+      right: 8px;
+      height: var(--ex-reserve);
+      font-size: 10px;
+      line-height: 11px;
     }
   }
 }

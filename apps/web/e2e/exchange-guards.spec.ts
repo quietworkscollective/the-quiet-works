@@ -14,7 +14,8 @@ const VIEW_ROUTE: Readonly<Record<ExchangeViewId, readonly string[]>> = {
   shelf: ['Ticket shelf'],
 };
 const VIEWS = Object.keys(VIEW_ROUTE) as ExchangeViewId[];
-const PHONE = { width: 390, height: 844 } as const;
+// An iPhone 14's browser viewport (the screen less Safari's toolbars): the scene there is 390 × 184.
+const PHONE = { width: 390, height: 664 } as const;
 const LINES = Array.from({ length: 12 }, (_, index) => index + 1);
 const CERTIFICATION = 3;
 
