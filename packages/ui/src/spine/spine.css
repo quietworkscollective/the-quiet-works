@@ -666,6 +666,34 @@ html {
   }
 }
 
+/*
+ * Phones: the invitation keeps one line and the live details sit beside it as a short stack no
+ * taller than the invitation, so a second detail never wraps either (issue #22 hero fix). On the
+ * narrowest screens the notice's last word is dropped visually; the text and its reading stay whole
+ * for wider ones.
+ */
+@media (max-width: 40rem) {
+  .tqw-hero__enter {
+    white-space: nowrap;
+  }
+  .tqw-hero__details {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding-block: 0;
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 25rem) {
+  .tqw-hero__details-tail {
+    display: none;
+  }
+}
+
 @media (max-width: 22.5rem) {
   .tqw-hero__foot {
     column-gap: 0.5rem;

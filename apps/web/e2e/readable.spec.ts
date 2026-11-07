@@ -12,7 +12,7 @@ const routes = [
 const introduction = 'UNHELD is an interactive artwork about the expectations men carry without saying so, and the inner lives that go on underneath them.';
 const privacy = 'UNHELD has no accounts, no cookies, no analytics and no advertising. Until you find something, it stores nothing in your browser.';
 const rooms = ['The Certification Office', 'The Apartment', 'The Tomorrow Engine', 'The Great Atrium', 'The Exchange', 'The Outline Room'];
-const openRooms = ['The Certification Office', 'The Tomorrow Engine'];
+const openRooms = ['The Certification Office', 'The Tomorrow Engine', 'The Exchange'];
 const links = ['/', '/about', '/credits', '/privacy', '/licences', '/agents', '/llms.txt', '/sitemap.xml'];
 const evidence = process.env.TQW_READABLE_EVIDENCE;
 
@@ -46,7 +46,7 @@ for (const [route, heading] of routes) {
     expect.soft(reading).toContain(`<h1>${heading}</h1>`);
     for (const copy of [introduction, 'A space for everything we carry.', privacy, ...rooms]) expect.soft(reading).toContain(copy);
     for (const href of links) expect.soft(reading).toContain(`href="${href}"`);
-    expect.soft(reading.match(/not yet open/g)).toHaveLength(4);
+    expect.soft(reading.match(/not yet open/g)).toHaveLength(3);
     const canonical = `https://unheld.space${route}`;
     expect.soft(html).toContain(`href="${canonical}"`);
     for (const tag of ['title', 'description', 'url', 'type', 'site_name', 'image']) expect.soft(html).toContain(`property="og:${tag}"`);

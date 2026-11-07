@@ -13,6 +13,8 @@ export default defineConfig({
     '**/full-tier.spec.ts',
     '**/spine.spec.ts',
     '**/exchange.spec.ts',
+    '**/exchange-chain.spec.ts',
+    '**/exchange-guards.spec.ts',
     '**/office-budget.spec.ts',
     '**/corridor-holes.spec.ts',
     '**/round2-evidence.spec.ts',

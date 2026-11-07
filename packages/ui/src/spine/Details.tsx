@@ -5,7 +5,7 @@ import type { DetailsProps } from './types.ts';
 const TOPICS = [
   {
     title: CONTRIBUTIONS_COPY.topics[0].title,
-    body: 'Rooms are built by hand and open one at a time. A closed door stays marked until its room is ready.',
+    body: 'Rooms open one at a time. A closed door stays marked until its room is ready.',
   },
   {
     title: CONTRIBUTIONS_COPY.topics[1].title,

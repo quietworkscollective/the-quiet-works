@@ -3,7 +3,6 @@ import { door, expectSpine } from './helpers.ts';
 
 test.describe('Annex release gate in production', () => {
   for (const room of [
-    { title: 'The Exchange', path: '/the-exchange' },
     { title: 'The Outline Room', path: '/outline-room' },
   ]) {
     test(`${room.path} is not found and does not load room code`, async ({ page }) => {
@@ -23,12 +22,12 @@ test.describe('Annex release gate in production', () => {
     });
   }
 
-  test('both Annex doors show the sealed state in the corridor', async ({ page }) => {
+  test('the Outline Room door shows the sealed state in the corridor', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Enter The Quiet Works' }).click();
     await expectSpine(page, 'corridor');
 
-    for (const title of ['The Exchange', 'The Outline Room']) {
+    for (const title of ['The Outline Room']) {
       await expect(door(page, title, 'sealed')).toHaveAttribute('data-status', 'sealed');
     }
   });

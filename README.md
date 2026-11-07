@@ -8,7 +8,8 @@ UNHELD is an interactive artwork about the expectations men carry without saying
 
 ## Status
 
-- In active development: the corridor, the site and the Certification Office are being built and finished in the open.
+- In active development: the corridor, the site and the rooms are being built and finished in the open.
+- New rooms available: The Tomorrow Engine and The Exchange are open alongside The Certification Office at [unheld.space](https://unheld.space).
 - `unheld.space` is the canonical public domain (set in `apps/web/src/site.ts`).
 - Hosting: Cloudflare Workers static assets (`apps/web/wrangler.jsonc`; the build emits `_headers` with the CSP and caching rules). Deploying requires explicit founder approval.
 

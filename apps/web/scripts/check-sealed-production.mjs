@@ -5,7 +5,6 @@ import { chambersForBuild, REPO_ROOT } from './chamber-release.mjs';
 
 const outputRoot = path.join(REPO_ROOT, 'apps/web/dist');
 const extraRoomCopy = new Map([
-  ['exchange', ['The room is ready as a set of places and actions.']],
   ['outline-room', ['A small instrument workshop', 'A brass arm follows the outside edge of a selected object. It leaves the inside undescribed.', 'The tins are fictional workshop specimens. Nothing here describes a visitor.']],
 ]);
 

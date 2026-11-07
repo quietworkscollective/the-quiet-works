@@ -28,7 +28,7 @@ export interface DiscoveryState {
   found: Partial<Record<ChamberId, readonly Finding[]>>;
   /** Named recognitions earned by how the visitor explored (ids, e.g. `listener`). */
   recognitions: readonly string[];
-  /** Small resettable room payloads. Only Tomorrow Engine currently uses this field. */
+  /** Small resettable room payloads, held by Tomorrow Engine and The Exchange; Forget clears them. */
   roomState?: Partial<Record<ChamberId, RoomStateRecord>>;
 }
 
@@ -61,7 +61,7 @@ export interface DiscoveryStore {
   /** Reads or updates a room's small scalar payload within the same unheld.v1 document. */
   getRoomState(chamber: ChamberId): RoomStateRecord | null;
   setRoomState(chamber: ChamberId, value: RoomStateRecord | null): void;
-  /** One entry per open chamber, from `CHAMBERS[n].findings`. */
+  /** One entry per open chamber except the Exchange, which shows no count, from `CHAMBERS[n].findings`. */
   counts(): readonly RoomCount[];
   /** Erases the storage key and resets to empty. */
   forget(): void;
@@ -219,7 +219,7 @@ function countsOf(state: DiscoveryState): readonly RoomCount[] {
     found: Math.min(list.filter((f) => f.kind === kind).length, total),
     total,
   });
-  return CHAMBERS.filter((c) => c.status === 'open').map((c) => {
+  return CHAMBERS.filter((c) => c.status === 'open' && c.id !== 'exchange').map((c) => {
     const list = state.found[c.id] ?? [];
     return {
       chamber: c.id,

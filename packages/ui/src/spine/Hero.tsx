@@ -156,7 +156,15 @@ export function Hero({ menu, details, onScrollCue, onEnter, text, progress, keyf
                     ·
                   </span>
                 ) : null}
-                <span>{detail}</span>
+                {detail === HERO_COPY.newRooms ? (
+                  // The notice's last word can drop on the narrowest phones; the text stays whole.
+                  <span>
+                    {detail.slice(0, detail.lastIndexOf(' '))}
+                    <span className="tqw-hero__details-tail">{detail.slice(detail.lastIndexOf(' '))}</span>
+                  </span>
+                ) : (
+                  <span>{detail}</span>
+                )}
               </Fragment>
             ))}
           </p>

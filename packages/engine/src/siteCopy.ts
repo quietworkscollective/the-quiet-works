@@ -199,6 +199,8 @@ export const HERO_COPY = {
   doorsMany: '{n} doors open',
   discoveriesOne: '1 discovery this visit',
   discoveriesMany: '{n} discoveries this visit',
+  /** A temporary notice set beside the door count. Remove it and its uses when it stops being news. */
+  newRooms: 'New rooms available',
 } as const;
 
 export const MENU_COPY = {
@@ -263,7 +265,7 @@ export const CONTRIBUTIONS_COPY = {
   topics: [
     {
       title: 'How it grows',
-      body: 'Rooms open one at a time, each built by hand. Until a room opens, its door stays shut and says so.',
+      body: 'Rooms open one at a time. Until a room opens, its door stays shut and says so.',
     },
     {
       title: 'How to contribute',

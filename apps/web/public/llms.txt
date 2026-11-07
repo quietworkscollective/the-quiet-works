@@ -14,6 +14,8 @@
 
 ## Rooms
 
+New rooms available: The Tomorrow Engine and The Exchange.
+
 - [The Certification Office](https://unheld.space/certification-office.md)
 - [The Apartment](https://unheld.space/apartment.md)
 - [The Tomorrow Engine](https://unheld.space/tomorrow-engine.md)

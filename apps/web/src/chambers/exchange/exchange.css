@@ -1,0 +1,299 @@
+/* The Exchange regions. The room starts under the 56px window chrome, as the Tomorrow Engine does.
+   Every region has fixed bounds, so a hidden primary or a closed reader moves nothing. Only reader
+   text scrolls, and nothing overlays the scene. Geometry applies to the 3D layout alone; text mode
+   joins the page's flow at the end of this file. */
+.tqw-exchange {
+  --ex-bg: #0f0c09;
+  --ex-panel: #18120d;
+  --ex-control: #231a12;
+  --ex-control-hot: #35281a;
+  --ex-ink: #f1e6d3;
+  --ex-muted: #cdbda4;
+  --ex-edge: #8b7453;
+  --ex-brass: #c9a35f;
+  --ex-brass-hot: #e3c283;
+  --ex-chrome: calc(56px + env(safe-area-inset-top, 0px));
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--ex-ink);
+  background: var(--ex-bg);
+  font: 400 16px/1.4 var(--font-ui, "IBM Plex Sans", system-ui, sans-serif);
+}
+
+.tqw-exchange[data-mode='3d'] { container-type: size; }
+
+/* The strip below carries the room's one Leave. The window's own Leave advertises an Escape that this
+   room keeps for the reader, and its walking prompt does not apply to fixed views. */
+.tqw-game__window:has(.tqw-exchange) .tqw-game__mode,
+.tqw-game__window:has(.tqw-exchange) .tqw-game__leave { display: none; }
+
+.tqw-exchange button {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  border: 1px solid var(--ex-edge);
+  border-radius: 2px;
+  padding: 4px 8px;
+  color: var(--ex-ink);
+  background: var(--ex-control);
+  font: 500 16px/1.15 var(--font-ui, "IBM Plex Sans", system-ui, sans-serif);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 120ms ease-out;
+}
+
+.tqw-exchange button:hover:not([aria-disabled='true']) { background: var(--ex-control-hot); }
+.tqw-exchange button[aria-disabled='true'] { color: var(--ex-muted); border-color: #54442f; background: var(--ex-panel); cursor: not-allowed; }
+.tqw-exchange button[aria-current='true'] { border-color: var(--ex-brass-hot); box-shadow: inset 0 0 0 1px var(--ex-brass-hot); }
+.tqw-exchange :focus-visible { outline: 2px solid var(--ex-brass-hot); outline-offset: 2px; }
+.tqw-exchange p, .tqw-exchange h2 { margin: 0; }
+
+.tqw-exchange .tqw-exchange-leave { border-color: var(--ex-ink); }
+
+.tqw-exchange .tqw-exchange-primary,
+.tqw-exchange .tqw-exchange-night button {
+  color: #17110b;
+  border-color: var(--ex-brass-hot);
+  background: var(--ex-brass);
+  font-weight: 600;
+}
+.tqw-exchange .tqw-exchange-primary:hover,
+.tqw-exchange .tqw-exchange-night button:hover { background: var(--ex-brass-hot); }
+
+.tqw-exchange-result { overflow: hidden; font-size: 18px; line-height: 24px; }
+.tqw-exchange-ack { overflow: hidden; color: var(--ex-muted); font-size: 16px; line-height: 24px; white-space: nowrap; }
+.tqw-exchange-ack[data-long='true'] { font-size: 14px; }
+
+.tqw-exchange-night {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 24px 22px 48px;
+  gap: 4px;
+  align-content: center;
+  border: 1px solid var(--ex-brass);
+  padding: 8px 12px;
+  background: var(--ex-panel);
+}
+.tqw-exchange-night h2 { font: 600 18px/24px var(--font-ui, "IBM Plex Sans", system-ui, sans-serif); letter-spacing: 0.02em; }
+.tqw-exchange-night p { line-height: 22px; }
+.tqw-exchange .tqw-exchange-night button { width: 100%; height: 48px; }
+
+.tqw-exchange-reader {
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--ex-edge);
+  background: var(--ex-panel);
+}
+.tqw-exchange-reader > header {
+  box-sizing: border-box;
+  display: grid;
+  height: 48px;
+  grid-template-columns: minmax(0, 1fr) auto 64px;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #54442f;
+  padding: 0 4px 0 10px;
+}
+.tqw-exchange-reader h2 {
+  grid-column: 1;
+  grid-row: 1;
+  overflow: hidden;
+  color: var(--ex-brass-hot);
+  font: 500 17px/1.15 var(--font-display, "Newsreader", Georgia, serif);
+}
+/* Close comes first in the tab order and last on the row. */
+.tqw-exchange .tqw-exchange-close { grid-column: 3; grid-row: 1; padding: 4px; }
+.tqw-exchange .tqw-exchange-context { grid-column: 2; grid-row: 1; padding: 4px 6px; font-size: 14px; }
+.tqw-exchange-reader-body {
+  box-sizing: border-box;
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 10px;
+  scrollbar-color: #735c3d var(--ex-panel);
+}
+.tqw-exchange-reader-body p { margin-bottom: 8px; white-space: pre-line; }
+.tqw-exchange-reader-body p:last-child { margin-bottom: 0; }
+.tqw-exchange-note { color: var(--ex-brass-hot); }
+.tqw-exchange-subheading { color: var(--ex-brass-hot); font-weight: 600; }
+.tqw-exchange-caption { color: var(--ex-muted); }
+.tqw-exchange-card { letter-spacing: 0.03em; }
+.tqw-exchange-rules { display: grid; gap: 6px; margin: 0; padding: 0 0 72px 1.8rem; }
+.tqw-exchange-archive { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.tqw-exchange .tqw-exchange-archive button { width: 100%; text-align: left; }
+
+.tqw-exchange-stations { display: grid; grid-template-columns: 80px 146px 116px; gap: 8px; }
+.tqw-exchange .tqw-exchange-stations button { height: 48px; padding: 4px; white-space: nowrap; }
+.tqw-exchange-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 48px; gap: 8px; }
+.tqw-exchange .tqw-exchange-actions button { height: 48px; }
+
+.tqw-exchange-lines { display: grid; gap: 4px; }
+.tqw-exchange .tqw-exchange-lines button { min-width: 0; padding: 0; }
+.tqw-exchange .tqw-exchange-lines button[data-lit='true'] { color: var(--ex-brass-hot); border-color: var(--ex-brass-hot); }
+
+.tqw-exchange-credit { color: var(--ex-muted); font-size: 12px; line-height: 14px; }
+.tqw-exchange-plate { color: var(--ex-brass-hot); letter-spacing: 0.06em; }
+
+.tqw-exchange-canvas,
+.tqw-exchange-canvas > div,
+.tqw-exchange-canvas canvas {
+  position: absolute !important;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tqw-exchange-loading {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ex-edge);
+  background: var(--ex-panel);
+  transform: translate(-50%, -50%);
+}
+
+/* A wide window: the rail at the right, in the script's order. */
+.tqw-exchange[data-mode='3d'] .tqw-exchange-strip {
+  position: absolute;
+  z-index: 3;
+  top: var(--ex-chrome);
+  right: 0;
+  box-sizing: border-box;
+  display: grid;
+  width: 390px;
+  height: 56px;
+  grid-template-columns: repeat(3, 88px);
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--ex-bg);
+}
+.tqw-exchange[data-mode='3d'] .tqw-exchange-strip button { height: 44px; padding: 4px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-stage {
+  position: absolute;
+  inset: var(--ex-chrome) 390px 0 0;
+  overflow: hidden;
+  background: var(--ex-bg);
+  touch-action: manipulation;
+}
+.tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
+  position: absolute;
+  top: calc(var(--ex-chrome) + 56px);
+  right: 0;
+  bottom: 0;
+  width: 390px;
+  overflow: hidden auto;
+  background: var(--ex-bg);
+}
+.tqw-exchange[data-mode='3d'] .tqw-exchange-frame { position: relative; height: 100%; min-height: 540px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-frame > * { position: absolute; left: 16px; right: 16px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-primary { top: 8px; width: calc(100% - 32px); height: 56px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-night { z-index: 1; top: 8px; height: 120px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-result { top: 72px; height: 56px; padding: 4px 0; box-sizing: border-box; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-ack { top: 128px; height: 24px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-reader { z-index: 1; top: 160px; bottom: 256px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-stations { bottom: 200px; height: 48px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-actions { bottom: 88px; height: 104px; }
+.tqw-exchange[data-mode='3d'] .tqw-exchange-credit { bottom: 8px; height: 72px; overflow: hidden; }
+
+/* Lines answers in the scene to pointer and touch, so the keyboard's group stays out of sight until it
+   holds focus, then shows along the foot of the rail. */
+.tqw-exchange[data-mode='3d'] .tqw-exchange-lines {
+  z-index: 2;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 44px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  background: var(--ex-bg);
+  clip-path: inset(50%);
+}
+.tqw-exchange[data-mode='3d'] .tqw-exchange-lines:focus-within { clip-path: none; }
+
+/* A phone: strip, scene, then the regions at the script's offsets. The scene gives way before the
+   reader, and the bottom reserve absorbs the safe area. */
+@media (max-width: 799px) {
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-stage,
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
+    --ex-reserve: max(44px, env(safe-area-inset-bottom, 0px));
+    --ex-reader: clamp(104px, calc(100cqh - var(--ex-chrome) - 480px - var(--ex-reserve)), 176px);
+    --ex-scene: max(96px, calc(100cqh - var(--ex-chrome) - 384px - var(--ex-reader) - var(--ex-reserve)));
+  }
+
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-strip { left: 0; width: auto; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-stage {
+    inset: calc(var(--ex-chrome) + 56px) 0 auto;
+    height: var(--ex-scene);
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
+    top: calc(var(--ex-chrome) + 64px + var(--ex-scene));
+    left: 0;
+    width: auto;
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-frame { min-height: calc(424px + var(--ex-reserve)); }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-primary,
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-night { top: 0; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-result { top: 64px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-ack { top: 120px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-reader { top: 152px; bottom: auto; height: var(--ex-reader); }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-stations { top: calc(160px + var(--ex-reader)); bottom: auto; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-actions { top: calc(216px + var(--ex-reader)); bottom: auto; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-credit {
+    bottom: 0;
+    left: 8px;
+    right: 8px;
+    height: var(--ex-reserve);
+    font-size: 10px;
+    line-height: 11px;
+  }
+
+  /* A short phone has no reserve to give: the credit waits in the closed reader's bounds instead. */
+  @container (max-height: 700px) {
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-stage,
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail { --ex-reserve: max(16px, env(safe-area-inset-bottom, 0px)); }
+    .tqw-exchange[data-mode='3d'] .tqw-exchange-credit {
+      top: 152px;
+      bottom: auto;
+      left: 16px;
+      right: 16px;
+      height: var(--ex-reader);
+      font-size: 12px;
+      line-height: 14px;
+    }
+  }
+}
+
+/* Text mode: the same regions in the page's flow, with the way out and the way back kept in view. */
+.tqw-exchange[data-mode='text'] { max-width: 46rem; margin: 0 auto; overflow-y: auto; padding: 0 16px 24px; box-sizing: border-box; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-strip {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 88px);
+  gap: 8px;
+  padding: 6px 0;
+  background: var(--ex-bg);
+}
+.tqw-exchange-text { display: grid; gap: 8px; margin: 8px 0; }
+.tqw-exchange-text ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-frame { display: grid; gap: 8px; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-night { position: sticky; z-index: 2; top: 56px; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-primary { width: 100%; height: 56px; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-result:empty,
+.tqw-exchange[data-mode='text'] .tqw-exchange-ack:empty { display: none; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-ack { white-space: normal; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-reader-body { height: auto; max-height: 50vh; }
+.tqw-exchange[data-mode='text'] .tqw-exchange-lines { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.tqw-chamber-host[inert] .tqw-exchange[data-mode='3d'] :is(.tqw-exchange-strip, .tqw-exchange-rail) { visibility: hidden; }
+
+.tqw-exchange[data-reduced-motion='true'] button { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .tqw-exchange button { transition: none; }
+}

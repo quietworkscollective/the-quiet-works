@@ -30,5 +30,5 @@ test('seven crawler user agents receive reading content and previews', { tag: '@
     cwd: new URL('..', import.meta.url).pathname,
     env: { ...process.env, TQW_CRAWL_URL: baseURL },
   });
-  expect(stdout.match(/^PASS /gm)).toHaveLength(21);
+  expect(stdout.match(/^PASS /gm)).toHaveLength(28);
 });

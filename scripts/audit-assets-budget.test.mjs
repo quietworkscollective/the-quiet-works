@@ -163,6 +163,13 @@ test('Tomorrow Engine expanded route fails red and passes green at the 3 MB cap'
   assert.deepEqual(budgetViolations({ roomRoutes: [route] }), []);
 });
 
+test('Exchange expanded route fails red and passes green at the 3 MB cap', () => {
+  const route = { key: 'src/chambers/exchange/index.ts', label: 'Annex / Exchange', files: new Set(), gzipBytes: ROOM_ROUTE_BUDGET_BYTES + 1 };
+  assert.ok(budgetViolations({ roomRoutes: [route] }).some(message => message.startsWith('Exchange expanded lazy route')));
+  route.gzipBytes = ROOM_ROUTE_BUDGET_BYTES;
+  assert.deepEqual(budgetViolations({ roomRoutes: [route] }), []);
+});
+
 test('does not expand a room through the already-loaded app document', t => {
   const build = fixture(t);
   build.write('assets/visitor-route.js', 'import("./visitor-model.glb");');
@@ -191,15 +198,20 @@ test('does not expand a room through the already-loaded app document', t => {
   assert.ok(!budgetWarnings(result).some(message => message.startsWith('Office expanded lazy route')));
 });
 
-test('reports expanded Codex and Exchange route overages without failing the audit', t => {
+test('reports an expanded Codex route overage without failing the audit', t => {
   const build = fixture(t);
   build.write('assets/codex-test.js', randomBytes(ROOM_ROUTE_BUDGET_BYTES + 100_000));
+  const result = measureAssetBudgets(build.dist);
+  assert.ok(budgetWarnings(result).some(message => message.startsWith('Annex / Codex expanded lazy route')));
+  assert.deepEqual(budgetViolations(result), [], 'an unreleased room overage remains a warning pending a ruling');
+});
+
+test('an expanded Exchange route overage fails the audit through the measured build graph', t => {
+  const build = fixture(t);
   build.write('assets/exchange-model.glb', randomBytes(ROOM_ROUTE_BUDGET_BYTES + 100_000));
   const result = measureAssetBudgets(build.dist);
-  const warnings = budgetWarnings(result);
-  assert.ok(warnings.some(message => message.startsWith('Annex / Codex expanded lazy route')));
-  assert.ok(warnings.some(message => message.startsWith('Annex / Exchange expanded lazy route')));
-  assert.deepEqual(budgetViolations(result), [], 'room overages remain warnings pending a ruling');
+  assert.ok(budgetWarnings(result).some(message => message.startsWith('Annex / Exchange expanded lazy route')));
+  assert.ok(budgetViolations(result).some(message => message.startsWith('Exchange expanded lazy route')));
 });
 
 test('fails then passes the separate shared gramophone media cap', t => {

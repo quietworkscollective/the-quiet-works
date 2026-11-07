@@ -16,7 +16,7 @@ export const CHAMBER_MODULES: Record<ChamberId, ChamberModule> = {
   apartment: { door: APARTMENT_DOOR, releaseOpen: false, load: () => import('./apartment/index.ts') },
   'tomorrow-engine': { door: TOMORROW_DOOR, releaseOpen: true, load: () => import('./tomorrow-engine/index.ts') },
   'great-atrium': { door: ATRIUM_DOOR, releaseOpen: false },
-  exchange: { door: EXCHANGE_DOOR, releaseOpen: false, load: () => import('./exchange/index.ts') },
+  exchange: { door: EXCHANGE_DOOR, releaseOpen: true, load: () => import('./exchange/index.ts') },
   'outline-room': { door: OUTLINE_DOOR, releaseOpen: false, load: () => import('./annex-codex/index.ts') },
 };
 
