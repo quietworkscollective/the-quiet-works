@@ -180,18 +180,19 @@ test.describe('the hero', () => {
 
   // Guards a real failure: a second live detail ("New rooms available") wrapped both the invitation
   // and the details onto two lines on a Pixel 7 and pushed the lockup's centre past 48%.
-  test('on a phone, the invitation and the live details each hold one line, clear of the tagline', async ({ page }) => {
+  test('on a phone, the invitation holds one line and the live details sit beside it, no taller', async ({ page }) => {
     test.skip((page.viewportSize()?.width ?? 1440) > 640, 'phone layout only');
     await page.goto('/');
     await fontsReady(page);
     const m = await page.evaluate(() => {
       const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
-      return { details: box('.tqw-hero__details'), detailsLine: parseFloat(getComputedStyle(document.querySelector('.tqw-hero__details')!).lineHeight), tagline: box('.tqw-hero__tagline'), enter: box('.tqw-hero__enter'), width: document.documentElement.clientWidth };
+      return { details: box('.tqw-hero__details'), tagline: box('.tqw-hero__tagline'), enter: box('.tqw-hero__enter'), width: document.documentElement.clientWidth };
     });
     expect(m.enter.height, 'the invitation stays one line').toBeLessThanOrEqual(48);
-    expect(m.details.height, 'the details stay one line').toBeLessThan(m.detailsLine * 2);
+    expect(m.details.height, 'the details are no taller than the invitation').toBeLessThanOrEqual(m.enter.height);
+    expect(m.details.left, 'the details sit beside the invitation').toBeGreaterThanOrEqual(m.enter.right);
     expect(m.details.right).toBeLessThanOrEqual(m.width);
-    expect(m.enter.top).toBeGreaterThanOrEqual(m.tagline.bottom);
+    expect(m.enter.top).toBeGreaterThanOrEqual(m.tagline.bottom + 24);
   });
 
   test('shows one quiet line of live details, a scroll cue and a way straight in, over the live world', async ({ page }) => {

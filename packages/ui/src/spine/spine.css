@@ -667,29 +667,30 @@ html {
 }
 
 /*
- * Phones: the invitation and the live details stack, each on one line, so neither wraps beside the
- * other. The foot rises to keep the lockup's visual centre near 43% (ADR 0003).
+ * Phones: the invitation keeps one line and the live details sit beside it as a short stack no
+ * taller than the invitation, so a second detail never wraps either (issue #22 hero fix). On the
+ * narrowest screens the notice's last word is dropped visually; the text and its reading stay whole
+ * for wider ones.
  */
 @media (max-width: 40rem) {
-  .tqw-hero__foot {
-    /* Tall phones lift to 52%; short ones keep the original 58% so the tagline stays clear. */
-    inset-block-start: clamp(52%, calc(39.5% + 105px), 58%);
-    grid-template-columns: auto;
-    grid-template-areas:
-      'enter'
-      'details'
-      'cue';
-    justify-items: center;
-    row-gap: 8px;
+  .tqw-hero__enter {
+    white-space: nowrap;
   }
   .tqw-hero__details {
-    flex-wrap: nowrap;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding-block: 0;
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    text-align: center;
     white-space: nowrap;
-    gap: 0 0.5rem;
-    padding-block: 0.25rem;
   }
-  .tqw-hero__sep {
-    display: inline;
+}
+
+@media (max-width: 25rem) {
+  .tqw-hero__details-tail {
+    display: none;
   }
 }
 
