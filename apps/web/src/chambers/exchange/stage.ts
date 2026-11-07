@@ -1,78 +1,134 @@
-import type { Pose } from '../../firstPerson/controller.ts';
+/**
+ * The room's fixed stage: three stations, five framed views, and nothing a visitor can steer.
+ * Set coordinates are the script's Blender metres (x right, y toward the board, z up); poses here
+ * are already in stage space, where stage z is minus Blender y.
+ */
 
-export interface StagePoint { readonly x: number; readonly z: number }
-export interface ExchangeStation extends StagePoint {
-  readonly id: 'threshold' | 'desk' | 'ladder' | 'window-seat';
-  readonly title: string;
-  readonly eyeHeight: number;
-  readonly yawDeg: number;
-  readonly pitchDeg: number;
-  /** Local visible half arc, smaller when the station looks close to an open edge. */
-  readonly visibleHalfArcDeg?: number;
+export type ExchangeStationId = 'board' | 'desk-underside' | 'ticket-shelf';
+export type ExchangeViewId = 'wide' | 'jacks' | 'desk-top' | 'kneehole' | 'shelf';
+export type StagePoint = readonly [x: number, y: number, z: number];
+
+export type ExchangeLineHotspot = `line-${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12}`;
+export type ExchangeHotspot =
+  | 'sign' | 'desk-lamp' | 'clerestory' | 'cord' | 'plate' | 'socket' | 'lead' | 'docket' | 'ticket-lip'
+  | 'drawer' | 'form' | 'rota' | 'index' | 'telephone' | 'rulebook' | 'bell' | 'flask' | 'cardigan'
+  | 'diagram' | 'plug' | 'lever' | 'door' | ExchangeLineHotspot;
+
+export interface ExchangeView {
+  readonly id: ExchangeViewId;
+  readonly station: ExchangeStationId;
+  readonly position: StagePoint;
+  readonly target: StagePoint;
 }
+
+export interface CameraPose {
+  readonly position: StagePoint;
+  readonly target: StagePoint;
+}
+
+/** Script coordinates to stage coordinates. */
+export function fromSet(x: number, y: number, z: number): StagePoint {
+  return [x, z, -y];
+}
+
+const radians = (degrees: number) => degrees * Math.PI / 180;
+
+function aimed(id: ExchangeViewId, station: ExchangeStationId, eye: StagePoint, target: StagePoint): ExchangeView {
+  return { id, station, position: fromSet(...eye), target: fromSet(...target) };
+}
+
+export const EXCHANGE_VIEWS: Readonly<Record<ExchangeViewId, ExchangeView>> = {
+  wide: aimed('wide', 'board', [-0.10, 1.60, 1.62], [-0.10, 1.60 + Math.cos(radians(10)), 1.62 + Math.sin(radians(10))]),
+  // Held back from the board so the open drawer stays in frame; half a degree up clears the top lamps.
+  jacks: aimed('jacks', 'board', [0, 5.20, 2.00], [0, 6.20, 2.00 + Math.tan(radians(0.5))]),
+  // Aimed slightly further back than the desk's centre so the sheave on the cord post stays in frame.
+  'desk-top': aimed('desk-top', 'board', [0.10, 4.35, 1.85], [0.10, 5.42, 1.10]),
+  kneehole: aimed('kneehole', 'desk-underside', [0.30, 4.72, 0.42], [0.30, 5.75, 0.38]),
+  shelf: aimed('shelf', 'ticket-shelf', [-1.15, 7.35, 1.35], [-1.15, 8.50, 0.98]),
+};
 
 export const EXCHANGE_STAGE = {
   width: 4.2,
   depth: 9,
   height: 12.6,
-  forwardAxis: [0, -1] as const,
-  visibleHalfArcDeg: 75,
-  turnEaseDeg: 20,
-  walkable: [
-    [-1.78, 0.72], [1.78, 0.72], [1.78, -8.35], [-1.78, -8.35],
-  ] as const,
   stations: [
-    { id: 'threshold', title: 'Threshold', x: 0, z: -0.65, eyeHeight: 1.62, yawDeg: 0, pitchDeg: 18, visibleHalfArcDeg: 45 },
-    { id: 'desk', title: 'Desk', x: -0.32, z: -2.40, eyeHeight: 1.62, yawDeg: 0, pitchDeg: -9, visibleHalfArcDeg: 55 },
-    { id: 'ladder', title: 'Ladder', x: 0.35, z: -5.20, eyeHeight: 4.65, yawDeg: 0, pitchDeg: 30 },
-    { id: 'window-seat', title: 'Window seat', x: 0.95, z: -4.20, eyeHeight: 5.05, yawDeg: 0, pitchDeg: -13, visibleHalfArcDeg: 58 },
-  ] as const satisfies readonly ExchangeStation[],
-} as const;
+    { id: 'board', title: 'Board', view: 'wide' },
+    { id: 'desk-underside', title: 'Desk underside', view: 'kneehole' },
+    { id: 'ticket-shelf', title: 'Ticket shelf', view: 'shelf' },
+  ],
+} as const satisfies {
+  width: number; depth: number; height: number;
+  stations: readonly { id: ExchangeStationId; title: string; view: ExchangeViewId }[];
+};
 
-export const EXCHANGE_FOV = { landscape: 48, portrait: 76 } as const;
+export const EXCHANGE_DEFAULT_VIEW: Readonly<Record<ExchangeStationId, ExchangeViewId>> = {
+  board: 'wide', 'desk-underside': 'kneehole', 'ticket-shelf': 'shelf',
+};
+
+export const EXCHANGE_VIEW_MS = 600;
+export const EXCHANGE_FOLLOW_MS = 1600;
+
+/** Authored horizontal coverage comes from the phone's 1.625 strip at 48 degrees vertical. */
+export const EXCHANGE_FOV = { landscape: 48, portrait: 76, authoredAspect: 1.625 } as const;
 
 export function horizontalFov(verticalFovDeg: number, aspect: number): number {
-  return (2 * Math.atan(Math.tan((verticalFovDeg * Math.PI) / 360) * aspect) * 180) / Math.PI;
+  return 2 * Math.atan(Math.tan(radians(verticalFovDeg) / 2) * aspect) * 180 / Math.PI;
 }
 
-export function stageYawLimit(horizontalFovDeg: number, visibleHalfArcDeg: number = EXCHANGE_STAGE.visibleHalfArcDeg): number {
-  return Math.max(0, Math.min(visibleHalfArcDeg, 90) - Math.max(0, horizontalFovDeg) / 2);
+/** Narrower canvases open the lens until the authored width fits, up to the portrait limit. */
+export function verticalFov(aspect: number): number {
+  const safe = Math.max(aspect, 0.01);
+  if (safe >= EXCHANGE_FOV.authoredAspect) return EXCHANGE_FOV.landscape;
+  const wanted = 2 * Math.atan(Math.tan(radians(EXCHANGE_FOV.landscape) / 2) * EXCHANGE_FOV.authoredAspect / safe) * 180 / Math.PI;
+  return Math.min(EXCHANGE_FOV.portrait, wanted);
 }
 
-export function stationYawLimit(station: ExchangeStation, horizontalFovDeg: number): number {
-  return stageYawLimit(horizontalFovDeg, station.visibleHalfArcDeg ?? EXCHANGE_STAGE.visibleHalfArcDeg);
+export function easeInOut(t: number): number {
+  const clamped = Math.min(1, Math.max(0, t));
+  return clamped * clamped * (3 - 2 * clamped);
 }
 
-export function turnScaleAtLimit(yawDeg: number, yawLimitDeg: number, easeDeg = EXCHANGE_STAGE.turnEaseDeg): number {
-  const remaining = Math.max(0, yawLimitDeg - Math.abs(yawDeg));
-  if (easeDeg <= 0 || remaining >= easeDeg) return 1;
-  const t = remaining / easeDeg;
-  return t * t * (3 - 2 * t);
+function mix(a: StagePoint, b: StagePoint, t: number): StagePoint {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 }
 
-export function applyStageYaw(yawDeg: number, deltaDeg: number, yawLimitDeg: number): number {
-  const turningOutward = yawDeg === 0 || Math.sign(deltaDeg) === Math.sign(yawDeg);
-  const scale = turningOutward ? turnScaleAtLimit(yawDeg, yawLimitDeg) : 1;
-  return Math.max(-yawLimitDeg, Math.min(yawLimitDeg, yawDeg + deltaDeg * scale));
+function bezier(points: readonly [StagePoint, StagePoint, StagePoint, StagePoint], t: number): StagePoint {
+  const [a, b, c, d] = points;
+  const ab = mix(a, b, t), bc = mix(b, c, t), cd = mix(c, d, t);
+  return mix(mix(ab, bc, t), mix(bc, cd, t), t);
 }
 
-export function containsStagePoint(polygon: readonly (readonly [number, number])[], x: number, z: number): boolean {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
-    const a = polygon[i]; const b = polygon[j];
-    if (!a || !b) continue;
-    const intersects = (a[1] > z) !== (b[1] > z) && x < ((b[0] - a[0]) * (z - a[1])) / (b[1] - a[1]) + a[0];
-    if (intersects) inside = !inside;
+export function poseBetween(from: CameraPose, to: CameraPose, t: number): CameraPose {
+  const eased = easeInOut(t);
+  return { position: mix(from.position, to.position, eased), target: mix(from.target, to.target, eased) };
+}
+
+const FOLLOW_EYE: readonly [StagePoint, StagePoint, StagePoint, StagePoint] = [
+  EXCHANGE_VIEWS.jacks.position, fromSet(0.12, 4.70, 1.75), fromSet(0.28, 4.70, 1.00), EXCHANGE_VIEWS.kneehole.position,
+];
+const FOLLOW_AIM: readonly [StagePoint, StagePoint, StagePoint, StagePoint] = [
+  EXCHANGE_VIEWS.jacks.target, fromSet(0.10, 6.60, 1.20), fromSet(0.30, 5.75, 0.70), EXCHANGE_VIEWS.kneehole.target,
+];
+
+/** The one tracking shot: back past the desk's front edge, then down into the kneehole. */
+export function followPose(t: number): CameraPose {
+  const eased = easeInOut(t);
+  return { position: bezier(FOLLOW_EYE, eased), target: bezier(FOLLOW_AIM, eased) };
+}
+
+const SHELF_LEG = 0.35;
+
+/**
+ * The camera's route between two views at progress t. Most pairs are clear in a straight line. The
+ * kneehole is reached from the far side of the desk only by the tracking shot's arc, so the camera
+ * never passes through the desk or the panel.
+ */
+export function travelPose(from: ExchangeViewId, to: ExchangeViewId, t: number): CameraPose {
+  if (from === 'jacks' && to === 'kneehole') return followPose(t);
+  if (from === 'kneehole' && to === 'jacks') return followPose(1 - t);
+  if (from === 'shelf' && to === 'kneehole') {
+    return t < SHELF_LEG ? poseBetween(EXCHANGE_VIEWS.shelf, EXCHANGE_VIEWS.jacks, t / SHELF_LEG) : followPose((t - SHELF_LEG) / (1 - SHELF_LEG));
   }
-  return inside;
-}
-
-/** Horizontal FOV is recomputed on resize; the camera's current pose is kept inside the derived arc. */
-export function limitStagePose(
-  pose: Pose,
-  horizontalFovDeg: number,
-  visibleHalfArcDeg: number = EXCHANGE_STAGE.visibleHalfArcDeg,
-): Pose {
-  const limit = stageYawLimit(horizontalFovDeg, visibleHalfArcDeg);
-  return { ...pose, yawDeg: Math.max(-limit, Math.min(limit, pose.yawDeg)) };
+  if (from === 'kneehole' && to === 'shelf') return travelPose('shelf', 'kneehole', 1 - t);
+  return poseBetween(EXCHANGE_VIEWS[from], EXCHANGE_VIEWS[to], t);
 }

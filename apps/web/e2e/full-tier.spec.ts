@@ -500,8 +500,10 @@ test('lights the lamp and the seam on released rooms only', async ({ page }) => 
   });
   expect(lit).toEqual([
     'door-seam:certification-office',
+    'door-seam:exchange',
     'door-seam:tomorrow-engine',
     'open-door-lamp:certification-office',
+    'open-door-lamp:exchange',
     'open-door-lamp:tomorrow-engine',
   ]);
 });

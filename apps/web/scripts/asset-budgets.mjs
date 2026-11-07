@@ -13,6 +13,11 @@ export const INITIAL_DOWNLOAD_BUDGET_BYTES = 3_000_000;
 export const ROOM_ROUTE_BUDGET_BYTES = 3_000_000;
 export const SHARED_MEDIA_BUDGET_BYTES = RECORDS_MANIFEST.budgetBytes;
 export const WHOLE_BUILD_BUDGET_BYTES = 36_000_000;
+/** Released rooms whose expanded route fails the audit over the cap; other rooms only warn. */
+const HARD_CAPPED_ROUTES = new Map([
+  ['src/chambers/tomorrow-engine/index.ts', 'Tomorrow Engine'],
+  ['src/chambers/exchange/index.ts', 'Exchange'],
+]);
 
 const STATIC_IMPORT = /\bimport\s*(?:\{[^}]*\}|\*\s+as\s+[\w$]+|[\w$]+)\s*from\s*["']([^"']+)["']/g;
 const SIDE_EFFECT_IMPORT = /\bimport\s*["']([^"']+)["']/g;
@@ -239,8 +244,8 @@ export function budgetViolations({ initialGzipBytes, officeFirstVisit, sharedMed
   if (totalBytes > WHOLE_BUILD_BUDGET_BYTES) {
     violations.push(`whole build is ${formatBytes(totalBytes)} raw excluding source maps; backstop ${formatBytes(WHOLE_BUILD_BUDGET_BYTES)}`);
   }
-  for (const route of roomRoutes.filter(route => route.key === 'src/chambers/tomorrow-engine/index.ts' && route.gzipBytes > ROOM_ROUTE_BUDGET_BYTES)) {
-    violations.push(`Tomorrow Engine expanded lazy route is ${formatBytes(route.gzipBytes)} gzip; limit ${formatBytes(ROOM_ROUTE_BUDGET_BYTES)}`);
+  for (const route of roomRoutes.filter(route => HARD_CAPPED_ROUTES.has(route.key) && route.gzipBytes > ROOM_ROUTE_BUDGET_BYTES)) {
+    violations.push(`${HARD_CAPPED_ROUTES.get(route.key)} expanded lazy route is ${formatBytes(route.gzipBytes)} gzip; limit ${formatBytes(ROOM_ROUTE_BUDGET_BYTES)}`);
   }
   return violations;
 }

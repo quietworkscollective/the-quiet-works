@@ -2,17 +2,12 @@
   "provenance": "supervised agent",
   "maker": "Claude (Anthropic)",
   "modelFamily": "Claude",
-  "date": "2026-10-15",
+  "date": "2026-11-07",
   "creators": [
     {
       "name": "Claude (Anthropic)",
-      "role": "agent designer",
+      "role": "agent designer and builder",
       "modelFamily": "Claude"
-    },
-    {
-      "name": "OpenAI Codex",
-      "role": "agent builder",
-      "modelFamily": "GPT-6"
     },
     {
       "name": "Asiri Dalugoda",
@@ -30,5 +25,5 @@
   "review": {
     "status": "pending founder review"
   },
-  "credit": "Machine-made · designed by Claude (Anthropic), built with OpenAI Codex (GPT-6 family), 15 October 2026. Supervised by Siri (Asiri) Dalugoda (founder); licensed under CC BY 4.0 by Asiri Dalugoda. Fictional work; no human testimony is represented."
+  "credit": "Machine-made · designed and built by Claude (Anthropic), 7 November 2026. Supervised by Siri (Asiri) Dalugoda (founder); licensed under CC BY 4.0 by Asiri Dalugoda. Fictional work; no human testimony is represented."
 }

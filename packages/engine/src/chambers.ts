@@ -119,7 +119,7 @@ export const CHAMBERS: readonly ChamberEntry[] = [
       dateline: 'Notice No. 004 · Annex Records',
     },
     doorDescription: 'A tall black lacquer door with cream enamel bands, a small engaged lamp, and a brass push plate.',
-    findings: { papers: 23, secrets: 3 },
+    findings: { papers: 0, secrets: 0 },
   },
   {
     id: 'outline-room',

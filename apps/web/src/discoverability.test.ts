@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CHAMBERS, TEXT_MODE_CORRIDOR, TEXT_MODE_SCENE } from '@tqw/engine';
+import { CHAMBERS, HERO_COPY, TEXT_MODE_CORRIDOR, TEXT_MODE_SCENE } from '@tqw/engine';
 import {
   PUBLIC_ROUTES,
   sitemapForChambers,
@@ -107,6 +107,15 @@ describe('public route discoverability', () => {
     expect(credits).toMatch(/<h2>Software:<\/h2>/);
     expect(credits).toMatch(/<h2>Third-party assets<\/h2>/);
     expect(credits).toContain('<a href="/third-party-notices.txt">The full licence texts for everything bundled</a>');
+  });
+
+  it('carries the new-rooms notice in the readable home page, and names no maker in it', () => {
+    expect(HERO_COPY.newRooms).toBe('New rooms available');
+    expect(staticHtmlForPath('/')).toContain(`<p>${HERO_COPY.newRooms}</p>`);
+    expect(markdownForPath('/')).toContain(HERO_COPY.newRooms);
+    const llms = readFileSync(new URL('../public/llms.txt', import.meta.url), 'utf8');
+    const notice = llms.split('\n').find((line) => line.startsWith('New rooms available')) ?? '';
+    expect(notice).toBe('New rooms available: The Tomorrow Engine and The Exchange.');
   });
 
   it('keeps agent-facing copy passive and limits its links to UNHELD and public GitHub', () => {

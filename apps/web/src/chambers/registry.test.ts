@@ -23,4 +23,13 @@ describe('chamber release flags', () => {
     if (!room) throw new Error('Tomorrow Engine must load in production');
     await expect(room).resolves.toHaveProperty('default');
   });
+
+  it('opens the Exchange in production and development', async () => {
+    expect(isChamberOpenInBuild('exchange', false)).toBe(true);
+    expect(isChamberOpenInBuild('exchange', true)).toBe(true);
+    const room = preloadChamber('exchange', false);
+    expect(room).not.toBeNull();
+    if (!room) throw new Error('The Exchange must load in production');
+    await expect(room).resolves.toHaveProperty('default');
+  });
 });

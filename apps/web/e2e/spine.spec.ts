@@ -65,7 +65,7 @@ test.describe('corridor doors', () => {
       'The Apartment, not yet open',
       'The Tomorrow Engine, open the door',
       'The Great Atrium, not yet open',
-      'The Exchange, not yet open',
+      'The Exchange, open the door',
       'The Outline Room, not yet open',
     ]);
   });

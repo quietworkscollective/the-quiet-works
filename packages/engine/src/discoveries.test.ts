@@ -66,7 +66,7 @@ describe('a fresh store', () => {
   it('starts empty, with a count for every open chamber and none for sealed ones', () => {
     const store = createDiscoveryStore(memoryStorage());
     expect(store.getState()).toEqual({ version: 1, found: {}, recognitions: [] });
-    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open').map((chamber) => ({
+    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open' && chamber.id !== 'exchange').map((chamber) => ({
       chamber: chamber.id,
       papers: { found: 0, total: chamber.findings.papers },
       secrets: { found: 0, total: chamber.findings.secrets },
@@ -281,7 +281,7 @@ describe('counts', () => {
     store.record(OFFICE, secret(1));
     store.record(OFFICE, { id: 'the-fifth', kind: 'payoff' });
     store.record(OFFICE, { id: 'a-line', kind: 'line' });
-    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open').map((chamber) => ({
+    expect(store.counts()).toEqual(CHAMBERS.filter((chamber) => chamber.status === 'open' && chamber.id !== 'exchange').map((chamber) => ({
       chamber: chamber.id,
       papers: { found: chamber.id === OFFICE ? 3 : 0, total: chamber.findings.papers },
       secrets: { found: chamber.id === OFFICE ? 1 : 0, total: chamber.findings.secrets },
@@ -303,7 +303,7 @@ describe('counts', () => {
     const store = createDiscoveryStore(null);
     store.record(SEALED, memo(1));
     expect(store.counts().map((c) => c.chamber)).toEqual(
-      CHAMBERS.filter((c) => c.status === 'open').map((c) => c.id),
+      CHAMBERS.filter((c) => c.status === 'open' && c.id !== 'exchange').map((c) => c.id),
     );
     expect(store.getState().found[SEALED]).toEqual([memo(1)]);
   });

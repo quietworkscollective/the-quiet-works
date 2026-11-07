@@ -49,7 +49,7 @@ test('the invitation leads, with the open-door count beside it and one quieter c
   expect(arrangement.enterBg).toBe('rgb(238, 234, 225)');
   expect(arrangement.enterBorder).toBe('1px');
   expect(arrangement.enterTop).toBeGreaterThanOrEqual(arrangement.taglineBottom + 24);
-  expect(arrangement.detailText).toBe('2 doors open');
+  expect(arrangement.detailText).toBe('3 doors open·New rooms available');
   expect(Math.abs(arrangement.detailCenterY - arrangement.enterCenterY)).toBeLessThanOrEqual(8);
   expect(arrangement.detailCenterX).toBeGreaterThan(arrangement.enterCenterX);
   expect(arrangement.cueText).toBe('Scroll to The Quiet Works');

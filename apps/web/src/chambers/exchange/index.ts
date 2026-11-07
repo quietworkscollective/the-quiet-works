@@ -1,1 +1,3 @@
-export { default } from './ExchangeChamber.tsx';
+import ExchangeChamber from './ExchangeChamber.tsx';
+
+export default ExchangeChamber;

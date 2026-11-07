@@ -6,11 +6,12 @@ import { runnerImport } from 'vite';
 const { module: { ABOUT, CHAMBERS, PRIVACY } } = await runnerImport(new URL('../../../packages/engine/src/index.ts', import.meta.url).pathname, { configFile: false, root: new URL('..', import.meta.url).pathname });
 const base = process.env.TQW_CRAWL_URL ?? 'http://127.0.0.1:4190';
 const agents = ['OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'PerplexityBot', 'Googlebot', 'Bingbot'];
+const routes = ['/', '/certification-office', '/tomorrow-engine', '/the-exchange'];
 function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/([\w:-]+)=["']([^"']*)["']/g)].map(match => [match[1], match[2]]));
 }
 for (const agent of agents) {
-  for (const route of ['/', '/certification-office', '/tomorrow-engine']) {
+  for (const route of routes) {
     const url = new URL(route, base);
     const html = await new Promise((resolve, reject) => {
       const request = (url.protocol === 'https:' ? https : http).get(url, { headers: { 'User-Agent': agent } }, response => {
@@ -39,4 +40,4 @@ for (const agent of agents) {
     console.log(`PASS ${agent} ${route}: readable body and link preview`);
   }
 }
-console.log('check:crawl passed: 7 user agents × 2 routes.');
+console.log(`check:crawl passed: ${agents.length} user agents × ${routes.length} routes.`);

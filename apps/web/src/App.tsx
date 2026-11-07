@@ -682,10 +682,11 @@ export function App() {
     <SiteMenu variant={variant} onOpenBoard={openBoard} onOpenPage={openPage} onOpenMenu={openMenu} sound={soundControl} />
   );
 
-  // Quiet details from this visit only: the doors that are open, and what this visitor has found.
+  // Quiet details: the doors that are open, the temporary new-rooms notice, and what this visit found.
   const doorsOpen = VISIBLE_CHAMBERS.filter((c) => c.status === 'open').length;
   const details = [
     ...(doorsOpen > 0 ? [doorsOpen === 1 ? HERO_COPY.doorsOne : fillCopy(HERO_COPY.doorsMany, { n: doorsOpen })] : []),
+    HERO_COPY.newRooms,
     ...(session.count > 0
       ? [session.count === 1 ? HERO_COPY.discoveriesOne : fillCopy(HERO_COPY.discoveriesMany, { n: session.count })]
       : []),

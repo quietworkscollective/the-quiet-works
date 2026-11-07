@@ -6,7 +6,7 @@ describe('public chamber routes', () => {
     expect(parseRoute(path, () => true)).toMatchObject({ kind: 'chamber' });
   });
 
-  it.each(['/the-exchange', '/outline-room'])('%s is not found in production until its room is approved', (path) => {
+  it.each(['/the-exchange', '/outline-room'])('%s is not found when the build keeps its room closed', (path) => {
     expect(parseRoute(path, () => false)).toEqual({ kind: 'page', page: 'not-found' });
   });
 });

@@ -4,7 +4,7 @@ import { openMenu } from './helpers.ts';
 // Text mode exercises the app's DOM contracts without coupling them to a rendering backend.
 test.describe('deterministic app navigation', { tag: '@fast' }, () => {
   test('unreleased direct URLs keep their production not-found contract', async ({ page }) => {
-    for (const slug of ['apartment', 'great-atrium', 'the-exchange', 'outline-room']) {
+    for (const slug of ['apartment', 'great-atrium', 'outline-room']) {
       const scripts: string[] = [];
       const record = (request: import('@playwright/test').Request) => {
         if (request.resourceType() === 'script') scripts.push(new URL(request.url()).pathname);

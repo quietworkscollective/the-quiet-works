@@ -3,7 +3,7 @@ import { CHAMBERS } from '@tqw/engine';
 import { site } from './helpers.ts';
 
 // This literal release contract must change deliberately when another room is released.
-const released = new Set(['certification-office', 'tomorrow-engine']);
+const released = new Set(['certification-office', 'tomorrow-engine', 'exchange']);
 
 for (const chamber of CHAMBERS) {
   test(`production route /${chamber.slug} keeps its release and Menu return contract`, async ({ page }) => {
