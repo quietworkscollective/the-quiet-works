@@ -141,17 +141,26 @@ export class Bucket {
   }
 }
 
-/** Planar UV by the dominant normal axis, in metres. */
-function planarUv(p: Vec3, n: Vec3, rule: UvRule | undefined): Vec2 {
+/**
+ * Two normal components closer than this count as equal when choosing the projection axis. A 45°
+ * bevel has two equal components, and JavaScript engines may round the normalised values a bit
+ * apart (JavaScriptCore and V8 do), so a strict comparison would project the same face along
+ * different axes in Safari and Chrome. The baked lighting identifies meshes by their UVs, so that
+ * difference alone made Safari reject the corridor's bake.
+ */
+const AXIS_TIE = 1e-6;
+
+/** Planar UV by the dominant normal axis, in metres; near-ties go to x, then y. */
+export function planarUv(p: Vec3, n: Vec3, rule: UvRule | undefined): Vec2 {
   const ax = Math.abs(n[0]);
   const ay = Math.abs(n[1]);
   const az = Math.abs(n[2]);
   let u: number;
   let v: number;
-  if (ax >= ay && ax >= az) {
+  if (ax + AXIS_TIE >= ay && ax + AXIS_TIE >= az) {
     u = p[2];
     v = p[1];
-  } else if (ay >= az) {
+  } else if (ay + AXIS_TIE >= az) {
     u = p[0];
     v = p[2];
   } else {

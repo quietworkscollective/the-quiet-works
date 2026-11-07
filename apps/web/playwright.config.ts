@@ -63,7 +63,7 @@ export default defineConfig({
     },
     {
       name: 'webkit-iphone',
-      testMatch: /(?:luna-exit|production-chamber-return)\.spec\.ts/,
+      testMatch: /(?:luna-exit|production-chamber-return|webkit-bake)\.spec\.ts/,
       use: { ...devices['iPhone 14'], browserName: 'webkit', baseURL: webkitURL, launchOptions: { args: [] } },
     },
     {
