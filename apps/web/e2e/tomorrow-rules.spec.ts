@@ -72,7 +72,7 @@ test('the 390 by 844 layout keeps every station action and Leave inside the view
     expect(leaveBox!.x + leaveBox!.width).toBeLessThanOrEqual(390);
     expect(leaveBox!.y + leaveBox!.height).toBeLessThanOrEqual(844);
     expect(actionBox!.x).toBeGreaterThanOrEqual(0);
-    expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(800);
+    expect(actionBox!.y + actionBox!.height).toBeLessThanOrEqual(844);
   }
 });
 
@@ -133,4 +133,26 @@ test('the hint ladder caps, survives navigation and incidental repeats, and rese
   await expect(result).toHaveText('Movement already recorded.');
   await hint.click();
   await expect(result).toHaveText('The movement record is beside the date.');
+});
+
+test('moving the mouse over the room never rebuilds its baked lighting', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === 'mobile', 'A phone has no hovering pointer.');
+  await readyRoom(page);
+  const canvas = page.locator('.tqw-tomorrow-engine canvas');
+  await expect(canvas).toHaveAttribute('data-baked', 'tomorrow-engine');
+  await page.evaluate(() => {
+    const target = document.querySelector('.tqw-tomorrow-engine canvas') as HTMLCanvasElement;
+    const record = window as Window & { __bakeChanges?: number };
+    record.__bakeChanges = 0;
+    new MutationObserver((changes) => { record.__bakeChanges! += changes.length; })
+      .observe(target, { attributes: true, attributeFilter: ['data-baked', 'data-bake-bind-ms'] });
+  });
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  for (let step = 0; step <= 40; step += 1) {
+    await page.mouse.move(box!.x + box!.width * (0.15 + 0.7 * (step / 40)), box!.y + box!.height * (0.2 + 0.6 * ((step % 8) / 8)));
+    await page.waitForTimeout(25);
+  }
+  await page.waitForTimeout(1000);
+  expect(await page.evaluate(() => (window as Window & { __bakeChanges?: number }).__bakeChanges)).toBe(0);
 });

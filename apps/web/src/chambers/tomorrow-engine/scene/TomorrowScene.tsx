@@ -350,6 +350,10 @@ function RoomModel({ props, onLoaded }: { props: TomorrowSceneProps; onLoaded():
 export function TomorrowScene(props: TomorrowSceneProps) {
   const [modelReady, setModelReady] = useState(false);
   const handleLoaded = useCallback(() => setModelReady(true), []);
+  // BakedSpace rebuilds the room's lighting whenever this callback changes, and hover re-renders the chamber.
+  const latestReady = useRef(props.onReady);
+  useEffect(() => { latestReady.current = props.onReady; }, [props.onReady]);
+  const handleBakeReady = useCallback(() => latestReady.current(), []);
   return <Canvas className="tqw-tomorrow-engine-canvas" aria-label={`View: ${stationById(props.station).label}`} tabIndex={-1} frameloop="demand" dpr={[1, 1.5]} camera={CAMERA}
     gl={{ antialias: true, alpha: false, powerPreference: 'low-power' }}
     onCreated={({ gl, scene }) => {
@@ -363,6 +367,6 @@ export function TomorrowScene(props: TomorrowSceneProps) {
     <pointLight position={[0, 2.22, 3.82]} color="#E8BD83" intensity={5} distance={2.8} decay={2} />
     <pointLight position={[0.92, 2.22, 3.82]} color="#D99E61" intensity={4.2} distance={2.5} decay={2} />
     <RoomModel props={props} onLoaded={handleLoaded} />
-    {modelReady ? <BakedSpace space="tomorrow-engine" onReady={props.onReady} /> : null}
+    {modelReady ? <BakedSpace space="tomorrow-engine" onReady={handleBakeReady} /> : null}
   </Canvas>;
 }

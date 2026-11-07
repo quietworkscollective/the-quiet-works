@@ -55,6 +55,10 @@ describe('phone framing', () => {
     }
   });
 
+  it('keeps the close camera when a tall phone gives the scene a squarer canvas', () => {
+    for (const station of STATIONS) expect(cameraForViewport(station, 430, 476)).toBe(station.compact);
+  });
+
   it('keeps the desktop camera on a wide desktop canvas', () => {
     for (const station of STATIONS) expect(cameraForViewport(station, 1035, 844)).toBe(station.desktop);
   });
