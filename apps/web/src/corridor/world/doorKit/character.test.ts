@@ -163,6 +163,25 @@ describe('what shows through a chipped door (issue #22)', () => {
     }
   });
 
+  it('a near-black finish wears to a sheen at the handle, not a pale disc ringed with chips', () => {
+    const lum = (c: readonly number[]) => 0.2126 * c[0]! + 0.7152 * c[1]! + 0.0722 * c[2]!;
+    const dark = all.filter((d) => lum(linear(d.spec.material.primary)) < 0.03);
+    expect(dark.map((d) => d.key).sort()).toEqual(['exchange', 'great-atrium']);
+    for (const d of dark) {
+      const plan = planDoor(d.spec).character!;
+      const polish = plan.wear.find((w) => w.kind === 'hand-polish')!;
+      const [hx, hy] = polish.centre;
+      // The polish may lift the finish, not turn it pale: at most twice the lacquer's own luminance.
+      expect(lum(polish.colour), d.key).toBeLessThanOrEqual(2 * lum(linear(d.spec.material.primary)));
+      // Hand wear does not chip through a kept dark finish: no chips in the reach around the handle
+      // (thin strips down the leaf's own edge are edge wear, not hand wear).
+      const atHandle = plan.chips.filter((c) => c.cell !== 'edge0' && c.leaf === polish.leaf && Math.abs(c.centre[0] - hx) <= 0.1 && Math.abs(c.centre[1] - hy) <= 0.21);
+      expect(atHandle, d.key).toHaveLength(0);
+      // Nor does it flake or pit across the face: a kept lacquer door wears only at its edges.
+      expect(plan.chips.filter((c) => c.cell !== 'edge0'), d.key).toHaveLength(0);
+    }
+  });
+
   it('gives the Office, the Tomorrow Engine and the Great Atrium three different finishes', () => {
     const hue = (id: 'certification-office' | 'tomorrow-engine' | 'great-atrium') => CHAMBER_MODULES[id].door.material.primary.toLowerCase();
     const finishes = new Set([hue('certification-office'), hue('tomorrow-engine'), hue('great-atrium')]);
