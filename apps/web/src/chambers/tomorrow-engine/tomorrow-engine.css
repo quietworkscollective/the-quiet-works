@@ -16,16 +16,22 @@
 }
 
 .tqw-game__window:has(.tqw-tomorrow-engine) .tqw-game__mode { display: none; }
+/* The script's Leave is the room's sole exit (§4, B1): the site strip's own exits stand down here. */
+.tqw-game__window:has(.tqw-tomorrow-engine) .tqw-game__leave,
+.tqw-game__window:has(.tqw-tomorrow-engine) .tqw-game__tool--return { display: none; }
 
 .tqw-tomorrow-engine button {
   min-width: 44px;
   min-height: 44px;
-  border: 1px solid var(--te-edge);
+  /* Controls are set in the site's UI face, quietly bordered (issue #22); monospace is kept for the
+     machine's own lettering in the scene, not the buttons that operate it. */
+  border: 1px solid color-mix(in srgb, var(--te-edge) 55%, transparent);
   border-radius: 2px;
   padding: 0.42rem 0.58rem;
   color: var(--te-ink);
-  background: #211911;
-  font: 600 0.8rem/1.18 var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  background: color-mix(in srgb, #211911 78%, transparent);
+  font: 500 0.875rem/1.2 var(--font-public, "IBM Plex Sans", system-ui, sans-serif);
+  letter-spacing: 0.01em;
   cursor: pointer;
 }
 

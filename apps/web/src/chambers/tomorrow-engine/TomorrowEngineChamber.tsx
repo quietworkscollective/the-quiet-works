@@ -34,6 +34,11 @@ type ReaderPanel = { kind: 'archive' } | { kind: 'document'; key: DocumentKey; t
 type StationAction = { action: TomorrowAction; enabled: boolean; reason?: string };
 type EarlyFeedback = { action: TomorrowAction; sequence: number };
 
+/**
+ * A cue sits above the point it names. Near the top of the frame that put it over the room's own sign,
+ * so it never rises above the sign band (issue #22).
+ */
+const CUE_MIN_TOP_PERCENT = 22;
 const EMPTY_DISCOVERY_STATE: DiscoveryState = { version: 1, found: {}, recognitions: [] };
 const EMPTY_SUBSCRIBE = () => () => {};
 const stableEmptySnapshot = () => EMPTY_DISCOVERY_STATE;
@@ -489,7 +494,7 @@ export default function TomorrowEngineChamber(props: ChamberProps) {
         </Suspense>
       </SceneBoundary>}
       {cue && !textMode ? <button type="button" className="tqw-tomorrow-cue" data-room-cue={cue.action}
-        style={{ left: `${Math.max(4, Math.min(96, cue.x))}%`, top: `${Math.max(8, Math.min(88, cue.y))}%` }}
+        style={{ left: `${Math.max(4, Math.min(96, cue.x))}%`, top: `${Math.max(CUE_MIN_TOP_PERCENT, Math.min(88, cue.y))}%` }}
         onPointerLeave={() => setCue(null)} onFocus={() => undefined} onClick={() => performAction(cue.action)}>
         {ACTION_LABELS[cue.action]}
       </button> : null}

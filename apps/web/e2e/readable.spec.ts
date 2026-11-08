@@ -50,7 +50,7 @@ for (const [route, heading] of routes) {
     const canonical = `https://unheld.space${route}`;
     expect.soft(html).toContain(`href="${canonical}"`);
     for (const tag of ['title', 'description', 'url', 'type', 'site_name', 'image']) expect.soft(html).toContain(`property="og:${tag}"`);
-    expect.soft(html).toContain('https://unheld.space/share-unheld-1200x630.png');
+    expect.soft(html).toContain('https://unheld.space/share-unheld-1200x630.jpg');
     expect.soft(html).toContain('property="og:image:width" content="1200"');
     expect.soft(html).toContain('property="og:image:height" content="630"');
     expect.soft(html).toContain('name="twitter:card" content="summary_large_image"');
@@ -82,8 +82,9 @@ test('sitemap dates, route titles and share image dimensions', { tag: '@fast' },
     descriptions.add(html.match(/name="description"[^>]*content="([^"]+)"/)?.[1] ?? '');
   }
   expect(titles.size).toBe(routes.length);
-  expect([...descriptions]).toEqual([introduction]);
-  await page.goto('/share-unheld-1200x630.png');
+  // Every route describes itself (issue #22): no two routes share a description.
+  expect(descriptions.size).toBe(routes.length);
+  await page.goto('/share-unheld-1200x630.jpg');
   expect(await page.locator('img').evaluate((img: HTMLImageElement) => [img.naturalWidth, img.naturalHeight])).toEqual([1200, 630]);
 });
 

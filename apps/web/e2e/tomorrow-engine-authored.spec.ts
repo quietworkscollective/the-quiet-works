@@ -31,7 +31,8 @@ test('captures each fixed station and sweeps for magenta pixels within the room 
     const returnToCorridor = page.locator('.tqw-game__tool--return');
     await expect(leave).toBeVisible();
     await expect(leave).toHaveAttribute('title', 'Return to the corridor');
-    await expect(returnToCorridor).toBeVisible();
+    await expect(returnToCorridor).toBeHidden();
+    await expect(page.locator('.tqw-game__leave')).toBeHidden();
     await expect(page.locator('canvas')).toHaveAttribute('data-camera-station', station.id);
     const result = await page.evaluate(() => {
       const room = window.__tqwTomorrowEngine;

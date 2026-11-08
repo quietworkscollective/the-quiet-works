@@ -118,7 +118,7 @@
   }
 }
 
-/* Holding the page while the game window is engaged hides the scrollbar: its gutter stays, so nothing shifts. */
+/* Resting, the gutter is reserved so the page never shifts. Engaged, App releases it with the scrollbar. */
 html {
   scrollbar-gutter: stable;
 }
@@ -1091,29 +1091,40 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Leave is the one control that must read as a boundary: words, a key and a border, not a colour. */
+/*
+ * Leave sits last, at the right, as quiet text like the other tools (issue #22): the scene, not an
+ * exit, leads the strip. It keeps its words and its Escape shortcut; the key is shown on keyboard
+ * focus, where it helps.
+ */
 .tqw-game__leave {
   display: inline-flex;
   align-items: center;
   gap: 0.5ch;
   min-height: 44px;
-  padding: 0 1rem;
-  border: 1px solid rgba(238, 233, 223, 0.4);
-  background: rgba(23, 25, 24, 0.6);
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
   font-size: var(--page-control-size);
   white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
 }
 
 .tqw-game__key {
+  display: none;
   color: var(--muted);
+}
+
+.tqw-game__leave:focus-visible .tqw-game__key {
+  display: inline;
 }
 
 .tqw-game__location {
   margin: 0;
-  font-family: var(--font-public);
-  font-size: var(--page-meta-size);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  font-variant-caps: all-small-caps;
   line-height: var(--page-meta-leading);
-  letter-spacing: 0;
+  letter-spacing: 0.08em;
   color: var(--bone);
   text-shadow: 0 1px 8px rgba(23, 25, 24, 0.9);
 }
@@ -1144,7 +1155,8 @@ html {
   gap: 1rem;
   padding: env(safe-area-inset-top, 0px) max(24px, env(safe-area-inset-right, 0px)) 0
     max(24px, env(safe-area-inset-left, 0px));
-  background: var(--menu-surface);
+  /* A shade over the scene rather than a band: the world runs to the top edge (issue #22). */
+  background: linear-gradient(to bottom, rgba(23, 25, 24, 0.78), rgba(23, 25, 24, 0.42) 70%, rgba(23, 25, 24, 0));
 }
 
 .tqw-game__window[data-engaged='true'] .tqw-game__where,
@@ -1192,10 +1204,10 @@ html {
 }
 
 @media (hover: hover) {
-  .tqw-game__enter-button:hover,
-  .tqw-game__leave:hover {
+  .tqw-game__enter-button:hover {
     border-color: var(--amber);
   }
+  .tqw-game__leave:hover,
   .tqw-game__tool:hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
@@ -1249,7 +1261,7 @@ html {
   .tqw-game__window[data-engaged='true'] .tqw-game__leave {
     flex: none;
     min-height: 44px;
-    padding-inline: 0.625rem;
+    padding-inline: 0.5rem;
     font-size: 0.9375rem;
   }
   .tqw-game__window[data-engaged='true'] .tqw-game__tools {
@@ -1440,7 +1452,7 @@ html {
 }
 
 .tqw-doors--overlay .tqw-door__status {
-  font-family: var(--font-mono);
+  font-family: var(--font-public);
   font-size: 0.75rem;
   line-height: 1.2;
   letter-spacing: 0.1em;
@@ -1507,7 +1519,7 @@ html {
 }
 
 .tqw-doors--list .tqw-door__status {
-  font-family: var(--font-mono);
+  font-family: var(--font-public);
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;

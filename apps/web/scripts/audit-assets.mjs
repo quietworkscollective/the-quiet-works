@@ -101,7 +101,7 @@ const URL_ALLOWLIST = [
   { url: 'https://unheld.space/skill.md', reason: 'Public agent onboarding context linked from the Agents page and Markdown pages; navigation only.' },
   { url: 'https://unheld.space/?mode=text', reason: 'Link to the visitor-facing text mode from Markdown pages and agent onboarding; navigation only.' },
   { url: 'https://unheld.space/sitemap.xml', reason: 'Public sitemap address in robots.txt; metadata only, not fetched by the site.' },
-  { url: 'https://unheld.space/share-unheld-1200x630.png', reason: 'Static 1200 × 630 Open Graph and X card derived from the shipped hero poster; not fetched by app code.' },
+  { url: 'https://unheld.space/share-unheld-1200x630.jpg', reason: 'Static 1200 × 630 Open Graph and X card derived from the shipped hero poster; not fetched by app code.' },
   { url: 'https://unheld.space/third-party-notices.txt', reason: 'Full bundled software licences linked from the Licences reading page; navigation only.' },
   { url: 'https://unheld.space/#website', reason: 'Schema.org JSON-LD identifier for the website; metadata only, not fetched by the site.' },
   { url: 'https://unheld.space/#the-quiet-works', reason: 'Schema.org JSON-LD identifier for the artwork; metadata only, not fetched by the site.' },
@@ -186,8 +186,13 @@ for (const file of ROUTE_HTML.filter(existsSync)) {
   const canonical = new URL(location);
   if (canonical.origin !== 'https://unheld.space') throw new Error('Unexpected canonical origin');
   const markdown = canonical.pathname === '/' ? '/index.md' : `${canonical.pathname}.md`;
-  for (const url of [location, `${location}#webpage`, new URL(markdown, canonical).toString()]) URL_ALLOWLIST.push({ url, reason: 'Built public reading route; navigation only.' });
+  for (const url of [location, `${location}#webpage`, `${location}#room`, new URL(markdown, canonical).toString()]) URL_ALLOWLIST.push({ url, reason: 'Built public reading route; navigation only.' });
 }
+// Structured-data identifiers and the licence the JSON-LD names: never fetched.
+URL_ALLOWLIST.push(
+  { url: 'https://unheld.space/#unheld', reason: 'JSON-LD @id for the work; an identifier, never fetched.' },
+  { url: 'https://creativecommons.org/licenses/by/4.0/', reason: 'JSON-LD licence (CC BY 4.0); an identifier, never fetched.' },
+);
 
 const ALLOWED_URLS = new Map(URL_ALLOWLIST.map(({ url, reason }) => [url, reason]));
 for (const { url, reason } of URL_ALLOWLIST) {

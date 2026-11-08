@@ -15,6 +15,8 @@ import {
 } from './src/discoverability.ts';
 import { chambersForBuild, REPO_ROOT } from './scripts/chamber-release.mjs';
 import { SITE } from './src/site.ts';
+import { NOT_FOUND } from '@tqw/engine';
+import { publicChambers } from '../../packages/ui/src/spine/chamberCopy.ts';
 import react from '@vitejs/plugin-react';
 
 /**
@@ -176,6 +178,7 @@ function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType
   output = setContent(output, 'og-url', metadata.canonical);
   output = setContent(output, 'og-image', metadata.image);
   output = setContent(output, 'og-image-alt', metadata.imageAlt);
+  output = setContent(output, 'robots', metadata.robots);
   output = setContent(output, 'twitter-title', metadata.title);
   output = setContent(output, 'twitter-description', metadata.description);
   output = setContent(output, 'twitter-image', metadata.image);
@@ -185,6 +188,17 @@ function replaceRouteMarkup(html: string, pathname: string, chambers: ReturnType
     output = output.replace(/\s*<script\b(?=[^>]*\btype="module")[^>]*><\/script>/, '');
   }
   return officeStartupMarkup(output, pathname);
+}
+
+/** The 404 document: the app shell with not-found copy, no canonical address, and noindex. */
+function notFoundMarkup(html: string): string {
+  const title = `${NOT_FOUND.title} — ${SITE.name}`;
+  return html
+    .replace(/(<title[^>]*data-route-title[^>]*>).*?(<\/title>)/s, `$1${escapeAttribute(title)}$2`)
+    .replace(/(<meta[^>]*data-route-robots[^>]*\bcontent=")[^"]*(")/, '$1noindex, follow$2')
+    .replace(/\s*<link rel="canonical"[^>]*>/, '')
+    .replace(/<main id="static-content"[^>]*>.*?<\/main>/s,
+      `<main id="static-content" class="tqw-static-content"><article><h1>${escapeAttribute(NOT_FOUND.title)}</h1>${NOT_FOUND.body.map(line => `<p>${escapeAttribute(line)}</p>`).join('')}<p><a href="/">Return to UNHELD</a></p></article></main>`);
 }
 
 /** The agent index links only to UNHELD pages and public GitHub; other citations remain plain labels. */
@@ -250,14 +264,23 @@ function staticRoutePages(chambers: ReturnType<typeof chambersForBuild>, develop
           });
         }
 
+        // Unknown addresses get a real 404 (wrangler not_found_handling: 404-page). The page boots the
+        // same app, which shows its not-found page, and is kept out of search indexes.
+        this.emitFile({ type: 'asset', fileName: '404.html', source: notFoundMarkup(baseHtml) });
         this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapForChambers(chambers) });
-        const statusByTitle = new Map(chambers.map(room => [room.title, room.status]));
+        // Rooms are listed from this build's release state: open rooms with their doors, closed ones by name only.
+        const rooms = publicChambers(chambers, production);
+        const openRooms = rooms.filter(room => room.status === 'open')
+          .map(room => `- [${room.title}](https://unheld.space/${room.slug}.md): ${room.doorDescription}`).join('\n');
+        // One line per closed room, each saying it is not yet open (check-sealed-production reads them).
+        const closed = rooms.filter(room => room.status !== 'open');
+        const closedRooms = closed.length === 0
+          ? 'Every door in the corridor is open.'
+          : closed.map(room => `- ${room.title}: a closed door in the corridor, not yet open.`).join('\n');
         const discoveryText = (name: string) => readFileSync(fileURLToPath(new URL(`./public/${name}`, import.meta.url)), 'utf8')
           .replaceAll('%UNHELD_DESCRIPTION%', UNHELD_DESCRIPTION)
-          .replace(/^- \[([^\]]+)\]\(([^)]+)\)$/gm, (line, title: string, href: string) => {
-            const status = statusByTitle.get(title);
-            return status ? `- [${title}, ${status === 'open' ? 'open the door' : 'not yet open'}](${href})` : line;
-          });
+          .replaceAll('%OPEN_ROOMS%', openRooms)
+          .replaceAll('%CLOSED_ROOMS%', closedRooms);
         const skill = discoveryText('skill.md');
         for (const name of ['llms.txt', 'skill.md']) this.emitFile({ type: 'asset', fileName: name, source: discoveryText(name) });
         const fullText = [

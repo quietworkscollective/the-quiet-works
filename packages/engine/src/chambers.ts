@@ -86,7 +86,7 @@ export const CHAMBERS: readonly ChamberEntry[] = [
       dek: '',
       dateline: 'Notice No. 002 · Plant and Machinery',
     },
-    doorDescription: 'The engine room opens from the corridor. Leave returns to the corridor.',
+    doorDescription: 'A riveted green steel door with a valve wheel and the plate TOMORROW ENGINE · PLANT ROOM.',
     findings: { papers: 0, secrets: 0 },
   },
   {

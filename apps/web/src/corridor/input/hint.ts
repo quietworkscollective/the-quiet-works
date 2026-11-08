@@ -32,6 +32,9 @@ export interface FirstHintOptions {
 
 export const HINT_LIFETIME_MS = 12_000;
 
+/** Walking faster than this (metres per second) counts as the visitor's first move, and closes the hint. */
+export const HINT_WALK_MPS = 0.1;
+
 export function createFirstHint(options: FirstHintOptions): FirstHint {
   const visit = options.visit ?? pageVisit;
   const lifetime = options.lifetimeMs ?? HINT_LIFETIME_MS;

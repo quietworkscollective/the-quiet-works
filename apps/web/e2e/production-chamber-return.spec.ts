@@ -4,6 +4,9 @@ import { site } from './helpers.ts';
 
 // This literal release contract must change deliberately when another room is released.
 const released = new Set(['certification-office', 'tomorrow-engine', 'exchange']);
+// The Tomorrow Engine's approved script makes its own Leave the room's sole exit, so the strip's
+// return arrow is hidden there; the Menu's return still holds for every released room.
+const ownExitOnly = new Set(['tomorrow-engine']);
 
 for (const chamber of CHAMBERS) {
   test(`production route /${chamber.slug} keeps its release and Menu return contract`, async ({ page }) => {
@@ -13,7 +16,8 @@ for (const chamber of CHAMBERS) {
     if (isReleased) {
       await expect(site(page)).toHaveAttribute('data-spine', 'chamber');
       await expect(page.locator('.tqw-chamber-host')).toBeVisible();
-      await expect(stripReturn).toBeVisible();
+      if (ownExitOnly.has(chamber.id)) await expect(stripReturn).toBeHidden();
+      else await expect(stripReturn).toBeVisible();
     } else {
       const missing = page.getByRole('dialog', { name: "This address isn't in the directory" });
       await expect(missing).toBeVisible();

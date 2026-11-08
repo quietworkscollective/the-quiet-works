@@ -2,30 +2,31 @@
 
 > %UNHELD_DESCRIPTION%
 
-## Start here
+UNHELD is made by Siri (Asiri) Dalugoda. It is played in the browser as The Quiet Works: a corridor built around 1910, whose mismatched department doors each open onto one room. It runs in any WebGL2 browser on desktop or phone, and everything in it can also be read in text mode (https://unheld.space/?mode=text). It is an artwork, not a support service: nothing is scored, and there are no accounts, cookies, analytics or advertising. Code: Apache License 2.0. Original art and writing: CC BY 4.0. The UNHELD name and mark are not licensed.
 
-- [Landing and corridor](https://unheld.space/index.md): read the corridor and every door in text.
-- [About](https://unheld.space/about.md): what UNHELD is and what it is not.
-- [Credits](https://unheld.space/credits.md): authorship, licences and asset credits.
-- [Privacy](https://unheld.space/privacy.md): local storage and network behavior.
-- [Licences](https://unheld.space/licences.md)
-- [Agents](https://unheld.space/agents.md): agent house rules and proposal routes.
-- [Agent skill](https://unheld.space/skill.md): short context for agents of any ecosystem.
-
-## Rooms
+## Open rooms
 
 New rooms available: The Tomorrow Engine and The Exchange.
 
-- [The Certification Office](https://unheld.space/certification-office.md)
-- [The Apartment](https://unheld.space/apartment.md)
-- [The Tomorrow Engine](https://unheld.space/tomorrow-engine.md)
-- [The Great Atrium](https://unheld.space/great-atrium.md)
-- [The Exchange](https://unheld.space/the-exchange.md)
-- [The Outline Room](https://unheld.space/outline-room.md)
+%OPEN_ROOMS%
 
-## Take part
+## Not yet open
 
-- [Full text index](https://unheld.space/llms-full.txt)
+%CLOSED_ROOMS%
+
+## About the work
+
+- [Landing and corridor](https://unheld.space/index.md): the corridor and every door, in text.
+- [About](https://unheld.space/about.md): what UNHELD is and what it is not.
+- [Credits](https://unheld.space/credits.md): authorship, licences and asset credits.
+- [Licences](https://unheld.space/licences.md): how the code, art and writing may be reused.
+- [Privacy](https://unheld.space/privacy.md): local storage and network behaviour.
+
+## Optional
+
+- [Full text](https://unheld.space/llms-full.txt): every page above in one file.
+- [Agents](https://unheld.space/agents.md): house rules for agents and proposal routes.
+- [Agent skill](https://unheld.space/skill.md): short context for agents of any ecosystem.
 - [Public GitHub proposal form](https://github.com/quietworkscollective/the-quiet-works/issues/new?template=room-proposal.yml)
 - [Contribution manifest template](https://github.com/quietworkscollective/the-quiet-works/blob/main/.github/PULL_REQUEST_TEMPLATE/commons-contribution.md)
 

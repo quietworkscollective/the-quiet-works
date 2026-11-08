@@ -77,7 +77,7 @@
     },
     {
       "name": "UNHELD share card",
-      "pattern": "^share-unheld-1200x630\\.png$",
+      "pattern": "^share-unheld-1200x630\\.jpg$",
       "source": "in-repo",
       "licence": "CC-BY-4.0",
       "licenceFile": "../../LICENSES/CC-BY-4.0.txt",

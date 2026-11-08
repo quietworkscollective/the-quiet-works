@@ -67,7 +67,10 @@ test('the corridor return appears only on the current open room across every cha
     const isOpen = chamber.status === 'open';
     await spineIs(page, isOpen ? 'chamber' : 'corridor');
     const stripReturn = page.getByRole('button', { name: 'Return to the corridor' });
-    if (isOpen) await expect(stripReturn).toBeVisible();
+    // The Tomorrow Engine's approved script makes its own Leave the room's sole exit, so the strip's
+    // return is hidden there; the Menu's return below still holds for every open room.
+    if (isOpen && chamber.id === 'tomorrow-engine') await expect(stripReturn).toBeHidden();
+    else if (isOpen) await expect(stripReturn).toBeVisible();
     else {
       await expect(page.locator('.tqw-chamber-host')).toHaveCount(0);
       await expect(stripReturn).toHaveCount(0);

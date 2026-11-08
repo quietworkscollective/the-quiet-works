@@ -30,7 +30,7 @@ test('every public route has server HTML, canonical metadata and structured data
     expect(html, route).toContain('property="og:image"');
     expect(html, route).toContain('name="twitter:card"');
     expect(html, route).toContain('application/ld+json');
-    expect(html, route).toContain('https://unheld.space/share-unheld-1200x630.png');
+    expect(html, route).toContain('https://unheld.space/share-unheld-1200x630.jpg');
     expect(html.match(/<meta[^>]*property="og:url"[^>]*content="([^"]+)"/)?.[1], route).toBe(canonical);
 
     const jsonLd = html.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s)?.[1];

@@ -242,6 +242,21 @@ test.describe('cues', () => {
     await expect(page.getByText(CORRIDOR_PROPS.firstHint)).toBeVisible({ timeout: 15_000 });
   });
 
+  // Guards issue #22: the hint stayed up while the visitor walked, over the building's sign.
+  test('the first step closes the first hint, and it sits low, clear of the sign', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'walks with the keyboard');
+    await toStartView(page);
+    const hint = page.getByText(CORRIDOR_PROPS.firstHint);
+    await expect(hint).toBeVisible({ timeout: 15_000 });
+    const box = await page.locator('.tqw-hint').boundingBox();
+    const view = page.viewportSize()!;
+    expect(box!.y, 'the hint sits in the lower half of the view').toBeGreaterThan(view.height / 2);
+    await engage(page);
+    await page.keyboard.down('KeyW');
+    await expect(hint).toHaveCount(0, { timeout: 10_000 });
+    await page.keyboard.up('KeyW');
+  });
+
   test('a click on the board glides to it first, then opens the notice board; the verb is a button once framed', async ({
     page,
     isMobile,

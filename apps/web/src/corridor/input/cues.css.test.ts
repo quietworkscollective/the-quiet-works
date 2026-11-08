@@ -33,9 +33,10 @@ describe('"Places and actions" takes no room until it has focus', () => {
 });
 
 describe('the verb label', () => {
-  it('is set in the condensed grotesk, in a 44 px target, at the tuned size, fading over the tuned times', () => {
+  it('is set in the site\'s one interface sans (issue #22), in a 44 px target, at the tuned size, fading over the tuned times', () => {
     const body = bodyOf('.tqw-cue');
-    expect(body).toMatch(/font-family:\s*'IBM Plex Sans Condensed'/);
+    expect(body).toMatch(/font-family:\s*var\(--font-public/);
+    expect(body).not.toMatch(/Plex Sans Condensed/);
     expect(body).toMatch(/min-height:\s*var\(--tqw-cue-target,\s*44px\)/);
     expect(body).toMatch(/font-size:\s*var\(--tqw-cue-font,\s*17px\)/);
     expect(body).toMatch(/var\(--tqw-cue-fade-in,\s*120ms\)/);

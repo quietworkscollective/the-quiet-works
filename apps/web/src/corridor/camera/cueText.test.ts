@@ -1,4 +1,6 @@
-import { CORRIDOR_PROPS } from '@tqw/engine';
+import { CHAMBERS, CORRIDOR_PROPS } from '@tqw/engine';
+import { doorLabel } from '@tqw/ui';
+import { isChamberOpenInBuild } from '../../chambers/registry.ts';
 import { describe, expect, it } from 'vitest';
 import { PROPS } from '../props.ts';
 import { readingOf } from '../world/props/reading.ts';
@@ -33,5 +35,18 @@ describe('the reader a prop opens', () => {
 describe('the verb on a cue', () => {
   it('is the prop’s drafted verb', () => {
     for (const spec of PROPS) expect(cueText({ kind: 'prop', id: spec.id })).toBe(CORRIDOR_PROPS.verbs[spec.id]);
+  });
+});
+
+describe('the label on a door cue', () => {
+  // Guards a real failure: the Apartment and the Outline Room are authored open but not released,
+  // and their hover cue said "open the door" under a plaque reading NOT YET OPEN.
+  it('follows the released status, as the door itself does, not the authored one', () => {
+    for (const chamber of CHAMBERS) {
+      const released = isChamberOpenInBuild(chamber.id, false);
+      expect(cueText({ kind: 'door', id: chamber.id }), chamber.id)
+        .toBe(released ? doorLabel(chamber.title, 'open') : CORRIDOR_PROPS.sealedDoor);
+    }
+    expect(CHAMBERS.some((chamber) => chamber.status === 'open' && !isChamberOpenInBuild(chamber.id, false))).toBe(true);
   });
 });
