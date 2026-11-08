@@ -20,6 +20,7 @@ import {
 import { hitVolumes, outlineNodes, pickHotspot } from './hotspots.ts';
 import { LINES, lineNumber, separateLamps, setGlow } from './lamps.ts';
 import { EXCHANGE_AMBIENCE, EXCHANGE_FORM_TONE, EXCHANGE_LAMP, EXCHANGE_LIGHTING, EXCHANGE_OPERATOR_GLOW } from './lighting.ts';
+import { dragGaze, gazeTarget, LEVEL_GAZE, type Gaze } from './gaze.ts';
 import { EXCHANGE_ROOM_LOOK } from './look.ts';
 import {
   EXCHANGE_MOTION_MS, LEVER_NIGHT_RADIANS, PLATE_OPEN_RADIANS, SET_CHANNELS, cardPulse, channelMs, cordPoseFor, drawerOffset, exchangeSetChannels,
@@ -77,10 +78,10 @@ function poseOf(view: ExchangeViewId): CameraPose {
   return { position, target };
 }
 
-function placeCamera(camera: PerspectiveCamera, pose: CameraPose, aspect: number): void {
+function placeCamera(camera: PerspectiveCamera, pose: CameraPose, aspect: number, gaze: Gaze = LEVEL_GAZE): void {
   camera.position.set(...pose.position);
   camera.up.set(0, 1, 0);
-  camera.lookAt(...pose.target);
+  camera.lookAt(...gazeTarget(pose.position, pose.target, gaze));
   camera.aspect = aspect;
   camera.fov = verticalFov(aspect);
   camera.updateProjectionMatrix();
@@ -313,7 +314,7 @@ function RoomLighting() {
   </>;
 }
 
-function CameraRig({ view, followingCord, reducedMotion, host }: Pick<ExchangeSceneProps, 'view' | 'followingCord' | 'reducedMotion'> & { host: RefObject<HTMLDivElement | null> }) {
+function CameraRig({ view, followingCord, reducedMotion, host, gaze }: Pick<ExchangeSceneProps, 'view' | 'followingCord' | 'reducedMotion'> & { host: RefObject<HTMLDivElement | null>; gaze: RefObject<Gaze> }) {
   const { camera, gl, invalidate, size } = useThree();
   const shown = useRef<CameraPose>(poseOf(view));
   const move = useRef<{ start: number; ms: number; at(t: number): CameraPose } | null>(null);
@@ -328,6 +329,8 @@ function CameraRig({ view, followingCord, reducedMotion, host }: Pick<ExchangeSc
       element.dataset['renderer'] = rendererName(gl.getContext());
     }
     if (previous.current !== view) {
+      // A new station starts level: a glance belongs to the station it was taken from.
+      gaze.current = LEVEL_GAZE;
       const to = poseOf(view);
       if (reducedMotion) {
         move.current = null;
@@ -344,18 +347,20 @@ function CameraRig({ view, followingCord, reducedMotion, host }: Pick<ExchangeSc
       }
       previous.current = view;
     }
-    if (!move.current) placeCamera(camera as PerspectiveCamera, shown.current, aspect);
+    if (!move.current) placeCamera(camera as PerspectiveCamera, shown.current, aspect, gaze.current);
     invalidate();
-  }, [aspect, camera, followingCord, gl, host, invalidate, reducedMotion, view]);
+  }, [aspect, camera, followingCord, gaze, gl, host, invalidate, reducedMotion, view]);
 
+  // Every drawn frame places the camera, so a drag that only asks for a frame turns the view.
   useFrame(() => {
     const active = move.current;
-    if (!active) return;
-    const progress = Math.min(1, (performance.now() - active.start) / active.ms);
-    shown.current = active.at(progress);
-    placeCamera(camera as PerspectiveCamera, shown.current, aspect);
-    if (progress >= 1) move.current = null;
-    else invalidate();
+    if (active) {
+      const progress = Math.min(1, (performance.now() - active.start) / active.ms);
+      shown.current = active.at(progress);
+      if (progress >= 1) move.current = null;
+      else invalidate();
+    }
+    placeCamera(camera as PerspectiveCamera, shown.current, aspect, gaze.current);
   });
   return null;
 }
@@ -417,7 +422,7 @@ function Outline({ model, nodes }: { model: Group | null; nodes: readonly string
   return <group ref={group} userData={{ bake: 'dynamic' }} />;
 }
 
-function Pointer({ scene: props, model, host }: { scene: ExchangeSceneProps; model: Group | null; host: RefObject<HTMLDivElement | null> }) {
+function Pointer({ scene: props, model, host, gaze }: { scene: ExchangeSceneProps; model: Group | null; host: RefObject<HTMLDivElement | null>; gaze: RefObject<Gaze> }) {
   const { camera, gl, invalidate } = useThree();
   const [lit, setLit] = useState<ExchangeHotspot | null>(null);
   const latest = useRef(props);
@@ -427,7 +432,7 @@ function Pointer({ scene: props, model, host }: { scene: ExchangeSceneProps; mod
     const surface = gl.domElement;
     const aim = { ray: new Raycaster(), at: new Vector2() };
     /** The press in progress: which pointer, where it went down, and what lay under it. */
-    let held: { pointer: number; x: number; y: number; hotspot: ExchangeHotspot | null } | null = null;
+    let held: { pointer: number; x: number; y: number; hotspot: ExchangeHotspot | null; from: Gaze; looking: boolean } | null = null;
 
     const under = ({ clientX, clientY }: PointerEvent): ExchangeHotspot | null => {
       const frame = surface.getBoundingClientRect();
@@ -447,16 +452,31 @@ function Pointer({ scene: props, model, host }: { scene: ExchangeSceneProps; mod
 
     const handlers: Partial<Record<'pointermove' | 'pointerdown' | 'pointerup' | 'pointercancel' | 'pointerleave', (event: PointerEvent) => void>> = {
       // Only a mouse hovers, and never while a press is under way.
-      pointermove: event => { if (event.pointerType === 'mouse' && held === null) light(under(event)); },
+      // A drag past the tap slop looks around; a mouse with no button down only hovers.
+      pointermove: event => {
+        if (held === null) {
+          if (event.pointerType === 'mouse') light(under(event));
+          return;
+        }
+        if (held.pointer !== event.pointerId) return;
+        const dx = event.clientX - held.x;
+        const dy = event.clientY - held.y;
+        if (!held.looking && Math.hypot(dx, dy) <= TAP_SLOP_PIXELS) return;
+        if (!held.looking) { held.looking = true; light(null); }
+        gaze.current = dragGaze(held.from, dx, dy);
+        if (host.current) host.current.dataset['gaze'] = `${gaze.current.yaw.toFixed(3)},${gaze.current.pitch.toFixed(3)}`;
+        invalidate();
+      },
       pointerdown: event => {
         if (event.button !== 0) return;
-        held = { pointer: event.pointerId, x: event.clientX, y: event.clientY, hotspot: under(event) };
+        held = { pointer: event.pointerId, x: event.clientX, y: event.clientY, hotspot: under(event), from: gaze.current, looking: false };
+        surface.setPointerCapture?.(event.pointerId);
         light(held.hotspot);
       },
       // A press is a tap only if it lifts where it went down; a slide answers nothing.
       pointerup: event => {
         if (held === null || held.pointer !== event.pointerId) return;
-        const tapped = Math.hypot(event.clientX - held.x, event.clientY - held.y) <= TAP_SLOP_PIXELS ? held.hotspot : null;
+        const tapped = !held.looking && Math.hypot(event.clientX - held.x, event.clientY - held.y) <= TAP_SLOP_PIXELS ? held.hotspot : null;
         held = null;
         if (event.pointerType !== 'mouse') light(null);
         if (tapped !== null) latest.current.onHotspot(tapped);
@@ -467,7 +487,7 @@ function Pointer({ scene: props, model, host }: { scene: ExchangeSceneProps; mod
     const wiring = new AbortController();
     for (const [type, handler] of Object.entries(handlers)) surface.addEventListener(type, handler as EventListener, { signal: wiring.signal });
     return () => wiring.abort();
-  }, [camera, gl, host]);
+  }, [camera, gaze, gl, host, invalidate]);
 
   const { view, state, focusedHotspot } = props;
   const outlined = lit ?? focusedHotspot ?? null;
@@ -562,6 +582,7 @@ export default function ExchangeScene(props: ExchangeSceneProps) {
   const [model, setModel] = useState<Group | null>(null);
   const [frameReady, setFrameReady] = useState(false);
   const host = useRef<HTMLDivElement>(null);
+  const gaze = useRef<Gaze>(LEVEL_GAZE);
   const latest = useRef(props);
   useEffect(() => { latest.current = props; });
   // BakedSpace rebinds the lightmaps whenever this callback changes, so it must stay one function.
@@ -575,13 +596,13 @@ export default function ExchangeScene(props: ExchangeSceneProps) {
   }, []);
 
   return <div ref={host} className="tqw-canvas tqw-exchange-canvas" data-ready={model !== null} data-frame-ready={frameReady}
-    style={{ position: 'absolute', inset: 0, touchAction: 'manipulation', userSelect: 'none' }}>
+    style={{ position: 'absolute', inset: 0, touchAction: 'none', userSelect: 'none' }}>
     <Canvas aria-label={`View: ${props.view}`} tabIndex={-1} frameloop="demand" dpr={[1, Math.min(window.devicePixelRatio || 1, 1.75)]} gl={GL} camera={CAMERA} onCreated={created}>
       <RoomLighting />
       <StageSet scene={props} model={model} onLoaded={setModel} />
       {model ? <BakedSpace space="exchange" onReady={baked} /> : null}
-      <CameraRig view={props.view} followingCord={props.followingCord} reducedMotion={props.reducedMotion} host={host} />
-      <Pointer scene={props} model={model} host={host} />
+      <CameraRig view={props.view} followingCord={props.followingCord} reducedMotion={props.reducedMotion} host={host} gaze={gaze} />
+      <Pointer scene={props} model={model} host={host} gaze={gaze} />
       <Diagnostics />
       <LookStack profile={EXCHANGE_ROOM_LOOK} reducedMotion={props.reducedMotion} lamps={EXCHANGE_AMBIENCE} />
     </Canvas>
