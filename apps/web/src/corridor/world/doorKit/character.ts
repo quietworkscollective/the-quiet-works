@@ -133,6 +133,9 @@ export function stencilSize(text: string, capM: number): readonly [number, numbe
 const BONE: Rgb = linear('#DDD5C8');
 const GRAPHITE: Rgb = linear('#1E2326');
 
+/** Below this linear luminance a finish reads as near-black lacquer. */
+const DARK_FINISH = 0.03;
+
 const luminance = (c: Rgb): number => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 
 /** Stencil paint: bone on a dark door, the door's own dark secondary (or graphite) on a light one. */
@@ -257,7 +260,11 @@ export function characterOf(spec: DoorSpec, geometry: { leaves: readonly LeafPla
     polished: { edge: 0.45, flake: 0.05, pits: 0.1, hand: 0.4 },
     neglected: { edge: 0.3, flake: 0.5, pits: 0.2, hand: 0 },
   };
-  const share = shares[ch.history];
+  // A near-black finish (linear luminance under 0.03) is kept lacquer: it wears only at its edges,
+  // with no flakes or pits across the face and no chips at the handle: light confetti reads at once.
+  const darkFinish = luminance(primary) < DARK_FINISH;
+  const usual = shares[ch.history];
+  const share = darkFinish ? { edge: usual.edge + usual.flake + usual.pits + usual.hand, flake: 0, pits: 0, hand: 0 } : usual;
   const outerEdges = leaves.map((leaf, i) => {
     const x0 = Math.min(leaf.x0, leaf.x1);
     const x1 = Math.max(leaf.x0, leaf.x1);
@@ -335,7 +342,10 @@ export function characterOf(spec: DoorSpec, geometry: { leaves: readonly LeafPla
   // ---- Wear: where hands and feet go ---------------------------------------------------------
   const wear: WearPart[] = [];
   const polishStrength = ch.history === 'polished' ? 1 : 0.7;
-  wear.push({ kind: 'hand-polish', leaf: main, cell: 'polish', centre: [hx, hy], size: [0.17, 0.17], rotDeg: 0, colour: mulRgb(mixRgb(primary, BONE, 0.35), polishStrength) });
+  // On a near-black finish, hands polish the lacquer to a sheen: a slight lift, not a pale disc
+  // (the bone mix made the Exchange's handle a pale blob 20 times brighter than its door).
+  const polish = darkFinish ? mulRgb(primary, 1.6) : mulRgb(mixRgb(primary, BONE, 0.35), polishStrength);
+  wear.push({ kind: 'hand-polish', leaf: main, cell: 'polish', centre: [hx, hy], size: [0.17, 0.17], rotDeg: 0, colour: polish });
   wear.push({ kind: 'hand-grime', leaf: main, cell: 'polish', centre: [hx + dir * -0.01, hy - 0.04], size: [0.26, 0.26], rotDeg: 0, colour: mulRgb(primary, 0.5) });
   for (const [i, leaf] of leaves.entries()) {
     const x0 = Math.min(leaf.x0, leaf.x1);
