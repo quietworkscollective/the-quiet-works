@@ -14,12 +14,14 @@ test('sitemap follows production release flags', { tag: '@fast' }, async ({ requ
   }
   expect(xml.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g)?.length).toBe(xml.match(/<loc>/g)?.length);
 });
-test('one approved description across public discovery surfaces', { tag: '@fast' }, async ({ request }) => {
+// Each route carries its own meta description; the approved description stays the work's own
+// description: on /about, in the work's structured data, and in the agent and README surfaces.
+test('the approved description describes the work on every public discovery surface', { tag: '@fast' }, async ({ request }) => {
+  expect(await (await request.get('/about')).text()).toMatch(new RegExp(`name="description"[^>]*content="${description}"`));
   for (const route of ['/', '/certification-office']) {
     const html = await (await request.get(route)).text();
-    expect(html).toMatch(new RegExp(`name="description"[^>]*content="${description}"`));
     const graph = JSON.parse(html.match(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s)![1]!)['@graph'];
-    for (const node of graph.filter((node: Record<string, unknown>) => node.description)) expect(node.description).toBe(description);
+    expect(graph.filter((node: Record<string, unknown>) => node.description === description), route).toHaveLength(1);
   }
   for (const route of ['/llms.txt', '/llms-full.txt', '/skill.md']) expect(await (await request.get(route)).text()).toContain(description);
   expect(readFileSync(new URL('../../../README.md', import.meta.url), 'utf8')).toContain(description);
