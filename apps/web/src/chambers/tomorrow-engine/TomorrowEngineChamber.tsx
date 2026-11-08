@@ -494,7 +494,9 @@ export default function TomorrowEngineChamber(props: ChamberProps) {
         </Suspense>
       </SceneBoundary>}
       {cue && !textMode ? <button type="button" className="tqw-tomorrow-cue" data-room-cue={cue.action}
-        style={{ left: `${Math.max(4, Math.min(96, cue.x))}%`, top: `${Math.max(CUE_MIN_TOP_PERCENT, Math.min(88, cue.y))}%` }}
+        // Anchored on the side away from the nearer edge, so the label stays inside the scene (issue #29).
+        style={{ left: `${Math.max(4, Math.min(96, cue.x))}%`, top: `${Math.max(CUE_MIN_TOP_PERCENT, Math.min(88, cue.y))}%`,
+          transform: `translate(${cue.x > 66 ? '-100%' : cue.x < 34 ? '0%' : '-50%'}, -110%)` }}
         onPointerLeave={() => setCue(null)} onFocus={() => undefined} onClick={() => performAction(cue.action)}>
         {ACTION_LABELS[cue.action]}
       </button> : null}

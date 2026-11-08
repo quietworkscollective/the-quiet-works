@@ -159,3 +159,37 @@ test('moving the mouse over the room never rebuilds its baked lighting', async (
   await page.waitForTimeout(1000);
   expect(await page.evaluate(() => (window as Window & { __bakeChanges?: number }).__bakeChanges)).toBe(0);
 });
+
+// Issue #29: a drag looks around from each station within a small arc. The arc's corners show only
+// the built stage, the drag never presses what lies under it, and a new station starts level.
+test('a drag looks around within the arc, shows only the built stage and presses nothing', async ({ page }) => {
+  test.setTimeout(240_000);
+  await readyRoom(page);
+  const canvas = page.locator('.tqw-tomorrow-engine canvas');
+  const room = page.locator('.tqw-tomorrow-engine');
+  const labels = { 'winding-control': 'Winding control', 'date-display': 'Date display', carriage: 'Carriage', 'service-hatch': 'Service hatch' } as const;
+  for (const station of STATIONS) {
+    await page.getByRole('button', { name: labels[station], exact: true }).click();
+    await expect(room).toHaveAttribute('data-station', station);
+    await expect.poll(async () => Number(await canvas.getAttribute('data-camera-yaw')), `${station} starts level`).toBe(0);
+    const phase = await room.getAttribute('data-phase');
+    const box = (await canvas.boundingBox())!;
+    for (const [sx, sy] of [[1, 1], [-1, -1], [1, -1], [-1, 1]] as const) {
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + sx * 400, y + sy * 400, { steps: 10 });
+      await page.mouse.up();
+      const yaw = Number(await canvas.getAttribute('data-camera-yaw'));
+      const pitch = Number(await canvas.getAttribute('data-camera-pitch'));
+      expect(Math.abs(yaw), `${station} yaw at the arc's edge`).toBeCloseTo(0.21, 2);
+      expect(Math.abs(pitch), `${station} pitch at the arc's edge`).toBeCloseTo(0.12, 2);
+      const magenta = await page.evaluate(() => window.__tqwTomorrowEngine!.clearAndCountMagenta());
+      expect(magenta, `${station} corner ${sx},${sy} shows only the built stage`).toBe(0);
+      expect(await room.getAttribute('data-phase'), `${station}: a drag presses nothing`).toBe(phase);
+    }
+  }
+  await page.getByRole('button', { name: 'Winding control', exact: true }).click();
+  await expect.poll(async () => Number(await canvas.getAttribute('data-camera-yaw')), 'a new station starts level').toBe(0);
+});
