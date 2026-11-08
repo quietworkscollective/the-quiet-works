@@ -116,7 +116,7 @@ test('the phone engagement strip covers the scene edge without wrapping', async 
     return {
       height: rect.height,
       top: rect.top,
-      background: style.backgroundColor,
+      background: style.backgroundImage,
       leaveWidth: leaveRect.width,
       leaveHeight: leaveRect.height,
       leaveWhiteSpace: getComputedStyle(leave).whiteSpace,
@@ -127,7 +127,8 @@ test('the phone engagement strip covers the scene edge without wrapping', async 
   });
   expect(Math.abs(state.top)).toBeLessThanOrEqual(1);
   expect(state.height).toBeGreaterThanOrEqual(56);
-  expect(state.background).toBe(MENU_BG);
+  // A shade over the scene, dark at the top edge, rather than a solid band (issue #22).
+  expect(state.background).toMatch(/^linear-gradient\(rgba\(23, 25, 24, 0\.78\)/);
   expect(state.leaveWidth).toBeGreaterThanOrEqual(44);
   expect(state.leaveHeight).toBeGreaterThanOrEqual(44);
   expect(state.leaveWhiteSpace).toBe('nowrap');
