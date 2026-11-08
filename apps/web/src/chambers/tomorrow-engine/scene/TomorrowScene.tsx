@@ -7,6 +7,7 @@ import { disposeResources } from '../../../assets/dispose.ts';
 import type { TomorrowEngineState, TomorrowAction } from '../state.ts';
 import { DEFAULT_STATION, cameraForViewport, stationById, type TomorrowStationId } from '../stage.ts';
 import modelUrl from '../assets/tomorrow-engine.glb.gz?url&inline';
+import { dragGaze, gazeTarget, LEVEL_GAZE, type Gaze, type GazeLimit } from '../../gaze.ts';
 
 const CAMERA = { position: [0, 1.35, 1] as [number, number, number], fov: 42, near: 0.08, far: 20 };
 
@@ -75,13 +76,22 @@ function targetAction(object: Object3D): TomorrowAction | null {
   return null;
 }
 
-function cameraPose(camera: PerspectiveCamera, station: TomorrowStationId, width: number, height: number, aspectWidth = width, aspectHeight = height): void {
+/**
+ * A drag looks around from a station (issue #29, a founder request that departs from the approved
+ * script's fixed cameras). Each view is built for a 60° sector, so the arc is small: about 12° either
+ * side and 7° up or down. Every mechanism keeps its button; nothing needs the drag.
+ */
+export const TOMORROW_GAZE_LIMIT: GazeLimit = { yaw: 0.21, pitch: 0.12 };
+/** A press that travels further than this, in pixels, is a look, not a press. */
+const DRAG_THRESHOLD_PX = 6;
+
+function cameraPose(camera: PerspectiveCamera, station: TomorrowStationId, width: number, height: number, gaze: Gaze = LEVEL_GAZE): void {
   const frame = cameraForViewport(stationById(station), width, height);
   camera.position.set(...frame.position);
   camera.up.set(0, 1, 0);
-  camera.lookAt(...frame.target);
+  camera.lookAt(...gazeTarget(frame.position, frame.target, gaze));
   camera.fov = frame.verticalFovDeg;
-  camera.aspect = aspectWidth / Math.max(1, aspectHeight);
+  camera.aspect = width / Math.max(1, height);
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld(true);
 }
@@ -110,6 +120,7 @@ function RoomModel({ props, onLoaded }: { props: TomorrowSceneProps; onLoaded():
   const [model, setModel] = useState<Group | null>(null);
   const handlers = useRef(props);
   const station = useRef<TomorrowStationId>(DEFAULT_STATION.id);
+  const gaze = useRef<Gaze>(LEVEL_GAZE);
   const readyRef = useRef(onLoaded);
   const previousPhase = useRef<TomorrowEngineState['phase']>(props.state.phase);
   const dateMotion = useRef<{ start: number } | null>(null);
@@ -132,18 +143,57 @@ function RoomModel({ props, onLoaded }: { props: TomorrowSceneProps; onLoaded():
 
   const applyPose = useCallback(() => {
     const rect = gl.domElement.getBoundingClientRect();
-    cameraPose(camera as PerspectiveCamera, station.current, rect.width, rect.height);
+    cameraPose(camera as PerspectiveCamera, station.current, rect.width, rect.height, gaze.current);
     gl.domElement.dataset['cameraZ'] = String(camera.position.z);
     gl.domElement.dataset['cameraStation'] = station.current;
-    gl.domElement.dataset['cameraYaw'] = '0';
-    gl.domElement.dataset['cameraPitch'] = '0';
+    gl.domElement.dataset['cameraYaw'] = gaze.current.yaw.toFixed(3);
+    gl.domElement.dataset['cameraPitch'] = gaze.current.pitch.toFixed(3);
     invalidate();
   }, [camera, gl, invalidate]);
 
   useLayoutEffect(() => {
     station.current = stationById(props.station).id;
+    gaze.current = LEVEL_GAZE;
     applyPose();
   }, [applyPose, props.station]);
+
+  // A drag on the scene turns the view within the arc; letting go leaves it there until the station changes.
+  useEffect(() => {
+    const surface = gl.domElement;
+    let held: { pointer: number; x: number; y: number; from: Gaze; looking: boolean } | null = null;
+    const down = (event: PointerEvent) => {
+      if (!event.isPrimary || event.button !== 0) return;
+      held = { pointer: event.pointerId, x: event.clientX, y: event.clientY, from: gaze.current, looking: false };
+    };
+    const move = (event: PointerEvent) => {
+      if (held === null || held.pointer !== event.pointerId) return;
+      const dx = event.clientX - held.x;
+      const dy = event.clientY - held.y;
+      if (!held.looking && Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+      if (!held.looking) {
+        held.looking = true;
+        surface.setPointerCapture?.(event.pointerId);
+        handlers.current.onTarget(null);
+      }
+      gaze.current = dragGaze(held.from, dx, dy, TOMORROW_GAZE_LIMIT);
+      applyPose();
+    };
+    const up = (event: PointerEvent) => {
+      if (held === null || held.pointer !== event.pointerId) return;
+      if (held.looking) surface.releasePointerCapture?.(event.pointerId);
+      held = null;
+    };
+    surface.addEventListener('pointerdown', down);
+    surface.addEventListener('pointermove', move);
+    surface.addEventListener('pointerup', up);
+    surface.addEventListener('pointercancel', up);
+    return () => {
+      surface.removeEventListener('pointerdown', down);
+      surface.removeEventListener('pointermove', move);
+      surface.removeEventListener('pointerup', up);
+      surface.removeEventListener('pointercancel', up);
+    };
+  }, [applyPose, gl]);
 
   useLayoutEffect(() => {
     if (!model) return;
@@ -332,6 +382,8 @@ function RoomModel({ props, onLoaded }: { props: TomorrowSceneProps; onLoaded():
   };
   const onPointerOut = () => handlers.current.onTarget(null);
   const onClick = (event: ThreeEvent<MouseEvent>) => {
+    // The end of a look is not a press on whatever lies under the pointer.
+    if (event.delta > DRAG_THRESHOLD_PX) return;
     const action = targetAction(event.object);
     if (!action) return;
     handlers.current.onObject(action);

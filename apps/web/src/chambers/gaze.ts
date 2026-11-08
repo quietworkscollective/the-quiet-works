@@ -1,9 +1,11 @@
-import type { StagePoint } from '../stage.ts';
+/** A point in a room's stage, metres. */
+export type StagePoint = readonly [x: number, y: number, z: number];
 
 /**
  * Looking around from a station: a drag turns the camera within a small arc about its fixed
  * position, so a visitor can glance along the board or down at the desk without leaving the
- * script's views. Yaw is a turn to the left about world up; pitch is a tilt upward.
+ * script's views. Yaw is a turn to the left about world up; pitch is a tilt upward. Shared by the
+ * rooms with fixed stations (the Exchange, the Tomorrow Engine); each room sets its own arc.
  */
 export interface Gaze {
   readonly yaw: number;
@@ -12,8 +14,13 @@ export interface Gaze {
 
 export const LEVEL_GAZE: Gaze = { yaw: 0, pitch: 0 };
 
+export interface GazeLimit {
+  readonly yaw: number;
+  readonly pitch: number;
+}
+
 /** About 20° either side and 10° up or down: enough to look, never enough to lose the station. */
-export const GAZE_LIMIT = { yaw: 0.35, pitch: 0.18 } as const;
+export const GAZE_LIMIT: GazeLimit = { yaw: 0.35, pitch: 0.18 };
 
 /** A full-width drag on a phone (about 390 px) sweeps the whole arc. */
 export const GAZE_RADIANS_PER_PIXEL = 0.0018;
@@ -21,10 +28,10 @@ export const GAZE_RADIANS_PER_PIXEL = 0.0018;
 const clamp = (value: number, limit: number) => Math.max(-limit, Math.min(limit, value));
 
 /** The gaze after dragging `dx`, `dy` pixels from `start`: the view follows the finger. */
-export function dragGaze(start: Gaze, dx: number, dy: number): Gaze {
+export function dragGaze(start: Gaze, dx: number, dy: number, limit: GazeLimit = GAZE_LIMIT): Gaze {
   return {
-    yaw: clamp(start.yaw + dx * GAZE_RADIANS_PER_PIXEL, GAZE_LIMIT.yaw),
-    pitch: clamp(start.pitch + dy * GAZE_RADIANS_PER_PIXEL, GAZE_LIMIT.pitch),
+    yaw: clamp(start.yaw + dx * GAZE_RADIANS_PER_PIXEL, limit.yaw),
+    pitch: clamp(start.pitch + dy * GAZE_RADIANS_PER_PIXEL, limit.pitch),
   };
 }
 

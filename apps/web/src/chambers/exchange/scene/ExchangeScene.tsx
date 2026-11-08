@@ -20,7 +20,7 @@ import {
 import { hitVolumes, outlineNodes, pickHotspot } from './hotspots.ts';
 import { LINES, lineNumber, separateLamps, setGlow } from './lamps.ts';
 import { EXCHANGE_AMBIENCE, EXCHANGE_FORM_TONE, EXCHANGE_LAMP, EXCHANGE_LIGHTING, EXCHANGE_OPERATOR_GLOW } from './lighting.ts';
-import { dragGaze, gazeTarget, LEVEL_GAZE, type Gaze } from './gaze.ts';
+import { dragGaze, gazeTarget, LEVEL_GAZE, type Gaze } from '../../gaze.ts';
 import { EXCHANGE_ROOM_LOOK } from './look.ts';
 import {
   EXCHANGE_MOTION_MS, LEVER_NIGHT_RADIANS, PLATE_OPEN_RADIANS, SET_CHANNELS, cardPulse, channelMs, cordPoseFor, drawerOffset, exchangeSetChannels,
