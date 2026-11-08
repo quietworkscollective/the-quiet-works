@@ -14,7 +14,7 @@ const VIEW_ROUTE: Readonly<Record<ExchangeViewId, readonly string[]>> = {
   shelf: ['Ticket shelf'],
 };
 const VIEWS = Object.keys(VIEW_ROUTE) as ExchangeViewId[];
-// An iPhone 14's browser viewport (the screen less Safari's toolbars): the scene there is 390 × 184.
+// An iPhone 14's browser viewport (the screen less Safari's toolbars): the scene there is 390 × 328.
 const PHONE = { width: 390, height: 664 } as const;
 const LINES = Array.from({ length: 12 }, (_, index) => index + 1);
 const CERTIFICATION = 3;
@@ -95,7 +95,7 @@ test.describe('the board reads as one bright lamp among eleven dim', () => {
     await readyRoom(page);
     if (usesTouch(testInfo)) {
       const box = await canvas(page).boundingBox();
-      expect([box?.width, box?.height], 'the phone scene the clue must survive').toEqual([390, 184]);
+      expect([box?.width, box?.height], 'the phone scene the clue must survive').toEqual([390, 328]);
     }
     const day: Partial<Record<'wide' | 'jacks', number[]>> = {};
     for (const view of ['wide', 'jacks'] as const) {
@@ -250,6 +250,8 @@ for (const height of [844, 664] as const) {
           return control.getClientRects().length > 0;
         });
         const trouble = controls.flatMap(control => {
+          // A phone's station and action rows scroll sideways: each chip must come fully into view in its row.
+          if (control.closest('.tqw-exchange-stations, .tqw-exchange-actions')) control.scrollIntoView({ block: 'nearest', inline: 'nearest' });
           const box = control.getBoundingClientRect();
           const name = control.textContent ?? '';
           if (box.left < 0 || box.right > width || box.top < 0 || box.bottom > window.innerHeight) return [`${name} leaves the viewport`];

@@ -90,11 +90,13 @@ test('the Archive lists found titles only and contains no counters', async ({ pa
   expect(text, 'archive content must not expose found or unfound totals').not.toMatch(/\d+\s*(?:\/|of)\s*\d+|found\s*:\s*\d+|total\s*:\s*\d+/i);
 });
 
-// Guards a real failure: in phone browsers, whose toolbars leave far less than the script's 844 px,
-// the reserved reader squeezed the scene to 96 px and left an empty band under the primary.
-test('on a phone browser the scene keeps a usable frame, the closed reader takes no room, and the open reader leaves every control in place', async ({ page }) => {
+// Guards the founder's iPhone review (2026-11-08): the scene was a 96-184 px strip under a stack of
+// large grids, too small to touch, and every reader replaced it. The scene must now take most of a
+// phone browser's height, the controls fit one compact panel beneath it, and an open reader must
+// leave the upper part of the scene in view.
+test('on a phone browser the scene leads, the controls fit one compact panel, and an open reader leaves the scene in view', async ({ page }) => {
   const viewport = page.viewportSize()!;
-  test.skip(viewport.width > 799 || viewport.height >= 900, 'short phone layout only');
+  test.skip(viewport.width > 799, 'phone layout only');
   await readyRoom(page);
   const box = (selector: string) => page.locator(selector).first().boundingBox();
   const scene = (await box('.tqw-exchange-stage'))!;
@@ -102,14 +104,41 @@ test('on a phone browser the scene keeps a usable frame, the closed reader takes
   const stations = (await box('.tqw-exchange-stations'))!;
   const actions = (await box('.tqw-exchange-actions'))!;
   const credit = (await box('.tqw-exchange-credit'))!;
-  if (viewport.height >= 650) expect(scene.height, 'scene height').toBeGreaterThanOrEqual(160);
-  expect(stations.y - (primary.y + primary.height), 'gap above the stations').toBeLessThanOrEqual(104);
+  expect(scene.height / viewport.height, 'share of the height given to the scene').toBeGreaterThanOrEqual(0.45);
+  expect(actions.y + actions.height - primary.y, 'the whole control panel').toBeLessThanOrEqual(200);
+  for (const row of [stations, actions]) expect(row.height, 'one row of controls').toBeLessThanOrEqual(48);
   expect(credit.y, 'credit below the actions').toBeGreaterThanOrEqual(actions.y + actions.height);
   await page.locator('.tqw-exchange-primary').click();
   await expect(page.locator('.tqw-exchange-reader')).toBeVisible();
   const reader = (await box('.tqw-exchange-reader'))!;
-  expect(Math.round(reader.y)).toBe(Math.round(scene.y));
-  expect((await box('.tqw-exchange-stations'))!.y, 'stations stay put').toBe(stations.y);
+  expect(reader.y - scene.y, 'scene left in view above the open reader').toBeGreaterThanOrEqual(scene.height * 0.55);
+});
+
+// A drag in the scene looks around from the station, within a bounded arc, and a drag is never
+// taken for a tap. Before this, the scene answered taps only and the view could not be turned.
+test('a drag in the scene looks around within a bounded arc and does not tap', async ({ page }) => {
+  await readyRoom(page);
+  const stage = page.locator('.tqw-exchange-canvas');
+  const frame = (await stage.boundingBox())!;
+  const reader = await room(page).getAttribute('data-reader');
+  const drag = async (dx: number, dy: number) => {
+    const x = frame.x + frame.width / 2;
+    const y = frame.y + frame.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let step = 1; step <= 8; step += 1) await page.mouse.move(x + dx * step / 8, y + dy * step / 8);
+    await page.mouse.up();
+  };
+  await drag(120, 40);
+  const gaze = () => stage.getAttribute('data-gaze').then(value => (value ?? '0,0').split(',').map(Number));
+  const [yaw, pitch] = await gaze();
+  expect(yaw, 'turned by the drag').toBeGreaterThan(0.1);
+  expect(pitch, 'tilted by the drag').toBeGreaterThan(0.02);
+  await drag(4000, 4000);
+  const [farYaw, farPitch] = await gaze();
+  expect(farYaw, 'yaw stops at the arc').toBeLessThanOrEqual(0.35);
+  expect(farPitch, 'pitch stops at the arc').toBeLessThanOrEqual(0.18);
+  expect(await room(page).getAttribute('data-reader'), 'a drag opens nothing').toBe(reader);
 });
 
 test.describe('the fixed stage', () => {
@@ -142,7 +171,7 @@ test.describe('the fixed stage', () => {
     expect(errors).toEqual([]);
   });
 
-  test('keys and a drag leave the camera where the view put it', async ({ page }) => {
+  test('keys leave the camera where the view put it, and a drag only looks around from there', async ({ page }) => {
     test.setTimeout(180_000);
     await readyRoom(page);
     const canvas = page.locator('.tqw-exchange-canvas canvas');
@@ -161,7 +190,13 @@ test.describe('the fixed stage', () => {
       await page.mouse.down();
       await page.mouse.move(box!.x + box!.width * 0.7, box!.y + box!.height * 0.6, { steps: 8 });
       await page.mouse.up();
-      expect(await camera(page), `drag at ${view}`).toEqual(before);
+      // A drag turns the view in place (issue #27): the camera stays put and turns by a bounded angle.
+      const after = await camera(page);
+      expect(after.position, `drag at ${view} moves nothing`).toEqual(before.position);
+      const cos = after.direction.reduce((sum, v, i) => sum + v * before.direction[i]!, 0);
+      const turned = (Math.acos(Math.min(1, cos)) * 180) / Math.PI;
+      expect(turned, `drag at ${view} looks around`).toBeGreaterThan(1);
+      expect(turned, `drag at ${view} stays within the look limit`).toBeLessThanOrEqual(25);
       await expect(room(page)).toHaveAttribute('data-view', view);
     }
   });

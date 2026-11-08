@@ -294,7 +294,7 @@ for (const motion of ['no-preference', 'reduce'] as const) {
 }
 
 for (const [width, height] of [[390, 844], [390, 664]] as const) {
-  test(`the ${width} by ${height} layout shows one Leave and keeps every control inside the viewport`, async ({ page }) => {
+  test(`the ${width} by ${height} layout shows one Leave and brings every control fully into view`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await arrive(page, 'no-preference', '3d');
     await expect(page.locator('.tqw-game__mode')).toBeHidden();
@@ -303,6 +303,8 @@ for (const [width, height] of [[390, 844], [390, 664]] as const) {
     for (const view of VIEWS) {
       await goToView(page, view);
       for (const control of await page.locator('.tqw-exchange-actions button, .tqw-exchange-stations button').all()) {
+        // A phone's rows scroll sideways; each control must come fully into view within its row.
+        await control.scrollIntoViewIfNeeded();
         await expect(control, `control at ${view}`).toBeInViewport({ ratio: 1 });
       }
       await press(page, 'Archive');

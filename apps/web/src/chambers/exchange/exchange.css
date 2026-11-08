@@ -215,79 +215,113 @@
 }
 .tqw-exchange[data-mode='3d'] .tqw-exchange-lines:focus-within { clip-path: none; }
 
-/* A phone: strip, scene, then the regions at the script's offsets. The scene gives way before the
-   reader, and the bottom reserve absorbs the safe area. */
+/*
+ * A phone: the scene first. Founder review on an iPhone (2026-11-08) found the script's stacked
+ * grids left the room a strip of 96-184 px, made every object too small to touch, and had each
+ * reader replace the scene. Here the controls are one compact panel under the scene: the next
+ * action, its result, then the stations and the actions as two scrolling rows of 44 px chips. The
+ * scene takes the rest of the height, answers taps and a drag to look around, and an open reader
+ * rises over the scene's lower 45% only, so the room and every control stay in view.
+ */
 @media (max-width: 799px) {
   .tqw-exchange[data-mode='3d'] .tqw-exchange-stage,
   .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
-    --ex-reserve: max(44px, env(safe-area-inset-bottom, 0px));
-    --ex-reader: clamp(104px, calc(100cqh - var(--ex-chrome) - 480px - var(--ex-reserve)), 176px);
-    --ex-scene: max(96px, calc(100cqh - var(--ex-chrome) - 384px - var(--ex-reader) - var(--ex-reserve)));
+    --ex-strip: 52px;
+    --ex-reserve: max(36px, env(safe-area-inset-bottom, 0px));
+    --ex-panel: calc(192px + var(--ex-reserve));
+    --ex-scene: max(200px, calc(100cqh - var(--ex-chrome) - var(--ex-strip) - var(--ex-panel)));
   }
 
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-strip { left: 0; width: auto; }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-stage {
-    inset: calc(var(--ex-chrome) + 56px) 0 auto;
-    height: var(--ex-scene);
-  }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
-    top: calc(var(--ex-chrome) + 64px + var(--ex-scene));
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-strip {
     left: 0;
     width: auto;
+    height: 52px;
+    grid-template-columns: repeat(3, auto);
+    justify-content: start;
+    gap: 6px;
+    padding: 4px 8px;
   }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-frame { min-height: calc(424px + var(--ex-reserve)); }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-primary,
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-night { top: 0; }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-result { top: 64px; }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-ack { top: 120px; }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-reader { top: 152px; bottom: auto; height: var(--ex-reader); }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-stations { top: calc(160px + var(--ex-reader)); bottom: auto; }
-  .tqw-exchange[data-mode='3d'] .tqw-exchange-actions { top: calc(216px + var(--ex-reader)); bottom: auto; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-strip button { height: 44px; padding: 0 14px; font-size: 14px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-stage {
+    inset: calc(var(--ex-chrome) + var(--ex-strip)) 0 auto;
+    height: var(--ex-scene);
+    touch-action: none;
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
+    top: calc(var(--ex-chrome) + var(--ex-strip) + var(--ex-scene));
+    left: 0;
+    width: auto;
+    overflow: visible;
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-frame { height: var(--ex-panel); min-height: 0; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-frame > * { left: 12px; right: 12px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-primary { top: 8px; width: calc(100% - 24px); height: 44px; font-size: 16px; }
+  /* Night service takes the top of the panel only, the next action's and its result's place, so the
+     stations and actions below stay in reach: its notice beside Resume service in one 84 px band. */
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-night {
+    top: 8px;
+    height: 84px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 0 10px;
+    padding: 6px 8px;
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-night h2 { grid-column: 1; font-size: 14px; line-height: 18px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-night p { grid-column: 1; margin: 0; font-size: 13px; line-height: 17px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-night button { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: auto; height: 44px; padding: 0 14px; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-result { top: 56px; height: 36px; padding: 0; font-size: 14px; line-height: 18px; }
+  /* A finding's acknowledgement shows over the foot of the scene, where it does not move the panel. */
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-ack {
+    top: -32px;
+    height: 24px;
+    pointer-events: none;
+    font-size: 13px;
+    text-shadow: 0 1px 2px #000;
+  }
+  .tqw-exchange[data-mode='3d'] :is(.tqw-exchange-stations, .tqw-exchange-actions) {
+    display: flex;
+    gap: 6px;
+    height: 44px;
+    overflow: auto hidden;
+    /* A little room at each end, so a chip scrolled into view is never clipped by a fraction of a pixel. */
+    padding-inline: 2px;
+    scroll-padding-inline: 2px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .tqw-exchange[data-mode='3d'] :is(.tqw-exchange-stations, .tqw-exchange-actions)::-webkit-scrollbar { display: none; }
+  .tqw-exchange[data-mode='3d'] :is(.tqw-exchange-stations, .tqw-exchange-actions) button {
+    flex: none;
+    height: 44px;
+    padding: 0 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-stations { top: 96px; bottom: auto; }
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-actions { top: 144px; bottom: auto; }
+  /* An open reader rises over the scene's lower 45%, never over the panel, so Leave, Resume
+     service and every action stay where they were while it is open. */
+  .tqw-exchange[data-mode='3d'] .tqw-exchange-frame > .tqw-exchange-reader {
+    z-index: 4;
+    top: auto;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: calc(var(--ex-scene) * 0.45);
+    border-width: 1px 0;
+    box-shadow: 0 -12px 24px rgba(0, 0, 0, 0.45);
+  }
   .tqw-exchange[data-mode='3d'] .tqw-exchange-credit {
+    top: auto;
     bottom: 0;
     left: 8px;
     right: 8px;
     height: var(--ex-reserve);
-    font-size: 10px;
+    font-size: 9.5px;
     line-height: 11px;
-  }
-
-  /*
-   * Below the script's full height (its 390 × 844 layout under the site strip), a reserved reader
-   * squeezed the scene to its floor in real phone browsers, whose toolbars leave far less than 844 px.
-   * Here the closed reader takes no room, so the scene keeps it; an open reader covers the scene,
-   * so no control moves (the script reduces the scene before the reader). The credit keeps the
-   * bottom reserve under the actions.
-   */
-  @container (max-height: 899px) {
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-stage,
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail {
-      --ex-reserve: max(40px, env(safe-area-inset-bottom, 0px));
-      --ex-scene: max(96px, calc(100cqh - var(--ex-chrome) - 64px - 320px - var(--ex-reserve)));
-    }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-rail { overflow: visible; }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-frame { min-height: calc(320px + var(--ex-reserve)); }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-stations { top: 152px; }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-actions { top: 208px; }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-reader {
-      z-index: 4;
-      top: calc(-8px - var(--ex-scene));
-      left: 0;
-      right: 0;
-      height: var(--ex-scene);
-      padding: 0 16px;
-      box-sizing: border-box;
-      background: var(--ex-bg);
-    }
-    .tqw-exchange[data-mode='3d'] .tqw-exchange-credit {
-      top: 320px;
-      bottom: auto;
-      left: 8px;
-      right: 8px;
-      height: var(--ex-reserve);
-      font-size: 10px;
-      line-height: 11px;
-    }
   }
 }
 
